@@ -87,9 +87,9 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Test that calculate_order_taxes_via_taxjar hook is registered after init().
+	 * Test that the preserve_order_taxes_on_recalculation hook is registered after init().
 	 */
-	public function test_calculate_order_taxes_hook_registered_after_init() {
+	public function test_preserve_order_taxes_hook_registered_after_init() {
 		// Arrange: enable automated taxes option so init() does not bail early.
 		update_option( WC_Connect_TaxJar_Integration::OPTION_NAME, 'yes' );
 		update_option( 'woocommerce_calc_taxes', 'yes' );
@@ -99,7 +99,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// Assert.
 		$this->assertNotFalse(
-			has_action( 'woocommerce_order_before_calculate_taxes', array( $this->integration, 'calculate_order_taxes_via_taxjar' ) ),
+			has_action( 'woocommerce_order_before_calculate_taxes', array( $this->integration, 'preserve_order_taxes_on_recalculation' ) ),
 			'Hook woocommerce_order_before_calculate_taxes should be registered'
 		);
 
@@ -1172,126 +1172,108 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Test that calculate_order_taxes_via_taxjar skips when response_rate_ids already set (cart path ran).
+	 * Test that preserve_order_taxes_on_recalculation skips when the cart/checkout
+	 * flow already populated response_rate_ids.
 	 */
-	public function test_calculate_order_taxes_skips_when_response_rate_ids_populated() {
-		// Arrange: pre-populate response_rate_ids as the cart path would.
+	public function test_preserve_order_taxes_skips_when_response_rate_ids_populated() {
 		$this->set_private_property( 'response_rate_ids', array( 'product-key' => array( 1, 2 ) ) );
 
 		$order = $this->getMockBuilder( 'WC_Order' )
 			->disableOriginalConstructor()
 			->getMock();
 
-		// Assert: get_id() should never be called if gate triggers.
+		// The first gate returns before the order is inspected.
 		$order->expects( $this->never() )->method( 'get_id' );
 
-		// Act.
-		$this->integration->calculate_order_taxes_via_taxjar( array(), $order );
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
 	}
 
 	/**
-	 * Test that stale response_rate_ids from a previous order (batch context) are cleared
-	 * so each order in a batch gets its own TaxJar call.
+	 * Test that preserve_order_taxes_on_recalculation skips admin AJAX recalculations,
+	 * which are handled by calculate_backend_totals().
 	 */
-	public function test_calculate_order_taxes_clears_stale_order_state_in_batch() {
-		// Arrange: simulate state left over from a previous order in the same batch.
-		$this->set_private_property( 'response_rate_ids', array( 'old-product-key' => array( 99 ) ) );
-		$this->set_private_property( 'response_rate_ids_from_order', true );
+	public function test_preserve_order_taxes_skips_when_doing_ajax() {
+		// Use a filter instead of define() so the constant does not leak into other tests.
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		$this->set_private_property( 'response_rate_ids', array() );
 
-		// Use an order with ID 0 to short-circuit after the clear, keeping the test simple.
+		$order = $this->getMockBuilder( 'WC_Order' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'get_id' ) )
+			->getMock();
+
+		// The AJAX gate returns before the order id is inspected.
+		$order->expects( $this->never() )->method( 'get_id' );
+
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
+
+		remove_filter( 'wp_doing_ajax', '__return_true' );
+	}
+
+	/**
+	 * Test that preserve_order_taxes_on_recalculation skips a new order (id 0) and
+	 * does not register a restore callback.
+	 */
+	public function test_preserve_order_taxes_skips_when_order_id_is_zero() {
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'response_rate_ids', array() );
+
 		$order = $this->getMockBuilder( 'WC_Order' )
 			->disableOriginalConstructor()
 			->onlyMethods( array( 'get_id' ) )
 			->getMock();
 		$order->method( 'get_id' )->willReturn( 0 );
 
-		// Act.
-		$this->integration->calculate_order_taxes_via_taxjar( array(), $order );
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
 
-		// Assert: stale state was cleared before the new order was evaluated.
-		$prop = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_rate_ids' );
-		$prop->setAccessible( true );
-		$this->assertEmpty( $prop->getValue( $this->integration ) );
-
-		$flag_prop = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_rate_ids_from_order' );
-		$flag_prop->setAccessible( true );
-		$this->assertFalse( $flag_prop->getValue( $this->integration ) );
+		$this->assertFalse( has_action( 'woocommerce_order_after_calculate_totals' ) );
 	}
 
 	/**
-	 * Test that calculate_order_taxes_via_taxjar restores WC()->customer to its
-	 * previous value after the API call, preventing cross-order contamination.
+	 * Test that preserve_order_taxes_on_recalculation does not register a restore when
+	 * the order has no existing tax lines, so a first-time calculation runs normally.
 	 */
-	public function test_calculate_order_taxes_restores_wc_customer_after_call() {
-		$previous_customer = WC()->customer;
-
-		// Ensure WC()->customer is null so our code creates a temporary one.
-		WC()->customer = null;
+	public function test_preserve_order_taxes_skips_when_no_existing_tax_lines() {
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'response_rate_ids', array() );
 
 		$order = wc_create_order();
 
-		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
-			->disableOriginalConstructor()
-			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
-			->getMock();
-		$integration->method( 'calculate_tax' )->willReturn( false );
-		$integration->method( 'get_backend_line_items' )->willReturn( array() );
-		$integration->method( '_log' )->willReturn( null );
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
 
-		// Act.
-		$integration->calculate_order_taxes_via_taxjar( array(), $order );
+		$this->assertFalse(
+			has_action( 'woocommerce_order_after_calculate_totals' ),
+			'No restore should be registered for an order without existing tax lines.'
+		);
 
-		// Assert: WC()->customer is restored to null (its value before the call).
-		$this->assertNull( WC()->customer );
-
-		// Clean up.
-		WC()->customer = $previous_customer;
-		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
 		$order->delete( true );
 	}
 
 	/**
-	 * Test that calculate_order_taxes_via_taxjar skips when order ID is 0 (new order).
+	 * Test that preserve_order_taxes_on_recalculation registers a restore callback when
+	 * the order already has tax lines.
 	 */
-	public function test_calculate_order_taxes_skips_when_order_id_is_zero() {
-		// Arrange: response_rate_ids is empty (REST context).
+	public function test_preserve_order_taxes_registers_restore_when_order_has_taxes() {
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
 		$this->set_private_property( 'response_rate_ids', array() );
 
-		$order = $this->getMockBuilder( 'WC_Order' )
-			->disableOriginalConstructor()
-			->getMock();
-		$order->method( 'get_id' )->willReturn( 0 );
+		$order    = wc_create_order();
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_tax_total( '1.76' );
+		$order->add_item( $tax_item );
+		$order->save();
 
-		// Assert: get_shipping_country() should never be called if gate triggers.
-		$order->expects( $this->never() )->method( 'get_shipping_country' );
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
 
-		// Act.
-		$this->integration->calculate_order_taxes_via_taxjar( array(), $order );
-	}
+		$this->assertGreaterThan(
+			0,
+			has_action( 'woocommerce_order_after_calculate_totals' ),
+			'A restore should be registered for an order that already has tax lines.'
+		);
 
-	/**
-	 * Test that calculate_order_taxes_via_taxjar skips when wp_doing_ajax() is true.
-	 */
-	public function test_calculate_order_taxes_skips_when_doing_ajax() {
-		// Use a filter instead of define() — constants pollute the entire test run.
-		add_filter( 'wp_doing_ajax', '__return_true' );
-
-		// Arrange: response_rate_ids is empty so the first gate does not trigger.
-		$this->set_private_property( 'response_rate_ids', array() );
-
-		$order = $this->getMockBuilder( 'WC_Order' )
-			->disableOriginalConstructor()
-			->onlyMethods( array( 'get_id' ) )
-			->getMock();
-
-		// Assert: get_id() is never reached because the AJAX gate fires first.
-		$order->expects( $this->never() )->method( 'get_id' );
-
-		// Act.
-		$this->integration->calculate_order_taxes_via_taxjar( array(), $order );
-
-		// Clean up.
-		remove_filter( 'wp_doing_ajax', '__return_true' );
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$order->delete( true );
 	}
 
 	// -------------------------------------------------------------------------
@@ -1299,270 +1281,221 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * Test that snapshot_order_taxes captures existing tax lines and item taxes.
+	 * Test that snapshot_order_taxes captures the full tax-line metadata, per-item
+	 * taxes, and order-level tax totals.
 	 */
-	public function test_snapshot_order_taxes_captures_tax_state() {
-		// Create a real order with a tax line item.
+	public function test_snapshot_order_taxes_captures_full_tax_state() {
 		$order = wc_create_order();
 
-		// Add a tax line.
 		$tax_item = new WC_Order_Item_Tax();
 		$tax_item->set_rate_code( 'US-CA-TAX-1' );
 		$tax_item->set_rate_id( 6 );
 		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_rate_percent( 8.25 );
+		$tax_item->set_compound( false );
 		$tax_item->set_tax_total( '1.76' );
 		$tax_item->set_shipping_tax_total( '0.00' );
 		$order->add_item( $tax_item );
+		$order->set_cart_tax( '1.76' );
 		$order->save();
 
-		// Act.
 		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
 
-		// Assert structure.
 		$this->assertArrayHasKey( 'tax_lines', $snapshot );
 		$this->assertArrayHasKey( 'item_taxes', $snapshot );
+		$this->assertEquals( '1.76', $snapshot['cart_tax'] );
 		$this->assertCount( 1, $snapshot['tax_lines'] );
 
-		$saved_tax = reset( $snapshot['tax_lines'] );
-		$this->assertEquals( 6, $saved_tax['rate_id'] );
-		$this->assertEquals( '1.76', $saved_tax['tax_total'] );
-		$this->assertEquals( '0.00', $saved_tax['shipping_tax_total'] );
+		$saved = reset( $snapshot['tax_lines'] );
+		$this->assertEquals( 6, $saved['rate_id'] );
+		$this->assertEquals( 'US-CA-TAX-1', $saved['rate_code'] );
+		$this->assertEquals( 'CA Tax', $saved['label'] );
+		$this->assertEquals( 8.25, $saved['rate_percent'] );
+		$this->assertEquals( '1.76', $saved['tax_total'] );
 
-		// Clean up.
 		$order->delete( true );
 	}
 
 	/**
-	 * Test that restore_order_taxes re-adds tax lines removed from an order.
+	 * Test that restore_order_taxes re-adds tax lines with their full metadata and
+	 * keeps the order tax totals in sync.
 	 */
-	public function test_restore_order_taxes_restores_tax_lines() {
-		// Create a real order.
+	public function test_restore_order_taxes_restores_tax_lines_with_metadata() {
 		$order = wc_create_order();
 
-		// Add a tax line and save snapshot before wiping.
 		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_code( 'US-CA-TAX-1' );
 		$tax_item->set_rate_id( 6 );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_rate_percent( 8.25 );
 		$tax_item->set_tax_total( '1.76' );
 		$tax_item->set_shipping_tax_total( '0.00' );
 		$order->add_item( $tax_item );
+		$order->set_cart_tax( '1.76' );
+		$order->set_total( 1.76 );
 		$order->save();
 
 		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
 
-		// Simulate wipe: remove all tax items.
-		foreach ( $order->get_taxes() as $t ) {
-			$order->remove_item( $t->get_id() );
-		}
-		$order->save();
-		$this->assertCount( 0, $order->get_taxes() );
-
-		// Act: restore from snapshot.
-		$this->invoke_protected_method( 'restore_order_taxes', array( $order, $snapshot ) );
-
-		// Re-fetch order to confirm DB was updated.
-		$restored_order = wc_get_order( $order->get_id() );
-		$this->assertCount( 1, $restored_order->get_taxes() );
-
-		$taxes_list   = $restored_order->get_taxes();
-		$restored_tax = reset( $taxes_list );
-		$this->assertEquals( 6, $restored_tax->get_rate_id() );
-		$this->assertEquals( '1.76', $restored_tax->get_tax_total() );
-
-		// Clean up.
-		$order->delete( true );
-	}
-
-	// -------------------------------------------------------------------------
-	// calculate_order_taxes_via_taxjar() happy path tests
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Test happy path: calculate_order_taxes_via_taxjar calls TaxJar API
-	 * and sets response_rate_ids / response_line_items on success.
-	 */
-	public function test_calculate_order_taxes_happy_path_sets_response_properties() {
-		// Arrange: empty response_rate_ids (REST context, not cart).
-		$this->set_private_property( 'response_rate_ids', array() );
-
-		// Create a real order with a product line item.
-		$product = WC_Helper_Product::create_simple_product();
-		$product->save();
-
-		$order = wc_create_order();
-		$order->add_product( $product, 1 );
-		$order->set_shipping_country( 'US' );
-		$order->set_shipping_state( 'TX' );
-		$order->set_shipping_postcode( '78701' );
-		$order->set_shipping_city( 'Austin' );
-		$order->set_shipping_address_1( '123 Main St' );
-		$order->save();
-
-		// Mock calculate_tax() to return a fake successful response.
-		$fake_taxes = array(
-			'rate_ids'   => array( $product->get_id() . '-1' => array( 42 ) ),
-			'line_items' => array(
-				$product->get_id() . '-1' => (object) array(
-					'tax_collectable'   => 1.23,
-					'combined_tax_rate' => 0.0825,
-					'line_total'        => 18.00,
-				),
-			),
-		);
-
-		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
-			->disableOriginalConstructor()
-			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
-			->getMock();
-		$integration->method( 'get_backend_line_items' )->willReturn( array() );
-		$integration->method( 'calculate_tax' )->willReturn( $fake_taxes );
-		$integration->method( '_log' )->willReturn( null );
-
-		// Pre-set empty response_rate_ids on the mock.
-		$reflection = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_rate_ids' );
-		$reflection->setAccessible( true );
-		$reflection->setValue( $integration, array() );
-
-		// Need WC()->customer for calculate_tax guard.
-		if ( is_null( WC()->customer ) ) {
-			WC()->customer = new WC_Customer( $order->get_customer_id() );
-		}
-
-		// Act.
-		$integration->calculate_order_taxes_via_taxjar( array(), $order );
-
-		// Assert response properties were set.
-		$rate_ids = $reflection->getValue( $integration );
-		// After running, response_rate_ids should have been set (not empty from fake_taxes).
-		// We check via the mock that calculate_tax was called once.
-		// (response_rate_ids would be set to $fake_taxes['rate_ids']).
-		$response_rate_ids_prop = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_rate_ids' );
-		$response_rate_ids_prop->setAccessible( true );
-		$this->assertEquals( $fake_taxes['rate_ids'], $response_rate_ids_prop->getValue( $integration ) );
-
-		$response_line_items_prop = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_line_items' );
-		$response_line_items_prop->setAccessible( true );
-		$this->assertNotEmpty( $response_line_items_prop->getValue( $integration ) );
-
-		// Clean up.
-		WC_Helper_Product::delete_product( $product->get_id() );
-		$order->delete( true );
-	}
-
-	// -------------------------------------------------------------------------
-	// calculate_order_taxes_via_taxjar() failure fallback tests
-	// -------------------------------------------------------------------------
-
-	/**
-	 * Test that failure flag is set when TaxJar API fails.
-	 */
-	public function test_calculate_order_taxes_sets_failure_flag_on_api_error() {
-		$order       = wc_create_order();
-		$integration = $this->getMockBuilder( WC_Connect_TaxJar_Integration::class )
-			->disableOriginalConstructor()
-			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
-			->getMock();
-		$integration->method( 'calculate_tax' )->willReturn( false );
-		$integration->method( 'get_backend_line_items' )->willReturn( array() );
-		$integration->method( '_log' )->willReturn( null );
-
-		$integration->calculate_order_taxes_via_taxjar( array(), $order );
-
-		$prop = new ReflectionProperty( WC_Connect_TaxJar_Integration::class, 'taxjar_recalculation_failed' );
-		$prop->setAccessible( true );
-		$this->assertTrue( $prop->getValue( $integration ) );
-		$order->delete( true );
-	}
-
-	/**
-	 * Test that restore hook is registered when TaxJar API fails.
-	 */
-	public function test_calculate_order_taxes_registers_restore_hook_on_api_failure() {
-		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
-		$order       = wc_create_order();
-		$integration = $this->getMockBuilder( WC_Connect_TaxJar_Integration::class )
-			->disableOriginalConstructor()
-			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
-			->getMock();
-		$integration->method( 'calculate_tax' )->willReturn( false );
-		$integration->method( 'get_backend_line_items' )->willReturn( array() );
-		$integration->method( '_log' )->willReturn( null );
-
-		$integration->calculate_order_taxes_via_taxjar( array(), $order );
-
-		$this->assertGreaterThan( 0, has_action( 'woocommerce_order_after_calculate_totals' ) );
-		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
-		$order->delete( true );
-	}
-
-	/**
-	 * End-to-end test: when TaxJar API fails, original taxes are preserved.
-	 */
-	public function test_calculate_order_taxes_preserves_existing_taxes_on_api_failure() {
-		// Create order with a real tax line.
-		$product = WC_Helper_Product::create_simple_product();
-		$product->save();
-
-		$order = wc_create_order();
-		$order->add_product( $product, 1 );
-		$order->set_shipping_country( 'US' );
-		$order->set_shipping_state( 'TX' );
-		$order->set_shipping_postcode( '78701' );
-		$order->save();
-
-		// Add a TaxJar-style tax line.
-		$tax_item = new WC_Order_Item_Tax();
-		$tax_item->set_rate_id( 6 );
-		$tax_item->set_tax_total( '1.76' );
-		$tax_item->set_shipping_tax_total( '0.00' );
-		$order->add_item( $tax_item );
-		$order->save();
-
-		$this->assertCount( 1, $order->get_taxes() );
-
-		// Mock integration with failing API.
-		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
-			->disableOriginalConstructor()
-			->onlyMethods( array( 'calculate_tax', 'get_backend_line_items', '_log' ) )
-			->getMock();
-		$integration->method( 'calculate_tax' )->willReturn( false );
-		$integration->method( 'get_backend_line_items' )->willReturn( array() );
-		$integration->method( '_log' )->willReturn( null );
-
-		foreach ( array( 'response_rate_ids', 'taxjar_recalculation_failed', 'pre_recalculation_tax_snapshot' ) as $prop ) {
-			$r = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $prop );
-			$r->setAccessible( true );
-			$r->setValue( $integration, 'taxjar_recalculation_failed' === $prop ? false : array() );
-		}
-
-		if ( is_null( WC()->customer ) ) {
-			WC()->customer = new WC_Customer( $order->get_customer_id() );
-		}
-
-		// Simulate the full flow: run our hook, then wipe taxes (as WC would), then trigger after hook.
-		$integration->calculate_order_taxes_via_taxjar( array(), $order );
-
-		// Simulate WC wiping taxes (what update_taxes() does when no rates found).
+		// Simulate WC wiping the taxes for a changed address.
 		foreach ( $order->get_taxes() as $t ) {
 			$order->remove_item( $t->get_id() );
 		}
 		$order->set_cart_tax( 0 );
+		$order->set_total( 0 );
 		$order->save();
 		$this->assertCount( 0, $order->get_taxes() );
 
-		// Simulate woocommerce_order_after_calculate_totals firing.
-		do_action( 'woocommerce_order_after_calculate_totals', true, $order );
+		$this->invoke_protected_method( 'restore_order_taxes', array( $order, $snapshot ) );
 
-		// Assert: tax line was restored.
 		$restored = wc_get_order( $order->get_id() );
 		$this->assertCount( 1, $restored->get_taxes() );
-		$taxes_list   = $restored->get_taxes();
-		$restored_tax = reset( $taxes_list );
-		$this->assertEquals( 6, $restored_tax->get_rate_id() );
-		$this->assertEquals( '1.76', $restored_tax->get_tax_total() );
 
-		// Clean up.
+		$taxes = $restored->get_taxes();
+		$line  = reset( $taxes );
+		$this->assertEquals( 6, $line->get_rate_id() );
+		$this->assertEquals( 'US-CA-TAX-1', $line->get_rate_code() );
+		$this->assertEquals( 'CA Tax', $line->get_label() );
+		$this->assertEquals( '1.76', $line->get_tax_total() );
+		$this->assertEqualsWithDelta( 1.76, (float) $restored->get_total_tax(), 0.001 );
+
+		$order->delete( true );
+	}
+
+	// -------------------------------------------------------------------------
+	// End-to-end preservation test
+	// -------------------------------------------------------------------------
+
+	/**
+	 * End-to-end: a recalculation triggered by an address change on an existing order
+	 * preserves the recorded taxes instead of wiping them to zero, and rebases the
+	 * order total on the preserved tax.
+	 */
+	public function test_preserve_order_taxes_end_to_end_on_address_change() {
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
 		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
-		WC_Helper_Product::delete_product( $product->get_id() );
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->set_regular_price( '100' );
+		$this->product->save();
+
+		$order   = wc_create_order();
+		$item_id = $order->add_product( $this->product, 1 );
+		$order->set_shipping_country( 'US' );
+		$order->set_shipping_state( 'CA' );
+		$order->set_shipping_postcode( '90210' );
+
+		// Record a TaxJar-style tax of 8.25% on the line item and the order.
+		$line_item = $order->get_item( $item_id );
+		$line_item->set_taxes(
+			array(
+				'total'    => array( 6 => '8.25' ),
+				'subtotal' => array( 6 => '8.25' ),
+			)
+		);
+
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_rate_code( 'US-CA-TAX-1' );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_rate_percent( 8.25 );
+		$tax_item->set_tax_total( '8.25' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '8.25' );
+		$order->set_total( 108.25 );
+		$order->save();
+
+		$this->assertEqualsWithDelta( 8.25, (float) $order->get_total_tax(), 0.001 );
+
+		// Recalculate as a REST/programmatic update would after an address change.
+		add_action( 'woocommerce_order_before_calculate_taxes', array( $this->integration, 'preserve_order_taxes_on_recalculation' ), 10, 2 );
+		$order->set_shipping_postcode( '90211' );
+		$order->calculate_totals( true );
+
+		$reloaded = wc_get_order( $order->get_id() );
+
+		// The recorded tax is preserved rather than wiped to zero.
+		$this->assertEqualsWithDelta( 8.25, (float) $reloaded->get_total_tax(), 0.001, 'Recorded tax should be preserved.' );
+		$this->assertCount( 1, $reloaded->get_taxes(), 'The original tax line should be preserved.' );
+
+		$taxes    = $reloaded->get_taxes();
+		$restored = reset( $taxes );
+		$this->assertEquals( 'CA Tax', $restored->get_label(), 'Tax label should survive the recalculation.' );
+		$this->assertEquals( 6, $restored->get_rate_id() );
+
+		// The total reflects the preserved tax on top of the (unchanged) line total.
+		$this->assertEqualsWithDelta( 108.25, (float) $reloaded->get_total(), 0.01, 'Order total should include the preserved tax.' );
+
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$order->delete( true );
+	}
+
+	/**
+	 * End-to-end: when a recalculation also changes the shipping amount, the
+	 * preserved tax is rebased onto the new non-tax total (so the total reflects the
+	 * updated shipping while the recorded tax is kept).
+	 */
+	public function test_preserve_order_taxes_rebases_total_when_shipping_changes() {
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->set_regular_price( '100' );
+		$this->product->save();
+
+		$order   = wc_create_order();
+		$item_id = $order->add_product( $this->product, 1 );
+
+		$shipping = new WC_Order_Item_Shipping();
+		$shipping->set_method_title( 'Flat rate' );
+		$shipping->set_total( '10' );
+		$order->add_item( $shipping );
+
+		$order->set_shipping_country( 'US' );
+		$order->set_shipping_state( 'CA' );
+		$order->set_shipping_postcode( '90210' );
+
+		// Record 8.25% tax on the $100 product (shipping not taxed).
+		$line_item = $order->get_item( $item_id );
+		$line_item->set_taxes(
+			array(
+				'total'    => array( 6 => '8.25' ),
+				'subtotal' => array( 6 => '8.25' ),
+			)
+		);
+
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_tax_total( '8.25' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '8.25' );
+		$order->set_shipping_total( '10' );
+		$order->set_total( 118.25 );
+		$order->save();
+
+		// Recalculate with a changed shipping amount ($10 -> $25) and address.
+		add_action( 'woocommerce_order_before_calculate_taxes', array( $this->integration, 'preserve_order_taxes_on_recalculation' ), 10, 2 );
+		$order->set_shipping_postcode( '90211' );
+		foreach ( $order->get_shipping_methods() as $ship ) {
+			$ship->set_total( '25' );
+			$order->add_item( $ship );
+		}
+		$order->calculate_totals( true );
+
+		$reloaded = wc_get_order( $order->get_id() );
+
+		// Tax preserved, total rebased on the new $25 shipping: 100 + 25 + 8.25.
+		$this->assertEqualsWithDelta( 8.25, (float) $reloaded->get_total_tax(), 0.001, 'Recorded tax should be preserved.' );
+		$this->assertEqualsWithDelta( 133.25, (float) $reloaded->get_total(), 0.01, 'Total should use the new shipping amount plus the preserved tax.' );
+
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
 		$order->delete( true );
 	}
 
