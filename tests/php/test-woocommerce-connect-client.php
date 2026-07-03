@@ -247,4 +247,56 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$this->assertEquals( 2, did_action( 'wc_connect_shipping_zone_method_added' ) );
 	}
 
+	/**
+	 * When WooCommerce Blocks have not loaded yet, the Store API extension
+	 * registration is deferred to the `woocommerce_blocks_loaded` action rather
+	 * than run inline. On WooCommerce versions without the Store API that action
+	 * never fires, so the extension is skipped instead of fataling.
+	 *
+	 * @covers WC_Connect_Loader::maybe_extend_store_api
+	 */
+	public function test_maybe_extend_store_api_defers_until_blocks_loaded() {
+		$sut = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'is_store_api_loaded', 'extend_store_api' ) )
+			->getMock();
+
+		$sut->method( 'is_store_api_loaded' )->willReturn( false );
+		$sut->expects( $this->never() )->method( 'extend_store_api' );
+
+		remove_all_actions( 'woocommerce_blocks_loaded' );
+
+		$sut->maybe_extend_store_api();
+
+		$this->assertNotFalse(
+			has_action( 'woocommerce_blocks_loaded', array( $sut, 'extend_store_api' ) ),
+			'extend_store_api() should be hooked to woocommerce_blocks_loaded when Blocks are not loaded yet.'
+		);
+	}
+
+	/**
+	 * When WooCommerce Blocks have already loaded, the Store API extension is
+	 * registered immediately and not deferred.
+	 *
+	 * @covers WC_Connect_Loader::maybe_extend_store_api
+	 */
+	public function test_maybe_extend_store_api_runs_immediately_when_blocks_loaded() {
+		$sut = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'is_store_api_loaded', 'extend_store_api' ) )
+			->getMock();
+
+		$sut->method( 'is_store_api_loaded' )->willReturn( true );
+		$sut->expects( $this->once() )->method( 'extend_store_api' );
+
+		remove_all_actions( 'woocommerce_blocks_loaded' );
+
+		$sut->maybe_extend_store_api();
+
+		$this->assertFalse(
+			has_action( 'woocommerce_blocks_loaded', array( $sut, 'extend_store_api' ) ),
+			'extend_store_api() should not be deferred when Blocks are already loaded.'
+		);
+	}
+
 }
