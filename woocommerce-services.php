@@ -702,6 +702,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'woocommerce_blocks_loaded', array( $this, 'register_blocks_integration' ) );
+			add_action( 'woocommerce_blocks_loaded', array( $this, 'extend_store_api' ) );
 			add_action( 'before_woocommerce_init', array( $this, 'pre_wc_init' ) );
 		}
 
@@ -817,7 +818,6 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$this->service_settings_store->migrate_legacy_services();
 			$this->attach_hooks();
 			$this->init_store_notices();
-			$this->maybe_extend_store_api();
 		}
 
 		/**
@@ -976,36 +976,43 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Register the Store API extension once WooCommerce Blocks are available.
+		 * Extend the Store API when it is available.
 		 *
-		 * The Store API only exists on WooCommerce versions that ship the Blocks
-		 * package, which fires `woocommerce_blocks_loaded`. Deferring registration
-		 * to that action means the extension is never registered - and never fatals
-		 * on the missing StoreApi class - on WooCommerce versions too old to include
-		 * it. When Blocks have already loaded (the usual case) it registers inline.
+		 * Registered on `woocommerce_blocks_loaded` - the same hook the block
+		 * integration uses - because the Store API only exists once Blocks load and
+		 * our extension only surfaces notices in the block cart/checkout. On a
+		 * WooCommerce too old to ship Blocks the hook never fires, so nothing runs.
+		 *
+		 * The `class_exists()` guard covers the in-between case: WooCommerce versions
+		 * that ship Blocks (firing this hook) but predate the top-level
+		 * `Automattic\WooCommerce\StoreApi\StoreApi` class this plugin depends on.
+		 * Without the guard those versions would still fatal with `Class not found`.
 		 */
-		public function maybe_extend_store_api() {
-			if ( $this->is_store_api_loaded() ) {
-				$this->extend_store_api();
+		public function extend_store_api() {
+			if ( ! $this->is_store_api_available() ) {
+				wc_get_logger()->notice(
+					'StoreApi class not found. Store API extensions will not be registered.',
+					array( 'source' => 'woocommerce-services' )
+				);
 				return;
 			}
 
-			add_action( 'woocommerce_blocks_loaded', array( $this, 'extend_store_api' ) );
+			$this->register_store_api_extensions();
 		}
 
 		/**
-		 * Whether WooCommerce Blocks (and therefore the Store API) have loaded.
+		 * Whether the WooCommerce Store API is available on this installation.
 		 *
 		 * @return bool
 		 */
-		protected function is_store_api_loaded() {
-			return (bool) did_action( 'woocommerce_blocks_loaded' );
+		protected function is_store_api_available() {
+			return class_exists( '\Automattic\WooCommerce\StoreApi\StoreApi' );
 		}
 
 		/**
-		 * Extend the Store API.
+		 * Register the plugin's Store API extensions.
 		 */
-		public function extend_store_api() {
+		protected function register_store_api_extensions() {
 			$store_api_extend_schema        = StoreApiExtendSchema::instance();
 			$store_api_extension_controller = new StoreApiExtensionController( $store_api_extend_schema );
 

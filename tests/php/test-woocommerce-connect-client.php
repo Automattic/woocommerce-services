@@ -248,54 +248,62 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * When WooCommerce Blocks have not loaded yet, the Store API extension
-	 * registration is deferred to the `woocommerce_blocks_loaded` action rather
-	 * than run inline. On WooCommerce versions without the Store API that action
-	 * never fires, so the extension is skipped instead of fataling.
+	 * When the StoreApi class is present, extend_store_api() registers the
+	 * plugin's Store API extensions.
 	 *
-	 * @covers WC_Connect_Loader::maybe_extend_store_api
+	 * @covers WC_Connect_Loader::extend_store_api
 	 */
-	public function test_maybe_extend_store_api_defers_until_blocks_loaded() {
+	public function test_extend_store_api_registers_when_store_api_available() {
 		$sut = $this->getMockBuilder( 'WC_Connect_Loader' )
 			->disableOriginalConstructor()
-			->setMethods( array( 'is_store_api_loaded', 'extend_store_api' ) )
+			->setMethods( array( 'is_store_api_available', 'register_store_api_extensions' ) )
 			->getMock();
 
-		$sut->method( 'is_store_api_loaded' )->willReturn( false );
-		$sut->expects( $this->never() )->method( 'extend_store_api' );
+		$sut->method( 'is_store_api_available' )->willReturn( true );
+		$sut->expects( $this->once() )->method( 'register_store_api_extensions' );
 
-		remove_all_actions( 'woocommerce_blocks_loaded' );
-
-		$sut->maybe_extend_store_api();
-
-		$this->assertNotFalse(
-			has_action( 'woocommerce_blocks_loaded', array( $sut, 'extend_store_api' ) ),
-			'extend_store_api() should be hooked to woocommerce_blocks_loaded when Blocks are not loaded yet.'
-		);
+		$sut->extend_store_api();
 	}
 
 	/**
-	 * When WooCommerce Blocks have already loaded, the Store API extension is
-	 * registered immediately and not deferred.
+	 * On WooCommerce versions without the StoreApi class, extend_store_api()
+	 * skips registration instead of fataling on the missing class. This is the
+	 * guard that prevents the `Class "…\StoreApi" not found` fatal (WOOTAX-298).
 	 *
-	 * @covers WC_Connect_Loader::maybe_extend_store_api
+	 * @covers WC_Connect_Loader::extend_store_api
 	 */
-	public function test_maybe_extend_store_api_runs_immediately_when_blocks_loaded() {
+	public function test_extend_store_api_skips_registration_when_store_api_unavailable() {
 		$sut = $this->getMockBuilder( 'WC_Connect_Loader' )
 			->disableOriginalConstructor()
-			->setMethods( array( 'is_store_api_loaded', 'extend_store_api' ) )
+			->setMethods( array( 'is_store_api_available', 'register_store_api_extensions' ) )
 			->getMock();
 
-		$sut->method( 'is_store_api_loaded' )->willReturn( true );
-		$sut->expects( $this->once() )->method( 'extend_store_api' );
+		$sut->method( 'is_store_api_available' )->willReturn( false );
+		$sut->expects( $this->never() )->method( 'register_store_api_extensions' );
 
-		remove_all_actions( 'woocommerce_blocks_loaded' );
+		// Must not throw when the StoreApi class is absent.
+		$this->assertNull( $sut->extend_store_api() );
+	}
 
-		$sut->maybe_extend_store_api();
+	/**
+	 * is_store_api_available() reflects whether the StoreApi class the plugin
+	 * depends on actually exists, so the guard tracks the real class.
+	 *
+	 * @covers WC_Connect_Loader::is_store_api_available
+	 */
+	public function test_is_store_api_available_tracks_store_api_class() {
+		$sut = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( null )
+			->getMock();
 
-		$this->assertFalse(
-			has_action( 'woocommerce_blocks_loaded', array( $sut, 'extend_store_api' ) ),
-			'extend_store_api() should not be deferred when Blocks are already loaded.'
+		$method = new ReflectionMethod( 'WC_Connect_Loader', 'is_store_api_available' );
+		$method->setAccessible( true );
+
+		$this->assertSame(
+			class_exists( '\Automattic\WooCommerce\StoreApi\StoreApi' ),
+			$method->invoke( $sut ),
+			'is_store_api_available() should mirror the existence of the StoreApi class.'
 		);
 	}
 
