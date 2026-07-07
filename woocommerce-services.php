@@ -990,10 +990,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		public function extend_store_api() {
 			if ( ! $this->is_store_api_available() ) {
-				wc_get_logger()->notice(
-					'StoreApi class not found. Store API extensions will not be registered.',
-					array( 'source' => 'woocommerce-services' )
-				);
+				$this->log_store_api_unavailable();
 				return;
 			}
 
@@ -1007,6 +1004,29 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 */
 		protected function is_store_api_available() {
 			return class_exists( '\Automattic\WooCommerce\StoreApi\StoreApi' );
+		}
+
+		/**
+		 * Log, at most once per day, that the Store API is unavailable.
+		 *
+		 * `extend_store_api()` runs on `woocommerce_blocks_loaded`, which fires on
+		 * nearly every request. On installs missing the StoreApi class the notice
+		 * would otherwise be written on every page load, so it is throttled to once
+		 * per day via a transient.
+		 */
+		protected function log_store_api_unavailable() {
+			$transient_key = 'wcservices_store_api_unavailable_logged';
+
+			if ( get_transient( $transient_key ) ) {
+				return;
+			}
+
+			wc_get_logger()->notice(
+				'StoreApi class not found. Store API extensions will not be registered.',
+				array( 'source' => 'woocommerce-services' )
+			);
+
+			set_transient( $transient_key, 1, DAY_IN_SECONDS );
 		}
 
 		/**
