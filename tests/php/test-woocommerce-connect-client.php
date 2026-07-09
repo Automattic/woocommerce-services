@@ -394,6 +394,10 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 			$attempted->setValue( true );   // resolution already attempted...
 			$instance->setValue( null );    // ...and it failed.
 
+			// Non-vacuity relies on the test harness container resolving a real
+			// instance on re-entry: if the $attempted guard were removed, instance()
+			// would re-run the constructor and return that non-null instance,
+			// failing this assertion.
 			$this->assertNull( \Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance() );
 		} finally {
 			$attempted->setValue( $orig_attempted );
