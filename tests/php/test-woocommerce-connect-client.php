@@ -404,4 +404,70 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 			$instance->setValue( $orig_instance );
 		}
 	}
+
+	/**
+	 * The $attempted latch is what stops container resolution (and its debug log)
+	 * from re-running on every request. This asserts the latch engages on the first
+	 * call regardless of whether resolution succeeds or fails (WOOTAX-303).
+	 *
+	 * @testdox instance() sets the attempted latch on the first call.
+	 * @covers Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance
+	 */
+	public function test_instance_latches_attempted_on_first_call() {
+		$class     = '\Automattic\WCServices\StoreApi\StoreApiExtendSchema';
+		$attempted = new ReflectionProperty( $class, 'attempted' );
+		$instance  = new ReflectionProperty( $class, 'instance' );
+		$attempted->setAccessible( true );
+		$instance->setAccessible( true );
+
+		$orig_attempted = $attempted->getValue();
+		$orig_instance  = $instance->getValue();
+
+		try {
+			$attempted->setValue( false );
+			$instance->setValue( null );
+
+			\Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance();
+
+			$this->assertTrue( $attempted->getValue(), 'instance() must latch $attempted on the first call so resolution runs at most once per request.' );
+		} finally {
+			$attempted->setValue( $orig_attempted );
+			$instance->setValue( $orig_instance );
+		}
+	}
+
+	/**
+	 * Once resolution has been attempted, instance() must return the already-resolved
+	 * instance without re-entering the container. A distinct ExtendSchema sentinel
+	 * (built without the constructor, so it is never the container's shared instance)
+	 * makes this deterministic: if the $attempted guard were removed, instance() would
+	 * re-resolve and return a different object, failing the identity assertion. This
+	 * avoids the working-container dependency of the null-path test (WOOTAX-303).
+	 *
+	 * @testdox instance() returns the cached instance without re-resolving once attempted.
+	 * @covers Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance
+	 */
+	public function test_instance_returns_cached_instance_without_reresolving() {
+		$class     = '\Automattic\WCServices\StoreApi\StoreApiExtendSchema';
+		$attempted = new ReflectionProperty( $class, 'attempted' );
+		$instance  = new ReflectionProperty( $class, 'instance' );
+		$attempted->setAccessible( true );
+		$instance->setAccessible( true );
+
+		$orig_attempted = $attempted->getValue();
+		$orig_instance  = $instance->getValue();
+
+		// ExtendSchema is final; build a distinct real instance without its constructor.
+		$sentinel = ( new ReflectionClass( '\Automattic\WooCommerce\StoreApi\Schemas\ExtendSchema' ) )->newInstanceWithoutConstructor();
+
+		try {
+			$attempted->setValue( true );
+			$instance->setValue( $sentinel );
+
+			$this->assertSame( $sentinel, \Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance(), 'instance() must return the cached instance without re-resolving once resolution has been attempted.' );
+		} finally {
+			$attempted->setValue( $orig_attempted );
+			$instance->setValue( $orig_instance );
+		}
+	}
 }
