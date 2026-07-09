@@ -47,15 +47,30 @@ class StoreApiExtendSchema {
 
 	/**
 	 * ExtendSchemaService constructor.
+	 *
+	 * Protected rather than private so tests can subclass and override
+	 * resolve_extend_schema() to exercise the resolution-failure path.
 	 */
-	private function __construct() {
+	protected function __construct() {
 		self::$attempted = true;
 
 		try {
-			self::$instance = StoreApi::container()->get( ExtendSchema::class );
+			self::$instance = static::resolve_extend_schema();
 		} catch ( Throwable $e ) {
 			wc_get_logger()->debug( 'Failed to get ExtendSchema instance.', array( 'exception' => $e ) );
 		}
+	}
+
+	/**
+	 * Resolve the ExtendSchema instance from the Store API container.
+	 *
+	 * Extracted as a seam so a broken container can be simulated in tests (subclass
+	 * and override to throw) without needing a genuinely partial WooCommerce install.
+	 *
+	 * @return ExtendSchema
+	 */
+	protected static function resolve_extend_schema(): ExtendSchema {
+		return StoreApi::container()->get( ExtendSchema::class );
 	}
 
 	/**
@@ -67,7 +82,7 @@ class StoreApiExtendSchema {
 	 */
 	public static function instance(): ?ExtendSchema {
 		if ( ! self::$attempted ) {
-			new self();
+			new static();
 		}
 
 		return self::$instance;

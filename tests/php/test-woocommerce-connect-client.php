@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/class-wcservices-throwing-store-api-extend-schema.php';
+
 class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	const SERVICE_SCRIPT_HANDLE = 'wc_connect_admin';
@@ -466,6 +468,49 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 			$this->assertSame( $sentinel, \Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance(), 'instance() must return the cached instance without re-resolving once resolution has been attempted.' );
 		} finally {
+			$attempted->setValue( $orig_attempted );
+			$instance->setValue( $orig_instance );
+		}
+	}
+
+	/**
+	 * When the container throws while resolving ExtendSchema, instance() must catch it
+	 * and return null instead of fataling. A TypeError is used deliberately: it is a
+	 * Throwable but not an Exception, so pre-fix code (catch Exception) would let it
+	 * propagate. The failure must also be logged once (WOOTAX-303).
+	 *
+	 * @testdox instance() returns null and logs when the container throws a non-Exception Throwable.
+	 * @covers Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance
+	 */
+	public function test_instance_returns_null_when_container_throws() {
+		$class     = '\Automattic\WCServices\StoreApi\StoreApiExtendSchema';
+		$attempted = new ReflectionProperty( $class, 'attempted' );
+		$instance  = new ReflectionProperty( $class, 'instance' );
+		$attempted->setAccessible( true );
+		$instance->setAccessible( true );
+
+		$orig_attempted = $attempted->getValue();
+		$orig_instance  = $instance->getValue();
+
+		$logger = $this->getMockBuilder( 'WC_Logger_Interface' )->getMock();
+		$logger->expects( $this->once() )
+			->method( 'debug' )
+			->with( 'Failed to get ExtendSchema instance.', $this->anything() );
+
+		$inject_logger = function () use ( $logger ) {
+			return $logger;
+		};
+		add_filter( 'woocommerce_logging_class', $inject_logger );
+
+		try {
+			$attempted->setValue( false );
+			$instance->setValue( null );
+
+			$result = WCServices_Throwing_Store_Api_Extend_Schema::instance();
+
+			$this->assertNull( $result, 'instance() must return null - not fatal - when the container throws a non-Exception Throwable.' );
+		} finally {
+			remove_filter( 'woocommerce_logging_class', $inject_logger );
 			$attempted->setValue( $orig_attempted );
 			$instance->setValue( $orig_instance );
 		}
