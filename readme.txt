@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.6.8 - 2026-xx-xx =
 * Fix   - Prevent fatal error on sites running WooCommerce versions without StoreApi support.
+* Fix   - Prevent a rare fatal error when the WooCommerce Store API cannot be initialized on incomplete installations.
 
 = 3.6.7 - 2026-07-06 =
 * Fix   - Prevent fatal error on Atomic sites caused by incorrect path resolution when loading the API client class.
