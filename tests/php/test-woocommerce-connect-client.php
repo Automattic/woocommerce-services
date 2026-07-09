@@ -370,4 +370,34 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		// Must not throw a TypeError; the early return yields void (null).
 		$this->assertNull( $method->invoke( $sut ) );
 	}
+
+	/**
+	 * When resolution has already been attempted and failed, instance() returns
+	 * null instead of fataling on an uninitialized typed static, and the $attempted
+	 * guard prevents a re-resolution (which, against the working test-harness
+	 * container, would otherwise return a non-null instance) (WOOTAX-303).
+	 *
+	 * @covers Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance
+	 */
+	public function test_instance_returns_null_when_resolution_failed() {
+		$class     = '\Automattic\WCServices\StoreApi\StoreApiExtendSchema';
+		$attempted = new ReflectionProperty( $class, 'attempted' );
+		$instance  = new ReflectionProperty( $class, 'instance' );
+		$attempted->setAccessible( true );
+		$instance->setAccessible( true );
+
+		// Static state leaks across tests; capture and restore it.
+		$orig_attempted = $attempted->getValue();
+		$orig_instance  = $instance->getValue();
+
+		try {
+			$attempted->setValue( true );   // resolution already attempted...
+			$instance->setValue( null );    // ...and it failed.
+
+			$this->assertNull( \Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance() );
+		} finally {
+			$attempted->setValue( $orig_attempted );
+			$instance->setValue( $orig_instance );
+		}
+	}
 }
