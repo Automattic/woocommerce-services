@@ -2203,7 +2203,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @param array    $args  Args passed to calculate_taxes(). Unused.
 	 * @param WC_Order $order The order being recalculated.
 	 *
-	 * @since 3.6.7
+	 * @since 3.6.8
 	 */
 	public function preserve_order_taxes_on_recalculation( $args, $order ) {
 		// The cart/checkout flow populates response_rate_ids and manages its own taxes.
@@ -2270,7 +2270,7 @@ class WC_Connect_TaxJar_Integration {
 	 * arrays, and the order-level tax totals so they can be restored verbatim after
 	 * WC recalculates the order for a changed address.
 	 *
-	 * @since 3.6.7
+	 * @since 3.6.8
 	 * @param WC_Order $order The order to snapshot.
 	 * @return array {
 	 *   @type array  $tax_lines    Keyed by item_id; each holds the full WC_Order_Item_Tax field set.
@@ -2320,7 +2320,7 @@ class WC_Connect_TaxJar_Integration {
 	 * instead of whatever WC computed for the new address, while keeping any updated
 	 * non-tax amounts (such as a changed shipping total).
 	 *
-	 * @since 3.6.7
+	 * @since 3.6.8
 	 * @param WC_Order $order    The order to restore into.
 	 * @param array    $snapshot Snapshot returned by snapshot_order_taxes().
 	 */
