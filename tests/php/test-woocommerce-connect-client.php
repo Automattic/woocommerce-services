@@ -86,7 +86,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	public function test_class_exists() {
 
 		$this->assertTrue( class_exists( 'WC_Connect_Loader' ) );
-
 	}
 
 	/**
@@ -104,7 +103,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$attached = has_action( 'before_woocommerce_init', array( $loader, 'pre_wc_init' ) );
 		$this->assertNotFalse( $attached, 'WC_Connect_Loader::pre_wc_init() not attached to `before_woocommerce_init`.' );
-
 	}
 
 	/**
@@ -121,7 +119,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader->set_logger( $logger );
 
 		$this->assertEquals( $logger, $loader->get_logger() );
-
 	}
 
 	/**
@@ -138,7 +135,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader->set_api_client( $client );
 
 		$this->assertEquals( $client, $loader->get_api_client() );
-
 	}
 
 	/**
@@ -156,7 +152,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader->set_service_schemas_store( $store );
 
 		$this->assertEquals( $store, $loader->get_service_schemas_store() );
-
 	}
 
 	/**
@@ -173,7 +168,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$loader->set_service_schemas_validator( $validator );
 
 		$this->assertEquals( $validator, $loader->get_service_schemas_validator() );
-
 	}
 
 	/**
@@ -218,7 +212,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$this->assertEquals( $loader->get_logger(), $method->get_logger() );
 		$this->assertEquals( $loader->get_api_client(), $method->get_api_client() );
 		$this->assertEquals( $service_data, $method->get_service_schema() );
-
 	}
 
 	/**
@@ -229,7 +222,6 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		$this->assertTrue( $loader->is_wc_connect_shipping_service( 'test_method_that_is_from_wc_connect' ) );
 		$this->assertFalse( $loader->is_wc_connect_shipping_service( 'test_method_that_is_not_from_wc_connect' ) );
-
 	}
 
 	/**
@@ -247,4 +239,113 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		$this->assertEquals( 2, did_action( 'wc_connect_shipping_zone_method_added' ) );
 	}
 
+	/**
+	 * When the StoreApi class is present, extend_store_api() registers the
+	 * plugin's Store API extensions.
+	 *
+	 * @covers WC_Connect_Loader::extend_store_api
+	 */
+	public function test_extend_store_api_registers_when_store_api_available() {
+		$sut = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'is_store_api_available', 'register_store_api_extensions' ) )
+			->getMock();
+
+		$sut->method( 'is_store_api_available' )->willReturn( true );
+		$sut->expects( $this->once() )->method( 'register_store_api_extensions' );
+
+		$sut->extend_store_api();
+	}
+
+	/**
+	 * On WooCommerce versions without the StoreApi class, extend_store_api()
+	 * skips registration instead of fataling on the missing class. This is the
+	 * guard that prevents the `Class "…\StoreApi" not found` fatal (WOOTAX-298).
+	 *
+	 * @covers WC_Connect_Loader::extend_store_api
+	 */
+	public function test_extend_store_api_skips_registration_when_store_api_unavailable() {
+		$sut = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'is_store_api_available', 'register_store_api_extensions' ) )
+			->getMock();
+
+		$sut->method( 'is_store_api_available' )->willReturn( false );
+		$sut->expects( $this->never() )->method( 'register_store_api_extensions' );
+
+		// Must not throw when the StoreApi class is absent.
+		$this->assertNull( $sut->extend_store_api() );
+	}
+
+	/**
+	 * is_store_api_available() returns true when the StoreApi class the plugin
+	 * depends on is present. The PHPUnit harness loads WooCommerce, so the class
+	 * exists here - pinning to true means a typo or rename in the guarded class
+	 * string would fail this test rather than silently tracking the change.
+	 *
+	 * @covers WC_Connect_Loader::is_store_api_available
+	 */
+	public function test_is_store_api_available_returns_true_when_store_api_class_present() {
+		// Precondition: the harness must actually load the StoreApi class for the
+		// assertion below to be meaningful.
+		$this->assertTrue(
+			class_exists( '\Automattic\WooCommerce\StoreApi\StoreApi' ),
+			'Test precondition: the StoreApi class must be loaded in the test harness.'
+		);
+
+		$sut = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( null )
+			->getMock();
+
+		$method = new ReflectionMethod( 'WC_Connect_Loader', 'is_store_api_available' );
+		$method->setAccessible( true );
+
+		$this->assertTrue(
+			$method->invoke( $sut ),
+			'is_store_api_available() should return true when the StoreApi class is present.'
+		);
+	}
+
+	/**
+	 * On the unavailable path, extend_store_api() logs a notice - but at most
+	 * once per day, because it runs on `woocommerce_blocks_loaded` (nearly every
+	 * request). The throttle transient must suppress the second same-day call.
+	 *
+	 * @covers WC_Connect_Loader::extend_store_api
+	 * @covers WC_Connect_Loader::log_store_api_unavailable
+	 */
+	public function test_extend_store_api_logs_unavailable_notice_once_per_day() {
+		delete_transient( 'wcservices_store_api_unavailable_logged' );
+
+		// Spy logger injected via the woocommerce_logging_class filter. Returning
+		// an object bypasses wc_get_logger()'s static cache.
+		$logger = $this->getMockBuilder( 'WC_Logger_Interface' )->getMock();
+		$logger->expects( $this->once() )
+			->method( 'notice' )
+			->with(
+				'StoreApi class not found. Store API extensions will not be registered.',
+				array( 'source' => 'woocommerce-services' )
+			);
+
+		$inject_logger = function () use ( $logger ) {
+			return $logger;
+		};
+		add_filter( 'woocommerce_logging_class', $inject_logger );
+
+		$sut = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'is_store_api_available', 'register_store_api_extensions' ) )
+			->getMock();
+
+		$sut->method( 'is_store_api_available' )->willReturn( false );
+		$sut->expects( $this->never() )->method( 'register_store_api_extensions' );
+
+		// First skip logs the notice; the second same-day skip is throttled.
+		$sut->extend_store_api();
+		$sut->extend_store_api();
+
+		remove_filter( 'woocommerce_logging_class', $inject_logger );
+		delete_transient( 'wcservices_store_api_unavailable_logged' );
+	}
 }
