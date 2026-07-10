@@ -66,6 +66,14 @@ class WC_Connect_TaxJar_Integration {
 	private $response_line_items;
 
 	/**
+	 * Tax snapshots captured before an out-of-cart recalculation, keyed by order id,
+	 * so they can be restored after WC recalculates the order totals.
+	 *
+	 * @var array
+	 */
+	private $pre_recalculation_tax_snapshots = array();
+
+	/**
 	 * @var bool
 	 */
 	private $is_itemized_tax_display;
@@ -2181,10 +2189,21 @@ class WC_Connect_TaxJar_Integration {
 	 * untouched, and an order with no existing tax lines is left to calculate for the
 	 * first time normally.
 	 *
+	 * Restoration happens on woocommerce_order_after_calculate_totals, the only post-
+	 * recalculation hook WC fires on this path. A caller that invokes
+	 * WC_Abstract_Order::calculate_taxes() directly (without a following
+	 * calculate_totals()) is therefore not restored, because WC exposes no hook after
+	 * calculate_taxes(); the REST API and programmatic order-update paths this targets
+	 * all go through calculate_totals(). The snapshot is stashed by order id (not in a
+	 * per-call closure) so a batch can recalculate many orders without stacking one-shot
+	 * callbacks, and so a snapshot whose restore never fires cannot leak onto the hook.
+	 *
 	 * @internal Hooked to woocommerce_order_before_calculate_taxes.
-	 * @since 3.6.7
+	 *
 	 * @param array    $args  Args passed to calculate_taxes(). Unused.
 	 * @param WC_Order $order The order being recalculated.
+	 *
+	 * @since 3.6.7
 	 */
 	public function preserve_order_taxes_on_recalculation( $args, $order ) {
 		// The cart/checkout flow populates response_rate_ids and manages its own taxes.
@@ -2210,19 +2229,38 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$order_id         = $order->get_id();
-		$restore_callback = null;
-		$restore_callback = function ( $and_taxes, $recalculated_order ) use ( $order_id, $snapshot, &$restore_callback ) {
-			if ( (int) $recalculated_order->get_id() !== (int) $order_id ) {
-				return;
-			}
+		// Stash the snapshot keyed by order id and register a single restore handler.
+		$this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ] = $snapshot;
 
-			// Remove the callback first so it only runs once, then restore the taxes.
-			remove_action( 'woocommerce_order_after_calculate_totals', $restore_callback, 10 );
-			$this->restore_order_taxes( $recalculated_order, $snapshot );
-		};
+		// remove_action() first so repeated recalculations register the handler once.
+		remove_action( 'woocommerce_order_after_calculate_totals', array( $this, 'restore_order_taxes_after_recalculation' ), 10 );
+		add_action( 'woocommerce_order_after_calculate_totals', array( $this, 'restore_order_taxes_after_recalculation' ), 10, 2 );
+	}
 
-		add_action( 'woocommerce_order_after_calculate_totals', $restore_callback, 10, 2 );
+	/**
+	 * Restore a preserved tax snapshot after WC has recalculated an order's totals.
+	 *
+	 * Looks up the snapshot captured in preserve_order_taxes_on_recalculation() for the
+	 * recalculated order and, if one is present, restores it and drops it from the
+	 * pending set. Keyed by order id so a batch that recalculates several orders
+	 * restores each from its own snapshot.
+	 *
+	 * @internal Hooked to woocommerce_order_after_calculate_totals.
+	 *
+	 * @param bool     $and_taxes Whether taxes were recalculated. Unused.
+	 * @param WC_Order $order     The order whose totals were recalculated.
+	 */
+	public function restore_order_taxes_after_recalculation( $and_taxes, $order ) {
+		$order_id = (int) $order->get_id();
+
+		if ( ! isset( $this->pre_recalculation_tax_snapshots[ $order_id ] ) ) {
+			return;
+		}
+
+		$snapshot = $this->pre_recalculation_tax_snapshots[ $order_id ];
+		unset( $this->pre_recalculation_tax_snapshots[ $order_id ] );
+
+		$this->restore_order_taxes( $order, $snapshot );
 	}
 
 	/**

@@ -1500,6 +1500,181 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Test that snapshot/restore round-trips every tax line when an order has more than one.
+	 */
+	public function test_restore_order_taxes_restores_multiple_tax_lines() {
+		$order = wc_create_order();
+
+		$state_tax = new WC_Order_Item_Tax();
+		$state_tax->set_rate_id( 6 );
+		$state_tax->set_rate_code( 'US-CA-STATE-1' );
+		$state_tax->set_label( 'CA State Tax' );
+		$state_tax->set_rate_percent( 6.0 );
+		$state_tax->set_tax_total( '6.00' );
+		$state_tax->set_shipping_tax_total( '0.00' );
+		$order->add_item( $state_tax );
+
+		$county_tax = new WC_Order_Item_Tax();
+		$county_tax->set_rate_id( 7 );
+		$county_tax->set_rate_code( 'US-CA-COUNTY-1' );
+		$county_tax->set_label( 'LA County Tax' );
+		$county_tax->set_rate_percent( 2.25 );
+		$county_tax->set_tax_total( '2.25' );
+		$county_tax->set_shipping_tax_total( '0.00' );
+		$order->add_item( $county_tax );
+
+		$order->set_cart_tax( '8.25' );
+		$order->set_total( 8.25 );
+		$order->save();
+
+		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
+		$this->assertCount( 2, $snapshot['tax_lines'], 'Both tax lines should be snapshotted.' );
+
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->set_cart_tax( 0 );
+		$order->set_total( 0 );
+		$order->save();
+
+		$this->invoke_protected_method( 'restore_order_taxes', array( $order, $snapshot ) );
+
+		$restored = wc_get_order( $order->get_id() );
+		$this->assertCount( 2, $restored->get_taxes(), 'Both tax lines should be restored.' );
+
+		$labels = array();
+		foreach ( $restored->get_taxes() as $line ) {
+			$labels[ $line->get_rate_id() ] = $line->get_label();
+		}
+		$this->assertEquals( 'CA State Tax', $labels[6], 'State tax label should be restored.' );
+		$this->assertEquals( 'LA County Tax', $labels[7], 'County tax label should be restored.' );
+		$this->assertEqualsWithDelta( 8.25, (float) $restored->get_total_tax(), 0.001, 'Combined tax should be restored.' );
+
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that a compound tax line's compound flag survives snapshot and restore.
+	 */
+	public function test_restore_order_taxes_preserves_compound_flag() {
+		$order = wc_create_order();
+
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 8 );
+		$tax_item->set_rate_code( 'CA-GST-1' );
+		$tax_item->set_label( 'GST' );
+		$tax_item->set_rate_percent( 5.0 );
+		$tax_item->set_compound( true );
+		$tax_item->set_tax_total( '5.00' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '5.00' );
+		$order->set_total( 5.00 );
+		$order->save();
+
+		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
+
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->save();
+
+		$this->invoke_protected_method( 'restore_order_taxes', array( $order, $snapshot ) );
+
+		$restored = wc_get_order( $order->get_id() );
+		$taxes    = $restored->get_taxes();
+		$line     = reset( $taxes );
+		$this->assertTrue( $line->get_compound(), 'Compound flag should survive snapshot and restore.' );
+
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that the order-level discount tax total is restored from the snapshot.
+	 */
+	public function test_restore_order_taxes_restores_discount_tax() {
+		$order = wc_create_order();
+
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_tax_total( '1.76' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '1.76' );
+		$order->set_discount_tax( '0.50' );
+		$order->set_total( 1.76 );
+		$order->save();
+
+		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
+		$this->assertEqualsWithDelta( 0.50, (float) $snapshot['discount_tax'], 0.001, 'Discount tax should be snapshotted.' );
+
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->set_discount_tax( 0 );
+		$order->save();
+
+		$this->invoke_protected_method( 'restore_order_taxes', array( $order, $snapshot ) );
+
+		$restored = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.50, (float) $restored->get_discount_tax(), 0.001, 'Discount tax should be restored.' );
+
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that a bare calculate_taxes() leaves the snapshot pending (documented gap:
+	 * no restore fires on that hook), and that the pending snapshot is then restored by
+	 * the handler a following calculate_totals() invokes, without double-applying.
+	 */
+	public function test_preserve_order_taxes_pending_snapshot_restores_via_handler() {
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$order    = wc_create_order();
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_tax_total( '8.25' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '8.25' );
+		$order->set_total( 8.25 );
+		$order->save();
+
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
+
+		$this->assertNotFalse(
+			has_action( 'woocommerce_order_after_calculate_totals', array( $this->integration, 'restore_order_taxes_after_recalculation' ) ),
+			'A single restore handler should be registered.'
+		);
+
+		// Simulate WC wiping the tax lines during the recalculation.
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->set_cart_tax( 0 );
+		$order->set_total( 0 );
+		$order->save();
+
+		$this->integration->restore_order_taxes_after_recalculation( true, $order );
+
+		$restored = wc_get_order( $order->get_id() );
+		$this->assertCount( 1, $restored->get_taxes(), 'The recorded tax line should be restored.' );
+		$this->assertEqualsWithDelta( 8.25, (float) $restored->get_total_tax(), 0.001, 'The recorded tax should be restored.' );
+
+		// The snapshot is cleared once restored, so a second handler call is a no-op and
+		// cannot duplicate the tax or leak into a later recalculation.
+		$this->integration->restore_order_taxes_after_recalculation( true, wc_get_order( $order->get_id() ) );
+		$again = wc_get_order( $order->get_id() );
+		$this->assertCount( 1, $again->get_taxes(), 'Restoring twice must not duplicate tax lines.' );
+
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$order->delete( true );
+	}
+
+	/**
 	 * A tax calculation whose taxable amount is zero must not zero out the tax rate.
 	 *
 	 * When a subscription is switched, or when a free-trial subscription's initial
@@ -1524,7 +1699,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// taxable_amount and the top-level rate are 0, but the line item still
 		// carries the real jurisdiction rates (city 1.5%, county 1.25%, state 4.225%).
-		$line_item = (object) array(
+		$line_item    = (object) array(
 			'id'                   => '351-regressionkey',
 			'city_tax_rate'        => 0.015,
 			'county_tax_rate'      => 0.0125,
