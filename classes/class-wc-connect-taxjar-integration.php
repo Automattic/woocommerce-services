@@ -2206,6 +2206,13 @@ class WC_Connect_TaxJar_Integration {
 	 * @since 3.6.8
 	 */
 	public function preserve_order_taxes_on_recalculation( $args, $order ) {
+		// The gates below are exclusionary: preservation runs for ANY out-of-cart
+		// recalculation of an existing, already-taxed order — the REST/address-change
+		// path this fix targets, but also WP-CLI, cron, and Action Scheduler runs.
+		// That breadth is intentional: once an order is placed its tax is a record of
+		// what was charged, so we preserve it on every programmatic recalculation, not
+		// only the REST path that prompted this fix.
+
 		// The cart/checkout flow populates response_rate_ids and manages its own taxes.
 		if ( ! empty( $this->response_rate_ids ) ) {
 			return;
