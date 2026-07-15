@@ -52,6 +52,16 @@ The husky pre-commit hook (`bin/wc-phpcbf.sh` via lint-staged) auto-fixes staged
 - Keep changes in source files; do not hand-edit generated build outputs in `dist/`.
 - Follow existing WordPress/WooCommerce coding standards and linting rules in this repository.
 
+## Backward Compatibility
+
+The `WC_Connect_*` classes live in the global namespace and are referenced by third-party code; treat them all as externally exposed.
+
+Any change to the signature of a public or externally exposed class, interface, function, method, or hook is high-risk and must state its backward-compatibility impact in the PR description.
+
+- Treat a symbol as externally exposed when code outside this repository (other plugins, themes, or site snippets) can call, extend, implement, or hook into it. When in doubt, assume it is exposed and state the BC impact.
+- Adding a method to an interface (or an abstract method to a base class) that external code can implement is breaking: existing implementers fatal on load. Removing a required method is breaking too. Prefer a non-breaking alternative: add the method to the concrete class, or provide a default implementation in a base class.
+- Deprecate, don't rename or remove. Keep the old symbol working with a deprecation notice, introduce the replacement alongside it, and give consumers a migration window before removal.
+
 ## Architecture Notes
 - `has_only_tax_functionality()` and `should_load_shipping_features()` in `woocommerce-services.php` are core gates for tax-only vs shipping-enabled behavior.
 - Shipping behavior must remain compatibility-only for eligible legacy stores.
