@@ -1,7 +1,6 @@
 <?php
 
-use Automattic\WCServices\Integrations\WooCommerceBlocksIntegration;
-use Automattic\WCServices\Utils;
+require_once __DIR__ . '/class-wcs-test-blocks-integration.php';
 
 /**
  * Unit tests for WooCommerceBlocksIntegration.
@@ -11,44 +10,49 @@ class WP_Test_WooCommerce_Blocks_Integration extends WC_Unit_Test_Case {
 	const HANDLE = 'woocommerce-services-store-notices';
 
 	/**
-	 * Path of the asset file created by a test, if any.
+	 * Temp directory used for asset files, removed on tear down.
 	 *
-	 * @var string|null
+	 * @var string
 	 */
-	private $asset_file;
+	private $asset_dir;
 
 	/**
-	 * Whether the dist directory was created by a test.
-	 *
-	 * @var bool
+	 * Create a fresh temp asset directory.
 	 */
-	private $created_dist_dir = false;
+	public function set_up() {
+		parent::set_up();
+
+		$this->asset_dir = trailingslashit( get_temp_dir() ) . 'wcs-test-assets-' . uniqid() . '/';
+		wp_mkdir_p( $this->asset_dir );
+	}
 
 	/**
-	 * Deregister the script and remove any test artifacts.
+	 * Deregister the script and remove the temp asset directory.
 	 */
 	public function tear_down() {
 		wp_deregister_script( self::HANDLE );
 
-		if ( $this->asset_file && file_exists( $this->asset_file ) ) {
-			wp_delete_file( $this->asset_file );
-			$this->asset_file = null;
+		$asset_file = $this->asset_dir . self::HANDLE . '.asset.php';
+		if ( file_exists( $asset_file ) ) {
+			wp_delete_file( $asset_file );
 		}
-		if ( $this->created_dist_dir ) {
-			rmdir( Utils::get_plugin_path() . 'dist' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir --- Test cleanup of a directory the test created.
-			$this->created_dist_dir = false;
+		if ( is_dir( $this->asset_dir ) ) {
+			rmdir( $this->asset_dir ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_rmdir --- Test cleanup of a temp directory the test created.
 		}
 
 		parent::tear_down();
 	}
 
 	/**
-	 * Build an integration instance like the plugin loader does.
+	 * Build an integration instance whose asset lookup uses the temp directory.
 	 *
-	 * @return WooCommerceBlocksIntegration
+	 * @return WCS_Test_Blocks_Integration
 	 */
 	private function new_integration() {
-		return new WooCommerceBlocksIntegration( 'https://example.com/wp-content/plugins/woocommerce-services/dist/' );
+		$integration            = new WCS_Test_Blocks_Integration( 'https://example.com/wp-content/plugins/woocommerce-services/dist/' );
+		$integration->asset_dir = $this->asset_dir;
+
+		return $integration;
 	}
 
 	/**
@@ -68,19 +72,11 @@ class WP_Test_WooCommerce_Blocks_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * With an asset file present in dist/, its dependencies must win over the defaults.
+	 * With an asset file present, its dependencies must win over the defaults.
 	 */
 	public function test_store_notices_script_uses_asset_file_dependencies_when_present() {
-		$dist_dir = Utils::get_plugin_path() . 'dist/';
-
-		if ( ! is_dir( $dist_dir ) ) {
-			wp_mkdir_p( $dist_dir );
-			$this->created_dist_dir = true;
-		}
-
-		$this->asset_file = $dist_dir . self::HANDLE . '.asset.php';
-		file_put_contents( // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents --- Test fixture written to a location the test cleans up.
-			$this->asset_file,
+		file_put_contents( // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents --- Test fixture written to a temp directory the test cleans up.
+			$this->asset_dir . self::HANDLE . '.asset.php',
 			'<?php return array( "dependencies" => array( "wp-element" ), "version" => "test" );'
 		);
 

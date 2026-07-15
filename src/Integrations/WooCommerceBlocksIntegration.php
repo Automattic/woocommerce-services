@@ -86,6 +86,17 @@ class WooCommerceBlocksIntegration implements IntegrationInterface {
 	}
 
 	/**
+	 * Get the filesystem path of a script's asset file.
+	 *
+	 * @param string $handle Script handle.
+	 *
+	 * @return string
+	 */
+	protected function get_script_asset_path( string $handle ): string {
+		return WCSERVICES_PLUGIN_DIST_DIR . $handle . '.asset.php';
+	}
+
+	/**
 	 * Register a script for the integration.
 	 *
 	 * @param string $handle Script handle.
@@ -94,12 +105,14 @@ class WooCommerceBlocksIntegration implements IntegrationInterface {
 		$plugin_version    = Utils::get_wcservices_version();
 		$script_name       = "$handle-$plugin_version.js";
 		$script_url        = Utils::get_enqueue_base_url() . $script_name;
-		$script_asset_path = Utils::get_plugin_path() . 'dist/' . $handle . '.asset.php';
+		$script_asset_path = $this->get_script_asset_path( $handle );
 		$script_asset      = file_exists( $script_asset_path )
 			? require $script_asset_path : array();  // nosemgrep: audit.php.lang.security.file.inclusion-arg --- This is a safe file inclusion.
 
-		// The defaults cover the globals the script reads at load time:
-		// window.wp.plugins, window.wp.element, window.wp.data and window.wc.blocksCheckout.
+		// The webpack build does not emit asset files, so the defaults below are
+		// the live dependency list; keep them in sync with the globals the script
+		// reads at load time: window.wp.plugins, window.wp.element, window.wp.data
+		// and window.wc.blocksCheckout.
 		$script_dependencies = $script_asset['dependencies'] ?? array( 'wp-plugins', 'wp-element', 'wp-data', 'wc-blocks-checkout' );
 
 		wp_register_script(
