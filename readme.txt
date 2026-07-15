@@ -73,6 +73,7 @@ This plugin relies on the following external services:
 = 3.6.8 - 2026-xx-xx =
 * Fix   - TaxJar tax lines wiped when REST API order update includes address change.
 * Fix   - Prevent fatal error on sites running WooCommerce versions without StoreApi support.
+* Fix   - React 19 compatibility for store notices on the block cart and checkout.
 
 = 3.6.7 - 2026-07-06 =
 * Fix   - Prevent fatal error on Atomic sites caused by incorrect path resolution when loading the API client class.
