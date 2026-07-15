@@ -40,17 +40,26 @@ describe( 'store-notices entry', () => {
 	} );
 
 	it( 'creates elements with the host React (window.wp.element), not a bundled React', () => {
+		// Share the entry's module registry so this is the same component instance
+		// the entry renders.
+		const { StoreNotices } = require( 'components/store/notices' );
 		require( '../store-notices' );
 
 		const { render } = registerPlugin.mock.calls[ 0 ][ 1 ];
 		const element = render();
 
-		// The element handed to the host renderer must be created by the host
+		// Every element handed to the host renderer must be created by the host
 		// createElement. An element created by the plugin's bundled React is
 		// rejected by React 19 ("A React Element from an older version of
 		// React was rendered").
-		expect( hostCreateElement ).toHaveBeenCalled();
+		expect( hostCreateElement ).toHaveBeenCalledTimes( 2 );
 		expect( element.createdByHost ).toBe( true );
 		expect( element.type ).toBe( ExperimentalOrderMeta );
+
+		// The child counts too: building only the outer element with the host React
+		// leaves the same React 19 rejection one level down.
+		const child = element.children[ 0 ];
+		expect( child.createdByHost ).toBe( true );
+		expect( child.type ).toBe( StoreNotices );
 	} );
 } );
