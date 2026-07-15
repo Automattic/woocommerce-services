@@ -50,8 +50,11 @@ export const StoreNotices = ( {
 				return;
 			}
 
-			// Get new notices from the API response.
-			const newNotices = extensions[ 'woocommerce-services' ].notices;
+			// Get new notices from the API response. The extension data is
+			// missing on WooCommerce versions where the Store API extension
+			// is not registered.
+			const wcservicesData = extensions[ 'woocommerce-services' ];
+			const newNotices     = ( wcservicesData && wcservicesData.notices ) || [];
 
 			if ( 0 === newNotices.length ) {
 				return;
