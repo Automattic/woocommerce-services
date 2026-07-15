@@ -1,3 +1,11 @@
+/**
+ * This component is rendered by the host React inside the Cart/Checkout blocks, so it must
+ * not import the plugin's bundled React or return JSX built with it: React 19 rejects
+ * elements created by an older React runtime. Hooks and elements come from window.wp.*.
+ *
+ * @see ../../../store-notices.js
+ */
+
 const { useDispatch, useSelect } = window.wp.data;
 const { useEffect }              = window.wp.element;
 
@@ -52,9 +60,12 @@ export const StoreNotices = ( {
 
 			// Get new notices from the API response. The extension data is
 			// missing on WooCommerce versions where the Store API extension
-			// is not registered.
+			// is not registered, and anything else on the response is outside
+			// our control, so treat everything but a list as "no notices":
+			// throwing here would take down the whole checkout fill.
 			const wcservicesData = extensions[ 'woocommerce-services' ];
-			const newNotices     = ( wcservicesData && wcservicesData.notices ) || [];
+			const rawNotices     = wcservicesData && wcservicesData.notices;
+			const newNotices     = Array.isArray( rawNotices ) ? rawNotices : [];
 
 			if ( 0 === newNotices.length ) {
 				return;
