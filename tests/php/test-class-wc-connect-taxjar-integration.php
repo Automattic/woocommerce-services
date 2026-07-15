@@ -3588,4 +3588,88 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			);
 		}
 	}
+
+	/**
+	 * A non-taxable product (Tax Status = "None") that shares the standard Tax
+	 * Class with a taxable product must not zero out the shared Standard rate row.
+	 *
+	 * TaxJar returns a 0% breakdown line for the exempt product (sent as code
+	 * 99999). Because rate rows are keyed by tax class — and Tax Status "None"
+	 * does not change the Tax Class — that 0% would overwrite the same Standard
+	 * row the taxable product just populated, zeroing tax for the whole cart.
+	 * Regression for WOOTAX-240.
+	 */
+	public function test_get_itemized_tax_rates_non_taxable_line_does_not_zero_standard_rate() {
+		$taxable_product = WC_Helper_Product::create_simple_product();
+		$taxable_product->set_tax_status( 'taxable' );
+		$taxable_product->set_tax_class( '' );
+		$taxable_product->save();
+
+		$exempt_product = WC_Helper_Product::create_simple_product();
+		$exempt_product->set_tax_status( 'none' );
+		$exempt_product->set_tax_class( '' );
+		$exempt_product->save();
+
+		$taxable_id  = $taxable_product->get_id();
+		$exempt_id   = $exempt_product->get_id();
+		$taxable_key = $taxable_id . '-taxable_item';
+		$exempt_key  = $exempt_id . '-exempt_item';
+
+		// Taxable line is listed first, so without the fix the exempt line would
+		// overwrite the shared Standard rate row to 0% afterwards.
+		$taxjar_taxes = (object) array(
+			'freight_taxable' => 0,
+			'has_nexus'       => 1,
+			'rate'            => 0.0725,
+			'jurisdictions'   => (object) array(
+				'county' => '',
+				'city'   => '',
+			),
+			'breakdown'       => (object) array(
+				'line_items' => array(
+					(object) array(
+						'id'                => $taxable_key,
+						'combined_tax_rate' => 0.0725,
+						'state_tax_rate'    => 0.0725,
+					),
+					(object) array(
+						'id'                => $exempt_key,
+						'combined_tax_rate' => 0.0,
+						'state_tax_rate'    => 0.0,
+					),
+				),
+			),
+		);
+
+		$options = array(
+			'to_country' => 'US',
+			'to_state'   => 'CA',
+			'to_zip'     => '90210',
+			'to_city'    => 'Beverly Hills',
+		);
+
+		$result = $this->invoke_protected_method(
+			'get_itemized_tax_rates',
+			array(
+				array(
+					'rate_ids'   => array(),
+					'line_items' => array(),
+				),
+				$taxjar_taxes,
+				$options,
+			)
+		);
+
+		// The exempt line must not create or update any tax rate row.
+		$this->assertArrayNotHasKey( $exempt_key, $result['rate_ids'], 'Non-taxable line item should not write a tax rate row.' );
+
+		// The taxable line's Standard rate row must remain at 7.25%, not clobbered to 0.
+		$this->assertArrayHasKey( $taxable_key, $result['rate_ids'] );
+		$taxable_rate_id = $result['rate_ids'][ $taxable_key ][0];
+		$rate_data       = WC_Tax::_get_tax_rate( $taxable_rate_id );
+		$this->assertSame( 7.25, (float) $rate_data['tax_rate'], 'Standard rate row was zeroed by the non-taxable line item (WOOTAX-240).' );
+
+		WC_Helper_Product::delete_product( $taxable_id );
+		WC_Helper_Product::delete_product( $exempt_id );
+	}
 }

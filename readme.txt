@@ -98,6 +98,7 @@ This plugin relies on the following external services:
 * Fix   - TaxJar tax lines wiped when REST API order update includes address change.
 * Fix   - Prevent fatal error on sites running WooCommerce versions without StoreApi support.
 * Fix   - Prevent unbounded growth of WooCommerce tax rate rows when checkout city contains a semicolon.
+* Fix   - Calculate tax correctly for carts mixing taxable and non-taxable products, so a non-taxable product no longer resets the standard tax rate to zero.
 
 = 3.6.7 - 2026-07-06 =
 * Fix   - Prevent fatal error on Atomic sites caused by incorrect path resolution when loading the API client class.
