@@ -1,8 +1,3 @@
-/**
- * External dependencies
- */
-import React from 'react';
-
 const { useDispatch, useSelect } = window.wp.data;
 const { useEffect }              = window.wp.element;
 
@@ -19,7 +14,7 @@ const noticeIdPrefix = 'wcservices-store-notices-';
  * @param {Object} props.extensions - An object containing store API response data related for all extensions.
  * @param {Object} props.cart - An object containing details about the cart.
  *
- * @returns {JSX.Element} - An empty React fragment.
+ * @returns {null} - Nothing is rendered; the component only manages notices.
  */
 export const StoreNotices = ( {
 	extensions, cart,
@@ -75,5 +70,5 @@ export const StoreNotices = ( {
 		[ extensions ]
 	);
 
-	return <></>;
+	return null;
 };
