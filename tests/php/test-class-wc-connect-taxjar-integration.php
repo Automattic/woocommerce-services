@@ -1975,7 +1975,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
 
+		// The method mutates and returns the same handle, so identity alone proves
+		// nothing — assert the individual fields are untouched at every level.
 		$this->assertSame( $resp, $result );
 		$this->assertSame( 0.08, $result->rate );
+		$this->assertSame( 0.08, $result->breakdown->combined_tax_rate );
+		$this->assertSame( 0.08, $result->breakdown->shipping->combined_tax_rate );
+		$this->assertSame( 0.08, $result->breakdown->line_items[0]->combined_tax_rate );
 	}
 }
