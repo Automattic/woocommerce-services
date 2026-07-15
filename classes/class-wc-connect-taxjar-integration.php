@@ -1330,16 +1330,17 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * This method is used to override the TaxJar result.
 	 *
+	 * The caller (calculate_tax) guarantees a non-empty object here, so this
+	 * method always receives — and returns — the tax object. Malformed *inner*
+	 * members (a missing/null breakdown or shipping, a non-object line item) are
+	 * still tolerated below; only those, not the tax node itself, are unreliable.
+	 *
 	 * @param object $taxjar_resp_tax TaxJar response object.
 	 * @param array  $body            Body of TaxJar request.
 	 *
 	 * @return object
 	 */
 	public function maybe_override_taxjar_tax( $taxjar_resp_tax, $body ) {
-		if ( ! isset( $taxjar_resp_tax ) || ! is_object( $taxjar_resp_tax ) ) {
-			return $taxjar_resp_tax;
-		}
-
 		$original_rate = isset( $taxjar_resp_tax->rate ) ? floatval( $taxjar_resp_tax->rate ) : 0.0;
 		$new_tax_rate  = floatval( apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate ?? 0, $taxjar_resp_tax, $body ) );
 
@@ -1657,7 +1658,14 @@ class WC_Connect_TaxJar_Integration {
 
 		// Decode Response.
 		$taxjar_response = json_decode( $response['body'] );
-		if ( empty( $taxjar_response->tax ) ) {
+		// TaxJar's `tax` node is always a JSON object; domestic and international
+		// responses differ only in the inner `breakdown` shape (US uses
+		// state_/county_/city_ fields, international uses country_ fields), not in
+		// the type of `tax` itself. Validate the type at this boundary so both
+		// maybe_override_taxjar_tax() and get_itemized_tax_rates() can rely on an
+		// object — a malformed non-object response bails here instead of fataling
+		// downstream on the first property access.
+		if ( empty( $taxjar_response->tax ) || ! is_object( $taxjar_response->tax ) ) {
 			return false;
 		}
 		$taxjar_taxes = $this->maybe_override_taxjar_tax( $taxjar_response->tax, $body );
