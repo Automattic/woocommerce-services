@@ -35,6 +35,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		require_once __DIR__ . '/../../classes/class-wc-connect-api-client.php';
 		require_once __DIR__ . '/../../classes/class-wc-connect-logger.php';
 		require_once __DIR__ . '/../../classes/class-wc-connect-tracks.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-custom-surcharge.php';
 	}
 
 	/**
@@ -83,6 +84,29 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		}
 
 		parent::tear_down();
+	}
+
+	/**
+	 * Test that the preserve_order_taxes_on_recalculation hook is registered after init().
+	 */
+	public function test_preserve_order_taxes_hook_registered_after_init() {
+		// Arrange: enable automated taxes option so init() does not bail early.
+		update_option( WC_Connect_TaxJar_Integration::OPTION_NAME, 'yes' );
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		// Act.
+		$this->integration->init();
+
+		// Assert.
+		$this->assertNotFalse(
+			has_action( 'woocommerce_order_before_calculate_taxes', array( $this->integration, 'preserve_order_taxes_on_recalculation' ) ),
+			'Hook woocommerce_order_before_calculate_taxes should be registered'
+		);
+
+		// Clean up.
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		delete_option( WC_Connect_TaxJar_Integration::OPTION_NAME );
+		delete_option( 'woocommerce_calc_taxes' );
 	}
 
 	/**
@@ -1145,6 +1169,509 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertEmpty( $result['rate_ids'] );
 		$this->assertEmpty( $result['line_items'] );
 		$this->assertEquals( 0, $result['has_nexus'] );
+	}
+
+	/**
+	 * Test that preserve_order_taxes_on_recalculation skips when the cart/checkout
+	 * flow already populated response_rate_ids.
+	 */
+	public function test_preserve_order_taxes_skips_when_response_rate_ids_populated() {
+		$this->set_private_property( 'response_rate_ids', array( 'product-key' => array( 1, 2 ) ) );
+
+		$order = $this->getMockBuilder( 'WC_Order' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		// The first gate returns before the order is inspected.
+		$order->expects( $this->never() )->method( 'get_id' );
+
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
+	}
+
+	/**
+	 * Test that preserve_order_taxes_on_recalculation skips admin AJAX recalculations,
+	 * which are handled by calculate_backend_totals().
+	 */
+	public function test_preserve_order_taxes_skips_when_doing_ajax() {
+		// Use a filter instead of define() so the constant does not leak into other tests.
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$order = $this->getMockBuilder( 'WC_Order' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'get_id' ) )
+			->getMock();
+
+		// The AJAX gate returns before the order id is inspected.
+		$order->expects( $this->never() )->method( 'get_id' );
+
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
+
+		remove_filter( 'wp_doing_ajax', '__return_true' );
+	}
+
+	/**
+	 * Test that preserve_order_taxes_on_recalculation skips a new order (id 0) and
+	 * does not register a restore callback.
+	 */
+	public function test_preserve_order_taxes_skips_when_order_id_is_zero() {
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$order = $this->getMockBuilder( 'WC_Order' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'get_id' ) )
+			->getMock();
+		$order->method( 'get_id' )->willReturn( 0 );
+
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
+
+		$this->assertFalse( has_action( 'woocommerce_order_after_calculate_totals' ) );
+	}
+
+	/**
+	 * Test that preserve_order_taxes_on_recalculation does not register a restore when
+	 * the order has no existing tax lines, so a first-time calculation runs normally.
+	 */
+	public function test_preserve_order_taxes_skips_when_no_existing_tax_lines() {
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$order = wc_create_order();
+
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
+
+		$this->assertFalse(
+			has_action( 'woocommerce_order_after_calculate_totals' ),
+			'No restore should be registered for an order without existing tax lines.'
+		);
+
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that preserve_order_taxes_on_recalculation registers a restore callback when
+	 * the order already has tax lines.
+	 */
+	public function test_preserve_order_taxes_registers_restore_when_order_has_taxes() {
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$order    = wc_create_order();
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_tax_total( '1.76' );
+		$order->add_item( $tax_item );
+		$order->save();
+
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
+
+		$this->assertGreaterThan(
+			0,
+			has_action( 'woocommerce_order_after_calculate_totals' ),
+			'A restore should be registered for an order that already has tax lines.'
+		);
+
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$order->delete( true );
+	}
+
+	// -------------------------------------------------------------------------
+	// snapshot_order_taxes() and restore_order_taxes() tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Test that snapshot_order_taxes captures the full tax-line metadata, per-item
+	 * taxes, and order-level tax totals.
+	 */
+	public function test_snapshot_order_taxes_captures_full_tax_state() {
+		$order = wc_create_order();
+
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_code( 'US-CA-TAX-1' );
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_rate_percent( 8.25 );
+		$tax_item->set_compound( false );
+		$tax_item->set_tax_total( '1.76' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '1.76' );
+		$order->save();
+
+		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
+
+		$this->assertArrayHasKey( 'tax_lines', $snapshot );
+		$this->assertArrayHasKey( 'item_taxes', $snapshot );
+		$this->assertEquals( '1.76', $snapshot['cart_tax'] );
+		$this->assertCount( 1, $snapshot['tax_lines'] );
+
+		$saved = reset( $snapshot['tax_lines'] );
+		$this->assertEquals( 6, $saved['rate_id'] );
+		$this->assertEquals( 'US-CA-TAX-1', $saved['rate_code'] );
+		$this->assertEquals( 'CA Tax', $saved['label'] );
+		$this->assertEquals( 8.25, $saved['rate_percent'] );
+		$this->assertEquals( '1.76', $saved['tax_total'] );
+
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that restore_order_taxes re-adds tax lines with their full metadata and
+	 * keeps the order tax totals in sync.
+	 */
+	public function test_restore_order_taxes_restores_tax_lines_with_metadata() {
+		$order = wc_create_order();
+
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_code( 'US-CA-TAX-1' );
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_rate_percent( 8.25 );
+		$tax_item->set_tax_total( '1.76' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '1.76' );
+		$order->set_total( 1.76 );
+		$order->save();
+
+		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
+
+		// Simulate WC wiping the taxes for a changed address.
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->set_cart_tax( 0 );
+		$order->set_total( 0 );
+		$order->save();
+		$this->assertCount( 0, $order->get_taxes() );
+
+		$this->invoke_protected_method( 'restore_order_taxes', array( $order, $snapshot ) );
+
+		$restored = wc_get_order( $order->get_id() );
+		$this->assertCount( 1, $restored->get_taxes() );
+
+		$taxes = $restored->get_taxes();
+		$line  = reset( $taxes );
+		$this->assertEquals( 6, $line->get_rate_id() );
+		$this->assertEquals( 'US-CA-TAX-1', $line->get_rate_code() );
+		$this->assertEquals( 'CA Tax', $line->get_label() );
+		$this->assertEquals( '1.76', $line->get_tax_total() );
+		$this->assertEqualsWithDelta( 1.76, (float) $restored->get_total_tax(), 0.001 );
+
+		$order->delete( true );
+	}
+
+	// -------------------------------------------------------------------------
+	// End-to-end preservation test
+	// -------------------------------------------------------------------------
+
+	/**
+	 * End-to-end: a recalculation triggered by an address change on an existing order
+	 * preserves the recorded taxes instead of wiping them to zero, and rebases the
+	 * order total on the preserved tax.
+	 */
+	public function test_preserve_order_taxes_end_to_end_on_address_change() {
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->set_regular_price( '100' );
+		$this->product->save();
+
+		$order   = wc_create_order();
+		$item_id = $order->add_product( $this->product, 1 );
+		$order->set_shipping_country( 'US' );
+		$order->set_shipping_state( 'CA' );
+		$order->set_shipping_postcode( '90210' );
+
+		// Record a TaxJar-style tax of 8.25% on the line item and the order.
+		$line_item = $order->get_item( $item_id );
+		$line_item->set_taxes(
+			array(
+				'total'    => array( 6 => '8.25' ),
+				'subtotal' => array( 6 => '8.25' ),
+			)
+		);
+
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_rate_code( 'US-CA-TAX-1' );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_rate_percent( 8.25 );
+		$tax_item->set_tax_total( '8.25' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '8.25' );
+		$order->set_total( 108.25 );
+		$order->save();
+
+		$this->assertEqualsWithDelta( 8.25, (float) $order->get_total_tax(), 0.001 );
+
+		// Recalculate as a REST/programmatic update would after an address change.
+		add_action( 'woocommerce_order_before_calculate_taxes', array( $this->integration, 'preserve_order_taxes_on_recalculation' ), 10, 2 );
+		$order->set_shipping_postcode( '90211' );
+		$order->calculate_totals( true );
+
+		$reloaded = wc_get_order( $order->get_id() );
+
+		// The recorded tax is preserved rather than wiped to zero.
+		$this->assertEqualsWithDelta( 8.25, (float) $reloaded->get_total_tax(), 0.001, 'Recorded tax should be preserved.' );
+		$this->assertCount( 1, $reloaded->get_taxes(), 'The original tax line should be preserved.' );
+
+		$taxes    = $reloaded->get_taxes();
+		$restored = reset( $taxes );
+		$this->assertEquals( 'CA Tax', $restored->get_label(), 'Tax label should survive the recalculation.' );
+		$this->assertEquals( 6, $restored->get_rate_id() );
+
+		// The total reflects the preserved tax on top of the (unchanged) line total.
+		$this->assertEqualsWithDelta( 108.25, (float) $reloaded->get_total(), 0.01, 'Order total should include the preserved tax.' );
+
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$order->delete( true );
+	}
+
+	/**
+	 * End-to-end: when a recalculation also changes the shipping amount, the
+	 * preserved tax is rebased onto the new non-tax total (so the total reflects the
+	 * updated shipping while the recorded tax is kept).
+	 */
+	public function test_preserve_order_taxes_rebases_total_when_shipping_changes() {
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->set_regular_price( '100' );
+		$this->product->save();
+
+		$order   = wc_create_order();
+		$item_id = $order->add_product( $this->product, 1 );
+
+		$shipping = new WC_Order_Item_Shipping();
+		$shipping->set_method_title( 'Flat rate' );
+		$shipping->set_total( '10' );
+		$order->add_item( $shipping );
+
+		$order->set_shipping_country( 'US' );
+		$order->set_shipping_state( 'CA' );
+		$order->set_shipping_postcode( '90210' );
+
+		// Record 8.25% tax on the $100 product (shipping not taxed).
+		$line_item = $order->get_item( $item_id );
+		$line_item->set_taxes(
+			array(
+				'total'    => array( 6 => '8.25' ),
+				'subtotal' => array( 6 => '8.25' ),
+			)
+		);
+
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_tax_total( '8.25' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '8.25' );
+		$order->set_shipping_total( '10' );
+		$order->set_total( 118.25 );
+		$order->save();
+
+		// Recalculate with a changed shipping amount ($10 -> $25) and address.
+		add_action( 'woocommerce_order_before_calculate_taxes', array( $this->integration, 'preserve_order_taxes_on_recalculation' ), 10, 2 );
+		$order->set_shipping_postcode( '90211' );
+		foreach ( $order->get_shipping_methods() as $ship ) {
+			$ship->set_total( '25' );
+			$order->add_item( $ship );
+		}
+		$order->calculate_totals( true );
+
+		$reloaded = wc_get_order( $order->get_id() );
+
+		// Tax preserved, total rebased on the new $25 shipping: 100 + 25 + 8.25.
+		$this->assertEqualsWithDelta( 8.25, (float) $reloaded->get_total_tax(), 0.001, 'Recorded tax should be preserved.' );
+		$this->assertEqualsWithDelta( 133.25, (float) $reloaded->get_total(), 0.01, 'Total should use the new shipping amount plus the preserved tax.' );
+
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that snapshot/restore round-trips every tax line when an order has more than one.
+	 */
+	public function test_restore_order_taxes_restores_multiple_tax_lines() {
+		$order = wc_create_order();
+
+		$state_tax = new WC_Order_Item_Tax();
+		$state_tax->set_rate_id( 6 );
+		$state_tax->set_rate_code( 'US-CA-STATE-1' );
+		$state_tax->set_label( 'CA State Tax' );
+		$state_tax->set_rate_percent( 6.0 );
+		$state_tax->set_tax_total( '6.00' );
+		$state_tax->set_shipping_tax_total( '0.00' );
+		$order->add_item( $state_tax );
+
+		$county_tax = new WC_Order_Item_Tax();
+		$county_tax->set_rate_id( 7 );
+		$county_tax->set_rate_code( 'US-CA-COUNTY-1' );
+		$county_tax->set_label( 'LA County Tax' );
+		$county_tax->set_rate_percent( 2.25 );
+		$county_tax->set_tax_total( '2.25' );
+		$county_tax->set_shipping_tax_total( '0.00' );
+		$order->add_item( $county_tax );
+
+		$order->set_cart_tax( '8.25' );
+		$order->set_total( 8.25 );
+		$order->save();
+
+		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
+		$this->assertCount( 2, $snapshot['tax_lines'], 'Both tax lines should be snapshotted.' );
+
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->set_cart_tax( 0 );
+		$order->set_total( 0 );
+		$order->save();
+
+		$this->invoke_protected_method( 'restore_order_taxes', array( $order, $snapshot ) );
+
+		$restored = wc_get_order( $order->get_id() );
+		$this->assertCount( 2, $restored->get_taxes(), 'Both tax lines should be restored.' );
+
+		$labels = array();
+		foreach ( $restored->get_taxes() as $line ) {
+			$labels[ $line->get_rate_id() ] = $line->get_label();
+		}
+		$this->assertEquals( 'CA State Tax', $labels[6], 'State tax label should be restored.' );
+		$this->assertEquals( 'LA County Tax', $labels[7], 'County tax label should be restored.' );
+		$this->assertEqualsWithDelta( 8.25, (float) $restored->get_total_tax(), 0.001, 'Combined tax should be restored.' );
+
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that a compound tax line's compound flag survives snapshot and restore.
+	 */
+	public function test_restore_order_taxes_preserves_compound_flag() {
+		$order = wc_create_order();
+
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 8 );
+		$tax_item->set_rate_code( 'CA-GST-1' );
+		$tax_item->set_label( 'GST' );
+		$tax_item->set_rate_percent( 5.0 );
+		$tax_item->set_compound( true );
+		$tax_item->set_tax_total( '5.00' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '5.00' );
+		$order->set_total( 5.00 );
+		$order->save();
+
+		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
+
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->save();
+
+		$this->invoke_protected_method( 'restore_order_taxes', array( $order, $snapshot ) );
+
+		$restored = wc_get_order( $order->get_id() );
+		$taxes    = $restored->get_taxes();
+		$line     = reset( $taxes );
+		$this->assertTrue( $line->get_compound(), 'Compound flag should survive snapshot and restore.' );
+
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that the order-level discount tax total is restored from the snapshot.
+	 */
+	public function test_restore_order_taxes_restores_discount_tax() {
+		$order = wc_create_order();
+
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_tax_total( '1.76' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '1.76' );
+		$order->set_discount_tax( '0.50' );
+		$order->set_total( 1.76 );
+		$order->save();
+
+		$snapshot = $this->invoke_protected_method( 'snapshot_order_taxes', array( $order ) );
+		$this->assertEqualsWithDelta( 0.50, (float) $snapshot['discount_tax'], 0.001, 'Discount tax should be snapshotted.' );
+
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->set_discount_tax( 0 );
+		$order->save();
+
+		$this->invoke_protected_method( 'restore_order_taxes', array( $order, $snapshot ) );
+
+		$restored = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.50, (float) $restored->get_discount_tax(), 0.001, 'Discount tax should be restored.' );
+
+		$order->delete( true );
+	}
+
+	/**
+	 * Test that a bare calculate_taxes() leaves the snapshot pending (documented gap:
+	 * no restore fires on that hook), and that the pending snapshot is then restored by
+	 * the handler a following calculate_totals() invokes, without double-applying.
+	 */
+	public function test_preserve_order_taxes_pending_snapshot_restores_via_handler() {
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'response_rate_ids', array() );
+
+		$order    = wc_create_order();
+		$tax_item = new WC_Order_Item_Tax();
+		$tax_item->set_rate_id( 6 );
+		$tax_item->set_label( 'CA Tax' );
+		$tax_item->set_tax_total( '8.25' );
+		$tax_item->set_shipping_tax_total( '0.00' );
+		$order->add_item( $tax_item );
+		$order->set_cart_tax( '8.25' );
+		$order->set_total( 8.25 );
+		$order->save();
+
+		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
+
+		$this->assertNotFalse(
+			has_action( 'woocommerce_order_after_calculate_totals', array( $this->integration, 'restore_order_taxes_after_recalculation' ) ),
+			'A single restore handler should be registered.'
+		);
+
+		// Simulate WC wiping the tax lines during the recalculation.
+		foreach ( $order->get_taxes() as $t ) {
+			$order->remove_item( $t->get_id() );
+		}
+		$order->set_cart_tax( 0 );
+		$order->set_total( 0 );
+		$order->save();
+
+		$this->integration->restore_order_taxes_after_recalculation( true, $order );
+
+		$restored = wc_get_order( $order->get_id() );
+		$this->assertCount( 1, $restored->get_taxes(), 'The recorded tax line should be restored.' );
+		$this->assertEqualsWithDelta( 8.25, (float) $restored->get_total_tax(), 0.001, 'The recorded tax should be restored.' );
+
+		// The snapshot is cleared once restored, so a second handler call is a no-op and
+		// cannot duplicate the tax or leak into a later recalculation.
+		$this->integration->restore_order_taxes_after_recalculation( true, wc_get_order( $order->get_id() ) );
+		$again = wc_get_order( $order->get_id() );
+		$this->assertCount( 1, $again->get_taxes(), 'Restoring twice must not duplicate tax lines.' );
+
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$order->delete( true );
 	}
 
 	/**
