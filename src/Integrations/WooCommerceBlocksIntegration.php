@@ -91,14 +91,16 @@ class WooCommerceBlocksIntegration implements IntegrationInterface {
 	 * @param string $handle Script handle.
 	 */
 	protected function register_script( string $handle ) {
-		$plugin_version      = Utils::get_wcservices_version();
-		$script_name         = "$handle-$plugin_version.js";
-		$script_path         = $this->base_url . $script_name;
-		$script_url          = Utils::get_enqueue_base_url() . $script_name;
-		$script_asset_path   = $this->base_url . $handle . '.asset.php';
-		$script_asset        = file_exists( $script_asset_path )
+		$plugin_version    = Utils::get_wcservices_version();
+		$script_name       = "$handle-$plugin_version.js";
+		$script_url        = Utils::get_enqueue_base_url() . $script_name;
+		$script_asset_path = Utils::get_plugin_path() . 'dist/' . $handle . '.asset.php';
+		$script_asset      = file_exists( $script_asset_path )
 			? require $script_asset_path : array();  // nosemgrep: audit.php.lang.security.file.inclusion-arg --- This is a safe file inclusion.
-		$script_dependencies = $script_asset['dependencies'] ?? array();
+
+		// The defaults cover the globals the script reads at load time:
+		// window.wp.plugins, window.wp.element, window.wp.data and window.wc.blocksCheckout.
+		$script_dependencies = $script_asset['dependencies'] ?? array( 'wp-plugins', 'wp-element', 'wp-data', 'wc-blocks-checkout' );
 
 		wp_register_script(
 			$handle,
