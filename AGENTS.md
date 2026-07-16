@@ -54,13 +54,37 @@ The husky pre-commit hook (`bin/wc-phpcbf.sh` via lint-staged) auto-fixes staged
 
 ## Backward Compatibility
 
-The `WC_Connect_*` classes live in the global namespace and are referenced by third-party code; treat them all as externally exposed.
+Any change to a **public or externally exposed** class, interface, function, or method signature is **high-risk** and **must state its backward-compatibility impact in the PR description** - regardless of which namespace the symbol lives in. The `WC_Connect_*` classes live in the global namespace and are referenced by third-party code; treat all of them as externally exposed. Newer code under `Automattic\WCServices\*` is not automatically safe either: a modern namespace is a code-organization choice, not a privacy guarantee, and anything reachable from outside can already have consumers.
 
-Any change to the signature of a public or externally exposed class, interface, function, method, or hook is high-risk and must state its backward-compatibility impact in the PR description.
+Treat a symbol as **externally exposed** when it is implemented or consumed outside this repository - by other plugins, themes, or site snippets - even if it looks internal. When in doubt, assume it is exposed and state the BC impact.
 
-- Treat a symbol as externally exposed when code outside this repository (other plugins, themes, or site snippets) can call, extend, implement, or hook into it. When in doubt, assume it is exposed and state the BC impact.
-- Adding a method to an interface (or an abstract method to a base class) that external code can implement is breaking: existing implementers fatal on load. Removing a required method is breaking too. Prefer a non-breaking alternative: add the method to the concrete class, or provide a default implementation in a base class.
-- Deprecate, don't rename or remove. Keep the old symbol working with a deprecation notice, introduce the replacement alongside it, and give consumers a migration window before removal.
+**Adding a method to an interface that external code can implement must be flagged explicitly.** It is a backward-incompatible change: existing implementers fatal on load because they no longer satisfy the contract. Likewise, **removing a required method from an interface is breaking** for existing implementers (they carry a now-dead method, which static analysis such as PHPStan will flag). Prefer a non-breaking alternative: add the method to the concrete class rather than the interface, introduce a separate new interface, or supply a default implementation via an abstract base class.
+
+**Deprecate, don't rename.** For existing public symbols (classes, interfaces, methods, constants, hooks), never rename or remove them in place. Mark the old symbol `@deprecated`, introduce the replacement alongside it, and keep both working through a deprecation window so external consumers have time to migrate.
+
+> This rule exists because WooCommerce 10.9.0 was reverted on WP Cloud: a required method added to a published interface fataled every older WooCommerce Stripe Gateway version that implemented it. The same failure mode applies to any contract this plugin publishes.
+
+Deprecation also cuts the other way here: because shipping is compatibility-only for grandfathered installs, removing or narrowing an existing shipping surface is a BC change for those stores, not cleanup. See Product Scope.
+
+### The compatibility surface is wider than PHP signatures
+
+WordPress exposes more contracts than class and function signatures. The following are equally binding: a change to any of them is **high-risk** and requires the same backward-compatibility impact statement in the PR description.
+
+**Hooks and filters are public contracts.** Every `do_action` and `apply_filters` call is an interface that third-party callbacks depend on, including this plugin's `wc_connect_*`, `wc_services_*`, `wcservices_*`, and `wcship_*` hooks. Removing a hook, renaming it, or removing/reordering its arguments breaks every attached callback. Changing *when* or *whether* a hook fires can break consumers that depend on its timing. Additive is the safe path: append new arguments at the end, never remove or reorder existing ones. To retire a hook, fire it through `do_action_deprecated()` / `apply_filters_deprecated()` for a deprecation window instead of deleting it.
+
+**Do not assume global state.** Tax calculation is reachable from the cart and checkout, the Store API, the REST API, cron, WP-CLI, and webhooks, and not all of those set the globals a front-end request does (`$post`, `$wp_query`, an initialized session or cart). A newly introduced read of a global, or of `WC()->...` state, in a path reachable outside a standard request is a fatal or a silent misbehavior in the contexts that do not set it - REST order updates are a repeat offender in this repo. Guard the exact dependency explicitly: use `function_exists`/`class_exists` for symbols, `isset` for variables, `did_action` for lifecycle state, and verify that `WC()` and the required component are initialized before dereferencing `WC()->...`.
+
+**Do not assume single-site.** Multisite changes where data lives: site-scoped vs network-scoped options (`get_option` vs `get_site_option`), per-site tables, user roles and capabilities, and upload paths all differ. This plugin's settings, service schemas, and connection state are site-scoped, so a network-activated install holds one set per site. A change that reads or writes site state must state in its PR whether it behaves correctly under multisite - and if it was not tested there, say so explicitly.
+
+**Do not assume install layout.** WordPress could be configured to run in a subdirectory, with relocated `wp-content`, and behind reverse proxies. Never build paths or URLs by concatenation from the domain root; derive them (`plugins_url()`, `plugin_dir_path()`, `wp_upload_dir()`, and mind the `home_url()` vs `site_url()` distinction). This matters for `dist/` asset URLs and for any store URL sent to the Connect server. A path that works on a root install and breaks elsewhere is a compatibility bug, not an edge case.
+
+### Before changing any public or externally exposed surface (agent checklist)
+
+1. Identify the contract you are touching: signature, hook, global/scope expectation, site topology, or install layout.
+2. Assume unseen consumers. You cannot enumerate third-party code; if the surface is reachable from outside this plugin, someone consumes it.
+3. Prefer the additive path (new optional method, appended hook argument, new symbol + deprecation) over changing what exists.
+4. State the impact in the PR description: what changed, who could consume it, and why it is safe or what the deprecation path is.
+5. If you cannot establish the impact, stop and flag it to the user as needing review.
 
 ## Architecture Notes
 - `has_only_tax_functionality()` and `should_load_shipping_features()` in `woocommerce-services.php` are core gates for tax-only vs shipping-enabled behavior.
