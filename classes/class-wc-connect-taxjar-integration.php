@@ -66,6 +66,14 @@ class WC_Connect_TaxJar_Integration {
 	private $response_line_items;
 
 	/**
+	 * Tax snapshots captured before an out-of-cart recalculation, keyed by order id,
+	 * so they can be restored after WC recalculates the order totals.
+	 *
+	 * @var array
+	 */
+	private $pre_recalculation_tax_snapshots = array();
+
+	/**
 	 * @var bool
 	 */
 	private $is_itemized_tax_display;
@@ -214,6 +222,11 @@ class WC_Connect_TaxJar_Integration {
 
 		// Calculate Taxes for Backend Orders (Woo 2.6+)
 		add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
+
+		// Preserve recorded taxes when an existing order is recalculated outside the
+		// cart/checkout and admin flows (e.g. a REST API or programmatic order update),
+		// so a changed address does not wipe the stored tax lines to zero.
+		add_action( 'woocommerce_order_before_calculate_taxes', array( $this, 'preserve_order_taxes_on_recalculation' ), 10, 2 );
 
 		// Set customer taxable location for local pickup
 		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
@@ -670,7 +683,7 @@ class WC_Connect_TaxJar_Integration {
 		$to_country = isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) ? strtoupper( $taxable_address[0] ) : false;
 		$to_state   = isset( $taxable_address[1] ) && ! empty( $taxable_address[1] ) ? strtoupper( $taxable_address[1] ) : false;
 		$to_zip     = isset( $taxable_address[2] ) && ! empty( $taxable_address[2] ) ? $taxable_address[2] : false;
-		$to_city    = isset( $taxable_address[3] ) && ! empty( $taxable_address[3] ) ? $taxable_address[3] : false;
+		$to_city    = isset( $taxable_address[3] ) && ! empty( $taxable_address[3] ) ? self::normalize_city( $taxable_address[3] ) : false;
 		$to_street  = isset( $taxable_address[4] ) && ! empty( $taxable_address[4] ) ? $taxable_address[4] : false;
 
 		return array(
@@ -700,7 +713,7 @@ class WC_Connect_TaxJar_Integration {
 					'country'   => $country,
 					'state'     => $state,
 					'postcode'  => $postcode,
-					'city'      => strtoupper( $city ),
+					'city'      => strtoupper( self::normalize_city( $city ) ),
 					'tax_class' => $tax_class,
 				)
 			);
@@ -917,7 +930,7 @@ class WC_Connect_TaxJar_Integration {
 		$to_country = isset( $_POST['country'] ) ? strtoupper( wc_clean( $_POST['country'] ) ) : false;
 		$to_state   = isset( $_POST['state'] ) ? strtoupper( wc_clean( $_POST['state'] ) ) : false;
 		$to_zip     = isset( $_POST['postcode'] ) ? strtoupper( wc_clean( $_POST['postcode'] ) ) : false;
-		$to_city    = isset( $_POST['city'] ) ? strtoupper( wc_clean( $_POST['city'] ) ) : false;
+		$to_city    = isset( $_POST['city'] ) ? self::normalize_city( strtoupper( wc_clean( $_POST['city'] ) ) ) : false;
 		$to_street  = isset( $_POST['street'] ) ? strtoupper( wc_clean( $_POST['street'] ) ) : false;
     // phpcs:enable WordPress.Security.NonceVerification.Missing
 
@@ -1765,6 +1778,36 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Normalize a city value for safe round-trips through WooCommerce's tax rate tables.
+	 *
+	 * `WC_Tax::_update_tax_rate_cities()` treats `;` as a multi-city separator (it
+	 * `explode(';', ...)`s the input), but `WC_Tax::find_rates()` queries the city
+	 * column with a single `location_code = '<CITY>'` literal — so a checkout city
+	 * containing `;` (e.g. typo'd `Casse;Berry`) gets stored as two separate location
+	 * rows (`CASSE`, `BERRY`) yet looked up as the joined string `CASSE;BERRY`.
+	 * That asymmetry causes `find_rates()` to miss on every subsequent calculation,
+	 * which makes `create_or_update_tax_rate()` insert a fresh row each checkout —
+	 * unbounded growth of `wp_woocommerce_tax_rates`. See WOOTAX-19.
+	 *
+	 * Stripping `;` (and collapsing the resulting whitespace runs) before any path
+	 * touches the tax-rate tables or the TaxJar API restores the round-trip.
+	 *
+	 * @param string $city Raw city value, possibly user-entered.
+	 * @return string Normalized city, safe for `_update_tax_rate_cities` and `find_rates`.
+	 */
+	protected static function normalize_city( $city ) {
+		if ( ! is_string( $city ) || '' === $city ) {
+			return $city;
+		}
+
+		$city = str_replace( ';', ' ', $city );
+		$city = preg_replace( '/\s+/u', ' ', $city );
+
+		// `preg_replace` returns null on malformed UTF-8 with the /u flag; cast so trim() stays safe.
+		return trim( (string) $city );
+	}
+
+	/**
 	 * Add or update WooCommerce tax rate.
 	 *
 	 * @param  array     $location
@@ -1823,7 +1866,7 @@ class WC_Connect_TaxJar_Integration {
 				'country'   => $location['to_country'],
 				'state'     => str_replace( ' ', '', $to_state ),
 				'postcode'  => $location['to_zip'],
-				'city'      => strtoupper( $location['to_city'] ),
+				'city'      => strtoupper( self::normalize_city( $location['to_city'] ) ),
 				'tax_class' => $tax_class,
 			)
 		);
@@ -1858,7 +1901,7 @@ class WC_Connect_TaxJar_Integration {
 			// VAT is always country wide, no need to create separate entires for each zip and city.
 			if ( 'VAT' !== $tax_rate_name ) {
 				WC_Tax::_update_tax_rate_postcodes( $rate_id, wc_normalize_postcode( wc_clean( $location['to_zip'] ) ) );
-				WC_Tax::_update_tax_rate_cities( $rate_id, wc_clean( $location['to_city'] ) );
+				WC_Tax::_update_tax_rate_cities( $rate_id, self::normalize_city( wc_clean( $location['to_city'] ) ) );
 			}
 		}
 
@@ -2159,5 +2202,212 @@ class WC_Connect_TaxJar_Integration {
 		if ( 'not set' === $to_state || 'not set' === $to_country || null === $has_nexus ) {
 			throw new Exception( sprintf( 'One or more values are not set : to_state=>%1$s, to_country=>%2$s, has_nexus=>%3$s', $to_state, $to_country, json_encode( $has_nexus ) ) );
 		}
+	}
+
+	/**
+	 * Preserve an order's recorded taxes when it is recalculated outside the cart.
+	 *
+	 * WC_Abstract_Order::calculate_taxes() recomputes item taxes against the order's
+	 * current address using WC_Tax::find_rates(). TaxJar stores its rates scoped to
+	 * the checkout address, so when a REST API or programmatic update changes the
+	 * address the lookup returns nothing and update_taxes() wipes every tax line to
+	 * zero. Once an order is placed its tax is a record of what was charged, so we
+	 * preserve it rather than recompute it: snapshot the existing taxes here (before
+	 * WC recalculates) and restore them once the totals have been recalculated.
+	 *
+	 * The cart/checkout and admin-AJAX flows have their own handling and are left
+	 * untouched, and an order with no existing tax lines is left to calculate for the
+	 * first time normally.
+	 *
+	 * Restoration happens on woocommerce_order_after_calculate_totals, the only post-
+	 * recalculation hook WC fires on this path. A caller that invokes
+	 * WC_Abstract_Order::calculate_taxes() directly (without a following
+	 * calculate_totals()) is therefore not restored, because WC exposes no hook after
+	 * calculate_taxes(); the REST API and programmatic order-update paths this targets
+	 * all go through calculate_totals(). The snapshot is stashed by order id (not in a
+	 * per-call closure) so a batch can recalculate many orders without stacking one-shot
+	 * callbacks, and so a snapshot whose restore never fires cannot leak onto the hook.
+	 *
+	 * @internal Hooked to woocommerce_order_before_calculate_taxes.
+	 *
+	 * @param array    $args  Args passed to calculate_taxes(). Unused.
+	 * @param WC_Order $order The order being recalculated.
+	 *
+	 * @since 3.6.8
+	 */
+	public function preserve_order_taxes_on_recalculation( $args, $order ) {
+		// The gates below are exclusionary: preservation runs for ANY out-of-cart
+		// recalculation of an existing, already-taxed order — the REST/address-change
+		// path this fix targets, but also WP-CLI, cron, and Action Scheduler runs.
+		// That breadth is intentional: once an order is placed its tax is a record of
+		// what was charged, so we preserve it on every programmatic recalculation, not
+		// only the REST path that prompted this fix.
+
+		// The cart/checkout flow populates response_rate_ids and manages its own taxes.
+		if ( ! empty( $this->response_rate_ids ) ) {
+			return;
+		}
+
+		// Admin order edits recalculate over AJAX and are handled by calculate_backend_totals().
+		if ( wp_doing_ajax() ) {
+			return;
+		}
+
+		// A new order that does not exist yet has no recorded taxes to preserve.
+		if ( ! $order->get_id() ) {
+			return;
+		}
+
+		$snapshot = $this->snapshot_order_taxes( $order );
+
+		// Only preserve when the order already had tax lines; never turn a first-time
+		// tax calculation into a zeroed one.
+		if ( empty( $snapshot['tax_lines'] ) ) {
+			return;
+		}
+
+		// Stash the snapshot keyed by order id and register a single restore handler.
+		$this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ] = $snapshot;
+
+		// remove_action() first so repeated recalculations register the handler once.
+		remove_action( 'woocommerce_order_after_calculate_totals', array( $this, 'restore_order_taxes_after_recalculation' ), 10 );
+		add_action( 'woocommerce_order_after_calculate_totals', array( $this, 'restore_order_taxes_after_recalculation' ), 10, 2 );
+	}
+
+	/**
+	 * Restore a preserved tax snapshot after WC has recalculated an order's totals.
+	 *
+	 * Looks up the snapshot captured in preserve_order_taxes_on_recalculation() for the
+	 * recalculated order and, if one is present, restores it and drops it from the
+	 * pending set. Keyed by order id so a batch that recalculates several orders
+	 * restores each from its own snapshot.
+	 *
+	 * @internal Hooked to woocommerce_order_after_calculate_totals.
+	 *
+	 * @param bool     $and_taxes Whether taxes were recalculated. Unused.
+	 * @param WC_Order $order     The order whose totals were recalculated.
+	 */
+	public function restore_order_taxes_after_recalculation( $and_taxes, $order ) {
+		$order_id = (int) $order->get_id();
+
+		if ( ! isset( $this->pre_recalculation_tax_snapshots[ $order_id ] ) ) {
+			return;
+		}
+
+		$snapshot = $this->pre_recalculation_tax_snapshots[ $order_id ];
+		unset( $this->pre_recalculation_tax_snapshots[ $order_id ] );
+
+		$this->restore_order_taxes( $order, $snapshot );
+	}
+
+	/**
+	 * Snapshot the current tax state of an order before recalculation.
+	 *
+	 * Captures the tax line items (with their full metadata), the per-item tax
+	 * arrays, and the order-level tax totals so they can be restored verbatim after
+	 * WC recalculates the order for a changed address.
+	 *
+	 * @since 3.6.8
+	 * @param WC_Order $order The order to snapshot.
+	 * @return array {
+	 *   @type array  $tax_lines    Keyed by item_id; each holds the full WC_Order_Item_Tax field set.
+	 *   @type array  $item_taxes   Keyed by item_id (prefix 'shipping_' for shipping items); each is a taxes array.
+	 *   @type string $cart_tax     Order cart tax total.
+	 *   @type string $shipping_tax Order shipping tax total.
+	 *   @type string $discount_tax Order discount tax total.
+	 * }
+	 */
+	private function snapshot_order_taxes( $order ) {
+		$snapshot = array(
+			'tax_lines'    => array(),
+			'item_taxes'   => array(),
+			'cart_tax'     => $order->get_cart_tax(),
+			'shipping_tax' => $order->get_shipping_tax(),
+			'discount_tax' => $order->get_discount_tax(),
+		);
+
+		foreach ( $order->get_taxes() as $item_id => $tax_item ) {
+			$snapshot['tax_lines'][ $item_id ] = array(
+				'rate_id'            => $tax_item->get_rate_id(),
+				'rate_code'          => $tax_item->get_rate_code(),
+				'label'              => $tax_item->get_label(),
+				'rate_percent'       => $tax_item->get_rate_percent(),
+				'compound'           => $tax_item->get_compound(),
+				'tax_total'          => $tax_item->get_tax_total(),
+				'shipping_tax_total' => $tax_item->get_shipping_tax_total(),
+			);
+		}
+
+		foreach ( $order->get_items( array( 'line_item', 'fee' ) ) as $item_id => $item ) {
+			$snapshot['item_taxes'][ $item_id ] = $item->get_taxes();
+		}
+
+		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
+			$snapshot['item_taxes'][ 'shipping_' . $item_id ] = $item->get_taxes();
+		}
+
+		return $snapshot;
+	}
+
+	/**
+	 * Restore an order's taxes from a snapshot after WC recalculated it.
+	 *
+	 * Puts back the per-item taxes and tax line items (with their metadata) that
+	 * update_taxes() removed, and rebases the order total on the preserved tax
+	 * instead of whatever WC computed for the new address, while keeping any updated
+	 * non-tax amounts (such as a changed shipping total).
+	 *
+	 * @since 3.6.8
+	 * @param WC_Order $order    The order to restore into.
+	 * @param array    $snapshot Snapshot returned by snapshot_order_taxes().
+	 */
+	private function restore_order_taxes( $order, $snapshot ) {
+		if ( empty( $snapshot['tax_lines'] ) ) {
+			return;
+		}
+
+		// Restore the per-item tax arrays on line items and fees.
+		foreach ( $order->get_items( array( 'line_item', 'fee' ) ) as $item_id => $item ) {
+			if ( isset( $snapshot['item_taxes'][ $item_id ] ) ) {
+				$item->set_taxes( $snapshot['item_taxes'][ $item_id ] );
+			}
+		}
+
+		// Restore the per-item tax arrays on shipping items.
+		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
+			if ( isset( $snapshot['item_taxes'][ 'shipping_' . $item_id ] ) ) {
+				$item->set_taxes( $snapshot['item_taxes'][ 'shipping_' . $item_id ] );
+			}
+		}
+
+		// Remove the tax lines WC rebuilt for the new address.
+		foreach ( $order->get_taxes() as $tax_item ) {
+			$order->remove_item( $tax_item->get_id() );
+		}
+
+		// Re-add the original tax lines, preserving their full metadata.
+		foreach ( $snapshot['tax_lines'] as $tax_data ) {
+			$tax_item = new WC_Order_Item_Tax();
+			$tax_item->set_rate_id( $tax_data['rate_id'] );
+			$tax_item->set_rate_code( $tax_data['rate_code'] );
+			$tax_item->set_label( $tax_data['label'] );
+			$tax_item->set_rate_percent( $tax_data['rate_percent'] );
+			$tax_item->set_compound( $tax_data['compound'] );
+			$tax_item->set_tax_total( $tax_data['tax_total'] );
+			$tax_item->set_shipping_tax_total( $tax_data['shipping_tax_total'] );
+			$order->add_item( $tax_item );
+		}
+
+		// Rebase the order total on the preserved tax. WC has already recomputed the
+		// non-tax amounts (subtotal, discounts, shipping, fees), so strip whatever tax
+		// it calculated for the new address and add the preserved tax back.
+		$non_tax_total = (float) $order->get_total() - (float) $order->get_cart_tax() - (float) $order->get_shipping_tax();
+
+		$order->set_cart_tax( $snapshot['cart_tax'] );
+		$order->set_shipping_tax( $snapshot['shipping_tax'] );
+		$order->set_discount_tax( $snapshot['discount_tax'] );
+		$order->set_total( round( $non_tax_total + (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'], wc_get_price_decimals() ) );
+
+		$order->save();
 	}
 }
