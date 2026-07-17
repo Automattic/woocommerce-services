@@ -31,8 +31,10 @@ class StoreApiExtendSchema {
 	/**
 	 * Whether resolving the ExtendSchema instance has been attempted.
 	 *
-	 * Guards against re-running container resolution (and re-logging) on every
-	 * request when resolution fails on an install with a broken Store API.
+	 * Guards against re-running container resolution (and re-logging) more than
+	 * once within a single request when resolution fails. Note this cannot span
+	 * requests: PHP statics reset on every page load, so a broken install still
+	 * logs once per request.
 	 *
 	 * @var bool
 	 */
@@ -57,7 +59,13 @@ class StoreApiExtendSchema {
 		try {
 			self::$instance = static::resolve_extend_schema();
 		} catch ( Throwable $e ) {
-			wc_get_logger()->debug( 'Failed to get ExtendSchema instance.', array( 'exception' => $e ) );
+			wc_get_logger()->debug(
+				'Failed to get ExtendSchema instance.',
+				array(
+					'source'    => 'woocommerce-services',
+					'exception' => $e,
+				)
+			);
 		}
 	}
 
