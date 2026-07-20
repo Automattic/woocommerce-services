@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.6.9 - 2026-xx-xx =
+= 3.6.9 - 2026-07-20 =
 * Fix   - Prevent a rare fatal error when the WooCommerce Store API cannot be initialized on incomplete installations.
 
 = 3.6.8 - 2026-07-15 =
