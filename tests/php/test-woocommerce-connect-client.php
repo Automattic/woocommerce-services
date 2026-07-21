@@ -1,5 +1,7 @@
 <?php
 
+require_once __DIR__ . '/class-wcservices-throwing-store-api-extend-schema.php';
+
 class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	const SERVICE_SCRIPT_HANDLE = 'wc_connect_admin';
@@ -347,5 +349,170 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 		remove_filter( 'woocommerce_logging_class', $inject_logger );
 		delete_transient( 'wcservices_store_api_unavailable_logged' );
+	}
+
+	/**
+	 * When the container cannot resolve ExtendSchema, get_store_api_extend_schema()
+	 * returns null and register_store_api_extensions() must skip quietly instead of
+	 * passing null into StoreApiExtensionController's typed constructor (WOOTAX-303).
+	 *
+	 * @covers WC_Connect_Loader::register_store_api_extensions
+	 */
+	public function test_register_store_api_extensions_skips_when_schema_unavailable() {
+		$sut = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'get_store_api_extend_schema' ) )
+			->getMock();
+
+		$sut->method( 'get_store_api_extend_schema' )->willReturn( null );
+
+		$method = new ReflectionMethod( 'WC_Connect_Loader', 'register_store_api_extensions' );
+		$method->setAccessible( true );
+
+		// Must not throw a TypeError; the early return yields void (null).
+		$this->assertNull( $method->invoke( $sut ) );
+	}
+
+	/**
+	 * When resolution has already been attempted and failed, instance() returns
+	 * null instead of fataling on an uninitialized typed static, and the $attempted
+	 * guard prevents a re-resolution (which, against the working test-harness
+	 * container, would otherwise return a non-null instance) (WOOTAX-303).
+	 *
+	 * @covers Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance
+	 */
+	public function test_instance_returns_null_when_resolution_failed() {
+		$class     = '\Automattic\WCServices\StoreApi\StoreApiExtendSchema';
+		$attempted = new ReflectionProperty( $class, 'attempted' );
+		$instance  = new ReflectionProperty( $class, 'instance' );
+		$attempted->setAccessible( true );
+		$instance->setAccessible( true );
+
+		// Static state leaks across tests; capture and restore it.
+		$orig_attempted = $attempted->getValue();
+		$orig_instance  = $instance->getValue();
+
+		try {
+			$attempted->setValue( true );   // resolution already attempted...
+			$instance->setValue( null );    // ...and it failed.
+
+			// Non-vacuity relies on the test harness container resolving a real
+			// instance on re-entry: if the $attempted guard were removed, instance()
+			// would re-run the constructor and return that non-null instance,
+			// failing this assertion.
+			$this->assertNull( \Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance() );
+		} finally {
+			$attempted->setValue( $orig_attempted );
+			$instance->setValue( $orig_instance );
+		}
+	}
+
+	/**
+	 * The $attempted latch is what stops container resolution (and its debug log)
+	 * from re-running on every request. This asserts the latch engages on the first
+	 * call regardless of whether resolution succeeds or fails (WOOTAX-303).
+	 *
+	 * @testdox instance() sets the attempted latch on the first call.
+	 * @covers Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance
+	 */
+	public function test_instance_latches_attempted_on_first_call() {
+		$class     = '\Automattic\WCServices\StoreApi\StoreApiExtendSchema';
+		$attempted = new ReflectionProperty( $class, 'attempted' );
+		$instance  = new ReflectionProperty( $class, 'instance' );
+		$attempted->setAccessible( true );
+		$instance->setAccessible( true );
+
+		$orig_attempted = $attempted->getValue();
+		$orig_instance  = $instance->getValue();
+
+		try {
+			$attempted->setValue( false );
+			$instance->setValue( null );
+
+			\Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance();
+
+			$this->assertTrue( $attempted->getValue(), 'instance() must latch $attempted on the first call so resolution runs at most once per request.' );
+		} finally {
+			$attempted->setValue( $orig_attempted );
+			$instance->setValue( $orig_instance );
+		}
+	}
+
+	/**
+	 * Once resolution has been attempted, instance() must return the already-resolved
+	 * instance without re-entering the container. A distinct ExtendSchema sentinel
+	 * (built without the constructor, so it is never the container's shared instance)
+	 * makes this deterministic: if the $attempted guard were removed, instance() would
+	 * re-resolve and return a different object, failing the identity assertion. This
+	 * avoids the working-container dependency of the null-path test (WOOTAX-303).
+	 *
+	 * @testdox instance() returns the cached instance without re-resolving once attempted.
+	 * @covers Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance
+	 */
+	public function test_instance_returns_cached_instance_without_reresolving() {
+		$class     = '\Automattic\WCServices\StoreApi\StoreApiExtendSchema';
+		$attempted = new ReflectionProperty( $class, 'attempted' );
+		$instance  = new ReflectionProperty( $class, 'instance' );
+		$attempted->setAccessible( true );
+		$instance->setAccessible( true );
+
+		$orig_attempted = $attempted->getValue();
+		$orig_instance  = $instance->getValue();
+
+		// ExtendSchema is final; build a distinct real instance without its constructor.
+		$sentinel = ( new ReflectionClass( '\Automattic\WooCommerce\StoreApi\Schemas\ExtendSchema' ) )->newInstanceWithoutConstructor();
+
+		try {
+			$attempted->setValue( true );
+			$instance->setValue( $sentinel );
+
+			$this->assertSame( $sentinel, \Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance(), 'instance() must return the cached instance without re-resolving once resolution has been attempted.' );
+		} finally {
+			$attempted->setValue( $orig_attempted );
+			$instance->setValue( $orig_instance );
+		}
+	}
+
+	/**
+	 * When the container throws while resolving ExtendSchema, instance() must catch it
+	 * and return null instead of fataling. A TypeError is used deliberately: it is a
+	 * Throwable but not an Exception, so pre-fix code (catch Exception) would let it
+	 * propagate. The failure must also be logged once (WOOTAX-303).
+	 *
+	 * @testdox instance() returns null and logs when the container throws a non-Exception Throwable.
+	 * @covers Automattic\WCServices\StoreApi\StoreApiExtendSchema::instance
+	 */
+	public function test_instance_returns_null_when_container_throws() {
+		$class     = '\Automattic\WCServices\StoreApi\StoreApiExtendSchema';
+		$attempted = new ReflectionProperty( $class, 'attempted' );
+		$instance  = new ReflectionProperty( $class, 'instance' );
+		$attempted->setAccessible( true );
+		$instance->setAccessible( true );
+
+		$orig_attempted = $attempted->getValue();
+		$orig_instance  = $instance->getValue();
+
+		$logger = $this->getMockBuilder( 'WC_Logger_Interface' )->getMock();
+		$logger->expects( $this->once() )
+			->method( 'debug' )
+			->with( 'Failed to get ExtendSchema instance.', $this->anything() );
+
+		$inject_logger = function () use ( $logger ) {
+			return $logger;
+		};
+		add_filter( 'woocommerce_logging_class', $inject_logger );
+
+		try {
+			$attempted->setValue( false );
+			$instance->setValue( null );
+
+			$result = WCServices_Throwing_Store_Api_Extend_Schema::instance();
+
+			$this->assertNull( $result, 'instance() must return null - not fatal - when the container throws a non-Exception Throwable.' );
+		} finally {
+			remove_filter( 'woocommerce_logging_class', $inject_logger );
+			$attempted->setValue( $orig_attempted );
+			$instance->setValue( $orig_instance );
+		}
 	}
 }
