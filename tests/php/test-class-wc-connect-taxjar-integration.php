@@ -1753,4 +1753,116 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// top-level rate. This is the core guard against the zeroing-out regression.
 		$this->assertEqualsWithDelta( 6.975, array_sum( $persisted ), 0.0001, 'Existing tax rate must not be zeroed out by a $0 calculation.' );
 	}
+
+	/**
+	 * `normalize_city()` strips semicolons and collapses whitespace.
+	 *
+	 * `WC_Tax::_update_tax_rate_cities()` treats `;` as a multi-city separator,
+	 * but `WC_Tax::find_rates()` treats it as a literal character. `normalize_city()`
+	 * strips `;` (and collapses whitespace) so the round-trip stays symmetric.
+	 *
+	 * @see WOOTAX-19
+	 *
+	 * @dataProvider normalize_city_provider
+	 *
+	 * @param string $input    Raw city value to normalize.
+	 * @param string $expected Expected normalized output.
+	 */
+	public function test_normalize_city_strips_semicolons_and_normalizes_whitespace( $input, $expected ) {
+		$reflection = new ReflectionMethod( 'WC_Connect_TaxJar_Integration', 'normalize_city' );
+		$reflection->setAccessible( true );
+
+		$this->assertSame( $expected, $reflection->invoke( null, $input ) );
+	}
+
+	/**
+	 * Data provider for `test_normalize_city_strips_semicolons_and_normalizes_whitespace`.
+	 *
+	 * @return array<string, array{0: mixed, 1: mixed}>
+	 */
+	public function normalize_city_provider() {
+		return array(
+			'no semicolon — unchanged'            => array( 'New York', 'New York' ),
+			'simple semicolon between words'      => array( 'Casse;Berry', 'Casse Berry' ),
+			'semicolon with following space'      => array( 'Casse; Berry', 'Casse Berry' ),
+			'leading semicolon'                   => array( ';Casselberry', 'Casselberry' ),
+			'trailing semicolon'                  => array( 'Casselberry;', 'Casselberry' ),
+			'consecutive semicolons'              => array( 'Casse;;Berry', 'Casse Berry' ),
+			'wrapped in whitespace'               => array( '  Casselberry  ', 'Casselberry' ),
+			'tab and newline collapse to space'   => array( "Casse;\t\nBerry", 'Casse Berry' ),
+			'empty string'                        => array( '', '' ),
+			'multi-segment with mixed separators' => array( ' Casse; ;Berry ', 'Casse Berry' ),
+			'null — returned unchanged'           => array( null, null ),
+			'false — returned unchanged'          => array( false, false ),
+		);
+	}
+
+	/**
+	 * `get_backend_address()` strips a semicolon from an admin order city.
+	 *
+	 * The admin "Recalculate" path builds its taxable address from `$_POST`, so a
+	 * `;`-bearing city must be normalized there too — otherwise backend recalculations
+	 * would reintroduce the stored/looked-up asymmetry the frontend path now avoids.
+	 *
+	 * @see WOOTAX-19
+	 */
+	public function test_get_backend_address_normalizes_semicolon_city() {
+		$_POST['country']  = 'US';
+		$_POST['state']    = 'FL';
+		$_POST['postcode'] = '33033';
+		$_POST['city']     = 'Casse;Berry';
+
+		try {
+			$address = $this->invoke_protected_method( 'get_backend_address' );
+		} finally {
+			unset( $_POST['country'], $_POST['state'], $_POST['postcode'], $_POST['city'] );
+		}
+
+		$this->assertStringNotContainsString( ';', $address['to_city'], 'Backend order city must not retain a semicolon — `_update_tax_rate_cities()` would split it.' );
+		$this->assertSame( 'CASSE BERRY', $address['to_city'] );
+	}
+
+	/**
+	 * `create_or_update_tax_rate()` is idempotent across semicolon-bearing cities.
+	 *
+	 * Regression test for the unbounded `wp_woocommerce_tax_rates` growth:
+	 * `create_or_update_tax_rate()` called twice with the same semicolon-bearing
+	 * city must reuse the existing rate row instead of inserting a duplicate.
+	 *
+	 * @see WOOTAX-19
+	 */
+	public function test_create_or_update_tax_rate_does_not_duplicate_rows_for_semicolon_city() {
+		global $wpdb;
+
+		$location = array(
+			'to_country' => 'US',
+			'to_state'   => 'FL',
+			'to_zip'     => '33033',
+			'to_city'    => 'Casse;Berry',
+			'from_state' => 'FL',
+		);
+
+		// Snapshot the row count BEFORE the first call so the test isn't sensitive
+		// to fixtures/seed data (test DB might already have rates from other tests).
+		$rates_table        = $wpdb->prefix . 'woocommerce_tax_rates';
+		$initial_rate_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$rates_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		$first_id  = $this->integration->create_or_update_tax_rate( $location, 0.07, '', 1, 1, 'Tax' );
+		$second_id = $this->integration->create_or_update_tax_rate( $location, 0.07, '', 1, 1, 'Tax' );
+
+		// Same row id on both calls — find_rates() matched the second time.
+		$this->assertSame( (int) $first_id, (int) $second_id, 'Second create_or_update_tax_rate() inserted a new row instead of reusing the existing one — find_rates() city lookup is asymmetric with _update_tax_rate_cities() storage.' );
+
+		// Exactly one new row added, not two.
+		$final_rate_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$rates_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$this->assertSame( $initial_rate_count + 1, $final_rate_count, 'Expected exactly one new tax rate row after two create_or_update_tax_rate() calls with the same Casse;Berry city.' );
+
+		// Stored city in the locations table should be normalized — no `;`.
+		$locations_table = $wpdb->prefix . 'woocommerce_tax_rate_locations';
+		$stored_cities   = $wpdb->get_col( $wpdb->prepare( "SELECT location_code FROM {$locations_table} WHERE tax_rate_id = %d AND location_type = %s", (int) $first_id, 'city' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$this->assertNotEmpty( $stored_cities );
+		foreach ( $stored_cities as $city ) {
+			$this->assertStringNotContainsString( ';', $city, 'Tax rate city stored with a semicolon — `_update_tax_rate_cities()` will split it and break find_rates() on subsequent lookups.' );
+		}
+	}
 }

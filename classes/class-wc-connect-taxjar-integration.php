@@ -683,7 +683,7 @@ class WC_Connect_TaxJar_Integration {
 		$to_country = isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) ? strtoupper( $taxable_address[0] ) : false;
 		$to_state   = isset( $taxable_address[1] ) && ! empty( $taxable_address[1] ) ? strtoupper( $taxable_address[1] ) : false;
 		$to_zip     = isset( $taxable_address[2] ) && ! empty( $taxable_address[2] ) ? $taxable_address[2] : false;
-		$to_city    = isset( $taxable_address[3] ) && ! empty( $taxable_address[3] ) ? $taxable_address[3] : false;
+		$to_city    = isset( $taxable_address[3] ) && ! empty( $taxable_address[3] ) ? self::normalize_city( $taxable_address[3] ) : false;
 		$to_street  = isset( $taxable_address[4] ) && ! empty( $taxable_address[4] ) ? $taxable_address[4] : false;
 
 		return array(
@@ -713,7 +713,7 @@ class WC_Connect_TaxJar_Integration {
 					'country'   => $country,
 					'state'     => $state,
 					'postcode'  => $postcode,
-					'city'      => strtoupper( $city ),
+					'city'      => strtoupper( self::normalize_city( $city ) ),
 					'tax_class' => $tax_class,
 				)
 			);
@@ -930,7 +930,7 @@ class WC_Connect_TaxJar_Integration {
 		$to_country = isset( $_POST['country'] ) ? strtoupper( wc_clean( $_POST['country'] ) ) : false;
 		$to_state   = isset( $_POST['state'] ) ? strtoupper( wc_clean( $_POST['state'] ) ) : false;
 		$to_zip     = isset( $_POST['postcode'] ) ? strtoupper( wc_clean( $_POST['postcode'] ) ) : false;
-		$to_city    = isset( $_POST['city'] ) ? strtoupper( wc_clean( $_POST['city'] ) ) : false;
+		$to_city    = isset( $_POST['city'] ) ? self::normalize_city( strtoupper( wc_clean( $_POST['city'] ) ) ) : false;
 		$to_street  = isset( $_POST['street'] ) ? strtoupper( wc_clean( $_POST['street'] ) ) : false;
     // phpcs:enable WordPress.Security.NonceVerification.Missing
 
@@ -1778,6 +1778,36 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Normalize a city value for safe round-trips through WooCommerce's tax rate tables.
+	 *
+	 * `WC_Tax::_update_tax_rate_cities()` treats `;` as a multi-city separator (it
+	 * `explode(';', ...)`s the input), but `WC_Tax::find_rates()` queries the city
+	 * column with a single `location_code = '<CITY>'` literal — so a checkout city
+	 * containing `;` (e.g. typo'd `Casse;Berry`) gets stored as two separate location
+	 * rows (`CASSE`, `BERRY`) yet looked up as the joined string `CASSE;BERRY`.
+	 * That asymmetry causes `find_rates()` to miss on every subsequent calculation,
+	 * which makes `create_or_update_tax_rate()` insert a fresh row each checkout —
+	 * unbounded growth of `wp_woocommerce_tax_rates`. See WOOTAX-19.
+	 *
+	 * Stripping `;` (and collapsing the resulting whitespace runs) before any path
+	 * touches the tax-rate tables or the TaxJar API restores the round-trip.
+	 *
+	 * @param string $city Raw city value, possibly user-entered.
+	 * @return string Normalized city, safe for `_update_tax_rate_cities` and `find_rates`.
+	 */
+	protected static function normalize_city( $city ) {
+		if ( ! is_string( $city ) || '' === $city ) {
+			return $city;
+		}
+
+		$city = str_replace( ';', ' ', $city );
+		$city = preg_replace( '/\s+/u', ' ', $city );
+
+		// `preg_replace` returns null on malformed UTF-8 with the /u flag; cast so trim() stays safe.
+		return trim( (string) $city );
+	}
+
+	/**
 	 * Add or update WooCommerce tax rate.
 	 *
 	 * @param  array     $location
@@ -1836,7 +1866,7 @@ class WC_Connect_TaxJar_Integration {
 				'country'   => $location['to_country'],
 				'state'     => str_replace( ' ', '', $to_state ),
 				'postcode'  => $location['to_zip'],
-				'city'      => strtoupper( $location['to_city'] ),
+				'city'      => strtoupper( self::normalize_city( $location['to_city'] ) ),
 				'tax_class' => $tax_class,
 			)
 		);
@@ -1871,7 +1901,7 @@ class WC_Connect_TaxJar_Integration {
 			// VAT is always country wide, no need to create separate entires for each zip and city.
 			if ( 'VAT' !== $tax_rate_name ) {
 				WC_Tax::_update_tax_rate_postcodes( $rate_id, wc_normalize_postcode( wc_clean( $location['to_zip'] ) ) );
-				WC_Tax::_update_tax_rate_cities( $rate_id, wc_clean( $location['to_city'] ) );
+				WC_Tax::_update_tax_rate_cities( $rate_id, self::normalize_city( wc_clean( $location['to_city'] ) ) );
 			}
 		}
 
