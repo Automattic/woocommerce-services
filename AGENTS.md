@@ -31,9 +31,34 @@ composer install
 npm run dist
 npm run test-client
 npm run eslint
-composer test
-composer check-all
+composer test          # PHPUnit; auto-checks the test env and repairs only what's broken
+composer test:setup    # one-shot: bring up the Dockerized DB + install WP/WC test deps
+composer check-all     # PHPCS (see Linting below)
 ```
+
+### PHPUnit test environment
+- `composer test` is the single entry point. It runs `tests/bin/run-tests.sh`, which
+  health-checks the environment (`tests/bin/check-test-env.sh`) and repairs only the
+  components that fail their probe before running PHPUnit. No manual setup step is needed
+  on a healthy machine.
+- Output format: `composer test` uses PHPUnit's compact progress output when its stdout is
+  captured (CI logs, pre-commit hooks, AI agents) and the readable `--testdox` format at an
+  interactive terminal. Force it either way with `TESTDOX=1` / `TESTDOX=0` (e.g.
+  `TESTDOX=1 composer test`).
+- The test DB is a throwaway MariaDB container defined in `tests/docker-compose.yml`
+  (published on `127.0.0.1:4416`; credentials in `tests/test.env`). Docker is required;
+  a local mysql client is not (the installer materialises shims that proxy through the
+  container when no client is present).
+- `composer test:setup` installs/repairs every missing component; for a full rebuild that
+  also wipes the DB volume run `bash tests/bin/install-wc-tests.sh --force`.
+- WP/WC are installed under the system temp dir (honors `TMPDIR`). The WC clone builds
+  with its own modern Node via the WC checkout's `.nvmrc`; this is independent of the
+  plugin's own pinned Node (`.nvmrc` = 10.18.1) and PHPUnit needs no Node at all.
+- By default the installer clones the **latest** WooCommerce release, whereas CI tests
+  the 3 latest WC minors — so a local `composer test` can run against a different WC than
+  the merge gate. To reproduce a specific version, pin it on a forced (re)install:
+  `WC_VERSION=9.4.0 bash tests/bin/install-wc-tests.sh --force` (`EXPECTED_WP_VERSION`
+  pins WordPress the same way).
 
 ## Linting (PHPCS) — split by concern
 The PHPCS ruleset is split into concern-specific files, all importing `.phpcs.common.xml` (shared file/exclude/arg/config). Run `check-all` (the `phpcs.xml.dist` aggregator) before pushing, or a single scope while iterating:
@@ -45,6 +70,12 @@ composer run check-security     # Security sniffs (escaping, sanitization, nonce
 composer run check-identity     # Plugin identity: text_domain (i18n) + global prefix whitelist
 ```
 The husky pre-commit hook (`bin/wc-phpcbf.sh` via lint-staged) auto-fixes staged PHP using the same `phpcs.xml.dist` aggregator, so pre-commit fixes stay aligned with `check-all`.
+
+## Shell Script Portability (GNU vs BSD)
+The test-env scripts (`tests/bin/*.sh`) and hook helpers (`bin/*.sh`) run on Linux/CI (GNU userland) **and** on contributors' machines (stock macOS ships BSD `grep`/`sed`). CI is GNU-only, so BSD-only breakage never shows up in the merge gate — keep both in mind when editing any shell script:
+- Use POSIX character classes, not GNU regex shorthands: `[[:space:]]` / `[[:digit:]]` / `[[:alnum:]]` instead of `\s` / `\d` / `\w`. BSD `grep -E`/`sed -E` treat `\s` as a literal `s`, so patterns silently stop matching — this cost us a full-reinstall misfire in the `wp-tests-config.php` DB_HOST probe.
+- `sed -i` is not portable: GNU is `sed -i`, BSD needs a backup suffix (`sed -i .bak`). Branch on `[[ "$(uname -s)" == 'Darwin' ]]` and remove the `.bak` afterward — see `repair_wp_config()` in `install-wc-tests.sh`.
+- Prefer ERE (`grep -E` / `sed -E`) with POSIX quantifiers; avoid GNU-only escapes like `\+`, `\?`, `\|` in BRE. When a script carries regex, test it on macOS or reason through the BSD case before merging.
 
 ## Key Conventions
 - Base new behavior on tax-only mode rules and existing shipping eligibility checks.
