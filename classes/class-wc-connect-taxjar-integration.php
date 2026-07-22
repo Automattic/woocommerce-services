@@ -1658,13 +1658,8 @@ class WC_Connect_TaxJar_Integration {
 
 		// Decode Response.
 		$taxjar_response = json_decode( $response['body'] );
-		// TaxJar's `tax` node is always a JSON object; domestic and international
-		// responses differ only in the inner `breakdown` shape (US uses
-		// state_/county_/city_ fields, international uses country_ fields), not in
-		// the type of `tax` itself. Validate the type at this boundary so both
-		// maybe_override_taxjar_tax() and get_itemized_tax_rates() can rely on an
-		// object — a malformed non-object response bails here instead of fataling
-		// downstream on the first property access.
+		// Bail on a malformed response: maybe_override_taxjar_tax() and
+		// get_itemized_tax_rates() both access `tax` as an object.
 		if ( empty( $taxjar_response->tax ) || ! is_object( $taxjar_response->tax ) ) {
 			return false;
 		}
