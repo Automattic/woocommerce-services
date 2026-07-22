@@ -11,7 +11,7 @@ namespace Automattic\WCServices\StoreApi;
 
 use Automattic\WooCommerce\StoreApi\Schemas\ExtendSchema;
 use Automattic\WooCommerce\StoreApi\StoreApi;
-use Exception;
+use Throwable;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -22,9 +22,23 @@ class StoreApiExtendSchema {
 	/**
 	 * Stores Store API ExtendSchema instance.
 	 *
-	 * @var ExtendSchema
+	 * Null when the instance has not been resolved, or when resolution failed.
+	 *
+	 * @var ExtendSchema|null
 	 */
-	private static ExtendSchema $instance;
+	private static ?ExtendSchema $instance = null;
+
+	/**
+	 * Whether resolving the ExtendSchema instance has been attempted.
+	 *
+	 * Guards against re-running container resolution (and re-logging) more than
+	 * once within a single request when resolution fails. Note this cannot span
+	 * requests: PHP statics reset on every page load, so a broken install still
+	 * logs once per request.
+	 *
+	 * @var bool
+	 */
+	private static bool $attempted = false;
 
 	/**
 	 * Plugin Identifier
@@ -35,21 +49,48 @@ class StoreApiExtendSchema {
 
 	/**
 	 * ExtendSchemaService constructor.
+	 *
+	 * Protected rather than private so tests can subclass and override
+	 * resolve_extend_schema() to exercise the resolution-failure path.
 	 */
-	private function __construct() {
+	protected function __construct() {
+		self::$attempted = true;
+
 		try {
-			self::$instance = StoreApi::container()->get( ExtendSchema::class );
-		} catch ( Exception $e ) {
-			wc_get_logger()->debug( 'Failed to get ExtendSchema instance.', array( 'exception' => $e ) );
+			self::$instance = static::resolve_extend_schema();
+		} catch ( Throwable $e ) {
+			wc_get_logger()->debug(
+				'Failed to get ExtendSchema instance.',
+				array(
+					'source'    => 'woocommerce-services',
+					'exception' => $e,
+				)
+			);
 		}
 	}
 
 	/**
-	 * Returns the ExtendSchema instance.
+	 * Resolve the ExtendSchema instance from the Store API container.
+	 *
+	 * Extracted as a seam so a broken container can be simulated in tests (subclass
+	 * and override to throw) without needing a genuinely partial WooCommerce install.
+	 *
+	 * @return ExtendSchema
 	 */
-	public static function instance(): ExtendSchema {
-		if ( ! isset( self::$instance ) ) {
-			new self();
+	protected static function resolve_extend_schema(): ExtendSchema {
+		return StoreApi::container()->get( ExtendSchema::class );
+	}
+
+	/**
+	 * Returns the ExtendSchema instance, or null when it cannot be resolved.
+	 *
+	 * Callers MUST check for null before use: on a partial or broken WooCommerce
+	 * install the container can fail to resolve ExtendSchema even when the
+	 * top-level StoreApi class exists.
+	 */
+	public static function instance(): ?ExtendSchema {
+		if ( ! self::$attempted ) {
+			new static();
 		}
 
 		return self::$instance;
