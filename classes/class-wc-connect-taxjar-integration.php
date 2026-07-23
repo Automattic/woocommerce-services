@@ -1330,17 +1330,24 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * This method is used to override the TaxJar result.
 	 *
-	 * The caller (calculate_tax) guarantees a non-empty object here, so this
-	 * method always receives — and returns — the tax object. Malformed *inner*
-	 * members (a missing/null breakdown or shipping, a non-object line item) are
-	 * still tolerated below; only those, not the tax node itself, are unreliable.
+	 * The tax node is validated by calculate_tax() before this is called, so
+	 * in-plugin callers always pass an object. The type check below is a net for
+	 * third-party callers of this public method: overriding a rate is meaningless
+	 * without a tax object, and a property write on a non-object is the very fatal
+	 * this method exists to prevent. Malformed *inner* members (a missing/null
+	 * breakdown or shipping, a non-object line item) are tolerated further down.
 	 *
-	 * @param object $taxjar_resp_tax TaxJar response object.
-	 * @param array  $body            Body of TaxJar request.
+	 * @param mixed $taxjar_resp_tax TaxJar response tax node. Expected to be an object.
+	 * @param array $body            Body of TaxJar request.
 	 *
-	 * @return object
+	 * @return mixed The tax object with its rates overridden, or the input returned
+	 *               unchanged when it is not an object.
 	 */
 	public function maybe_override_taxjar_tax( $taxjar_resp_tax, $body ) {
+		if ( ! is_object( $taxjar_resp_tax ) ) {
+			return $taxjar_resp_tax;
+		}
+
 		$original_rate = isset( $taxjar_resp_tax->rate ) ? floatval( $taxjar_resp_tax->rate ) : 0.0;
 		$new_tax_rate  = floatval( apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate ?? 0, $taxjar_resp_tax, $body ) );
 
@@ -1663,6 +1670,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( empty( $taxjar_response->tax ) || ! is_object( $taxjar_response->tax ) ) {
 			return false;
 		}
+
 		$taxjar_taxes = $this->maybe_override_taxjar_tax( $taxjar_response->tax, $body );
 		$taxes        = $this->get_itemized_tax_rates( $taxes, $taxjar_taxes, $options );
 

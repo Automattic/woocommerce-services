@@ -71,6 +71,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function tear_down() {
 		// Remove any filters added during tests.
 		remove_all_filters( 'woocommerce_tax_line_item_location' );
+		remove_all_filters( 'woocommerce_services_override_tax_rate' );
 
 		// Clean up products.
 		if ( $this->product ) {
@@ -1982,5 +1983,43 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertSame( 0.08, $result->breakdown->combined_tax_rate );
 		$this->assertSame( 0.08, $result->breakdown->shipping->combined_tax_rate );
 		$this->assertSame( 0.08, $result->breakdown->line_items[0]->combined_tax_rate );
+	}
+
+	/**
+	 * A non-object tax node is returned unchanged rather than fataling.
+	 *
+	 * The override filter is what makes this reachable: with a filter that leaves
+	 * the rate at 0 the method early-returns anyway, so only a filter returning a
+	 * *different* rate drives execution as far as the `->rate` write. calculate_tax()
+	 * validates the tax node so this cannot happen in-plugin, but the method is
+	 * public and third-party callers are not bound by that guarantee.
+	 *
+	 * @dataProvider provide_non_object_tax_nodes
+	 *
+	 * @param mixed $tax_node Non-object value passed in place of the tax node.
+	 */
+	public function test_maybe_override_taxjar_tax_returns_non_object_unchanged( $tax_node ) {
+		add_filter(
+			'woocommerce_services_override_tax_rate',
+			function () {
+				return 0.15;
+			}
+		);
+
+		$this->assertSame( $tax_node, $this->integration->maybe_override_taxjar_tax( $tax_node, array() ) );
+	}
+
+	/**
+	 * Non-object values a third-party caller could pass as the tax node.
+	 *
+	 * @return array
+	 */
+	public function provide_non_object_tax_nodes() {
+		return array(
+			'null'   => array( null ),
+			'false'  => array( false ),
+			'array'  => array( array( 'rate' => 0.08 ) ),
+			'string' => array( 'not a tax object' ),
+		);
 	}
 }
