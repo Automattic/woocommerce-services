@@ -91,6 +91,7 @@ This plugin relies on the following external services:
 
 = 3.6.10 - 2026-07-27 =
 * Tweak - WooCommerce 11.0 Compatibility.
+* Tweak - Reduce redundant TaxJar API calls by matching cached tax responses across the cart and order paths and ignoring irrelevant formatting differences.
 
 = 3.6.9 - 2026-07-20 =
 * Fix   - Prevent a rare fatal error when the WooCommerce Store API cannot be initialized on incomplete installations.
