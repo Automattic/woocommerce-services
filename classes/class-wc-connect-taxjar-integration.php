@@ -1357,7 +1357,7 @@ class WC_Connect_TaxJar_Integration {
 
 		// Guard against malformed TaxJar responses: the breakdown and its nested
 		// members are not always present or well-formed, and assigning properties
-		// on a missing/null member (or a non-object line item) fatals. See WOOTAX-74.
+		// on a missing/null member (or a non-object line item) fatals.
 		if ( isset( $taxjar_resp_tax->breakdown ) && is_object( $taxjar_resp_tax->breakdown ) ) {
 			$breakdown = $taxjar_resp_tax->breakdown;
 
