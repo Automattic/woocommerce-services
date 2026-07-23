@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.6.10 - 2026-xx-xx =
+* Tweak - WooCommerce 11.0 Compatibility.
+
 = 3.6.9 - 2026-07-20 =
 * Fix   - Prevent a rare fatal error when the WooCommerce Store API cannot be initialized on incomplete installations.
 
