@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.6.10 - 2026-xx-xx =
+* Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.
 * Tweak - WooCommerce 11.0 Compatibility.
 
 = 3.6.9 - 2026-07-20 =
@@ -80,7 +81,6 @@ This plugin relies on the following external services:
 * Fix   - TaxJar tax lines wiped when REST API order update includes address change.
 * Fix   - Prevent fatal error on sites running WooCommerce versions without StoreApi support.
 * Fix   - Prevent unbounded growth of WooCommerce tax rate rows when checkout city contains a semicolon.
-* Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.
 
 = 3.6.7 - 2026-07-06 =
 * Fix   - Prevent fatal error on Atomic sites caused by incorrect path resolution when loading the API client class.
