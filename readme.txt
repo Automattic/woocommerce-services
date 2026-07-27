@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 7.0
 WC requires at least: 10.8
 WC tested up to: 11.0
-Stable tag: 3.6.9
+Stable tag: 3.6.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,8 +70,10 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.6.10 - 2026-xx-xx =
+= 3.6.11 - 2026-xx-xx =
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.
+
+= 3.6.10 - 2026-07-27 =
 * Tweak - WooCommerce 11.0 Compatibility.
 
 = 3.6.9 - 2026-07-20 =
