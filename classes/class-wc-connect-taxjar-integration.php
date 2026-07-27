@@ -1791,14 +1791,13 @@ class WC_Connect_TaxJar_Integration {
 					$tax_class = $this->backend_tax_classes[ $product_id ];
 				}
 
-				// A product with Tax Status = "None" is exempt from tax but can still
-				// carry the standard Tax Class. TaxJar returns a 0% breakdown line for
-				// it, and because tax rate rows are keyed by tax class, writing that 0%
-				// overwrites the shared class rate used by genuinely taxable products in
-				// the same class — zeroing tax for the whole cart. Skip rate-row writes
-				// for non-taxable products; WooCommerce already applies no tax to them.
-				// See WOOTAX-240.
-				if ( $product && 'none' === $product->get_tax_status() ) {
+				// Products that are not fully taxable (Tax Status "None" or "Shipping
+				// only") are sent to TaxJar as exempt, so their breakdown line returns 0% —
+				// yet they keep their Tax Class. Since rate rows are keyed by tax class,
+				// writing that 0% overwrites the shared row used by genuinely taxable
+				// products in the same class, zeroing tax for the whole cart. Skip the
+				// write; WooCommerce applies no item tax to either status anyway.
+				if ( $product && 'taxable' !== $product->get_tax_status() ) {
 					continue;
 				}
 
