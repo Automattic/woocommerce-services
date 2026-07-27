@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.11 - 2026-xx-xx =
+* Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.
+
 = 3.6.10 - 2026-07-27 =
 * Tweak - WooCommerce 11.0 Compatibility.
 

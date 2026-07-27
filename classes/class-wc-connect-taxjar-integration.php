@@ -1330,40 +1330,66 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * This method is used to override the TaxJar result.
 	 *
-	 * @param object $taxjar_resp_tax TaxJar response object.
-	 * @param array  $body            Body of TaxJar request.
+	 * The tax node is validated by calculate_tax() before this is called, so
+	 * in-plugin callers always pass an object. The type check below is a net for
+	 * third-party callers of this public method: overriding a rate is meaningless
+	 * without a tax object, and a property write on a non-object is the very fatal
+	 * this method exists to prevent. Malformed *inner* members (a missing/null
+	 * breakdown or shipping, a non-object line item) are tolerated further down.
 	 *
-	 * @return object
+	 * @param mixed $taxjar_resp_tax TaxJar response tax node. Expected to be an object.
+	 * @param array $body            Body of TaxJar request.
+	 *
+	 * @return mixed The tax object with its rates overridden, or the input returned
+	 *               unchanged when it is not an object.
 	 */
 	public function maybe_override_taxjar_tax( $taxjar_resp_tax, $body ) {
-		if ( ! isset( $taxjar_resp_tax ) ) {
-			return;
-		}
-
-		$new_tax_rate = floatval( apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate, $taxjar_resp_tax, $body ) );
-
-		if ( $new_tax_rate === floatval( $taxjar_resp_tax->rate ) ) {
+		if ( ! is_object( $taxjar_resp_tax ) ) {
 			return $taxjar_resp_tax;
 		}
 
-		if ( ! empty( $taxjar_resp_tax->breakdown->line_items ) ) {
-			$taxjar_resp_tax->breakdown->line_items = array_map(
-				function ( $line_item ) use ( $new_tax_rate ) {
-					$line_item->combined_tax_rate       = $new_tax_rate;
-					$line_item->country_tax_rate        = $new_tax_rate;
-					$line_item->country_tax_collectable = $line_item->country_taxable_amount * $new_tax_rate;
-					$line_item->tax_collectable         = $line_item->taxable_amount * $new_tax_rate;
+		$original_rate = isset( $taxjar_resp_tax->rate ) ? floatval( $taxjar_resp_tax->rate ) : 0.0;
+		$new_tax_rate  = floatval( apply_filters( 'woocommerce_services_override_tax_rate', $taxjar_resp_tax->rate ?? 0, $taxjar_resp_tax, $body ) );
 
-					return $line_item;
-				},
-				$taxjar_resp_tax->breakdown->line_items
-			);
+		if ( $new_tax_rate === $original_rate ) {
+			return $taxjar_resp_tax;
 		}
 
-		$taxjar_resp_tax->breakdown->combined_tax_rate           = $new_tax_rate;
-		$taxjar_resp_tax->breakdown->country_tax_rate            = $new_tax_rate;
-		$taxjar_resp_tax->breakdown->shipping->combined_tax_rate = $new_tax_rate;
-		$taxjar_resp_tax->breakdown->shipping->country_tax_rate  = $new_tax_rate;
+		// Guard against malformed TaxJar responses: the breakdown and its nested
+		// members are not always present or well-formed, and assigning properties
+		// on a missing/null member (or a non-object line item) fatals.
+		if ( isset( $taxjar_resp_tax->breakdown ) && is_object( $taxjar_resp_tax->breakdown ) ) {
+			$breakdown = $taxjar_resp_tax->breakdown;
+
+			if ( ! empty( $breakdown->line_items ) && is_array( $breakdown->line_items ) ) {
+				$breakdown->line_items = array_map(
+					function ( $line_item ) use ( $new_tax_rate ) {
+						if ( ! is_object( $line_item ) ) {
+							return $line_item;
+						}
+
+						$country_taxable_amount = isset( $line_item->country_taxable_amount ) ? $line_item->country_taxable_amount : 0;
+						$taxable_amount         = isset( $line_item->taxable_amount ) ? $line_item->taxable_amount : 0;
+
+						$line_item->combined_tax_rate       = $new_tax_rate;
+						$line_item->country_tax_rate        = $new_tax_rate;
+						$line_item->country_tax_collectable = $country_taxable_amount * $new_tax_rate;
+						$line_item->tax_collectable         = $taxable_amount * $new_tax_rate;
+
+						return $line_item;
+					},
+					$breakdown->line_items
+				);
+			}
+
+			$breakdown->combined_tax_rate = $new_tax_rate;
+			$breakdown->country_tax_rate  = $new_tax_rate;
+
+			if ( isset( $breakdown->shipping ) && is_object( $breakdown->shipping ) ) {
+				$breakdown->shipping->combined_tax_rate = $new_tax_rate;
+				$breakdown->shipping->country_tax_rate  = $new_tax_rate;
+			}
+		}
 
 		$taxjar_resp_tax->rate = $new_tax_rate;
 
@@ -1639,9 +1665,12 @@ class WC_Connect_TaxJar_Integration {
 
 		// Decode Response.
 		$taxjar_response = json_decode( $response['body'] );
-		if ( empty( $taxjar_response->tax ) ) {
+		// Bail on a malformed response: maybe_override_taxjar_tax() and
+		// get_itemized_tax_rates() both access `tax` as an object.
+		if ( empty( $taxjar_response->tax ) || ! is_object( $taxjar_response->tax ) ) {
 			return false;
 		}
+
 		$taxjar_taxes = $this->maybe_override_taxjar_tax( $taxjar_response->tax, $body );
 		$taxes        = $this->get_itemized_tax_rates( $taxes, $taxjar_taxes, $options );
 

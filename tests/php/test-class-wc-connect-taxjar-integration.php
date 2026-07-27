@@ -71,6 +71,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function tear_down() {
 		// Remove any filters added during tests.
 		remove_all_filters( 'woocommerce_tax_line_item_location' );
+		remove_all_filters( 'woocommerce_services_override_tax_rate' );
 
 		// Clean up products.
 		if ( $this->product ) {
@@ -1864,5 +1865,161 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		foreach ( $stored_cities as $city ) {
 			$this->assertStringNotContainsString( ';', $city, 'Tax rate city stored with a semicolon — `_update_tax_rate_cities()` will split it and break find_rates() on subsequent lookups.' );
 		}
+	}
+
+	/**
+	 * Build a well-formed TaxJar tax response object (as returned under
+	 * $taxjar_response->tax) with a base rate of 0.08.
+	 *
+	 * @return object
+	 */
+	private function build_taxjar_tax_response() {
+		return (object) array(
+			'rate'      => 0.08,
+			'breakdown' => (object) array(
+				'combined_tax_rate' => 0.08,
+				'country_tax_rate'  => 0.0,
+				'shipping'          => (object) array(
+					'combined_tax_rate' => 0.08,
+					'country_tax_rate'  => 0.0,
+				),
+				'line_items'        => array(
+					(object) array(
+						'combined_tax_rate'       => 0.08,
+						'country_tax_rate'        => 0.0,
+						'country_taxable_amount'  => 100.0,
+						'taxable_amount'          => 100.0,
+						'country_tax_collectable' => 0.0,
+						'tax_collectable'         => 8.0,
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * The override filter should still rewrite every rate on a well-formed
+	 * response (behavior preserved).
+	 */
+	public function test_maybe_override_taxjar_tax_applies_override_to_wellformed_response() {
+		add_filter( 'woocommerce_services_override_tax_rate', '__return_zero' );
+
+		$resp   = $this->build_taxjar_tax_response();
+		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
+
+		$this->assertSame( 0.0, $result->rate );
+		$this->assertSame( 0.0, $result->breakdown->combined_tax_rate );
+		$this->assertSame( 0.0, $result->breakdown->country_tax_rate );
+		$this->assertSame( 0.0, $result->breakdown->shipping->combined_tax_rate );
+		$this->assertSame( 0.0, $result->breakdown->shipping->country_tax_rate );
+
+		$line_item = $result->breakdown->line_items[0];
+		$this->assertSame( 0.0, $line_item->combined_tax_rate );
+		$this->assertSame( 0.0, $line_item->country_tax_rate );
+		$this->assertSame( 0.0, $line_item->country_tax_collectable );
+		$this->assertSame( 0.0, $line_item->tax_collectable );
+	}
+
+	/**
+	 * A null (or otherwise non-object) line item must not fatal; it is left
+	 * untouched while valid line items are still overridden. Regression for the
+	 * reported "Attempt to assign property on null" fatal (WOOTAX-74).
+	 */
+	public function test_maybe_override_taxjar_tax_survives_null_line_item() {
+		add_filter( 'woocommerce_services_override_tax_rate', '__return_zero' );
+
+		$resp                        = $this->build_taxjar_tax_response();
+		$valid_line_item             = $resp->breakdown->line_items[0];
+		$resp->breakdown->line_items = array( null, $valid_line_item );
+
+		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
+
+		$this->assertSame( 0.0, $result->rate );
+		$this->assertNull( $result->breakdown->line_items[0] );
+		$this->assertSame( 0.0, $result->breakdown->line_items[1]->combined_tax_rate );
+	}
+
+	/**
+	 * A response with no breakdown must not fatal. Regression for WOOTAX-74.
+	 */
+	public function test_maybe_override_taxjar_tax_survives_missing_breakdown() {
+		add_filter( 'woocommerce_services_override_tax_rate', '__return_zero' );
+
+		$resp = (object) array( 'rate' => 0.08 );
+
+		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
+
+		$this->assertSame( 0.0, $result->rate );
+		$this->assertObjectNotHasProperty( 'breakdown', $result );
+	}
+
+	/**
+	 * A breakdown missing its shipping member must not fatal. Regression for WOOTAX-74.
+	 */
+	public function test_maybe_override_taxjar_tax_survives_missing_shipping() {
+		add_filter( 'woocommerce_services_override_tax_rate', '__return_zero' );
+
+		$resp = $this->build_taxjar_tax_response();
+		unset( $resp->breakdown->shipping );
+
+		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
+
+		$this->assertSame( 0.0, $result->rate );
+		$this->assertSame( 0.0, $result->breakdown->combined_tax_rate );
+	}
+
+	/**
+	 * With no override filter registered the response is returned unchanged.
+	 */
+	public function test_maybe_override_taxjar_tax_returns_unchanged_without_override() {
+		$resp = $this->build_taxjar_tax_response();
+
+		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
+
+		// The method mutates and returns the same handle, so identity alone proves
+		// nothing — assert the individual fields are untouched at every level.
+		$this->assertSame( $resp, $result );
+		$this->assertSame( 0.08, $result->rate );
+		$this->assertSame( 0.08, $result->breakdown->combined_tax_rate );
+		$this->assertSame( 0.08, $result->breakdown->shipping->combined_tax_rate );
+		$this->assertSame( 0.08, $result->breakdown->line_items[0]->combined_tax_rate );
+	}
+
+	/**
+	 * A non-object tax node is returned unchanged rather than fataling.
+	 *
+	 * The override filter is what makes this reachable: with a filter that leaves
+	 * the rate at 0 the method early-returns anyway, so only a filter returning a
+	 * *different* rate drives execution as far as the `->rate` write. calculate_tax()
+	 * validates the tax node so this cannot happen in-plugin, but the method is
+	 * public and third-party callers are not bound by that guarantee.
+	 *
+	 * @dataProvider provide_non_object_tax_nodes
+	 *
+	 * @param mixed $tax_node Non-object value passed in place of the tax node.
+	 */
+	public function test_maybe_override_taxjar_tax_returns_non_object_unchanged( $tax_node ) {
+		add_filter(
+			'woocommerce_services_override_tax_rate',
+			function () {
+				return 0.15;
+			}
+		);
+
+		$this->assertSame( $tax_node, $this->integration->maybe_override_taxjar_tax( $tax_node, array() ) );
+	}
+
+	/**
+	 * Non-object values a third-party caller could pass as the tax node.
+	 *
+	 * @return array
+	 */
+	public function provide_non_object_tax_nodes() {
+		return array(
+			'null'   => array( null ),
+			'false'  => array( false ),
+			'array'  => array( array( 'rate' => 0.08 ) ),
+			'string' => array( 'not a tax object' ),
+		);
 	}
 }
