@@ -76,6 +76,8 @@ This plugin relies on the following external services:
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when a customization supplies an invalid store address.
 * Fix   - Send the same values for empty address fields whether taxes are calculated at checkout or from the order edit screen.
 * Fix   - Ignore array-valued address fields when taxes are recalculated from the order edit screen.
+* Fix   - Prevent tax calculation from failing when the store address postcode holds more than one comma-separated value.
+* Fix   - Accept lower-case country and state codes from the woocommerce_taxjar_nexus_address filter, and fall back to the store address when a custom nexus address is incomplete instead of abandoning the calculation.
 * Tweak - Centralize TaxJar address handling in an internal value object. No change to tax calculation.
 
 = 3.6.11 - 2026-08-05 =
