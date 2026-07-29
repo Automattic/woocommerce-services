@@ -79,7 +79,10 @@ This plugin relies on the following external services:
 * Fix   - Prevent tax calculation from failing when the store address postcode holds more than one comma-separated value.
 * Fix   - Accept lower-case country and state codes from the woocommerce_taxjar_nexus_address filter.
 * Fix   - Fall back to the store address when a custom nexus address is incomplete instead of abandoning the calculation.
+* Fix   - Prevent unbounded growth of WooCommerce tax rate rows when the customer state contains a period, a space, or a non-Latin character.
+* Fix   - Restore tax rates on the price display, shipping tax and coupon paths for addresses whose state was stored in a normalized form.
 * Tweak - Centralize TaxJar address handling in an internal value object. No change to tax calculation.
+* Tweak - Store tax rate rows against the postcode the rate was quoted for when the address postcode holds more than one comma-separated value.
 
 = 3.6.11 - 2026-08-05 =
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.
