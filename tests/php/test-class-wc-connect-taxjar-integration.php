@@ -1777,6 +1777,37 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * The deprecated `normalize_city()` agrees with the value object it delegates to.
+	 *
+	 * `WC_Connect_TaxJar_Integration::normalize_city()` is `protected static`, so an
+	 * out-of-repo subclass may call it. It is deprecated in favour of
+	 * `Address::normalize_city()` but deliberately retained, and this pins the two
+	 * to the same answer so the deprecation cannot silently fork behaviour.
+	 *
+	 * String inputs must match exactly. Non-string inputs are the one deliberate
+	 * difference: the deprecated method keeps returning them untouched, while the
+	 * value object's signature does not accept them at all.
+	 *
+	 * @dataProvider normalize_city_provider
+	 *
+	 * @param mixed $input    Raw city value to normalize.
+	 * @param mixed $expected Expected normalized output.
+	 */
+	public function test_deprecated_normalize_city_delegates_to_address_value_object( $input, $expected ) {
+		$reflection = new ReflectionMethod( 'WC_Connect_TaxJar_Integration', 'normalize_city' );
+		$reflection->setAccessible( true );
+
+		$actual = $reflection->invoke( null, $input );
+
+		if ( ! is_string( $input ) ) {
+			$this->assertSame( $expected, $actual, 'Non-string input must be returned untouched.' );
+			return;
+		}
+
+		$this->assertSame( \Automattic\WCServices\Tax\Address::normalize_city( $input ), $actual );
+	}
+
+	/**
 	 * Data provider for `test_normalize_city_strips_semicolons_and_normalizes_whitespace`.
 	 *
 	 * @return array<string, array{0: mixed, 1: mixed}>
