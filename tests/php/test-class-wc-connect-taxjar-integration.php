@@ -2386,4 +2386,285 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertSame( "O'BRIEN", $address['to_city'], 'Backend city retained the WordPress-added slash.' );
 		$this->assertSame( "123 O'MALLEY WAY", $address['to_street'], 'Backend street retained the WordPress-added slash.' );
 	}
+
+	// -------------------------------------------------------------------------
+	// Request seam — the address that gets validated must be the address that
+	// gets sent.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * A plain US:CA store.
+	 *
+	 * @return array
+	 */
+	private function default_store_settings() {
+		return array(
+			'street'   => '1 Store Way',
+			'city'     => 'Beverly Hills',
+			'state'    => 'CA',
+			'country'  => 'US',
+			'postcode' => '90210',
+		);
+	}
+
+	/**
+	 * Options for an in-state destination, so `calculate_tax()` runs past the
+	 * cross-state no-nexus gate and actually assembles a request.
+	 *
+	 * @return array
+	 */
+	private function in_state_options() {
+		return array(
+			'to_country'      => 'US',
+			'to_state'        => 'CA',
+			'to_zip'          => '94103',
+			'to_city'         => 'San Francisco',
+			'to_street'       => '1 Market St',
+			'shipping_amount' => 0,
+			'line_items'      => array(
+				array(
+					'id'         => 'test-item',
+					'quantity'   => 1,
+					'unit_price' => '25.00',
+				),
+			),
+		);
+	}
+
+	/**
+	 * Point the store address at an arbitrary value for one test.
+	 *
+	 * Uses the public `taxjar_store_settings` filter rather than options, so nothing
+	 * leaks into global state.
+	 *
+	 * @param array $settings Store settings shape `{street, city, state, country, postcode}`.
+	 * @return callable The registered filter, for removal.
+	 */
+	private function force_store_settings( array $settings ) {
+		$filter = function () use ( $settings ) {
+			return $settings;
+		};
+
+		add_filter( 'taxjar_store_settings', $filter, 99 );
+
+		return $filter;
+	}
+
+	/**
+	 * Run `calculate_tax()` against an API client that intercepts the proxy call, and
+	 * return the decoded JSON body that would have gone to TaxJar.
+	 *
+	 * This is the only seam that shows the finished request: the
+	 * `woocommerce_taxjar_nexus_address` filter fires before `nexus_addresses` is
+	 * written, so a body captured there is always incomplete. Returning a `WP_Error`
+	 * ends the call cleanly — `calculate_tax()` logs and returns false, and no
+	 * transient is written.
+	 *
+	 * @param array         $options      Options passed to `calculate_tax()`.
+	 * @param callable|null $nexus_filter Optional `woocommerce_taxjar_nexus_address` callback.
+	 * @param array|null    $store        Store settings override; defaults to a US:CA store.
+	 * @return array|null Decoded request body, or null if no request was attempted.
+	 */
+	private function capture_taxjar_request_json( array $options, $nexus_filter = null, $store = null ) {
+		$sent = null;
+
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )
+			->disableOriginalConstructor()
+			->getMock();
+		$api_client->method( 'proxy_request' )->willReturnCallback(
+			function ( $path, $args ) use ( &$sent ) {
+				$sent = $args['body'];
+
+				return new WP_Error( 'test_intercepted', 'Request intercepted by the test.' );
+			}
+		);
+
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )
+			->disableOriginalConstructor()
+			->getMock();
+		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		// The notifier is optional on the constructor but dereferenced unguarded in
+		// `smartcalcs_cache_request()`, so it has to be supplied. A real instance
+		// rather than a mock: `clear_notices()` is static, which a mock cannot stand in for.
+		$notifier = new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false );
+
+		$integration = new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks, $notifier );
+
+		$store_filter = $this->force_store_settings( null === $store ? $this->default_store_settings() : $store );
+		if ( is_callable( $nexus_filter ) ) {
+			add_filter( 'woocommerce_taxjar_nexus_address', $nexus_filter, 10, 2 );
+		}
+		WC()->customer->set_is_vat_exempt( false );
+
+		try {
+			$integration->calculate_tax( $options );
+		} finally {
+			if ( is_callable( $nexus_filter ) ) {
+				remove_filter( 'woocommerce_taxjar_nexus_address', $nexus_filter, 10 );
+			}
+			remove_filter( 'taxjar_store_settings', $store_filter, 99 );
+		}
+
+		return null === $sent ? null : json_decode( $sent, true );
+	}
+
+	/**
+	 * A comma-separated store postcode must be reduced to its first segment, exactly
+	 * as the destination postcode already is.
+	 *
+	 * `calculate_tax()` applied `explode( ',', ... )` to `to_zip` but never to
+	 * `from_zip`, so a store postcode entered as a list reached
+	 * `validate_taxjar_request()` intact, failed `WC_Validation::is_postcode()`, and
+	 * aborted the calculation before any request was made — while the identical
+	 * customer-supplied value was handled.
+	 */
+	public function test_store_postcode_comma_list_is_reduced_like_the_destination() {
+		$store             = $this->default_store_settings();
+		$store['postcode'] = '90210, 90211';
+
+		$body = $this->capture_taxjar_request_json( $this->in_state_options(), null, $store );
+
+		$this->assertIsArray( $body, 'A comma-separated store postcode aborted the request instead of being reduced.' );
+		$this->assertSame( '90210', $body['nexus_addresses'][0]['zip'] );
+
+		// And again with the nexus address disabled, so the `from_*` fields are what
+		// actually carries the store postcode onto the wire.
+		$without_nexus = $this->capture_taxjar_request_json(
+			$this->in_state_options(),
+			'__return_false',
+			$store
+		);
+
+		$this->assertIsArray( $without_nexus, 'A comma-separated store postcode aborted the request instead of being reduced.' );
+		$this->assertArrayNotHasKey( 'nexus_addresses', $without_nexus );
+		$this->assertSame( '90210', $without_nexus['from_zip'] );
+	}
+
+	/**
+	 * `get_address_parts()` must report the postcodes the body actually carries.
+	 *
+	 * It upper-cased them before handing them to `validate_taxjar_request()`, so the
+	 * value that was validated was not the value that was sent. Country and state are
+	 * a different case: they are compared against the literal `'US'` and against each
+	 * other, and this is reachable from the public `validate_taxjar_request()` with a
+	 * hand-built body, so those stay normalized.
+	 */
+	public function test_get_address_parts_reports_postcodes_verbatim() {
+		$body = array(
+			'from_country' => 'CA',
+			'from_state'   => 'ON',
+			'from_zip'     => 'k1a 0b1',
+			'to_country'   => 'ca',
+			'to_state'     => 'on',
+			'to_zip'       => 'm5v 3l9',
+		);
+
+		$parts = $this->invoke_protected_method( 'get_address_parts', array( $body ) );
+
+		$this->assertSame( 'k1a 0b1', $parts['from_zip'], 'from_zip was validated in a different case than it is sent.' );
+		$this->assertSame( 'm5v 3l9', $parts['to_zip'], 'to_zip was validated in a different case than it is sent.' );
+		$this->assertSame( 'CA', $parts['to_country'], 'Country is compared against a literal and must stay normalized.' );
+		$this->assertSame( 'ON', $parts['to_state'], 'State is compared against from_state and must stay normalized.' );
+	}
+
+	/**
+	 * A nexus address whose required field is present but blank must be rejected, so
+	 * the request falls back to the store address.
+	 *
+	 * The old schema check skipped any field that was present-but-empty, so
+	 * `array( 'country' => '' )` passed validation, replaced the `from_*` fields, and
+	 * then failed the "From country is missing" gate — aborting a calculation that
+	 * would have succeeded had the nexus simply been dropped.
+	 */
+	public function test_blank_required_nexus_field_falls_back_instead_of_aborting() {
+		$body = $this->capture_taxjar_request_json(
+			$this->in_state_options(),
+			function ( $nexus_address ) {
+				$nexus_address['country'] = '';
+
+				return $nexus_address;
+			}
+		);
+
+		$this->assertIsArray( $body, 'A blank nexus country aborted the request instead of falling back to the store address.' );
+		$this->assertArrayNotHasKey( 'nexus_addresses', $body, 'An invalid nexus address was forwarded.' );
+		$this->assertSame( 'US', $body['from_country'] );
+	}
+
+	/**
+	 * A nexus address is validated in the same shape it is sent.
+	 *
+	 * The schema requires an upper-case country code, so a filter returning `'us'`
+	 * used to be discarded silently. Normalizing before validating accepts it and
+	 * sends the normalized value, so "what was checked" and "what was sent" are the
+	 * same string.
+	 */
+	public function test_nexus_address_is_sent_in_the_shape_it_was_validated() {
+		$body = $this->capture_taxjar_request_json(
+			$this->in_state_options(),
+			function ( $nexus_address ) {
+				$nexus_address['country'] = 'us';
+				$nexus_address['state']   = 'ca';
+
+				return $nexus_address;
+			}
+		);
+
+		$this->assertIsArray( $body );
+		$this->assertArrayHasKey(
+			'nexus_addresses',
+			$body,
+			'A lower-case country from the filter was dropped instead of being normalized.'
+		);
+		$this->assertSame( 'US', $body['nexus_addresses'][0]['country'] );
+		$this->assertSame( 'CA', $body['nexus_addresses'][0]['state'] );
+	}
+
+	/**
+	 * Keys the filter added that the value object does not know about must survive.
+	 *
+	 * `woocommerce_taxjar_nexus_address` is documented as array-in / array-or-false-out.
+	 * This passed before the change too — it is a guard against the new normalization
+	 * turning that contract into a whitelist, not a demonstration of a fixed bug.
+	 */
+	public function test_nexus_address_passes_through_unknown_keys() {
+		$body = $this->capture_taxjar_request_json(
+			$this->in_state_options(),
+			function ( $nexus_address ) {
+				$nexus_address['custom_key'] = 'kept';
+
+				return $nexus_address;
+			}
+		);
+
+		$this->assertIsArray( $body );
+		$this->assertArrayHasKey( 'nexus_addresses', $body );
+		$this->assertSame( 'kept', $body['nexus_addresses'][0]['custom_key'] );
+	}
+
+	/**
+	 * A non-scalar field must be rejected rather than coerced.
+	 *
+	 * The old schema check rejected non-strings outright. The value object casts every
+	 * field to string instead, so without an explicit guard an array would trigger an
+	 * array-to-string conversion and be sent as the literal `"Array"`. This passed
+	 * before the change too — it pins behaviour across the migration rather than
+	 * demonstrating a fixed bug.
+	 */
+	public function test_non_scalar_nexus_field_is_rejected() {
+		$body = $this->capture_taxjar_request_json(
+			$this->in_state_options(),
+			function ( $nexus_address ) {
+				$nexus_address['city'] = array( 'Beverly Hills' );
+
+				return $nexus_address;
+			}
+		);
+
+		$this->assertIsArray( $body );
+		$this->assertArrayNotHasKey( 'nexus_addresses', $body );
+	}
 }

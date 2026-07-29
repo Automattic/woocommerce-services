@@ -1436,55 +1436,17 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Validates TaxJar nexus address.
+	 * Validates a TaxJar nexus address against the shared address schema.
 	 *
-	 * @param  array $address
+	 * Delegates to `Address::validate()` so the nexus address is checked by the same
+	 * rules the rest of the integration uses, and — because `calculate_tax()` sends
+	 * the normalised address — is checked in the shape it is sent.
+	 *
+	 * @param  array $address Nexus address, as returned by `woocommerce_taxjar_nexus_address`.
 	 *
 	 * @return bool
 	 */
 	private function is_nexus_address_valid( $address ): bool {
-		$errors = array();
-		$schema = array(
-			'id'      => array(
-				'type'        => 'string',
-				'required'    => false,
-				'description' => 'Unique identifier for the nexus address (optional).',
-				'max_length'  => 255,
-			),
-			'country' => array(
-				'type'        => 'string',
-				'required'    => true,
-				'pattern'     => '/^[A-Z]{2}$/', // two-letter ISO alpha-2 (upper-case)
-				'description' => 'Two-letter ISO country code (e.g. "US").',
-				'max_length'  => 2,
-			),
-			'zip'     => array(
-				'type'        => 'string',
-				'required'    => false,
-				'description' => 'Postal code (format varies by country).',
-				'max_length'  => 20,
-			),
-			'state'   => array(
-				'type'        => 'string',
-				'required'    => true,
-				'pattern'     => '/^[A-Z0-9\-]{1,100}$/', // typical short code like "NY", "CA", "NSW"
-				'description' => 'Two-letter (or short) ISO state/province code where applicable.',
-				'max_length'  => 100,
-			),
-			'city'    => array(
-				'type'        => 'string',
-				'required'    => false,
-				'description' => 'City name.',
-				'max_length'  => 100,
-			),
-			'street'  => array(
-				'type'        => 'string',
-				'required'    => false,
-				'description' => 'Street address (line).',
-				'max_length'  => 255,
-			),
-		);
-
 		/**
 		 * Return without logging as empty array() or false
 		 * might be return on purpose from filter to remove nexus address.
@@ -1499,38 +1461,17 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		foreach ( $schema as $field => $rules ) {
-			$exists = array_key_exists( $field, $address );
-			$value  = $exists ? $address[ $field ] : null;
+		// The value object casts each field to string, so reject anything that cannot
+		// survive that cast rather than triggering an array-to-string conversion.
+		foreach ( $address as $field => $value ) {
+			if ( null !== $value && ! is_scalar( $value ) ) {
+				$this->logger->error( 'Nexus Address ERRORS: [' . $field . '] field must be a string' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . wp_json_encode( $address ), 'WCS Tax' );
 
-			if ( ! empty( $rules['required'] ) && ! $exists ) {
-				$errors[] = "[$field] field is required";
-				continue;
-			}
-
-			if ( ! $exists || $value === '' || $value === null ) {
-				continue;
-			}
-
-			if ( isset( $rules['type'] ) ) {
-				if ( $rules['type'] === 'string' && ! is_string( $value ) ) {
-					$errors[] = "[$field] field must be a string";
-					continue;
-				}
-			}
-
-			if ( isset( $rules['max_length'] ) && is_string( $value ) ) {
-				if ( strlen( $value ) > $rules['max_length'] ) {
-					$errors[] = "[$field] field exceeds maximum length of {$rules['max_length']}";
-				}
-			}
-
-			if ( isset( $rules['pattern'] ) && is_string( $value ) ) {
-				if ( ! preg_match( $rules['pattern'], $value ) ) {
-					$errors[] = "[$field] field format is invalid";
-				}
+				return false;
 			}
 		}
+
+		$errors = Address::from_nexus( $address )->validate()->get_error_messages();
 
 		if ( ! empty( $errors ) ) {
 			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
@@ -1555,11 +1496,12 @@ class WC_Connect_TaxJar_Integration {
 		// Normalize options to an array and safely map to local variables.
 		$options = is_array( $options ) ? $options : array();
 
-		$to_country      = isset( $options['to_country'] ) ? strtoupper( $options['to_country'] ) : null;
-		$to_state        = isset( $options['to_state'] ) ? strtoupper( $options['to_state'] ) : null;
-		$to_zip          = $options['to_zip'] ?? null;
-		$to_city         = $options['to_city'] ?? null;
-		$to_street       = $options['to_street'] ?? null;
+		// Both ends of the request go through the same normalisation. That symmetry is
+		// the point: the destination postcode used to be reduced to its first
+		// comma-separated segment while the store's was sent verbatim, so a store
+		// postcode entered as a list reached `validate_taxjar_request()` intact and
+		// aborted the calculation.
+		$destination     = Address::from_options( $options, 'to_' );
 		$shipping_amount = $options['shipping_amount'] ?? 0;
 		$line_items      = $options['line_items'] ?? null;
 
@@ -1573,48 +1515,29 @@ class WC_Connect_TaxJar_Integration {
 
 		// Strict conditions to be met before API call can be conducted.
 		if (
-			empty( $to_country ) ||
-			( empty( $to_zip ) && ! in_array( $to_country, WC()->countries->get_vat_countries() ) ) ||
+			empty( $destination->country() ) ||
+			( empty( $destination->postcode() ) && ! in_array( $destination->country(), WC()->countries->get_vat_countries() ) ) ||
 			( empty( $line_items ) && ( empty( $shipping_amount ) ) ) ||
 			WC()->customer->is_vat_exempt()
 		) {
 			return false;
 		}
 
-		$to_zip = explode( ',', $to_zip );
-		$to_zip = array_shift( $to_zip );
-
-		$store_settings = $this->get_store_settings();
-		$from_country   = strtoupper( $store_settings['country'] );
-		$from_state     = strtoupper( $store_settings['state'] );
-		$from_zip       = $store_settings['postcode'];
-		$from_city      = $store_settings['city'];
-		$from_street    = $store_settings['street'];
+		$store_address = Address::from_store_settings( $this->get_store_settings() );
+		$from_state    = $store_address->state();
 
 		$this->_log( ':::: TaxJar API called ::::' );
 
-		$body = array(
-			'from_country' => $from_country,
-			'from_state'   => $from_state,
-			'from_zip'     => $from_zip,
-			'from_city'    => $from_city,
-			'from_street'  => $from_street,
-			'to_country'   => $to_country,
-			'to_state'     => $to_state,
-			'to_zip'       => $to_zip,
-			'to_city'      => $to_city,
-			'to_street'    => $to_street,
-			'shipping'     => $shipping_amount,
-			'plugin'       => 'woo',
+		$body = array_merge(
+			$store_address->to_taxjar_body( 'from_' ),
+			$destination->to_taxjar_body( 'to_' ),
+			array(
+				'shipping' => $shipping_amount,
+				'plugin'   => 'woo',
+			)
 		);
 
-		$nexus_address = array(
-			'country' => $body['from_country'],
-			'zip'     => $body['from_zip'],
-			'state'   => $body['from_state'],
-			'city'    => $body['from_city'],
-			'street'  => $body['from_street'],
-		);
+		$nexus_address = $store_address->to_nexus_array();
 
 		/**
 		 * Filter to modify or disable the nexus address sent to TaxJar API.
@@ -1665,6 +1588,14 @@ class WC_Connect_TaxJar_Integration {
 			foreach ( $params_to_unset as $param ) {
 				unset( $body[ $param ] );
 			}
+
+			// Send the address in the shape it was validated in. Only the fields the
+			// value object knows about are rewritten; any other key a filter added is
+			// passed through untouched, so the documented array-in / array-out contract
+			// does not become a whitelist.
+			$normalized    = Address::from_nexus( $nexus_address )->to_nexus_array();
+			$nexus_address = array_merge( $nexus_address, array_intersect_key( $normalized, $nexus_address ) );
+
 			$body['nexus_addresses'] = array( $nexus_address );
 		}
 
@@ -1718,8 +1649,15 @@ class WC_Connect_TaxJar_Integration {
 
 
 	/**
-	 * Return address parts.
-	 * Primarily used in address validation to operate on normalized and predictable indexes.
+	 * Project the address out of a request body, for validation and the nexus gate.
+	 *
+	 * This must report what the body actually carries. Country and state are
+	 * upper-cased because they are compared against the literal `'US'` and against
+	 * each other, and this runs from the public `validate_taxjar_request()`, which
+	 * any caller can hand a hand-built body. The **postcodes are returned verbatim**:
+	 * re-deriving them here is what previously made the value that was validated
+	 * differ from the value that was sent. Postcode normalisation belongs where the
+	 * body is assembled, in `calculate_tax()`.
 	 *
 	 * @param array $body Request body.
 	 *
@@ -1727,12 +1665,12 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private function get_address_parts( $body ) {
 		return array(
-			'from_country' => strtoupper( $body['nexus_addresses'][0]['country'] ?? $body['from_country'] ?? '' ),
-			'from_state'   => strtoupper( $body['nexus_addresses'][0]['state'] ?? $body['from_state'] ?? '' ),
-			'from_zip'     => strtoupper( $body['nexus_addresses'][0]['zip'] ?? $body['from_zip'] ?? '' ),
-			'to_country'   => strtoupper( $body['to_country'] ?? '' ),
-			'to_state'     => strtoupper( $body['to_state'] ?? '' ),
-			'to_zip'       => strtoupper( $body['to_zip'] ?? '' ),
+			'from_country' => strtoupper( (string) ( $body['nexus_addresses'][0]['country'] ?? $body['from_country'] ?? '' ) ),
+			'from_state'   => strtoupper( (string) ( $body['nexus_addresses'][0]['state'] ?? $body['from_state'] ?? '' ) ),
+			'from_zip'     => (string) ( $body['nexus_addresses'][0]['zip'] ?? $body['from_zip'] ?? '' ),
+			'to_country'   => strtoupper( (string) ( $body['to_country'] ?? '' ) ),
+			'to_state'     => strtoupper( (string) ( $body['to_state'] ?? '' ) ),
+			'to_zip'       => (string) ( $body['to_zip'] ?? '' ),
 		);
 	}
 
