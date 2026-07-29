@@ -414,9 +414,8 @@ final class Address {
 	 * jurisdiction-keyed rate rows (PR #2906) miss on every lookup.
 	 *
 	 * **The field set is measured, not assumed.** It was established against the
-	 * live TaxJar API in July 2026 (~35 calls over three ZIPs, evidence recorded in
-	 * `.issues/WOOTAX-314/work/`); an earlier `country + state + postcode`
-	 * hypothesis was falsified by that run:
+	 * live TaxJar API in July 2026, over roughly 35 calls across three ZIP codes;
+	 * an earlier `country + state + postcode` hypothesis was falsified by that run:
 	 *
 	 * - **City is load-bearing.** ZIP 81323 CO with city `Dolores` resolves to
 	 *   `US|CO|MONTEZUMA|DOLORES`; with the city absent or misspelled it resolves to

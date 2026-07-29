@@ -306,10 +306,10 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 	/**
 	 * Street is excluded from the key.
 	 *
-	 * Measured July 2026 against live TaxJar (`.issues/WOOTAX-314/work/`): across
-	 * three ZIPs and every field pairing, the street never moved the `jurisdictions`
-	 * TaxJar returned — not even as a tiebreaker when the city was absent.
-	 * Including it would fragment the key for no accuracy gain.
+	 * Measured July 2026 against live TaxJar: across three ZIP codes and every field
+	 * pairing, the street never moved the `jurisdictions` TaxJar returned — not even
+	 * as a tiebreaker when the city was absent. Including it would fragment the key
+	 * for no accuracy gain.
 	 */
 	public function test_jurisdiction_key_ignores_street() {
 		$base = array(
