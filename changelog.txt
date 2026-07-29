@@ -2,6 +2,8 @@
 
 = 3.6.12 - 2026-xx-xx =
 * Tweak - Centralize TaxJar address handling in an internal value object. No change to tax calculation.
+* Fix   - Restore tax rate lookups for local pickup orders, which could return no rates at all.
+* Fix   - Preserve apostrophes in city and street when taxes are recalculated from the order edit screen.
 
 = 3.6.11 - 2026-08-05 =
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.
