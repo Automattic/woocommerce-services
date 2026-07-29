@@ -16,31 +16,35 @@
  *
  * Each input shape used to be hand-extracted at the call site, and each output
  * shape was hand-built. That spread normalisation rules (uppercasing country/state,
- * trimming city semicolons per WOOTAX-19, taking the first segment of a comma-list
- * postcode) across many call sites and made it easy to forget one.
+ * trimming city semicolons, taking the first segment of a comma-list postcode)
+ * across many call sites and made it easy to forget one.
  *
  * This class centralises the policy:
  *
- *   $address = WC_Connect_TaxJar_Address::from_taxable_tuple( $tuple );
+ *   $address = Address::from_taxable_tuple( $tuple );
  *   $body    = $address->to_taxjar_body( 'to_' );
  *   $rates   = WC_Tax::find_rates( $address->to_find_rates_args( $tax_class ) );
  *
  * Construction normalises once; every accessor and `to_*()` method is a pure
  * function of the stored fields.
  *
- * @package WooCommerce_Services
+ * This object is **internal**. Every boundary that faces third-party code — filters,
+ * public method signatures — converts back to the array shapes those consumers expect.
+ *
+ * @package Automattic/WCServices
  */
 
-// phpcs:disable Squiz.Commenting.FunctionComment.MissingParamTag
+namespace Automattic\WCServices\Tax;
 
-if ( ! defined( 'ABSPATH' ) ) {
-	exit;
-}
+use WC_Customer;
+use WP_Error;
+
+defined( 'ABSPATH' ) || exit;
 
 /**
  * Address value object for the TaxJar integration. Immutable.
  */
-final class WC_Connect_TaxJar_Address {
+final class Address {
 
 	/**
 	 * Two-letter ISO country code, uppercase. Empty string if unknown.
@@ -85,8 +89,17 @@ final class WC_Connect_TaxJar_Address {
 	private $id = null;
 
 	/**
+	 * Separator joining the components of `jurisdiction_key()`.
+	 *
+	 * @var string
+	 */
+	private const KEY_SEPARATOR = '|';
+
+	/**
 	 * Validation schema used by `validate()`. Mirrors the rules previously inlined
-	 * in `is_nexus_address_valid()`.
+	 * in `WC_Connect_TaxJar_Integration::is_nexus_address_valid()`.
+	 *
+	 * @var array
 	 */
 	private const VALIDATION_SCHEMA = array(
 		'id'       => array(
@@ -119,6 +132,13 @@ final class WC_Connect_TaxJar_Address {
 
 	/**
 	 * Private constructor — use the named static factories below.
+	 *
+	 * @param string      $country  Country code, uppercased on construction.
+	 * @param string      $state    State / province code, uppercased on construction.
+	 * @param string      $postcode Postal code; only the first comma-separated segment is kept.
+	 * @param string      $city     City name; semicolons stripped and whitespace collapsed.
+	 * @param string      $street   Street address line, trimmed.
+	 * @param string|null $id       Optional nexus-address identifier.
 	 */
 	private function __construct( string $country = '', string $state = '', string $postcode = '', string $city = '', string $street = '', ?string $id = null ) {
 		$this->country  = self::upper( $country );
@@ -133,6 +153,8 @@ final class WC_Connect_TaxJar_Address {
 
 	/**
 	 * Empty address. Useful for early-return paths (e.g. when `WC()->customer` is null).
+	 *
+	 * @return self
 	 */
 	public static function empty(): self {
 		return new self();
@@ -144,6 +166,7 @@ final class WC_Connect_TaxJar_Address {
 	 * Matches the contract of the `woocommerce_customer_taxable_address` filter.
 	 *
 	 * @param array $tuple Indexed 5-element array. Missing positions become empty strings.
+	 * @return self
 	 */
 	public static function from_taxable_tuple( array $tuple ): self {
 		return new self(
@@ -160,6 +183,7 @@ final class WC_Connect_TaxJar_Address {
 	 *
 	 * @param array  $options Source array. Missing keys default to empty.
 	 * @param string $prefix  Either 'to_' (default) or 'from_'.
+	 * @return self
 	 */
 	public static function from_options( array $options, string $prefix = 'to_' ): self {
 		return new self(
@@ -176,6 +200,9 @@ final class WC_Connect_TaxJar_Address {
 	 *
 	 * Note: `zip` (not `postcode`) — matches both the TaxJar nexus_addresses[] payload
 	 * and the `woocommerce_taxjar_nexus_address` filter contract.
+	 *
+	 * @param array $nexus Nexus address array, optionally carrying an `id`.
+	 * @return self
 	 */
 	public static function from_nexus( array $nexus ): self {
 		return new self(
@@ -192,6 +219,9 @@ final class WC_Connect_TaxJar_Address {
 	 * Build from the store-settings shape `{street, city, state, country, postcode}`.
 	 *
 	 * Matches the array returned by `WC_Connect_TaxJar_Integration::get_store_settings()`.
+	 *
+	 * @param array $settings Store settings array.
+	 * @return self
 	 */
 	public static function from_store_settings( array $settings ): self {
 		return new self(
@@ -207,6 +237,7 @@ final class WC_Connect_TaxJar_Address {
 	 * Build from a WooCommerce customer's billing address.
 	 *
 	 * @param WC_Customer $customer Live customer object — typically `WC()->customer`.
+	 * @return self
 	 */
 	public static function from_customer_billing( WC_Customer $customer ): self {
 		return new self(
@@ -222,6 +253,7 @@ final class WC_Connect_TaxJar_Address {
 	 * Build from a WooCommerce customer's shipping address.
 	 *
 	 * @param WC_Customer $customer Live customer object — typically `WC()->customer`.
+	 * @return self
 	 */
 	public static function from_customer_shipping( WC_Customer $customer ): self {
 		return new self(
@@ -240,6 +272,7 @@ final class WC_Connect_TaxJar_Address {
 	 * nonce / capability — this method does not check authorization.
 	 *
 	 * @param array|null $post Override source for testing. Defaults to `$_POST`.
+	 * @return self
 	 */
 	public static function from_post_request( ?array $post = null ): self {
 		// phpcs:disable WordPress.Security.NonceVerification.Missing
@@ -266,6 +299,7 @@ final class WC_Connect_TaxJar_Address {
 	 * postcode and street default to empty.
 	 *
 	 * @param object|array|null $jurisdictions A `$response_body->tax->jurisdictions` snippet.
+	 * @return self
 	 */
 	public static function from_jurisdictions( $jurisdictions ): self {
 		if ( null === $jurisdictions ) {
@@ -287,6 +321,8 @@ final class WC_Connect_TaxJar_Address {
 
 	/**
 	 * Two-letter ISO country code, uppercase. Empty if unknown.
+	 *
+	 * @return string
 	 */
 	public function country(): string {
 		return $this->country;
@@ -294,6 +330,8 @@ final class WC_Connect_TaxJar_Address {
 
 	/**
 	 * State / province code, uppercase. Empty if unknown.
+	 *
+	 * @return string
 	 */
 	public function state(): string {
 		return $this->state;
@@ -303,6 +341,8 @@ final class WC_Connect_TaxJar_Address {
 	 * State with all spaces removed. Used by `WC_Tax::find_rates()` lookup —
 	 * state codes shouldn't contain spaces, and stripping defends against
 	 * accidental whitespace from form input.
+	 *
+	 * @return string
 	 */
 	public function state_compact(): string {
 		return str_replace( ' ', '', $this->state );
@@ -310,13 +350,20 @@ final class WC_Connect_TaxJar_Address {
 
 	/**
 	 * Postal / ZIP code (first segment of any comma-list).
+	 *
+	 * Preserved as entered apart from that split and a trim — in particular the
+	 * `+4` suffix of a US ZIP is **not** stripped. See `jurisdiction_key()`.
+	 *
+	 * @return string
 	 */
 	public function postcode(): string {
 		return $this->postcode;
 	}
 
 	/**
-	 * City name with semicolons stripped and whitespace collapsed (WOOTAX-19).
+	 * City name with semicolons stripped and whitespace collapsed.
+	 *
+	 * @return string
 	 */
 	public function city(): string {
 		return $this->city;
@@ -324,6 +371,8 @@ final class WC_Connect_TaxJar_Address {
 
 	/**
 	 * Street address line.
+	 *
+	 * @return string
 	 */
 	public function street(): string {
 		return $this->street;
@@ -331,6 +380,8 @@ final class WC_Connect_TaxJar_Address {
 
 	/**
 	 * Optional identifier — only set for nexus addresses that carry one.
+	 *
+	 * @return string|null
 	 */
 	public function id(): ?string {
 		return $this->id;
@@ -339,6 +390,8 @@ final class WC_Connect_TaxJar_Address {
 	/**
 	 * True if all five core fields are empty. Mirrors the early-return path
 	 * `get_taxable_address()` takes when `WC()->customer` is null.
+	 *
+	 * @return bool
 	 */
 	public function is_empty(): bool {
 		return '' === $this->country
@@ -346,6 +399,68 @@ final class WC_Connect_TaxJar_Address {
 			&& '' === $this->postcode
 			&& '' === $this->city
 			&& '' === $this->street;
+	}
+
+	/* ──── Jurisdiction identity ──── */
+
+	/**
+	 * Stable key for the tax jurisdiction this address resolves to at TaxJar.
+	 *
+	 * Two addresses sharing a key are answered by TaxJar with the same
+	 * `jurisdictions` object, so a jurisdiction resolved for one may be reused for
+	 * the other. This is the single place the key is derived: it must be used for
+	 * both the write and the read side of any jurisdiction cache, because deriving
+	 * it differently at each end is precisely what made an earlier attempt at
+	 * jurisdiction-keyed rate rows (PR #2906) miss on every lookup.
+	 *
+	 * **The field set is measured, not assumed.** It was established against the
+	 * live TaxJar API in July 2026 (~35 calls over three ZIPs, evidence recorded in
+	 * `.issues/WOOTAX-314/work/`); an earlier `country + state + postcode`
+	 * hypothesis was falsified by that run:
+	 *
+	 * - **City is load-bearing.** ZIP 81323 CO with city `Dolores` resolves to
+	 *   `US|CO|MONTEZUMA|DOLORES`; with the city absent or misspelled it resolves to
+	 *   `US|CO|DOLORES|RICO` — a different, real county. Excluding the city would
+	 *   collapse two distinct jurisdictions onto one key.
+	 * - **The postcode must be keyed exactly as entered, `+4` included.**
+	 *   `81323-2100` resolves to the county-only `US|CO|MONTEZUMA|` even when an
+	 *   in-town city and street are supplied. Truncating to five digits would merge
+	 *   genuinely different jurisdictions.
+	 * - **Street is excluded.** Across every pairing tried it never moved
+	 *   `jurisdictions` — not even as a tiebreaker when the city was absent.
+	 *   Including it would fragment the key for no accuracy gain.
+	 * - **Store nexus is excluded.** Nexus was measured to leave `jurisdictions`
+	 *   unchanged, so a jurisdiction resolved under one store address stays valid
+	 *   after the store moves.
+	 *
+	 * Note the scope of that last point: nexus does not change the *jurisdiction*,
+	 * but it does change the *rate breakdown* within it. A jurisdiction is therefore
+	 * a sufficient identity for a stored rate row **only while the store nexus is
+	 * fixed** — a store-address change invalidates stored rates even though every
+	 * jurisdiction key stays the same.
+	 *
+	 * Components are upper-cased so that differences of letter case, which TaxJar
+	 * ignores, do not fragment the key. The separator is stripped from each
+	 * component first so a value containing it cannot forge a different key.
+	 *
+	 * @return string Key of the form `COUNTRY|STATE|POSTCODE|CITY`.
+	 */
+	public function jurisdiction_key(): string {
+		$components = array(
+			$this->country,
+			$this->state,
+			strtoupper( $this->postcode ),
+			strtoupper( $this->city ),
+		);
+
+		$components = array_map(
+			static function ( string $component ): string {
+				return str_replace( self::KEY_SEPARATOR, ' ', $component );
+			},
+			$components
+		);
+
+		return implode( self::KEY_SEPARATOR, $components );
 	}
 
 	/* ──── Validation ──── */
@@ -361,6 +476,7 @@ final class WC_Connect_TaxJar_Address {
 	 * @param string[] $required Field names that must be non-empty for the address
 	 *                           to be considered valid. Defaults to country + state
 	 *                           (the historic nexus-validity contract).
+	 * @return WP_Error
 	 */
 	public function validate( array $required = array( 'country', 'state' ) ): WP_Error {
 		$errors = new WP_Error();
@@ -418,6 +534,7 @@ final class WC_Connect_TaxJar_Address {
 	 * Note: the wire-level field is `zip`, not `postcode`.
 	 *
 	 * @param string $prefix Either 'to_' (default) or 'from_'.
+	 * @return array<string, string>
 	 */
 	public function to_taxjar_body( string $prefix = 'to_' ): array {
 		return array(
@@ -455,6 +572,7 @@ final class WC_Connect_TaxJar_Address {
 	 * Args for `WC_Tax::find_rates()`. State is space-compacted, city is uppercase
 	 * (consistent with WC core's `format_tax_rate_city()`), `tax_class` passed through.
 	 *
+	 * @param string $tax_class Tax class slug to look up.
 	 * @return array{country: string, state: string, postcode: string, city: string, tax_class: string}
 	 */
 	public function to_find_rates_args( string $tax_class = '' ): array {
@@ -496,12 +614,19 @@ final class WC_Connect_TaxJar_Address {
 	 * Strip semicolons and collapse whitespace runs in a city value.
 	 *
 	 * `WC_Tax::_update_tax_rate_cities()` treats `;` as a multi-city separator
-	 * (it `explode(';', ...)`s the input), but `WC_Tax::find_rates()` treats it
-	 * as a literal character. Without this normalisation, a checkout city like
-	 * `Casse;Berry` would be stored as two location rows (`CASSE`, `BERRY`) but
-	 * looked up as the joined string `CASSE;BERRY` — `find_rates()` always
-	 * misses, and a fresh tax-rate row is inserted on every calculation.
-	 * See WOOTAX-19.
+	 * (it `explode(';', ...)`s the input), but `WC_Tax::find_rates()` queries the
+	 * city column with a single `location_code = '<CITY>'` literal — so a checkout
+	 * city containing `;` (e.g. typo'd `Casse;Berry`) gets stored as two separate
+	 * location rows (`CASSE`, `BERRY`) yet looked up as the joined string
+	 * `CASSE;BERRY`. That asymmetry makes `find_rates()` miss on every subsequent
+	 * calculation, which makes `create_or_update_tax_rate()` insert a fresh row each
+	 * checkout — unbounded growth of `wp_woocommerce_tax_rates`.
+	 *
+	 * This is the canonical implementation. `WC_Connect_TaxJar_Integration::normalize_city()`
+	 * is a deprecated delegate to it.
+	 *
+	 * @param string $city Raw city value, possibly user-entered.
+	 * @return string Normalized city, safe for `_update_tax_rate_cities` and `find_rates`.
 	 */
 	public static function normalize_city( string $city ): string {
 		if ( '' === $city ) {
@@ -509,13 +634,17 @@ final class WC_Connect_TaxJar_Address {
 		}
 
 		$city = str_replace( ';', ' ', $city );
-		$city = preg_replace( '/\s+/', ' ', $city );
+		$city = preg_replace( '/\s+/u', ' ', $city );
 
-		return trim( $city );
+		// `preg_replace` returns null on malformed UTF-8 with the /u flag; cast so trim() stays safe.
+		return trim( (string) $city );
 	}
 
 	/**
 	 * Uppercase + trim. Returns empty string for empty input.
+	 *
+	 * @param string $value Raw value.
+	 * @return string
 	 */
 	private static function upper( string $value ): string {
 		$value = trim( $value );
@@ -526,7 +655,12 @@ final class WC_Connect_TaxJar_Address {
 	 * Take only the first segment of a comma-list postcode and trim it.
 	 *
 	 * Some carts (notably WC's `,`-joined zone matching) deliver postcodes as
-	 * `"33033,33034"`; TaxJar wants a single value.
+	 * `"33033,33034"`; TaxJar wants a single value. A `+4` suffix is hyphenated,
+	 * not comma-separated, so it survives this split intact — which
+	 * `jurisdiction_key()` depends on.
+	 *
+	 * @param string $postcode Raw postcode value.
+	 * @return string
 	 */
 	private static function first_postcode_segment( string $postcode ): string {
 		if ( '' === $postcode ) {

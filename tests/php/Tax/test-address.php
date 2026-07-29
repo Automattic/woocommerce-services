@@ -1,22 +1,16 @@
 <?php
 /**
- * Tests for WC_Connect_TaxJar_Address.
+ * Tests for Automattic\WCServices\Tax\Address.
  *
  * @package WooCommerce\Tests
  */
 
-/**
- * Class WP_Test_WC_Connect_TaxJar_Address
- */
-class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
+use Automattic\WCServices\Tax\Address;
 
-	/**
-	 * Load the address class once.
-	 */
-	public static function set_up_before_class() {
-		parent::set_up_before_class();
-		require_once __DIR__ . '/../../classes/class-wc-connect-taxjar-address.php';
-	}
+/**
+ * Class WP_Test_WCServices_Tax_Address
+ */
+class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 
 	/* ──── Factories — each input shape produces the same conceptual address ──── */
 
@@ -24,7 +18,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * Empty factory: every field is empty and is_empty() is true.
 	 */
 	public function test_empty_factory_returns_empty_address() {
-		$address = WC_Connect_TaxJar_Address::empty();
+		$address = Address::empty();
 
 		$this->assertSame( '', $address->country() );
 		$this->assertSame( '', $address->state() );
@@ -40,7 +34,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 */
 	public function test_from_taxable_tuple_extracts_positions_in_order() {
 		$tuple   = array( 'us', 'fl', '33033', 'Casse;Berry', '337 W 26th Ave' );
-		$address = WC_Connect_TaxJar_Address::from_taxable_tuple( $tuple );
+		$address = Address::from_taxable_tuple( $tuple );
 
 		$this->assertSame( 'US', $address->country() );
 		$this->assertSame( 'FL', $address->state() );
@@ -53,7 +47,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * Short tuples don't crash — missing positions become empty strings.
 	 */
 	public function test_from_taxable_tuple_missing_positions_become_empty() {
-		$address = WC_Connect_TaxJar_Address::from_taxable_tuple( array( 'CA', 'ON' ) );
+		$address = Address::from_taxable_tuple( array( 'CA', 'ON' ) );
 
 		$this->assertSame( 'CA', $address->country() );
 		$this->assertSame( 'ON', $address->state() );
@@ -77,8 +71,8 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 			'from_zip'     => '10001',
 		);
 
-		$to   = WC_Connect_TaxJar_Address::from_options( $opts, 'to_' );
-		$from = WC_Connect_TaxJar_Address::from_options( $opts, 'from_' );
+		$to   = Address::from_options( $opts, 'to_' );
+		$from = Address::from_options( $opts, 'from_' );
 
 		$this->assertSame( 'FL', $to->state() );
 		$this->assertSame( '33033', $to->postcode() );
@@ -100,7 +94,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 			'street'  => '5th Ave',
 		);
 
-		$address = WC_Connect_TaxJar_Address::from_nexus( $nexus );
+		$address = Address::from_nexus( $nexus );
 
 		$this->assertSame( 'nexus-1', $address->id() );
 		$this->assertSame( 'US', $address->country() );
@@ -119,7 +113,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 			'street'   => '337 W 26th Ave',
 		);
 
-		$address = WC_Connect_TaxJar_Address::from_store_settings( $settings );
+		$address = Address::from_store_settings( $settings );
 
 		$this->assertSame( 'US', $address->country() );
 		$this->assertSame( '33033', $address->postcode() );
@@ -135,7 +129,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 			'city'    => 'Casse;Berry',
 		);
 
-		$address = WC_Connect_TaxJar_Address::from_post_request( $override );
+		$address = Address::from_post_request( $override );
 
 		$this->assertSame( 'US', $address->country() );
 		$this->assertSame( 'FL', $address->state() );
@@ -152,7 +146,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 		$jur->state   = 'FL';
 		$jur->city    = 'Homestead';
 
-		$address = WC_Connect_TaxJar_Address::from_jurisdictions( $jur );
+		$address = Address::from_jurisdictions( $jur );
 
 		$this->assertSame( 'US', $address->country() );
 		$this->assertSame( 'FL', $address->state() );
@@ -165,7 +159,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * `from_jurisdictions( null )` returns an empty address (defensive null guard).
 	 */
 	public function test_from_jurisdictions_null_returns_empty() {
-		$address = WC_Connect_TaxJar_Address::from_jurisdictions( null );
+		$address = Address::from_jurisdictions( null );
 		$this->assertTrue( $address->is_empty() );
 	}
 
@@ -184,7 +178,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 		$customer->method( 'get_billing_city' )->willReturn( 'Homestead' );
 		$customer->method( 'get_billing_address' )->willReturn( '337 W 26th Ave' );
 
-		$address = WC_Connect_TaxJar_Address::from_customer_billing( $customer );
+		$address = Address::from_customer_billing( $customer );
 
 		$this->assertSame( 'US', $address->country() );
 		$this->assertSame( 'FL', $address->state() );
@@ -208,7 +202,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 		$customer->method( 'get_shipping_city' )->willReturn( 'Toronto' );
 		$customer->method( 'get_shipping_address' )->willReturn( '100 Queen St W' );
 
-		$address = WC_Connect_TaxJar_Address::from_customer_shipping( $customer );
+		$address = Address::from_customer_shipping( $customer );
 
 		$this->assertSame( 'CA', $address->country() );
 		$this->assertSame( 'ON', $address->state() );
@@ -221,7 +215,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * Comma-list postcodes resolve to the first segment.
 	 */
 	public function test_first_postcode_segment_is_used() {
-		$address = WC_Connect_TaxJar_Address::from_options( array( 'to_zip' => '33033, 33034, 33035' ) );
+		$address = Address::from_options( array( 'to_zip' => '33033, 33034, 33035' ) );
 
 		$this->assertSame( '33033', $address->postcode() );
 	}
@@ -230,14 +224,14 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * `state_compact()` strips internal spaces (e.g. accidental form input).
 	 */
 	public function test_state_compact_strips_spaces() {
-		$address = WC_Connect_TaxJar_Address::from_options( array( 'to_state' => 'N Y' ) );
+		$address = Address::from_options( array( 'to_state' => 'N Y' ) );
 
 		$this->assertSame( 'N Y', $address->state() );
 		$this->assertSame( 'NY', $address->state_compact() );
 	}
 
 	/**
-	 * Address-level `normalize_city` matches the WOOTAX-19 contract.
+	 * Address-level `normalize_city` strips semicolons and collapses whitespace.
 	 *
 	 * @dataProvider normalize_city_provider
 	 *
@@ -245,11 +239,11 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * @param string $expected Expected normalised value.
 	 */
 	public function test_normalize_city_strips_semicolons( $input, $expected ) {
-		$this->assertSame( $expected, WC_Connect_TaxJar_Address::normalize_city( $input ) );
+		$this->assertSame( $expected, Address::normalize_city( $input ) );
 	}
 
 	/**
-	 * Data provider mirroring the WOOTAX-19 test cases on the integration class.
+	 * Data provider mirroring the test cases on the integration class.
 	 *
 	 * @return array<string, array{0: string, 1: string}>
 	 */
@@ -267,13 +261,190 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 		);
 	}
 
+	/**
+	 * Whitespace collapsing leaves multibyte characters intact.
+	 *
+	 * The `/u` flag makes `preg_replace` walk characters rather than bytes, so a
+	 * multibyte sequence adjacent to a match cannot be split.
+	 */
+	public function test_normalize_city_preserves_multibyte_characters() {
+		$this->assertSame( 'Zürich', Address::normalize_city( '  Zürich  ' ) );
+		$this->assertSame( 'Ōgaki Shi', Address::normalize_city( "Ōgaki  \tShi" ) );
+	}
+
+	/**
+	 * Malformed UTF-8 degrades to an empty string rather than a `TypeError`.
+	 *
+	 * With `/u`, `preg_replace` returns `null` on invalid UTF-8 input. Without the
+	 * cast that `normalize_city()` applies, that `null` reaches `trim()` and, on a
+	 * `string`-typed return, raises. A city value arrives from checkout input, so
+	 * invalid UTF-8 is reachable from outside.
+	 */
+	public function test_normalize_city_survives_malformed_utf8() {
+		$this->assertSame( '', Address::normalize_city( "\xC3\x28" ) );
+	}
+
+	/* ──── jurisdiction_key() — field set measured against live TaxJar ──── */
+
+	/**
+	 * The key carries country, state, postcode and city, in that order.
+	 */
+	public function test_jurisdiction_key_has_country_state_postcode_city_shape() {
+		$address = Address::from_options(
+			array(
+				'to_country' => 'US',
+				'to_state'   => 'CO',
+				'to_zip'     => '81323',
+				'to_city'    => 'Dolores',
+				'to_street'  => '100 S 4th St',
+			)
+		);
+
+		$this->assertSame( 'US|CO|81323|DOLORES', $address->jurisdiction_key() );
+	}
+
+	/**
+	 * Street is excluded from the key.
+	 *
+	 * Measured July 2026 against live TaxJar (`.issues/WOOTAX-314/work/`): across
+	 * three ZIPs and every field pairing, the street never moved the `jurisdictions`
+	 * TaxJar returned — not even as a tiebreaker when the city was absent.
+	 * Including it would fragment the key for no accuracy gain.
+	 */
+	public function test_jurisdiction_key_ignores_street() {
+		$base = array(
+			'to_country' => 'US',
+			'to_state'   => 'CO',
+			'to_zip'     => '81323',
+			'to_city'    => 'Dolores',
+		);
+
+		$with_street    = Address::from_options( array_merge( $base, array( 'to_street' => '100 S 4th St' ) ) );
+		$other_street   = Address::from_options( array_merge( $base, array( 'to_street' => '25 County Road 38' ) ) );
+		$without_street = Address::from_options( $base );
+
+		$this->assertSame( $with_street->jurisdiction_key(), $other_street->jurisdiction_key() );
+		$this->assertSame( $with_street->jurisdiction_key(), $without_street->jurisdiction_key() );
+	}
+
+	/**
+	 * A `+4` suffix survives into the key.
+	 *
+	 * Measured: `81323-2100` resolves to the county-only `US|CO|MONTEZUMA|` at 3.3%
+	 * while bare `81323` with an in-town city resolves to `US|CO|MONTEZUMA|DOLORES`
+	 * at 7.3%. Truncating the postcode to five digits would merge two genuinely
+	 * different jurisdictions onto one key.
+	 */
+	public function test_jurisdiction_key_preserves_zip_plus_four() {
+		$base = array(
+			'to_country' => 'US',
+			'to_state'   => 'CO',
+			'to_city'    => 'Dolores',
+			'to_street'  => '100 S 4th St',
+		);
+
+		$five_digit = Address::from_options( array_merge( $base, array( 'to_zip' => '81323' ) ) );
+		$plus_four  = Address::from_options( array_merge( $base, array( 'to_zip' => '81323-2100' ) ) );
+
+		$this->assertSame( 'US|CO|81323-2100|DOLORES', $plus_four->jurisdiction_key() );
+		$this->assertNotSame( $five_digit->jurisdiction_key(), $plus_four->jurisdiction_key() );
+	}
+
+	/**
+	 * City is load-bearing and cannot be dropped from the key.
+	 *
+	 * Measured: ZIP 81323 CO with city `Dolores` resolves to `US|CO|MONTEZUMA|DOLORES`;
+	 * with the city absent or misspelled it resolves to `US|CO|DOLORES|RICO` — a
+	 * different, real county. Two distinct jurisdictions, so two distinct keys.
+	 */
+	public function test_jurisdiction_key_distinguishes_present_absent_and_misspelled_city() {
+		$base = array(
+			'to_country' => 'US',
+			'to_state'   => 'CO',
+			'to_zip'     => '81323',
+		);
+
+		$in_town    = Address::from_options( array_merge( $base, array( 'to_city' => 'Dolores' ) ) );
+		$no_city    = Address::from_options( $base );
+		$misspelled = Address::from_options( array_merge( $base, array( 'to_city' => 'Doloress' ) ) );
+
+		$this->assertNotSame( $in_town->jurisdiction_key(), $no_city->jurisdiction_key() );
+		$this->assertNotSame( $in_town->jurisdiction_key(), $misspelled->jurisdiction_key() );
+		$this->assertSame( 'US|CO|81323|', $no_city->jurisdiction_key() );
+	}
+
+	/**
+	 * Letter case and surrounding whitespace do not fragment the key — TaxJar
+	 * answers all three spellings identically.
+	 */
+	public function test_jurisdiction_key_is_case_and_whitespace_insensitive() {
+		$expected = 'US|CO|81323|DOLORES';
+
+		foreach ( array( 'Dolores', 'dolores', '  DOLORES  ' ) as $city ) {
+			$address = Address::from_options(
+				array(
+					'to_country' => 'us',
+					'to_state'   => 'co',
+					'to_zip'     => ' 81323 ',
+					'to_city'    => $city,
+				)
+			);
+
+			$this->assertSame( $expected, $address->jurisdiction_key(), "City spelling: {$city}" );
+		}
+	}
+
+	/**
+	 * The city normalisation applied at construction flows into the key, so a
+	 * semicolon typo keys the same as the clean spelling.
+	 */
+	public function test_jurisdiction_key_applies_city_normalisation() {
+		$typo  = Address::from_options( array( 'to_city' => 'Casse;Berry' ) );
+		$clean = Address::from_options( array( 'to_city' => 'Casse Berry' ) );
+
+		$this->assertSame( $clean->jurisdiction_key(), $typo->jurisdiction_key() );
+	}
+
+	/**
+	 * A comma-list postcode keys on its first segment, matching what is actually
+	 * sent to TaxJar.
+	 */
+	public function test_jurisdiction_key_uses_first_postcode_segment() {
+		$address = Address::from_options(
+			array(
+				'to_country' => 'US',
+				'to_state'   => 'FL',
+				'to_zip'     => '33033,33034',
+				'to_city'    => 'Homestead',
+			)
+		);
+
+		$this->assertSame( 'US|FL|33033|HOMESTEAD', $address->jurisdiction_key() );
+	}
+
+	/**
+	 * A separator character inside a field cannot forge another address's key.
+	 */
+	public function test_jurisdiction_key_separator_in_city_cannot_forge_another_key() {
+		$injected = Address::from_options(
+			array(
+				'to_country' => 'US',
+				'to_state'   => 'CO',
+				'to_zip'     => '81323',
+				'to_city'    => 'Dolores|81323|Rico',
+			)
+		);
+
+		$this->assertSame( 'US|CO|81323|DOLORES 81323 RICO', $injected->jurisdiction_key() );
+	}
+
 	/* ──── Output methods — one per consumer shape ──── */
 
 	/**
 	 * `to_taxable_tuple` returns positional `[country, state, postcode, city, street]`.
 	 */
 	public function test_to_taxable_tuple_returns_positional_5_tuple() {
-		$address = WC_Connect_TaxJar_Address::from_options(
+		$address = Address::from_options(
 			array(
 				'to_country' => 'US',
 				'to_state'   => 'FL',
@@ -293,7 +464,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * `to_taxjar_body` emits `zip` (not `postcode`) and supports both prefixes.
 	 */
 	public function test_to_taxjar_body_uses_zip_not_postcode_and_supports_both_prefixes() {
-		$address = WC_Connect_TaxJar_Address::from_options(
+		$address = Address::from_options(
 			array(
 				'to_country' => 'US',
 				'to_state'   => 'FL',
@@ -317,7 +488,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * `to_nexus_array` only includes the `id` key when the address carries one.
 	 */
 	public function test_to_nexus_array_omits_id_when_absent_and_includes_when_present() {
-		$without_id = WC_Connect_TaxJar_Address::from_options(
+		$without_id = Address::from_options(
 			array(
 				'to_country' => 'US',
 				'to_state'   => 'FL',
@@ -325,7 +496,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 			)
 		);
 
-		$with_id = WC_Connect_TaxJar_Address::from_nexus(
+		$with_id = Address::from_nexus(
 			array(
 				'id'      => 'nexus-1',
 				'country' => 'US',
@@ -342,7 +513,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * `to_find_rates_args` compacts state and uppercases city to match WC core's lookup contract.
 	 */
 	public function test_to_find_rates_args_compacts_state_and_uppercases_city() {
-		$address = WC_Connect_TaxJar_Address::from_options(
+		$address = Address::from_options(
 			array(
 				'to_country' => 'US',
 				'to_state'   => 'N Y',
@@ -363,7 +534,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * `to_legacy_options` converts empty strings to `false` for backward compatibility.
 	 */
 	public function test_to_legacy_options_converts_empty_strings_to_false() {
-		$address = WC_Connect_TaxJar_Address::from_options(
+		$address = Address::from_options(
 			array(
 				'to_country' => 'US',
 				'to_state'   => 'FL',
@@ -386,7 +557,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * `validate()` returns a WP_Error with no errors for a complete US address.
 	 */
 	public function test_validate_passes_for_well_formed_address() {
-		$address = WC_Connect_TaxJar_Address::from_options(
+		$address = Address::from_options(
 			array(
 				'to_country' => 'US',
 				'to_state'   => 'FL',
@@ -403,7 +574,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * Missing required country surfaces with the `address.country.required` error code.
 	 */
 	public function test_validate_flags_missing_required_country_with_specific_code() {
-		$address = WC_Connect_TaxJar_Address::from_options(
+		$address = Address::from_options(
 			array(
 				'to_state' => 'FL',
 			)
@@ -422,7 +593,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 		// `from_taxable_tuple` uppercases on construction, so we can't get a
 		// lowercase pattern violation through the public factories. Use a
 		// 3-letter country to force a pattern miss instead.
-		$address = WC_Connect_TaxJar_Address::from_options(
+		$address = Address::from_options(
 			array(
 				'to_country' => 'USA',
 				'to_state'   => 'FL',
@@ -438,7 +609,7 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 */
 	public function test_validate_max_length_violation_for_city() {
 		$long_city = str_repeat( 'A', 101 );
-		$address   = WC_Connect_TaxJar_Address::from_options(
+		$address   = Address::from_options(
 			array(
 				'to_country' => 'US',
 				'to_state'   => 'FL',
@@ -456,8 +627,8 @@ class WP_Test_WC_Connect_TaxJar_Address extends WC_Unit_Test_Case {
 	 * `is_empty()` only returns true when every core field is blank.
 	 */
 	public function test_is_empty_returns_true_only_when_all_core_fields_blank() {
-		$blank   = WC_Connect_TaxJar_Address::empty();
-		$partial = WC_Connect_TaxJar_Address::from_options( array( 'to_country' => 'US' ) );
+		$blank   = Address::empty();
+		$partial = Address::from_options( array( 'to_country' => 'US' ) );
 
 		$this->assertTrue( $blank->is_empty() );
 		$this->assertFalse( $partial->is_empty() );
