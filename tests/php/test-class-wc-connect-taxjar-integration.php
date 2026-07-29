@@ -2053,4 +2053,171 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			'string' => array( 'not a tax object' ),
 		);
 	}
+
+	// -------------------------------------------------------------------------
+	// Read seam — address tuple arity, empty-value representation, slashing
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Force the local-pickup branch of `append_base_address_to_customer_taxable_address()`
+	 * and give the store a non-empty street.
+	 *
+	 * @param string $street Store street to report through `taxjar_store_settings`.
+	 * @return void
+	 */
+	private function force_local_pickup_with_store_street( $street ) {
+		WC()->session->set( 'chosen_shipping_methods', array( 'local_pickup:1' ) );
+
+		add_filter(
+			'taxjar_store_settings',
+			function ( $settings ) use ( $street ) {
+				$settings['street']   = $street;
+				$settings['city']     = 'Homestead';
+				$settings['postcode'] = '33033';
+				return $settings;
+			}
+		);
+	}
+
+	/**
+	 * Undo `force_local_pickup_with_store_street()`.
+	 *
+	 * @return void
+	 */
+	private function reset_local_pickup_with_store_street() {
+		WC()->session->set( 'chosen_shipping_methods', array() );
+		remove_all_filters( 'taxjar_store_settings' );
+	}
+
+	/**
+	 * `append_base_address_to_customer_taxable_address()` must not change the length
+	 * of the tuple it was handed.
+	 *
+	 * WooCommerce core fires `woocommerce_customer_taxable_address` with a **four**
+	 * element tuple (`WC_Customer::get_taxable_address()` — no street), and
+	 * `WC_Tax::get_rates_from_location()` gates on `count( $location ) === 4` with a
+	 * strict comparison. Returning five elements there makes core skip
+	 * `WC_Tax::find_rates()` entirely and hand back an empty rate set.
+	 *
+	 * That is exactly what happens today on a local-pickup checkout: the callback
+	 * substitutes the store street into the empty slot, which flips the return from
+	 * four elements to five. The plugin's own `allow_street_address_for_matched_rates()`
+	 * override happens to paper over it for `woocommerce_matched_rates` consumers, but
+	 * every other caller of `WC_Tax::get_rates()` sees zero rates.
+	 */
+	public function test_append_base_address_preserves_four_element_core_tuple() {
+		$this->force_local_pickup_with_store_street( '1 Store Street' );
+
+		try {
+			$address = $this->integration->append_base_address_to_customer_taxable_address(
+				array( 'US', 'FL', '33030', 'Miami' )
+			);
+		} finally {
+			$this->reset_local_pickup_with_store_street();
+		}
+
+		$this->assertCount(
+			4,
+			$address,
+			'WC_Tax::get_rates_from_location() requires exactly 4 elements; returning 5 makes core return an empty rate set.'
+		);
+	}
+
+	/**
+	 * The mirror of the above: a five-element tuple in must stay five elements out.
+	 *
+	 * `WC_Connect_TaxJar_Integration::get_taxable_address()` fires the same filter with
+	 * a five-element tuple and `get_address()` reads index `[4]` off the result. Dropping
+	 * the trailing element whenever the street is empty means the plugin's own contract
+	 * silently changes arity based on the data, which is what allows a populated street to
+	 * be lost when the tuple is rebuilt downstream.
+	 */
+	public function test_append_base_address_preserves_five_element_plugin_tuple() {
+		$address = $this->integration->append_base_address_to_customer_taxable_address(
+			array( 'US', 'FL', '33030', 'Miami', '' )
+		);
+
+		$this->assertCount( 5, $address, 'A 5-tuple in must stay a 5-tuple out — get_address() reads index [4].' );
+		$this->assertSame( '', $address[4] );
+	}
+
+	/**
+	 * A populated street survives the round trip untouched.
+	 */
+	public function test_append_base_address_keeps_populated_street() {
+		$address = $this->integration->append_base_address_to_customer_taxable_address(
+			array( 'US', 'FL', '33030', 'Miami', '123 Ocean Drive' )
+		);
+
+		$this->assertCount( 5, $address );
+		$this->assertSame( '123 Ocean Drive', $address[4] );
+	}
+
+	/**
+	 * `get_address()` and `get_backend_address()` must represent an empty field the
+	 * same way.
+	 *
+	 * Both feed `calculate_tax()`, which builds the TaxJar request body straight from
+	 * these values — so the two paths currently put different JSON on the wire for the
+	 * same empty input: the cart path sends `false`, the admin-recalculate path sends
+	 * `""`. `Address::to_legacy_options()` is the single source of that decision.
+	 */
+	public function test_read_seam_uses_one_empty_value_representation() {
+		WC()->customer->set_shipping_country( 'US' );
+		WC()->customer->set_shipping_state( 'FL' );
+		WC()->customer->set_shipping_postcode( '33033' );
+		WC()->customer->set_shipping_city( '' );
+		WC()->customer->set_shipping_address( '' );
+
+		$_POST['country']  = 'US';
+		$_POST['state']    = 'FL';
+		$_POST['postcode'] = '33033';
+		$_POST['city']     = '';
+		$_POST['street']   = '';
+
+		try {
+			$frontend = $this->invoke_protected_method( 'get_address', array( 'shipping' ) );
+			$backend  = $this->invoke_protected_method( 'get_backend_address' );
+		} finally {
+			unset( $_POST['country'], $_POST['state'], $_POST['postcode'], $_POST['city'], $_POST['street'] );
+		}
+
+		$this->assertSame(
+			$frontend['to_city'],
+			$backend['to_city'],
+			'Cart and admin-recalculate paths disagree on how an empty city is represented.'
+		);
+		$this->assertSame(
+			$frontend['to_street'],
+			$backend['to_street'],
+			'Cart and admin-recalculate paths disagree on how an empty street is represented.'
+		);
+		$this->assertFalse( $backend['to_city'] );
+		$this->assertFalse( $backend['to_street'] );
+	}
+
+	/**
+	 * `get_backend_address()` must unslash `$_POST` before sanitizing it.
+	 *
+	 * WordPress slashes every superglobal, and `wc_clean()` sanitizes without
+	 * unslashing. So an apostrophe in an admin order address arrives as `O\'Brien`
+	 * and is passed through verbatim — into the TaxJar request body and, via
+	 * `create_or_update_tax_rate()`, into the `wp_woocommerce_tax_rates` city column,
+	 * where it can never match the unslashed value the cart path stores.
+	 */
+	public function test_get_backend_address_unslashes_post_values() {
+		$_POST['country'] = 'US';
+		$_POST['state']   = 'FL';
+		$_POST['city']    = "O\\'Brien";
+		$_POST['street']  = "123 O\\'Malley Way";
+
+		try {
+			$address = $this->invoke_protected_method( 'get_backend_address' );
+		} finally {
+			unset( $_POST['country'], $_POST['state'], $_POST['city'], $_POST['street'] );
+		}
+
+		$this->assertSame( "O'BRIEN", $address['to_city'], 'Backend city retained the WordPress-added slash.' );
+		$this->assertSame( "123 O'MALLEY WAY", $address['to_street'], 'Backend street retained the WordPress-added slash.' );
+	}
 }
