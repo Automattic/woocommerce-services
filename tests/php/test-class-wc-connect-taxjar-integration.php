@@ -2983,4 +2983,512 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			'The rejected nexus address was dropped without logging an error.'
 		);
 	}
+
+	/*
+	 * ─────────────────────── Rate-table seam: characterization ───────────────────────
+	 *
+	 * Golden master for `create_or_update_tax_rate()` and
+	 * `allow_street_address_for_matched_rates()` — the write and read ends of the
+	 * `wp_woocommerce_tax_rates` round trip.
+	 *
+	 * These tests were written *before* the seam was migrated onto the address value
+	 * object, and they pin the observable contract that migration must not change:
+	 * given a `$location`, which columns land in the rate row, which `location_code`
+	 * rows land beside it, and — the part that matters — whether calling the method a
+	 * second time with the same address reuses the row or inserts a duplicate.
+	 *
+	 * Duplicate rate rows are the failure mode this seam produces when the value
+	 * written and the value looked up diverge. It is silent: taxes are still charged
+	 * at the right rate, so nothing surfaces until `wp_woocommerce_tax_rates` has
+	 * grown a row per checkout. Every case below therefore calls twice and asserts on
+	 * the row delta, not just on the stored values.
+	 *
+	 * Cases that duplicate *today* are marked in the provider. They are pinned as-is
+	 * so the fix is visible as a deliberate change to this file rather than as an
+	 * unexplained diff in behaviour.
+	 */
+
+	/**
+	 * Empty both tax-rate tables so a characterization case starts from a known state.
+	 *
+	 * `DELETE` rather than `TRUNCATE` on purpose: the WP test case wraps each test in a
+	 * transaction, and `TRUNCATE` forces an implicit commit in MySQL, which would leak
+	 * the test's writes past the rollback.
+	 *
+	 * The cache-group invalidation is required, not hygiene — `WC_Tax::find_rates()`
+	 * memoises through `wp_cache_get()`, and deleting rows behind its back leaves it
+	 * answering from a cache that no longer matches the table.
+	 */
+	private function reset_tax_rate_tables() {
+		global $wpdb;
+
+		$wpdb->query( "DELETE FROM {$wpdb->prefix}woocommerce_tax_rate_locations" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$wpdb->query( "DELETE FROM {$wpdb->prefix}woocommerce_tax_rates" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+
+		WC_Cache_Helper::invalidate_cache_group( 'taxes' );
+	}
+
+	/**
+	 * Number of rows currently in `wp_woocommerce_tax_rates`.
+	 *
+	 * @return int
+	 */
+	private function count_tax_rate_rows() {
+		global $wpdb;
+
+		return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}woocommerce_tax_rates" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+	}
+
+	/**
+	 * Snapshot the persisted shape of one tax rate: the identity columns plus every
+	 * `location_code` written beside it.
+	 *
+	 * @param int $rate_id Tax rate id.
+	 * @return array{country: string, state: string, name: string, priority: int, rate: string, postcodes: string[], cities: string[]}
+	 */
+	private function tax_rate_snapshot( $rate_id ) {
+		global $wpdb;
+
+		$rate_id = (int) $rate_id;
+
+		$row = $wpdb->get_row( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+			$wpdb->prepare( "SELECT tax_rate_country, tax_rate_state, tax_rate_name, tax_rate_priority, tax_rate FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_id = %d", $rate_id ), // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			ARRAY_A
+		);
+
+		$codes_of = function ( $type ) use ( $wpdb, $rate_id ) {
+			$codes = $wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->prepare( "SELECT location_code FROM {$wpdb->prefix}woocommerce_tax_rate_locations WHERE tax_rate_id = %d AND location_type = %s ORDER BY location_code", $rate_id, $type ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			);
+
+			return array_map( 'strval', $codes );
+		};
+
+		return array(
+			'country'   => (string) $row['tax_rate_country'],
+			'state'     => (string) $row['tax_rate_state'],
+			'name'      => (string) $row['tax_rate_name'],
+			'priority'  => (int) $row['tax_rate_priority'],
+			'rate'      => (string) $row['tax_rate'],
+			'postcodes' => $codes_of( 'postcode' ),
+			'cities'    => $codes_of( 'city' ),
+		);
+	}
+
+	/**
+	 * Address shapes the rate-table seam has to survive, with the row behaviour each
+	 * one produces.
+	 *
+	 * `duplicates` records whether a second call with the *same* address inserts a
+	 * second row instead of reusing the first. Where it is `true`, that is a live
+	 * defect being pinned, and the accompanying note says which write/read pair
+	 * diverges to cause it.
+	 *
+	 * `matched` records whether `allow_street_address_for_matched_rates()` — a
+	 * *different* reader, on a different core path — can find the row that
+	 * `create_or_update_tax_rate()` just wrote. The two flags disagree for the
+	 * space-bearing state, which is the clearest evidence that the seam has three
+	 * independent derivations of one address rather than one.
+	 *
+	 * @return array<string, array{0: array, 1: string, 2: array}>
+	 */
+	public function provide_rate_table_round_trips() {
+		return array(
+			// Baseline. Nothing exotic; establishes that the round trip closes at all.
+			'plain US address'                 => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033',
+					'to_city'    => 'Homestead',
+					'from_state' => 'CA',
+				),
+				'Tax',
+				array(
+					'duplicates' => false,
+					'matched'    => true,
+					'country'    => 'US',
+					'state'      => 'FL',
+					'postcodes'  => array( '33033' ),
+					'cities'     => array( 'HOMESTEAD' ),
+				),
+			),
+
+			/*
+			 * A1 in the program plan — "written normalised, read raw" — is real but
+			 * NOT reachable. The write applies `wc_normalize_postcode()`, which strips
+			 * the hyphen; the read passes the postcode through untouched. It matches
+			 * anyway because `WC_Tax::find_rates()` applies the identical
+			 * `wc_normalize_postcode( wc_clean( … ) )` to its own argument before
+			 * querying. Core reconciles the divergence for us.
+			 */
+			'ZIP+4 destination'                => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033-1234',
+					'to_city'    => 'Homestead',
+					'from_state' => 'CA',
+				),
+				'Tax',
+				array(
+					'duplicates' => false,
+					'matched'    => true,
+					'country'    => 'US',
+					'state'      => 'FL',
+					'postcodes'  => array( '330331234' ),
+					'cities'     => array( 'HOMESTEAD' ),
+				),
+			),
+
+			// Comma-list postcode: stored whole, looked up whole, so it round-trips.
+			'comma-list postcode'              => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033, 33034',
+					'to_city'    => 'Homestead',
+					'from_state' => 'CA',
+				),
+				'Tax',
+				array(
+					'duplicates' => false,
+					'matched'    => true,
+					'country'    => 'US',
+					'state'      => 'FL',
+					'postcodes'  => array( '33033,33034' ),
+					'cities'     => array( 'HOMESTEAD' ),
+				),
+			),
+
+			/*
+			 * A2's casing half is masked: core upper-cases the city on the write
+			 * (`format_tax_rate_city()`) and again inside the lookup SQL, so the
+			 * plugin's own asymmetric `strtoupper()` cannot be observed here.
+			 */
+			'lower-case city'                  => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033',
+					'to_city'    => 'homestead',
+					'from_state' => 'CA',
+				),
+				'Tax',
+				array(
+					'duplicates' => false,
+					'matched'    => true,
+					'country'    => 'US',
+					'state'      => 'FL',
+					'postcodes'  => array( '33033' ),
+					'cities'     => array( 'HOMESTEAD' ),
+				),
+			),
+
+			// Same story for country/state: core upper-cases both ends.
+			'lower-case country and state'     => array(
+				array(
+					'to_country' => 'us',
+					'to_state'   => 'fl',
+					'to_zip'     => '33033',
+					'to_city'    => 'Homestead',
+					'from_state' => 'CA',
+				),
+				'Tax',
+				array(
+					'duplicates' => false,
+					'matched'    => true,
+					'country'    => 'US',
+					'state'      => 'FL',
+					'postcodes'  => array( '33033' ),
+					'cities'     => array( 'HOMESTEAD' ),
+				),
+			),
+
+			// WOOTAX-19's case, already fixed; kept here so the seam migration cannot regress it.
+			'semicolon city'                   => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033',
+					'to_city'    => 'Casse;Berry',
+					'from_state' => 'CA',
+				),
+				'Tax',
+				array(
+					'duplicates' => false,
+					'matched'    => true,
+					'country'    => 'US',
+					'state'      => 'FL',
+					'postcodes'  => array( '33033' ),
+					'cities'     => array( 'CASSE BERRY' ),
+				),
+			),
+
+			/*
+			 * A3, and it is not what the program plan describes. The plan has the
+			 * state "stripped for find_rates but stored un-stripped"; measured, core
+			 * stores it *more* aggressively than we look it up. `prepare_tax_rate()`
+			 * pushes `tax_rate_state` through `sanitize_key()` before formatting it,
+			 * so `'N Y'` lands in the column as `'NY'`.
+			 *
+			 * That accident is what makes this case round-trip: the plugin's
+			 * `str_replace( ' ', '' )` on the lookup happens to agree with
+			 * `sanitize_key()` for a space, and only for a space. See the next case
+			 * for what happens when they disagree.
+			 *
+			 * `matched` is false, though — `allow_street_address_for_matched_rates()`
+			 * does no state normalisation at all, looks up `'N Y'`, and finds nothing.
+			 * The two readers of this one table already disagree.
+			 */
+			'state containing a space'         => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'N Y',
+					'to_zip'     => '10001',
+					'to_city'    => 'New York',
+					'from_state' => 'CA',
+				),
+				'Tax',
+				array(
+					'duplicates' => false,
+					'matched'    => false,
+					'country'    => 'US',
+					'state'      => 'NY',
+					'postcodes'  => array( '10001' ),
+					'cities'     => array( 'NEW YORK' ),
+				),
+			),
+
+			/*
+			 * The same divergence where space-stripping is not enough. `sanitize_key()`
+			 * drops the periods too, so the row is stored as `'NY'` while both readers
+			 * ask for `'N.Y.'` — nothing ever matches and every calculation inserts a
+			 * fresh row. Any state value carrying a character outside `[a-z0-9_-]`
+			 * behaves this way, non-ASCII included.
+			 */
+			'state containing punctuation'     => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'N.Y.',
+					'to_zip'     => '10001',
+					'to_city'    => 'New York',
+					'from_state' => 'CA',
+				),
+				'Tax',
+				array(
+					'duplicates' => true,
+					'matched'    => false,
+					'country'    => 'US',
+					'state'      => 'NY',
+					'postcodes'  => array( '10001' ),
+					'cities'     => array( 'NEW YORK' ),
+				),
+			),
+
+			/*
+			 * A2's live half. The write sanitizes the city with `wc_clean()` and the
+			 * lookup does not, so anything `sanitize_text_field()` removes makes the
+			 * two ends disagree. Reachable because `create_or_update_tax_rate()` is
+			 * public and takes the location it is handed.
+			 */
+			'city containing markup'           => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033',
+					'to_city'    => 'Home<b>stead</b>',
+					'from_state' => 'CA',
+				),
+				'Tax',
+				array(
+					'duplicates' => true,
+					'matched'    => false,
+					'country'    => 'US',
+					'state'      => 'FL',
+					'postcodes'  => array( '33033' ),
+					'cities'     => array( 'HOMESTEAD' ),
+				),
+			),
+
+			/*
+			 * VAT rates are country-wide: the state is blanked and no postcode or city
+			 * location rows are written at all. Such a row matches core's
+			 * "rates with no postcodes and cities" criterion, so it still round-trips.
+			 */
+			'VAT rate writes no location rows' => array(
+				array(
+					'to_country' => 'GB',
+					'to_state'   => 'ENG',
+					'to_zip'     => 'SW1A 1AA',
+					'to_city'    => 'London',
+					'from_state' => 'ENG',
+				),
+				'VAT',
+				array(
+					'duplicates' => false,
+					'matched'    => true,
+					'country'    => 'GB',
+					'state'      => '',
+					'postcodes'  => array(),
+					'cities'     => array(),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Golden master: `create_or_update_tax_rate()` called twice with one address.
+	 *
+	 * @dataProvider provide_rate_table_round_trips
+	 *
+	 * @param array  $location       Location array as the method receives it.
+	 * @param string $tax_rate_name  Rate name ('VAT' takes the country-wide branch).
+	 * @param array  $expected       Expected row behaviour — see the provider docblock.
+	 */
+	public function test_create_or_update_tax_rate_round_trip( $location, $tax_rate_name, $expected ) {
+		$this->reset_tax_rate_tables();
+
+		$before    = $this->count_tax_rate_rows();
+		$first_id  = $this->integration->create_or_update_tax_rate( $location, 7.0, '', 1, 1, $tax_rate_name );
+		$second_id = $this->integration->create_or_update_tax_rate( $location, 7.0, '', 1, 1, $tax_rate_name );
+		$added     = $this->count_tax_rate_rows() - $before;
+
+		if ( $expected['duplicates'] ) {
+			$this->assertNotSame( (int) $first_id, (int) $second_id, 'Expected this address to insert a second row — the pinned defect is no longer reproducing, so the expectation needs revisiting rather than the assertion relaxing.' );
+			$this->assertSame( 2, $added, 'Expected exactly two rows for the duplicating case.' );
+		} else {
+			$this->assertSame( (int) $first_id, (int) $second_id, 'Second call inserted a new rate row instead of reusing the first — the value written and the value looked up have diverged.' );
+			$this->assertSame( 1, $added, 'Expected exactly one rate row after two calls with the same address.' );
+		}
+
+		$snapshot = $this->tax_rate_snapshot( $first_id );
+
+		$this->assertSame( $expected['country'], $snapshot['country'], 'tax_rate_country' );
+		$this->assertSame( $expected['state'], $snapshot['state'], 'tax_rate_state' );
+		$this->assertSame( $expected['postcodes'], $snapshot['postcodes'], 'postcode location_code rows' );
+		$this->assertSame( $expected['cities'], $snapshot['cities'], 'city location_code rows' );
+		$this->assertSame( $tax_rate_name, $snapshot['name'], 'tax_rate_name' );
+		$this->assertSame( 1, $snapshot['priority'], 'tax_rate_priority' );
+	}
+
+	/**
+	 * Rate rows are matched by *ordinal position*, not by priority value.
+	 *
+	 * `create_or_update_tax_rate()` reads `array_keys( $wc_rates )[ $priority - 1 ]`,
+	 * and `find_rates()` returns at most one rate per priority. So the lookup for
+	 * priority N only lands on the intended row when priorities 1..N-1 already exist —
+	 * which is true of the plugin's own caller, and is why the seam works today.
+	 *
+	 * Pinned because it is the constraint that makes the row identity positional. Any
+	 * change to how rows are keyed has to keep this working or replace it outright.
+	 */
+	public function test_create_or_update_tax_rate_matches_priorities_by_ordinal_position() {
+		$this->reset_tax_rate_tables();
+
+		$location = array(
+			'to_country' => 'US',
+			'to_state'   => 'FL',
+			'to_zip'     => '33033',
+			'to_city'    => 'Homestead',
+			'from_state' => 'CA',
+		);
+
+		$before = $this->count_tax_rate_rows();
+
+		$state_id  = $this->integration->create_or_update_tax_rate( $location, 6.0, '', 1, 1, 'FL State Tax' );
+		$county_id = $this->integration->create_or_update_tax_rate( $location, 1.0, '', 1, 2, 'FL County Tax' );
+
+		$this->assertNotSame( (int) $state_id, (int) $county_id, 'Two priorities must occupy two rows.' );
+		$this->assertSame( 2, $this->count_tax_rate_rows() - $before );
+
+		// Recalculating the same cart must reuse both rows.
+		$this->assertSame( (int) $state_id, (int) $this->integration->create_or_update_tax_rate( $location, 6.0, '', 1, 1, 'FL State Tax' ) );
+		$this->assertSame( (int) $county_id, (int) $this->integration->create_or_update_tax_rate( $location, 1.0, '', 1, 2, 'FL County Tax' ) );
+		$this->assertSame( 2, $this->count_tax_rate_rows() - $before, 'A second calculation for the same address must add no rows.' );
+
+		$this->assertSame( 2, $this->tax_rate_snapshot( $county_id )['priority'] );
+	}
+
+	/**
+	 * A changed rate updates the existing row rather than inserting beside it.
+	 *
+	 * This is the path that keeps historical orders pointing at a rate id that still
+	 * resolves, so it is part of the contract even though it writes no locations.
+	 */
+	public function test_create_or_update_tax_rate_updates_rate_in_place() {
+		$this->reset_tax_rate_tables();
+
+		$location = array(
+			'to_country' => 'US',
+			'to_state'   => 'FL',
+			'to_zip'     => '33033',
+			'to_city'    => 'Homestead',
+			'from_state' => 'CA',
+		);
+
+		$before   = $this->count_tax_rate_rows();
+		$rate_id  = $this->integration->create_or_update_tax_rate( $location, 6.0, '', 1, 1, 'Tax' );
+		$same_id  = $this->integration->create_or_update_tax_rate( $location, 7.5, '', 1, 1, 'Tax' );
+		$snapshot = $this->tax_rate_snapshot( $rate_id );
+
+		$this->assertSame( (int) $rate_id, (int) $same_id );
+		$this->assertSame( 1, $this->count_tax_rate_rows() - $before );
+		$this->assertSame( 7.5, (float) $snapshot['rate'], 'Changed rate must overwrite the existing row.' );
+	}
+
+	/**
+	 * The write and the read are two different methods, and they have to agree.
+	 *
+	 * `create_or_update_tax_rate()` persists the row; `allow_street_address_for_matched_rates()`
+	 * is what the `woocommerce_matched_rates` filter uses to find it again on the
+	 * price-display, shipping-tax and coupon paths. They derive their lookup arguments
+	 * independently today, so this test is the one that would catch them drifting
+	 * apart — a drift that shows up as tax silently disappearing from those paths
+	 * while the itemized cart totals stay correct.
+	 *
+	 * @dataProvider provide_rate_table_round_trips
+	 *
+	 * @param array  $location      Location array as `create_or_update_tax_rate()` receives it.
+	 * @param string $tax_rate_name Rate name ('VAT' takes the country-wide branch).
+	 * @param array  $expected      Expected row behaviour — see the provider docblock.
+	 */
+	public function test_matched_rates_lookup_finds_the_row_that_was_written( $location, $tax_rate_name, $expected ) {
+		$this->reset_tax_rate_tables();
+
+		$rate_id = (int) $this->integration->create_or_update_tax_rate( $location, 7.0, '', 1, 1, $tax_rate_name );
+
+		$tuple = array(
+			$location['to_country'],
+			$location['to_state'],
+			$location['to_zip'],
+			$location['to_city'],
+		);
+
+		$inject = function () use ( $tuple ) {
+			return $tuple;
+		};
+
+		add_filter( 'woocommerce_get_tax_location', $inject, 99 );
+
+		try {
+			$matched = $this->integration->allow_street_address_for_matched_rates( array(), '' );
+		} finally {
+			remove_filter( 'woocommerce_get_tax_location', $inject, 99 );
+		}
+
+		if ( $expected['matched'] ) {
+			$this->assertArrayHasKey(
+				$rate_id,
+				$matched,
+				'The matched-rates lookup did not find the row create_or_update_tax_rate() had just written for the same address.'
+			);
+		} else {
+			$this->assertArrayNotHasKey(
+				$rate_id,
+				$matched,
+				'Expected this address to be invisible to the matched-rates lookup — the pinned defect is no longer reproducing, so the expectation needs revisiting rather than the assertion relaxing.'
+			);
+		}
+	}
 }
