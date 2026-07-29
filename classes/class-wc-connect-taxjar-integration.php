@@ -1338,9 +1338,19 @@ class WC_Connect_TaxJar_Integration {
 
 		$tuple = Address::from_taxable_tuple( array( $country, $state, $postcode, $city, $street ) )->to_taxable_tuple();
 
-		// Return the arity we were handed. Clamped to the two lengths this filter is
-		// ever fired with, so a malformed input tuple cannot propagate its own shape.
-		return array_slice( $tuple, 0, max( 4, min( 5, $tuple_length ) ) );
+		/*
+		 * Return the arity we were handed, rather than a length of our own choosing.
+		 * Deliberately expressed as "preserve the input" and not as "core sends four,
+		 * we send five": this stays correct if a WooCommerce version we did not test
+		 * against fires the filter with a different shape, and it does not depend on
+		 * the plugin's declared minimum WooCommerce version holding.
+		 *
+		 * `$tuple` always has five elements, so `array_slice()` bounds the upper end on
+		 * its own. The only clamp needed is the lower one, which keeps a malformed
+		 * short tuple from being propagated below the four fields every consumer of
+		 * this filter reads.
+		 */
+		return array_slice( $tuple, 0, max( 4, $tuple_length ) );
 	}
 
 	/**
