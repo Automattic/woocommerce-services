@@ -352,14 +352,28 @@ final class Address {
 	}
 
 	/**
-	 * State with all spaces removed. Used by `WC_Tax::find_rates()` lookup —
-	 * state codes shouldn't contain spaces, and stripping defends against
-	 * accidental whitespace from form input.
+	 * State in the exact form WooCommerce core stores it in `tax_rate_state`.
+	 *
+	 * This is not a normalisation policy of ours — it is a mirror of core's.
+	 * `WC_Tax::prepare_tax_rate()` singles this one column out and runs it through
+	 * `sanitize_key()` before `format_tax_rate_state()` uppercases it, so the value
+	 * that reaches the column has been lower-cased and stripped of everything
+	 * outside `[a-z0-9_-]`. `WC_Tax::get_matched_tax_rates()` then compares against
+	 * it with a plain `tax_rate_state IN ( %s, '' )` and no normalisation of its own.
+	 *
+	 * A lookup that asks for anything else therefore cannot find the row it just
+	 * wrote, and `create_or_update_tax_rate()` responds by inserting another one —
+	 * once per calculation, forever. Stripping spaces (which is all this method used
+	 * to do) covers `'N Y'` and nothing else: `'N.Y.'`, and any state carrying
+	 * non-ASCII, still diverge.
+	 *
+	 * Because core applies the same function on the way in, mirroring it here cannot
+	 * lose information the stored value still has.
 	 *
 	 * @return string
 	 */
 	public function state_compact(): string {
-		return str_replace( ' ', '', $this->state );
+		return strtoupper( sanitize_key( $this->state ) );
 	}
 
 	/**
@@ -601,8 +615,11 @@ final class Address {
 	}
 
 	/**
-	 * Args for `WC_Tax::find_rates()`. State is space-compacted, city is uppercase
-	 * (consistent with WC core's `format_tax_rate_city()`), `tax_class` passed through.
+	 * Args for `WC_Tax::find_rates()` — the read end of the tax-rate-table round trip.
+	 *
+	 * Every field is in the form WC core stores it, so this and
+	 * `to_rate_table_locations()` cannot disagree: a row written from one address is
+	 * found by a lookup built from the same address.
 	 *
 	 * @param string $tax_class Tax class slug to look up.
 	 * @return array{country: string, state: string, postcode: string, city: string, tax_class: string}
@@ -611,10 +628,58 @@ final class Address {
 		return array(
 			'country'   => $this->country,
 			'state'     => $this->state_compact(),
-			'postcode'  => $this->postcode,
-			'city'      => strtoupper( $this->city ),
+			'postcode'  => $this->postcode_as_stored(),
+			'city'      => $this->city_as_stored(),
 			'tax_class' => $tax_class,
 		);
+	}
+
+	/**
+	 * Location codes for the write end: the `postcode` and `city` rows that
+	 * `WC_Tax::_update_tax_rate_postcodes()` / `_update_tax_rate_cities()` persist
+	 * alongside a rate.
+	 *
+	 * Paired with `to_find_rates_args()` on purpose. Deriving the two independently is
+	 * what let `create_or_update_tax_rate()` look up a value it had never written and
+	 * insert a fresh row for the same address on every calculation.
+	 *
+	 * @return array{postcode: string, city: string}
+	 */
+	public function to_rate_table_locations(): array {
+		return array(
+			'postcode' => $this->postcode_as_stored(),
+			'city'     => $this->city_as_stored(),
+		);
+	}
+
+	/**
+	 * Postcode in the form WC core matches rate rows against.
+	 *
+	 * `WC_Tax::find_rates()` normalizes its argument with
+	 * `wc_normalize_postcode( wc_clean( … ) )`, while
+	 * `_update_tax_rate_postcodes()` stores what it is handed verbatim. Applying the
+	 * same normalisation to both ends is what closes that gap; it is idempotent, so
+	 * passing an already-normalised value into `find_rates()` changes nothing.
+	 *
+	 * @return string
+	 */
+	private function postcode_as_stored(): string {
+		return (string) wc_normalize_postcode( wc_clean( $this->postcode ) );
+	}
+
+	/**
+	 * City in the form WC core stores in the `city` location row.
+	 *
+	 * Core upper-cases and trims on both ends (`format_tax_rate_city()` on the write,
+	 * `strtoupper()` inside the lookup SQL) but sanitizes on neither. The plugin used
+	 * to apply `wc_clean()` on the write only, so a city carrying anything
+	 * `sanitize_text_field()` strips was stored in one form and searched for in
+	 * another — a fresh rate row per calculation.
+	 *
+	 * @return string
+	 */
+	private function city_as_stored(): string {
+		return strtoupper( trim( (string) wc_clean( $this->city ) ) );
 	}
 
 	/**

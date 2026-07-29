@@ -305,6 +305,9 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 
 	/**
 	 * `state_compact()` strips internal spaces (e.g. accidental form input).
+	 *
+	 * @see self::test_state_compact_mirrors_core_storage_normalisation() for the full
+	 *      rule — spaces are one case of it, not the definition.
 	 */
 	public function test_state_compact_strips_spaces() {
 		$address = Address::from_options( array( 'to_state' => 'N Y' ) );
@@ -812,5 +815,169 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 
 		$this->assertTrue( $blank->is_empty() );
 		$this->assertFalse( $partial->is_empty() );
+	}
+
+	/* ──── Rate-table round trip ──── */
+
+	/**
+	 * The read and write projections of the tax rate table agree, field for field.
+	 *
+	 * This is the invariant the rate-table seam rests on: a row written from an
+	 * address must be findable by a lookup built from the same address. Asserted here,
+	 * on the value object, because it holds for *every* address rather than for the
+	 * handful a database round trip can afford to exercise.
+	 *
+	 * @dataProvider awkward_address_provider
+	 *
+	 * @param array $options `to_*` options to build the address from.
+	 */
+	public function test_find_rates_args_and_rate_table_locations_agree( array $options ) {
+		$address = Address::from_options( $options );
+
+		$find      = $address->to_find_rates_args( 'standard' );
+		$locations = $address->to_rate_table_locations();
+
+		$this->assertSame( $find['postcode'], $locations['postcode'], 'The postcode looked up differs from the postcode stored.' );
+		$this->assertSame( $find['city'], $locations['city'], 'The city looked up differs from the city stored.' );
+	}
+
+	/**
+	 * Addresses whose normalisation is not the identity, so the assertion above has
+	 * something to bite on. Each carries a field WooCommerce core rewrites somewhere
+	 * along the write path.
+	 *
+	 * @return array<string, array{0: array}>
+	 */
+	public function awkward_address_provider() {
+		return array(
+			'plain'                    => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033',
+					'to_city'    => 'Homestead',
+				),
+			),
+			'ZIP+4'                    => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033-1234',
+					'to_city'    => 'Homestead',
+				),
+			),
+			'comma-list postcode'      => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033, 33034',
+					'to_city'    => 'Homestead',
+				),
+			),
+			'lower-case city'          => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033',
+					'to_city'    => 'homestead',
+				),
+			),
+			'semicolon city'           => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033',
+					'to_city'    => 'Casse;Berry',
+				),
+			),
+			'city carrying markup'     => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'FL',
+					'to_zip'     => '33033',
+					'to_city'    => 'Home<b>stead</b>',
+				),
+			),
+			'state carrying a space'   => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'N Y',
+					'to_zip'     => '10001',
+					'to_city'    => 'New York',
+				),
+			),
+			'state carrying periods'   => array(
+				array(
+					'to_country' => 'US',
+					'to_state'   => 'N.Y.',
+					'to_zip'     => '10001',
+					'to_city'    => 'New York',
+				),
+			),
+			'postcode with whitespace' => array(
+				array(
+					'to_country' => 'GB',
+					'to_state'   => 'ENG',
+					'to_zip'     => 'SW1A 1AA',
+					'to_city'    => 'London',
+				),
+			),
+			'everything blank'         => array( array() ),
+		);
+	}
+
+	/**
+	 * `state_compact()` reproduces what core actually puts in `tax_rate_state`.
+	 *
+	 * `WC_Tax::prepare_tax_rate()` singles that column out for `sanitize_key()` before
+	 * uppercasing it, so anything outside `[a-z0-9_-]` is dropped — not just spaces.
+	 * A lookup that strips only spaces misses the row for `'N.Y.'` and inserts a
+	 * duplicate instead.
+	 *
+	 * @dataProvider state_compact_provider
+	 *
+	 * @param string $raw      State as entered.
+	 * @param string $expected Form core stores.
+	 */
+	public function test_state_compact_mirrors_core_storage_normalisation( $raw, $expected ) {
+		$address = Address::from_options( array( 'to_state' => $raw ) );
+
+		$this->assertSame( $expected, $address->state_compact() );
+		$this->assertSame( strtoupper( sanitize_key( $raw ) ), $address->state_compact(), 'Diverged from the core function it mirrors.' );
+	}
+
+	/**
+	 * Data provider for `test_state_compact_mirrors_core_storage_normalisation`.
+	 *
+	 * @return array<string, array{0: string, 1: string}>
+	 */
+	public function state_compact_provider() {
+		return array(
+			'already canonical' => array( 'NY', 'NY' ),
+			'lower case'        => array( 'ny', 'NY' ),
+			'internal space'    => array( 'N Y', 'NY' ),
+			'periods'           => array( 'N.Y.', 'NY' ),
+			'hyphen kept'       => array( 'AB-12', 'AB-12' ),
+			'digits kept'       => array( 'A1', 'A1' ),
+			'empty'             => array( '', '' ),
+		);
+	}
+
+	/**
+	 * The postcode reaches the rate table normalised the way `find_rates()` normalises
+	 * its own argument, and the city reaches it sanitized and upper-cased.
+	 */
+	public function test_rate_table_locations_use_core_storage_forms() {
+		$address = Address::from_options(
+			array(
+				'to_zip'  => '33033-1234',
+				'to_city' => ' Home<b>stead</b> ',
+			)
+		);
+
+		$locations = $address->to_rate_table_locations();
+
+		$this->assertSame( '330331234', $locations['postcode'] );
+		$this->assertSame( 'HOMESTEAD', $locations['city'] );
 	}
 }

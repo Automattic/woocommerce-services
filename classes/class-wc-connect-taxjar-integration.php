@@ -709,27 +709,32 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Allow street address to be passed when finding rates
 	 *
-	 * @param array  $matched_tax_rates
-	 * @param string $tax_class
+	 * Despite the name, no street ever reaches `WC_Tax::find_rates()` — it takes no
+	 * street argument, and the value this method used to unpack from the tuple was
+	 * never read. What the callback actually does is accept a location of *four or
+	 * more* elements where `WC_Tax::get_rates_from_location()` accepts exactly four,
+	 * so it supplies the rates core skips when this plugin's five-element taxable
+	 * address is in play. It is public and hooked on `woocommerce_matched_rates`,
+	 * which core fires from the price-display, shipping-tax and coupon paths.
+	 *
+	 * The lookup arguments now come from the same value object `create_or_update_tax_rate()`
+	 * writes with. Before, this method normalised the city but not the state, so it
+	 * could not see rows that method had just written: the rate rows existed and
+	 * these paths returned nothing for them.
+	 *
+	 * @param array  $matched_tax_rates Rates core matched; replaced wholesale.
+	 * @param string $tax_class         Tax class slug.
 	 * @return array
 	 */
 	public function allow_street_address_for_matched_rates( $matched_tax_rates, $tax_class = '' ) {
-		$tax_class         = sanitize_title( $tax_class );
-		$location          = WC_Tax::get_tax_location( $tax_class );
-		$matched_tax_rates = array();
-		if ( sizeof( $location ) >= 4 ) {
-			list( $country, $state, $postcode, $city, $street ) = array_pad( $location, 5, '' );
-			$matched_tax_rates                                  = WC_Tax::find_rates(
-				array(
-					'country'   => $country,
-					'state'     => $state,
-					'postcode'  => $postcode,
-					'city'      => strtoupper( self::normalize_city( $city ) ),
-					'tax_class' => $tax_class,
-				)
-			);
+		$tax_class = sanitize_title( $tax_class );
+		$location  = WC_Tax::get_tax_location( $tax_class );
+
+		if ( ! is_array( $location ) || count( $location ) < 4 ) {
+			return array();
 		}
-		return $matched_tax_rates;
+
+		return WC_Tax::find_rates( Address::from_taxable_tuple( $location )->to_find_rates_args( $tax_class ) );
 	}
 
 	public function cleanup_tax_label( $rate_name ) {
@@ -935,27 +940,17 @@ class WC_Connect_TaxJar_Integration {
 	 * Security: WooCommerce has already verified the nonce and capability by the time
 	 * `woocommerce_before_save_order_items` fires.
 	 *
+	 * This method used to `strtoupper()` postcode, city and street on top of that,
+	 * which `get_address()` did not — the same order recalculated from the admin and
+	 * from the cart put differently-cased values on the wire. The casing was kept only
+	 * because the city feeds the `wp_woocommerce_tax_rates` city column; now that the
+	 * rate-table seam upper-cases the city at both the write and the lookup, nothing
+	 * downstream depends on it and the two paths agree.
+	 *
 	 * @return array
 	 */
 	protected function get_backend_address() {
-		$address = Address::from_post_request()->to_legacy_options();
-
-		/*
-		 * Historic behaviour of this method, preserved deliberately: the admin path
-		 * upper-cases every field, not only country and state (which `Address` already
-		 * normalises). It is load-bearing for the city, which reaches the
-		 * `wp_woocommerce_tax_rates` city column, and pinned by
-		 * `test_get_backend_address_normalizes_semicolon_city()`. Reconciling the casing
-		 * asymmetry between this path and `get_address()` belongs with the rate-table
-		 * seam, where both ends of the write/read round trip can move together.
-		 */
-		foreach ( array( 'to_zip', 'to_city', 'to_street' ) as $key ) {
-			if ( is_string( $address[ $key ] ) ) {
-				$address[ $key ] = strtoupper( $address[ $key ] );
-			}
-		}
-
-		return $address;
+		return Address::from_post_request()->to_legacy_options();
 	}
 
 	/**
@@ -1859,9 +1854,11 @@ class WC_Connect_TaxJar_Integration {
 	 * normalisation policy has one home rather than one copy per consumer. This
 	 * method is retained as a delegate — it is `protected static`, so a subclass
 	 * outside this repository may be calling it, and removing it would break that
-	 * subclass on load. The remaining in-repo call sites move to the value object
-	 * when their seams are migrated; no `_deprecated_function()` notice is raised
-	 * because those call sites are still live and would fire it on every checkout.
+	 * subclass on load.
+	 *
+	 * The `_deprecated_function()` notice can be raised as of this release because
+	 * the last in-repo caller has moved to the value object. Until then the notice
+	 * would have fired on every checkout.
 	 *
 	 * The non-string guard is preserved: this method has always returned its
 	 * argument untouched when handed a non-string, and callers may rely on that.
@@ -1870,6 +1867,8 @@ class WC_Connect_TaxJar_Integration {
 	 * @return string Normalized city, safe for `_update_tax_rate_cities` and `find_rates`.
 	 */
 	protected static function normalize_city( $city ) {
+		wc_deprecated_function( __METHOD__, '3.6.11', '\Automattic\WCServices\Tax\Address::normalize_city()' );
+
 		if ( ! is_string( $city ) ) {
 			return $city;
 		}
@@ -1890,10 +1889,33 @@ class WC_Connect_TaxJar_Integration {
 	 * @return int
 	 */
 	public function create_or_update_tax_rate( $location, $rate, $tax_class = '', $freight_taxable = 1, $rate_priority = 1, $tax_rate_name = 'Tax' ) {
-		// Prevent filling "State code" column for countries with VAT tax.
-		// VAT tax is country wide.
-		$to_state      = 'VAT' === $tax_rate_name ? '' : strtoupper( $location['to_state'] );
 		$rate_priority = absint( $rate_priority );
+
+		/*
+		 * One address, two consumers: the `find_rates()` lookup below and the location
+		 * rows written beside the rate. Deriving them separately is what let this
+		 * method insert a fresh row on every calculation for some addresses — it
+		 * looked up values it had never stored. The value object now owns both
+		 * projections, so they cannot drift apart.
+		 *
+		 * Non-scalars collapse to an empty string rather than reaching `(string)` and
+		 * becoming the literal "Array". This method is public and takes the location
+		 * it is handed.
+		 */
+		$field = static function ( $value ) {
+			return is_scalar( $value ) ? (string) $value : '';
+		};
+
+		$address = Address::from_options(
+			array(
+				'to_country' => $field( $location['to_country'] ?? '' ),
+				// Prevent filling "State code" column for countries with VAT tax.
+				// VAT tax is country wide.
+				'to_state'   => 'VAT' === $tax_rate_name ? '' : $field( $location['to_state'] ?? '' ),
+				'to_zip'     => $field( $location['to_zip'] ?? '' ),
+				'to_city'    => $field( $location['to_city'] ?? '' ),
+			)
+		);
 
 		/**
 		 * @see https://github.com/Automattic/woocommerce-services/issues/2531
@@ -1918,8 +1940,8 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$tax_rate = array(
-			'tax_rate_country'  => $location['to_country'],
-			'tax_rate_state'    => $to_state,
+			'tax_rate_country'  => $address->country(),
+			'tax_rate_state'    => $address->state_compact(),
 			// For the US, we're going to modify the name of the tax rate to simplify the reporting and distinguish between the tax rates at the counties level.
 			// I would love to do this for other locations, but it looks like that would create issues.
 			// For example, for the UK it would continuously rename the rate name with an updated `state` "piece", each time a request is made
@@ -1931,15 +1953,7 @@ class WC_Connect_TaxJar_Integration {
 			'tax_rate_class'    => $tax_class,
 		);
 
-		$wc_rates = WC_Tax::find_rates(
-			array(
-				'country'   => $location['to_country'],
-				'state'     => str_replace( ' ', '', $to_state ),
-				'postcode'  => $location['to_zip'],
-				'city'      => strtoupper( self::normalize_city( $location['to_city'] ) ),
-				'tax_class' => $tax_class,
-			)
-		);
+		$wc_rates = WC_Tax::find_rates( $address->to_find_rates_args( $tax_class ) );
 
 		$wc_rates_ids = is_array( $wc_rates ) ? array_keys( $wc_rates ) : array();
 		if ( isset( $wc_rates_ids[ $rate_priority - 1 ] ) ) {
@@ -1970,8 +1984,10 @@ class WC_Connect_TaxJar_Integration {
 			$rate_id = WC_Tax::_insert_tax_rate( $tax_rate );
 			// VAT is always country wide, no need to create separate entires for each zip and city.
 			if ( 'VAT' !== $tax_rate_name ) {
-				WC_Tax::_update_tax_rate_postcodes( $rate_id, wc_normalize_postcode( wc_clean( $location['to_zip'] ) ) );
-				WC_Tax::_update_tax_rate_cities( $rate_id, self::normalize_city( wc_clean( $location['to_city'] ) ) );
+				$locations = $address->to_rate_table_locations();
+
+				WC_Tax::_update_tax_rate_postcodes( $rate_id, $locations['postcode'] );
+				WC_Tax::_update_tax_rate_cities( $rate_id, $locations['city'] );
 			}
 		}
 
