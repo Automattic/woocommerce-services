@@ -10,12 +10,15 @@
 /**
  * Support for:
  * 1. `WC_DEVELOP_DIR` environment variable.
- * 2. Tests checked out to /tmp.
+ * 2. WooCommerce checked out under the system temp dir (honors `TMPDIR` so the
+ *    fallback matches the namespaced path tests/bin/install-wc-tests.sh writes
+ *    to — see tests/bin/test-config.sh).
  */
+$wc_tmp_root = rtrim( sys_get_temp_dir(), '/\\' ) . '/woocommerce/plugins/woocommerce';
 if ( false !== getenv( 'WC_DEVELOP_DIR' ) ) {
 	$wc_root = getenv( 'WC_DEVELOP_DIR' );
-} elseif ( file_exists( '/tmp/woocommerce/plugins/woocommerce/tests/legacy/bootstrap.php' ) ) {
-	$wc_root = '/tmp/woocommerce/plugins/woocommerce';
+} elseif ( file_exists( $wc_tmp_root . '/tests/legacy/bootstrap.php' ) ) {
+	$wc_root = $wc_tmp_root;
 } else {
 	exit( 'Could not determine test root directory. Aborting. Have you run bin/install-wc-tests.sh?' );
 }
@@ -40,7 +43,7 @@ require_once $wp_tests_dir . '/includes/functions.php';
  * @return void
  */
 function _manually_load_plugin() {
-	require dirname( __FILE__ ) . '/../../woocommerce-services.php';
+	require __DIR__ . '/../../woocommerce-services.php';
 }
 tests_add_filter( 'muplugins_loaded', '_manually_load_plugin' );
 

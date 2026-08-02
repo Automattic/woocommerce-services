@@ -8,13 +8,13 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 3.6.7
+ * Version: 3.6.10
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 6.9
  * Tested up to: 7.0
- * WC requires at least: 10.7
- * WC tested up to: 10.9
+ * WC requires at least: 10.8
+ * WC tested up to: 11.0
  *
  * Copyright (c) 2017-2023 Automattic
  *
@@ -52,6 +52,7 @@ use Automattic\WCServices\Integrations\WooCommerceBlocksIntegration;
 use Automattic\WCServices\StoreApi\Extensions\StoreNoticesExtension;
 use Automattic\WCServices\StoreApi\StoreApiExtendSchema;
 use Automattic\WCServices\StoreApi\StoreApiExtensionController;
+use Automattic\WooCommerce\StoreApi\Schemas\ExtendSchema;
 use Automattic\WooCommerce\Utilities\OrderUtil;
 
 if ( ! class_exists( 'WC_Connect_Loader' ) ) {
@@ -1033,7 +1034,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Register the plugin's Store API extensions.
 		 */
 		protected function register_store_api_extensions() {
-			$store_api_extend_schema        = StoreApiExtendSchema::instance();
+			$store_api_extend_schema = $this->get_store_api_extend_schema();
+
+			// The container can fail to resolve ExtendSchema on a partial or broken
+			// WooCommerce install even when the top-level StoreApi class exists. Skip
+			// registration quietly rather than passing null into typed constructors.
+			if ( ! $store_api_extend_schema instanceof ExtendSchema ) {
+				return;
+			}
+
 			$store_api_extension_controller = new StoreApiExtensionController( $store_api_extend_schema );
 
 			// Register Store API extensions.
@@ -1041,6 +1050,18 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			// Extend the Store API.
 			$store_api_extension_controller->extend_store();
+		}
+
+		/**
+		 * Resolve the plugin's ExtendSchema wrapper.
+		 *
+		 * Extracted as a seam so tests can substitute an unavailable schema
+		 * (returning null) without exercising the WooCommerce container.
+		 *
+		 * @return ExtendSchema|null
+		 */
+		protected function get_store_api_extend_schema(): ?ExtendSchema {
+			return StoreApiExtendSchema::instance();
 		}
 
 		/**

@@ -71,6 +71,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function tear_down() {
 		// Remove any filters added during tests.
 		remove_all_filters( 'woocommerce_tax_line_item_location' );
+		remove_all_filters( 'woocommerce_services_override_tax_rate' );
 
 		// Clean up products.
 		if ( $this->product ) {
@@ -1752,5 +1753,273 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// The combined persisted rate must equal the real 6.975%, never the zeroed
 		// top-level rate. This is the core guard against the zeroing-out regression.
 		$this->assertEqualsWithDelta( 6.975, array_sum( $persisted ), 0.0001, 'Existing tax rate must not be zeroed out by a $0 calculation.' );
+	}
+
+	/**
+	 * `normalize_city()` strips semicolons and collapses whitespace.
+	 *
+	 * `WC_Tax::_update_tax_rate_cities()` treats `;` as a multi-city separator,
+	 * but `WC_Tax::find_rates()` treats it as a literal character. `normalize_city()`
+	 * strips `;` (and collapses whitespace) so the round-trip stays symmetric.
+	 *
+	 * @see WOOTAX-19
+	 *
+	 * @dataProvider normalize_city_provider
+	 *
+	 * @param string $input    Raw city value to normalize.
+	 * @param string $expected Expected normalized output.
+	 */
+	public function test_normalize_city_strips_semicolons_and_normalizes_whitespace( $input, $expected ) {
+		$reflection = new ReflectionMethod( 'WC_Connect_TaxJar_Integration', 'normalize_city' );
+		$reflection->setAccessible( true );
+
+		$this->assertSame( $expected, $reflection->invoke( null, $input ) );
+	}
+
+	/**
+	 * Data provider for `test_normalize_city_strips_semicolons_and_normalizes_whitespace`.
+	 *
+	 * @return array<string, array{0: mixed, 1: mixed}>
+	 */
+	public function normalize_city_provider() {
+		return array(
+			'no semicolon — unchanged'            => array( 'New York', 'New York' ),
+			'simple semicolon between words'      => array( 'Casse;Berry', 'Casse Berry' ),
+			'semicolon with following space'      => array( 'Casse; Berry', 'Casse Berry' ),
+			'leading semicolon'                   => array( ';Casselberry', 'Casselberry' ),
+			'trailing semicolon'                  => array( 'Casselberry;', 'Casselberry' ),
+			'consecutive semicolons'              => array( 'Casse;;Berry', 'Casse Berry' ),
+			'wrapped in whitespace'               => array( '  Casselberry  ', 'Casselberry' ),
+			'tab and newline collapse to space'   => array( "Casse;\t\nBerry", 'Casse Berry' ),
+			'empty string'                        => array( '', '' ),
+			'multi-segment with mixed separators' => array( ' Casse; ;Berry ', 'Casse Berry' ),
+			'null — returned unchanged'           => array( null, null ),
+			'false — returned unchanged'          => array( false, false ),
+		);
+	}
+
+	/**
+	 * `get_backend_address()` strips a semicolon from an admin order city.
+	 *
+	 * The admin "Recalculate" path builds its taxable address from `$_POST`, so a
+	 * `;`-bearing city must be normalized there too — otherwise backend recalculations
+	 * would reintroduce the stored/looked-up asymmetry the frontend path now avoids.
+	 *
+	 * @see WOOTAX-19
+	 */
+	public function test_get_backend_address_normalizes_semicolon_city() {
+		$_POST['country']  = 'US';
+		$_POST['state']    = 'FL';
+		$_POST['postcode'] = '33033';
+		$_POST['city']     = 'Casse;Berry';
+
+		try {
+			$address = $this->invoke_protected_method( 'get_backend_address' );
+		} finally {
+			unset( $_POST['country'], $_POST['state'], $_POST['postcode'], $_POST['city'] );
+		}
+
+		$this->assertStringNotContainsString( ';', $address['to_city'], 'Backend order city must not retain a semicolon — `_update_tax_rate_cities()` would split it.' );
+		$this->assertSame( 'CASSE BERRY', $address['to_city'] );
+	}
+
+	/**
+	 * `create_or_update_tax_rate()` is idempotent across semicolon-bearing cities.
+	 *
+	 * Regression test for the unbounded `wp_woocommerce_tax_rates` growth:
+	 * `create_or_update_tax_rate()` called twice with the same semicolon-bearing
+	 * city must reuse the existing rate row instead of inserting a duplicate.
+	 *
+	 * @see WOOTAX-19
+	 */
+	public function test_create_or_update_tax_rate_does_not_duplicate_rows_for_semicolon_city() {
+		global $wpdb;
+
+		$location = array(
+			'to_country' => 'US',
+			'to_state'   => 'FL',
+			'to_zip'     => '33033',
+			'to_city'    => 'Casse;Berry',
+			'from_state' => 'FL',
+		);
+
+		// Snapshot the row count BEFORE the first call so the test isn't sensitive
+		// to fixtures/seed data (test DB might already have rates from other tests).
+		$rates_table        = $wpdb->prefix . 'woocommerce_tax_rates';
+		$initial_rate_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$rates_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+
+		$first_id  = $this->integration->create_or_update_tax_rate( $location, 0.07, '', 1, 1, 'Tax' );
+		$second_id = $this->integration->create_or_update_tax_rate( $location, 0.07, '', 1, 1, 'Tax' );
+
+		// Same row id on both calls — find_rates() matched the second time.
+		$this->assertSame( (int) $first_id, (int) $second_id, 'Second create_or_update_tax_rate() inserted a new row instead of reusing the existing one — find_rates() city lookup is asymmetric with _update_tax_rate_cities() storage.' );
+
+		// Exactly one new row added, not two.
+		$final_rate_count = (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$rates_table}" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$this->assertSame( $initial_rate_count + 1, $final_rate_count, 'Expected exactly one new tax rate row after two create_or_update_tax_rate() calls with the same Casse;Berry city.' );
+
+		// Stored city in the locations table should be normalized — no `;`.
+		$locations_table = $wpdb->prefix . 'woocommerce_tax_rate_locations';
+		$stored_cities   = $wpdb->get_col( $wpdb->prepare( "SELECT location_code FROM {$locations_table} WHERE tax_rate_id = %d AND location_type = %s", (int) $first_id, 'city' ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+		$this->assertNotEmpty( $stored_cities );
+		foreach ( $stored_cities as $city ) {
+			$this->assertStringNotContainsString( ';', $city, 'Tax rate city stored with a semicolon — `_update_tax_rate_cities()` will split it and break find_rates() on subsequent lookups.' );
+		}
+	}
+
+	/**
+	 * Build a well-formed TaxJar tax response object (as returned under
+	 * $taxjar_response->tax) with a base rate of 0.08.
+	 *
+	 * @return object
+	 */
+	private function build_taxjar_tax_response() {
+		return (object) array(
+			'rate'      => 0.08,
+			'breakdown' => (object) array(
+				'combined_tax_rate' => 0.08,
+				'country_tax_rate'  => 0.0,
+				'shipping'          => (object) array(
+					'combined_tax_rate' => 0.08,
+					'country_tax_rate'  => 0.0,
+				),
+				'line_items'        => array(
+					(object) array(
+						'combined_tax_rate'       => 0.08,
+						'country_tax_rate'        => 0.0,
+						'country_taxable_amount'  => 100.0,
+						'taxable_amount'          => 100.0,
+						'country_tax_collectable' => 0.0,
+						'tax_collectable'         => 8.0,
+					),
+				),
+			),
+		);
+	}
+
+	/**
+	 * The override filter should still rewrite every rate on a well-formed
+	 * response (behavior preserved).
+	 */
+	public function test_maybe_override_taxjar_tax_applies_override_to_wellformed_response() {
+		add_filter( 'woocommerce_services_override_tax_rate', '__return_zero' );
+
+		$resp   = $this->build_taxjar_tax_response();
+		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
+
+		$this->assertSame( 0.0, $result->rate );
+		$this->assertSame( 0.0, $result->breakdown->combined_tax_rate );
+		$this->assertSame( 0.0, $result->breakdown->country_tax_rate );
+		$this->assertSame( 0.0, $result->breakdown->shipping->combined_tax_rate );
+		$this->assertSame( 0.0, $result->breakdown->shipping->country_tax_rate );
+
+		$line_item = $result->breakdown->line_items[0];
+		$this->assertSame( 0.0, $line_item->combined_tax_rate );
+		$this->assertSame( 0.0, $line_item->country_tax_rate );
+		$this->assertSame( 0.0, $line_item->country_tax_collectable );
+		$this->assertSame( 0.0, $line_item->tax_collectable );
+	}
+
+	/**
+	 * A null (or otherwise non-object) line item must not fatal; it is left
+	 * untouched while valid line items are still overridden. Regression for the
+	 * reported "Attempt to assign property on null" fatal (WOOTAX-74).
+	 */
+	public function test_maybe_override_taxjar_tax_survives_null_line_item() {
+		add_filter( 'woocommerce_services_override_tax_rate', '__return_zero' );
+
+		$resp                        = $this->build_taxjar_tax_response();
+		$valid_line_item             = $resp->breakdown->line_items[0];
+		$resp->breakdown->line_items = array( null, $valid_line_item );
+
+		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
+
+		$this->assertSame( 0.0, $result->rate );
+		$this->assertNull( $result->breakdown->line_items[0] );
+		$this->assertSame( 0.0, $result->breakdown->line_items[1]->combined_tax_rate );
+	}
+
+	/**
+	 * A response with no breakdown must not fatal. Regression for WOOTAX-74.
+	 */
+	public function test_maybe_override_taxjar_tax_survives_missing_breakdown() {
+		add_filter( 'woocommerce_services_override_tax_rate', '__return_zero' );
+
+		$resp = (object) array( 'rate' => 0.08 );
+
+		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
+
+		$this->assertSame( 0.0, $result->rate );
+		$this->assertObjectNotHasProperty( 'breakdown', $result );
+	}
+
+	/**
+	 * A breakdown missing its shipping member must not fatal. Regression for WOOTAX-74.
+	 */
+	public function test_maybe_override_taxjar_tax_survives_missing_shipping() {
+		add_filter( 'woocommerce_services_override_tax_rate', '__return_zero' );
+
+		$resp = $this->build_taxjar_tax_response();
+		unset( $resp->breakdown->shipping );
+
+		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
+
+		$this->assertSame( 0.0, $result->rate );
+		$this->assertSame( 0.0, $result->breakdown->combined_tax_rate );
+	}
+
+	/**
+	 * With no override filter registered the response is returned unchanged.
+	 */
+	public function test_maybe_override_taxjar_tax_returns_unchanged_without_override() {
+		$resp = $this->build_taxjar_tax_response();
+
+		$result = $this->integration->maybe_override_taxjar_tax( $resp, array() );
+
+		// The method mutates and returns the same handle, so identity alone proves
+		// nothing — assert the individual fields are untouched at every level.
+		$this->assertSame( $resp, $result );
+		$this->assertSame( 0.08, $result->rate );
+		$this->assertSame( 0.08, $result->breakdown->combined_tax_rate );
+		$this->assertSame( 0.08, $result->breakdown->shipping->combined_tax_rate );
+		$this->assertSame( 0.08, $result->breakdown->line_items[0]->combined_tax_rate );
+	}
+
+	/**
+	 * A non-object tax node is returned unchanged rather than fataling.
+	 *
+	 * The override filter is what makes this reachable: with a filter that leaves
+	 * the rate at 0 the method early-returns anyway, so only a filter returning a
+	 * *different* rate drives execution as far as the `->rate` write. calculate_tax()
+	 * validates the tax node so this cannot happen in-plugin, but the method is
+	 * public and third-party callers are not bound by that guarantee.
+	 *
+	 * @dataProvider provide_non_object_tax_nodes
+	 *
+	 * @param mixed $tax_node Non-object value passed in place of the tax node.
+	 */
+	public function test_maybe_override_taxjar_tax_returns_non_object_unchanged( $tax_node ) {
+		add_filter(
+			'woocommerce_services_override_tax_rate',
+			function () {
+				return 0.15;
+			}
+		);
+
+		$this->assertSame( $tax_node, $this->integration->maybe_override_taxjar_tax( $tax_node, array() ) );
+	}
+
+	/**
+	 * Non-object values a third-party caller could pass as the tax node.
+	 *
+	 * @return array
+	 */
+	public function provide_non_object_tax_nodes() {
+		return array(
+			'null'   => array( null ),
+			'false'  => array( false ),
+			'array'  => array( array( 'rate' => 0.08 ) ),
+			'string' => array( 'not a tax object' ),
+		);
 	}
 }

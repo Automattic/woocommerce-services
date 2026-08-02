@@ -5,9 +5,9 @@ Requires PHP: 7.4
 Requires at least: 6.9
 Requires Plugins: woocommerce
 Tested up to: 7.0
-WC requires at least: 10.7
-WC tested up to: 10.9
-Stable tag: 3.6.7
+WC requires at least: 10.8
+WC tested up to: 11.0
+Stable tag: 3.6.10
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,10 +70,20 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.6.8 - 2026-xx-xx =
+= 3.6.11 - 2026-xx-xx =
+* Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.
+* Fix   - React 19 compatibility for store notices on the block cart and checkout.
+
+= 3.6.10 - 2026-07-27 =
+* Tweak - WooCommerce 11.0 Compatibility.
+
+= 3.6.9 - 2026-07-20 =
+* Fix   - Prevent a rare fatal error when the WooCommerce Store API cannot be initialized on incomplete installations.
+
+= 3.6.8 - 2026-07-15 =
 * Fix   - TaxJar tax lines wiped when REST API order update includes address change.
 * Fix   - Prevent fatal error on sites running WooCommerce versions without StoreApi support.
-* Fix   - React 19 compatibility for store notices on the block cart and checkout.
+* Fix   - Prevent unbounded growth of WooCommerce tax rate rows when checkout city contains a semicolon.
 
 = 3.6.7 - 2026-07-06 =
 * Fix   - Prevent fatal error on Atomic sites caused by incorrect path resolution when loading the API client class.
