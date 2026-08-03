@@ -138,6 +138,30 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * `from_post_request` unslashes the real `$_POST` superglobal.
+	 *
+	 * WP magic-quotes slashes `$_POST` and `wc_clean()` does not unslash, so without
+	 * `wp_unslash()` a value like `O'Brien` would be stored as `O\'Brien`.
+	 */
+	public function test_from_post_request_unslashes_superglobal() {
+		$original_post = $_POST;
+
+		// Simulate the slashing WordPress applies to $_POST on real requests.
+		$_POST = array(
+			'country' => 'US',
+			'city'    => "O\\'Brien",
+			'street'  => "123 O\\'Malley St",
+		);
+
+		$address = Address::from_post_request();
+
+		$this->assertSame( "O'Brien", $address->city() );
+		$this->assertSame( "123 O'Malley St", $address->street() );
+
+		$_POST = $original_post;
+	}
+
+	/**
 	 * `from_jurisdictions` accepts an `stdClass` (matches TaxJar response shape).
 	 */
 	public function test_from_jurisdictions_extracts_partial_fields() {

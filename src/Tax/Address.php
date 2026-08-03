@@ -275,9 +275,9 @@ final class Address {
 	 * @return self
 	 */
 	public static function from_post_request( ?array $post = null ): self {
-		// phpcs:disable WordPress.Security.NonceVerification.Missing
-		$source = is_array( $post ) ? $post : $_POST;
-		// phpcs:enable WordPress.Security.NonceVerification.Missing
+		// Real requests arrive slashed (WP magic-quotes); wc_clean() does not unslash,
+		// so unslash the superglobal here. The $post test override is never slashed.
+		$source = is_array( $post ) ? $post : wp_unslash( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce/capability verified by the caller (see docblock); each field is sanitized via wc_clean() below.
 
 		$pluck = static function ( $key ) use ( $source ) {
 			return isset( $source[ $key ] ) ? (string) wc_clean( $source[ $key ] ) : '';
