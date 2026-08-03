@@ -2667,4 +2667,144 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertIsArray( $body );
 		$this->assertArrayNotHasKey( 'nexus_addresses', $body );
 	}
+
+	/**
+	 * A non-scalar value under an unknown key must not reject the whole address.
+	 *
+	 * The non-scalar guard exists because the value object casts the fields it reads to
+	 * string. Keys it does not read are never cast — they are merged back untouched —
+	 * so they carry no conversion risk. Checking them anyway made a single custom key
+	 * holding an array discard the entire nexus address, silently swapping which nexus
+	 * TaxJar was asked about, and logged "[meta] field must be a string" for a field
+	 * that is never treated as a string.
+	 */
+	public function test_non_scalar_unknown_nexus_key_is_passed_through() {
+		$body = $this->capture_taxjar_request_json(
+			$this->in_state_options(),
+			function ( $nexus_address ) {
+				$nexus_address['meta'] = array( 'source' => 'erp' );
+
+				return $nexus_address;
+			}
+		);
+
+		$this->assertIsArray( $body );
+		$this->assertArrayHasKey(
+			'nexus_addresses',
+			$body,
+			'A non-scalar value under an unknown key rejected the whole nexus address.'
+		);
+		$this->assertSame( array( 'source' => 'erp' ), $body['nexus_addresses'][0]['meta'] );
+		$this->assertSame( 'US', $body['nexus_addresses'][0]['country'] );
+	}
+
+	/**
+	 * A store outside the US keeps its own nexus address even with a blank state.
+	 *
+	 * `to_nexus_array()` always emits a `state` key, and `WC()->countries->get_base_state()`
+	 * returns `''` for 19 of the 31 countries in `get_supported_countries()` — GB, FR,
+	 * NL, BE, DK, SE, PL, PT and the rest of the stateless EU. Requiring a non-blank
+	 * state therefore rejected the nexus this plugin builds for the merchant's own
+	 * store, on every tax calculation, and each rejection wrote a forced error log and
+	 * a persistent admin error notice.
+	 *
+	 * The provider deliberately mixes countries WooCommerce gives no states (GB, FR, NL,
+	 * DK) with ones it does (DE, ES, IT, CA, AU). Both groups belong here: measured
+	 * against the live TaxJar API, every one of them rates a blank-state nexus
+	 * identically to a populated one, because only the US derives nexus from the origin
+	 * state. Keying the requirement off "does WooCommerce model states for this country"
+	 * would pass the first group and wrongly reject the second.
+	 *
+	 * @dataProvider provider_non_us_store_countries
+	 *
+	 * @param string $country   Two-letter country code.
+	 * @param string $postcode  A postcode valid for that country.
+	 * @param string $to_state  Destination state. Only CA needs one — `validate_taxjar_request()`
+	 *                          requires a destination state for US and CA, which is a rule about
+	 *                          where the customer is, not about the store's nexus.
+	 */
+	public function test_non_us_store_keeps_its_nexus_address_without_a_state( $country, $postcode, $to_state = '' ) {
+		$store = array(
+			'street'   => '1 Store Way',
+			'city'     => 'Somewhere',
+			'state'    => '',
+			'country'  => $country,
+			'postcode' => $postcode,
+		);
+
+		$options               = $this->in_state_options();
+		$options['to_country'] = $country;
+		$options['to_state']   = $to_state;
+		$options['to_zip']     = $postcode;
+		$options['to_city']    = 'Somewhere';
+
+		$body = $this->capture_taxjar_request_json( $options, null, $store );
+
+		$this->assertIsArray( $body, sprintf( 'A %s store aborted the tax calculation.', $country ) );
+		$this->assertArrayHasKey(
+			'nexus_addresses',
+			$body,
+			sprintf( 'The store nexus was rejected for %s, where TaxJar does not need an origin state.', $country )
+		);
+		$this->assertSame( $country, $body['nexus_addresses'][0]['country'] );
+		$this->assertSame( '', $body['nexus_addresses'][0]['state'] );
+	}
+
+	/**
+	 * Non-US TaxJar-supported countries, with and without WooCommerce states.
+	 *
+	 * The `has states` flag is recorded only to document that the split is deliberate —
+	 * nothing in the assertion depends on it, which is the point.
+	 *
+	 * @return array<string, array{0: string, 1: string, 2: string}>
+	 */
+	public function provider_non_us_store_countries() {
+		return array(
+			// No states in WooCommerce.
+			'GB' => array( 'GB', 'SW1A 1AA', '' ),
+			'FR' => array( 'FR', '75001', '' ),
+			'NL' => array( 'NL', '1011 AB', '' ),
+			'DK' => array( 'DK', '1050', '' ),
+
+			// States in WooCommerce, but TaxJar rates them from the destination anyway.
+			'DE' => array( 'DE', '10117', '' ),
+			'ES' => array( 'ES', '28001', '' ),
+			'IT' => array( 'IT', '00184', '' ),
+			'AU' => array( 'AU', '2000', '' ),
+
+			// CA needs a destination state to clear `validate_taxjar_request()`; the
+			// store's own state stays blank, which is what this test is about.
+			'CA' => array( 'CA', 'M5H 2N2', 'ON' ),
+		);
+	}
+
+	/**
+	 * The US keeps the strict requirement, because there a blank state loses the tax.
+	 *
+	 * This is the one country the relaxation must not reach. US nexus is derived from
+	 * the origin state, and TaxJar does not reject a blank one — it returns HTTP 200
+	 * with `has_nexus: false` and zero tax, so an accepted blank-state US nexus is a
+	 * silent under-collection. Rejecting it here falls back to the store's `from_*`
+	 * address, which carries the real state.
+	 *
+	 * This passes before the relaxation too — it bounds the change rather than
+	 * demonstrating a fixed bug.
+	 */
+	public function test_blank_state_is_still_rejected_for_a_us_nexus() {
+		$body = $this->capture_taxjar_request_json(
+			$this->in_state_options(),
+			function ( $nexus_address ) {
+				$nexus_address['state'] = '';
+
+				return $nexus_address;
+			}
+		);
+
+		$this->assertIsArray( $body, 'A blank nexus state aborted the request instead of falling back.' );
+		$this->assertArrayNotHasKey(
+			'nexus_addresses',
+			$body,
+			'A US nexus address with a blank state was forwarded.'
+		);
+	}
 }

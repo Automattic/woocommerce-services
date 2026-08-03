@@ -1442,6 +1442,14 @@ class WC_Connect_TaxJar_Integration {
 	 * rules the rest of the integration uses, and — because `calculate_tax()` sends
 	 * the normalised address — is checked in the shape it is sent.
 	 *
+	 * Country is always required. State is required for the US only; see the inline
+	 * comment for the measurement behind that, and for why a blanket requirement
+	 * rejects the plugin's own nexus across most of TaxJar's supported list.
+	 *
+	 * Validation is deliberately confined to the fields the value object reads. Extra
+	 * keys supplied by a filter are neither validated nor rewritten — `calculate_tax()`
+	 * passes them straight through to the request body.
+	 *
 	 * @param  array $address Nexus address, as returned by `woocommerce_taxjar_nexus_address`.
 	 *
 	 * @return bool
@@ -1461,9 +1469,20 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		// The value object casts each field to string, so reject anything that cannot
+		// The value object casts these fields to string, so reject anything that cannot
 		// survive that cast rather than triggering an array-to-string conversion.
-		foreach ( $address as $field => $value ) {
+		//
+		// Only the fields the value object reads are checked. Any other key a filter
+		// added is passed through untouched below and is never cast, so it carries no
+		// conversion risk — rejecting the whole address over it would turn the
+		// documented array-in / array-out contract into a whitelist.
+		foreach ( array( 'id', 'country', 'state', 'zip', 'city', 'street' ) as $field ) {
+			if ( ! array_key_exists( $field, $address ) ) {
+				continue;
+			}
+
+			$value = $address[ $field ];
+
 			if ( null !== $value && ! is_scalar( $value ) ) {
 				$this->logger->error( 'Nexus Address ERRORS: [' . $field . '] field must be a string' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . wp_json_encode( $address ), 'WCS Tax' );
 
@@ -1471,7 +1490,31 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		$errors = Address::from_nexus( $address )->validate()->get_error_messages();
+		$nexus = Address::from_nexus( $address );
+
+		/*
+		 * The origin state is required for the US, and only for the US.
+		 *
+		 * US nexus is determined from the ORIGIN state; VAT and GST countries rate from
+		 * the destination and ignore a blank origin state. Measured against the live
+		 * TaxJar API rather than assumed -- GB, FR, NL, DK, DE, ES, IT, IE, CA and AU
+		 * all return an identical rate whether the nexus carries its state or an empty
+		 * string, while a US nexus with a blank state returns HTTP 200 with
+		 * `has_nexus: false` and zero tax. It fails silently, which is exactly why the
+		 * check has to stay for the US.
+		 *
+		 * Requiring it everywhere is what makes this wrong. The nexus address this
+		 * plugin builds for its own store always carries a 'state' key, and
+		 * WC()->countries->get_base_state() is '' for 19 of the 31 countries in
+		 * get_supported_countries() -- so a blanket requirement rejected the store's own
+		 * nexus on every tax calculation for those merchants, dropping the nexus block
+		 * from the request and writing a forced error log plus a persistent admin error
+		 * notice. For a filter-supplied nexus it is worse than noise: falling back to
+		 * the store's from_* address changes which origin TaxJar rates against.
+		 */
+		$required = ( 'US' === $nexus->country() ) ? array( 'country', 'state' ) : array( 'country' );
+
+		$errors = $nexus->validate( $required )->get_error_messages();
 
 		if ( ! empty( $errors ) ) {
 			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
