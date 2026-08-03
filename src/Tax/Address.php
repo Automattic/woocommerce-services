@@ -268,14 +268,20 @@ final class Address {
 	/**
 	 * Build from an admin-order `$_POST` payload.
 	 *
-	 * Applies `wp_unslash()` then `wc_clean()` to each field. Caller must have already
-	 * verified the nonce / capability — this method does not check authorization.
+	 * Unslashes the superglobal once, then applies `wc_clean()` to each field. Caller
+	 * must have already verified the nonce / capability — this method does not check
+	 * authorization.
 	 *
 	 * The unslashing is load-bearing, not ceremony. WordPress slashes every superglobal
 	 * on load and `wc_clean()` sanitizes without unslashing, so an apostrophe in an admin
 	 * order address would otherwise reach TaxJar — and the `wp_woocommerce_tax_rates`
 	 * city column — as the literal `O\'Brien`, which can never match the unslashed value
 	 * the cart path writes for the same address.
+	 *
+	 * It happens exactly once, and only on the superglobal. `wp_unslash()` is
+	 * `stripslashes_deep()`, which is not idempotent: a second pass over an already
+	 * unslashed value eats real backslashes (`A\B` becomes `AB`). The `$post` override
+	 * is a test seam that is never slashed, so it must not be unslashed either.
 	 *
 	 * @param array|null $post Override source for testing. Defaults to `$_POST`.
 	 * @return self
@@ -286,7 +292,7 @@ final class Address {
 		$source = is_array( $post ) ? $post : wp_unslash( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce/capability verified by the caller (see docblock); each field is sanitized via wc_clean() below.
 
 		$pluck = static function ( $key ) use ( $source ) {
-			return isset( $source[ $key ] ) ? (string) wc_clean( wp_unslash( $source[ $key ] ) ) : '';
+			return isset( $source[ $key ] ) ? (string) wc_clean( $source[ $key ] ) : '';
 		};
 
 		return new self(

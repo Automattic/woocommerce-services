@@ -446,6 +446,13 @@ class WC_Connect_TaxJar_Integration {
 	 * Modified version of TaxJar's plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L910
 	 *
+	 * The `taxjar_store_settings` return value is guaranteed to be an array, matching
+	 * this method's documented contract. The filter is public and unguarded, so a
+	 * callback returning null / false / a string would otherwise flow into callers that
+	 * index it — and, since the address value object declares `array $settings`, into an
+	 * uncaught TypeError on every cart and checkout render that resolves a base address.
+	 * A non-array return is treated as "no opinion" and the unfiltered settings are used.
+	 *
 	 * @return array
 	 */
 	public function get_store_settings() {
@@ -457,7 +464,15 @@ class WC_Connect_TaxJar_Integration {
 			'postcode' => WC()->countries->get_base_postcode(),
 		);
 
-		return apply_filters( 'taxjar_store_settings', $store_settings, array() );
+		$filtered = apply_filters( 'taxjar_store_settings', $store_settings, array() );
+
+		if ( ! is_array( $filtered ) ) {
+			$this->_log( 'Warning: the taxjar_store_settings filter returned a non-array value; ignoring it and using the store address.' );
+
+			return $store_settings;
+		}
+
+		return $filtered;
 	}
 
 	/**

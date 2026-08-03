@@ -513,6 +513,53 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A `taxjar_store_settings` callback returning a non-array must not fatal.
+	 *
+	 * The filter is public and unguarded. Before `get_store_settings()` enforced its own
+	 * documented `@return array`, a callback returning null / false / a string reached
+	 * `Address::from_store_settings( array $settings )` and raised an uncaught TypeError
+	 * on every cart and checkout render resolving a base address. The unfiltered store
+	 * address is used instead.
+	 *
+	 * @dataProvider provider_non_array_store_settings
+	 *
+	 * @param mixed $returned Value the filter callback returns.
+	 */
+	public function test_get_taxable_address_survives_non_array_store_settings( $returned ) {
+		add_filter(
+			'taxjar_store_settings',
+			static function () use ( $returned ) {
+				return $returned;
+			}
+		);
+
+		$store_country = WC()->countries->get_base_country();
+		$store_state   = WC()->countries->get_base_state();
+
+		$address = $this->invoke_protected_method( 'get_taxable_address', array( 'base' ) );
+
+		remove_all_filters( 'taxjar_store_settings' );
+
+		$this->assertIsArray( $address );
+		$this->assertEquals( $store_country, $address[0] );
+		$this->assertEquals( $store_state, $address[1] );
+	}
+
+	/**
+	 * Non-array return values a `taxjar_store_settings` callback might produce.
+	 *
+	 * @return array<string, array{0: mixed}>
+	 */
+	public function provider_non_array_store_settings() {
+		return array(
+			'null'   => array( null ),
+			'false'  => array( false ),
+			'string' => array( 'not-an-address' ),
+			'object' => array( new stdClass() ),
+		);
+	}
+
+	/**
 	 * Test that location_type 'shipping' returns customer shipping address.
 	 */
 	public function test_get_taxable_address_shipping_returns_customer_address() {
