@@ -949,17 +949,39 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 	/**
 	 * Data provider for `test_state_compact_mirrors_core_storage_normalisation`.
 	 *
+	 * The non-ASCII rows are the ones the changelog's motivating case rests on, and they
+	 * are the reason the old `str_replace( ' ', '' )` lookup was unsafe rather than merely
+	 * incomplete. `sanitize_key()` drops every byte outside `[a-z0-9_-]`, so a state can
+	 * collapse to `''` outright (Cyrillic, CJK, a bare diacritic) or — worse — collapse
+	 * *partially* to a shorter ASCII string that is a perfectly plausible state code. The
+	 * partial cases are the duplication risk: the row is stored under the collapsed value
+	 * and searched for under the raw one, so it can never be found again and a fresh row
+	 * is inserted every calculation.
+	 *
+	 * Expected values are what WordPress's own `sanitize_key()` produces, read off the
+	 * function rather than reasoned about — the test's second assertion re-checks that
+	 * agreement on every row.
+	 *
 	 * @return array<string, array{0: string, 1: string}>
 	 */
 	public function state_compact_provider() {
 		return array(
-			'already canonical' => array( 'NY', 'NY' ),
-			'lower case'        => array( 'ny', 'NY' ),
-			'internal space'    => array( 'N Y', 'NY' ),
-			'periods'           => array( 'N.Y.', 'NY' ),
-			'hyphen kept'       => array( 'AB-12', 'AB-12' ),
-			'digits kept'       => array( 'A1', 'A1' ),
-			'empty'             => array( '', '' ),
+			'already canonical'         => array( 'NY', 'NY' ),
+			'lower case'                => array( 'ny', 'NY' ),
+			'internal space'            => array( 'N Y', 'NY' ),
+			'periods'                   => array( 'N.Y.', 'NY' ),
+			'hyphen kept'               => array( 'AB-12', 'AB-12' ),
+			'digits kept'               => array( 'A1', 'A1' ),
+			'empty'                     => array( '', '' ),
+
+			// Collapse to empty — nothing survives sanitize_key().
+			'cyrillic collapses'        => array( 'ЛЕН', '' ),
+			'cjk collapses'             => array( '东京', '' ),
+			'bare diacritic collapses'  => array( 'Ö', '' ),
+
+			// Partial collapse — the dangerous shape: a shorter, still-plausible code.
+			'accented latin part-drops' => array( 'ÎF', 'F' ),
+			'ring above part-drops'     => array( 'ÅL', 'L' ),
 		);
 	}
 
