@@ -419,6 +419,84 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Case insensitivity holds for non-ASCII cities too.
+	 *
+	 * `strtoupper()` is byte-wise ASCII and leaves every other byte alone, so it
+	 * folds `Zürich` to `ZüRICH` while `ZÜRICH` folds to itself — two keys for one
+	 * TaxJar jurisdiction. TaxJar serves international addresses, so a non-ASCII
+	 * city is ordinary checkout input rather than an edge case, and
+	 * `normalize_city()` deliberately preserves multibyte characters on the way in.
+	 */
+	public function test_jurisdiction_key_is_case_insensitive_for_non_ascii_cities() {
+		$expected = 'CH|ZH|8001|ZÜRICH';
+
+		foreach ( array( 'Zürich', 'ZÜRICH', 'zürich', '  Zürich  ' ) as $city ) {
+			$address = Address::from_options(
+				array(
+					'to_country' => 'ch',
+					'to_state'   => 'zh',
+					'to_zip'     => '8001',
+					'to_city'    => $city,
+				)
+			);
+
+			$this->assertSame( $expected, $address->jurisdiction_key(), "City spelling: {$city}" );
+		}
+	}
+
+	/**
+	 * And for the state component.
+	 *
+	 * Countries with no predefined state list carry whatever the customer typed, so
+	 * a non-ASCII state is reachable from checkout. The upper-casing applied at
+	 * construction is `strtoupper()`, which leaves such a value half-folded — the
+	 * key has to finish the job rather than inherit it.
+	 */
+	public function test_jurisdiction_key_is_case_insensitive_for_non_ascii_states() {
+		$mixed = Address::from_options(
+			array(
+				'to_country' => 'ch',
+				'to_state'   => 'Zürich',
+				'to_zip'     => '8001',
+				'to_city'    => 'Zurich',
+			)
+		);
+
+		$upper = Address::from_options(
+			array(
+				'to_country' => 'ch',
+				'to_state'   => 'ZÜRICH',
+				'to_zip'     => '8001',
+				'to_city'    => 'Zurich',
+			)
+		);
+
+		$this->assertSame( 'CH|ZÜRICH|8001|ZURICH', $mixed->jurisdiction_key() );
+		$this->assertSame( $upper->jurisdiction_key(), $mixed->jurisdiction_key() );
+	}
+
+	/**
+	 * The `find_rates()` city must NOT follow `jurisdiction_key()` into multibyte folding.
+	 *
+	 * Its contract is byte-parity with WooCommerce core, which upper-cases with plain
+	 * `strtoupper()` on both the write (`WC_Tax::format_tax_rate_city()`) and the read
+	 * (the `location_code` comparison inside `WC_Tax::find_rates()`). Folding wider
+	 * than core would store `ZÜRICH` while core searched for `ZüRICH`, which is the
+	 * write/read asymmetry that grows a fresh rate row per calculation.
+	 *
+	 * This pins the divergence so a later "consistency" cleanup cannot quietly
+	 * collapse the two call sites onto one function.
+	 */
+	public function test_find_rates_city_matches_core_ascii_folding_not_multibyte() {
+		$address = Address::from_options( array( 'to_city' => 'Zürich' ) );
+
+		$args = $address->to_find_rates_args();
+
+		$this->assertSame( strtoupper( 'Zürich' ), $args['city'] );
+		$this->assertNotSame( 'ZÜRICH', $args['city'] );
+	}
+
+	/**
 	 * The city normalisation applied at construction flows into the key, so a
 	 * semicolon typo keys the same as the clean spelling.
 	 */

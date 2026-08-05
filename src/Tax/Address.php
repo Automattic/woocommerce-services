@@ -442,14 +442,33 @@ final class Address {
 	 * ignores, do not fragment the key. The separator is stripped from each
 	 * component first so a value containing it cannot forge a different key.
 	 *
+	 * The case folding is `wc_strtoupper()`, not `strtoupper()`, and the difference
+	 * is load-bearing. `strtoupper()` is byte-wise ASCII: it leaves every non-ASCII
+	 * byte alone, so `Zürich` folds to `ZüRICH` while `ZÜRICH` folds to itself —
+	 * two keys for one jurisdiction, which is precisely the fragmentation this
+	 * method exists to prevent. `normalize_city()` preserves multibyte input, so a
+	 * non-ASCII city reaches here intact from any international checkout.
+	 *
+	 * Note this deliberately diverges from the city sent to `to_find_rates_args()`,
+	 * which must stay on `strtoupper()`. That value's contract is byte-parity with
+	 * WooCommerce core, which upper-cases with plain `strtoupper()` on both the write
+	 * (`WC_Tax::format_tax_rate_city()`) and the read (the `location_code`
+	 * comparison inside `WC_Tax::find_rates()`). Folding wider than core there would
+	 * store `ZÜRICH` while core searched for `ZüRICH` — manufacturing the unbounded
+	 * rate-row growth that normalisation exists to close. Same operation, opposite
+	 * correct answers, because this key is ours and that one is core's.
+	 *
+	 * `wc_strtoupper()` falls back to `strtoupper()` when ext-mbstring is absent, so
+	 * this is no worse than the previous behavior on a minimal PHP build.
+	 *
 	 * @return string Key of the form `COUNTRY|STATE|POSTCODE|CITY`.
 	 */
 	public function jurisdiction_key(): string {
 		$components = array(
-			$this->country,
-			$this->state,
-			strtoupper( $this->postcode ),
-			strtoupper( $this->city ),
+			wc_strtoupper( $this->country ),
+			wc_strtoupper( $this->state ),
+			wc_strtoupper( $this->postcode ),
+			wc_strtoupper( $this->city ),
 		);
 
 		$components = array_map(
