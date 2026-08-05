@@ -1822,7 +1822,7 @@ class WC_Connect_TaxJar_Integration {
 	 * Stripping `;` (and collapsing the resulting whitespace runs) before any path
 	 * touches the tax-rate tables or the TaxJar API restores the round-trip.
 	 *
-	 * @deprecated 3.6.11 Use {@see \Automattic\WCServices\Tax\Address::normalize_city()} instead.
+	 * @deprecated 3.6.12 Use {@see \Automattic\WCServices\Tax\Address::normalize_city()} instead.
 	 *
 	 * The canonical implementation now lives on the address value object, so the
 	 * normalisation policy has one home rather than one copy per consumer. This
