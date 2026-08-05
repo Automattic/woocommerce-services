@@ -3288,8 +3288,9 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			 * The same divergence, where space-stripping was not enough.
 			 * `sanitize_key()` drops the periods too, so the row was stored as `'NY'`
 			 * while both readers asked for `'N.Y.'` — nothing ever matched and every
-			 * calculation inserted a fresh row. Any state value carrying a character
-			 * outside `[a-z0-9_-]` behaved this way, non-ASCII included.
+			 * calculation inserted a fresh row. A state carrying a character outside
+			 * `[a-z0-9_-]` behaved this way only when something survived the stripping;
+			 * see the two cases below for the boundary that qualifier draws.
 			 *
 			 * `Address::state_compact()` now mirrors `sanitize_key()` rather than
 			 * approximating it, so the lookup asks for the value core actually stored.
@@ -3310,6 +3311,74 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 					'state'      => 'NY',
 					'postcodes'  => array( '10001' ),
 					'cities'     => array( 'NEW YORK' ),
+				),
+			),
+
+			/*
+			 * The boundary the changelog entry has to respect: a state `sanitize_key()`
+			 * empties *outright* never duplicated a row, not even before the fix. Core
+			 * stores `''` and matches with `tax_rate_state IN ( %s, '' )`
+			 * (`WC_Tax::get_matched_tax_rates()`), so the stored blank satisfies the
+			 * second arm whatever the lookup asked for — the old space-stripping lookup
+			 * asked for `'ЛЕН'` and still found the row. The rate is country-wide, which
+			 * is a real behaviour worth pinning in its own right.
+			 *
+			 * Passes with and without the seam migration. That is what makes it a
+			 * boundary characterization rather than a regression test, and it is here so
+			 * the duplication story cannot be restated as "any non-ASCII state".
+			 *
+			 * The city is deliberately plain ASCII: this row is about the state
+			 * dimension, and a multibyte city would confound it with the separate
+			 * byte-parity contract `to_find_rates_args()` keeps with core.
+			 */
+			'state wholly non-Latin'           => array(
+				array(
+					'to_country' => 'RU',
+					'to_state'   => 'ЛЕН',
+					'to_zip'     => '190000',
+					'to_city'    => 'Saint Petersburg',
+					'from_state' => 'ЛЕН',
+				),
+				'Tax',
+				array(
+					'duplicates' => false,
+					'matched'    => true,
+					'country'    => 'RU',
+					'state'      => '',
+					'postcodes'  => array( '190000' ),
+					'cities'     => array( 'SAINT PETERSBURG' ),
+				),
+			),
+
+			/*
+			 * The shape that actually duplicated, and the reason the changelog says "a
+			 * character WooCommerce strips" rather than naming scripts. `sanitize_key()`
+			 * drops the diacritic and keeps the rest, so the row was stored as `'F'`
+			 * while the space-stripping lookup asked for `'ÎF'` — non-empty, different
+			 * from the stored value, and so matching neither arm of the `IN` clause. A
+			 * fresh row every calculation.
+			 *
+			 * Fails without the seam migration: two rows, and `first_id !== second_id`.
+			 * Paired with the case above, the two of them are the narrowing — same
+			 * "non-Latin character" trigger, opposite outcomes, decided by whether
+			 * anything survives the stripping.
+			 */
+			'state partially collapsing'       => array(
+				array(
+					'to_country' => 'RO',
+					'to_state'   => 'ÎF',
+					'to_zip'     => '077100',
+					'to_city'    => 'Buftea',
+					'from_state' => 'ÎF',
+				),
+				'Tax',
+				array(
+					'duplicates' => false,
+					'matched'    => true,
+					'country'    => 'RO',
+					'state'      => 'F',
+					'postcodes'  => array( '077100' ),
+					'cities'     => array( 'BUFTEA' ),
 				),
 			),
 
