@@ -2168,6 +2168,25 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			$address,
 			'WC_Tax::get_rates_from_location() requires exactly 4 elements; returning 5 makes core return an empty rate set.'
 		);
+
+		/*
+		 * The arity assertion above only means something while the local-pickup base
+		 * substitution actually runs. If it stops running — a session not started under
+		 * a different bootstrap, another test leaving `woocommerce_apply_base_tax_for_local_pickup`
+		 * filtered false, a change in `wc_get_chosen_shipping_method_ids()` semantics —
+		 * then `$street` stays empty, and the pre-fix implementation returned four
+		 * elements too. The test would keep passing against the very defect it exists to
+		 * catch.
+		 *
+		 * Asserting the substituted values makes that failure loud instead of silent: the
+		 * store postcode and city (33033 / HOMESTEAD) are observable proof the branch was
+		 * taken, and neither matches the customer values fed in (33030 / Miami).
+		 */
+		$this->assertSame(
+			array( 'US', 'FL', '33033', 'HOMESTEAD' ),
+			$address,
+			'The local-pickup base substitution did not run, so the arity assertion above is vacuous.'
+		);
 	}
 
 	/**
