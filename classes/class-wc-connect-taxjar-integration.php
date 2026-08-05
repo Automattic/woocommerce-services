@@ -999,7 +999,22 @@ class WC_Connect_TaxJar_Integration {
 			// product can be untaxed while still reporting Tax Status "taxable". Record
 			// the decision here rather than re-deriving it from the response, where the
 			// two can disagree and a 0% line ends up overwriting a shared rate row.
-			if ( ! $product->is_taxable() ) {
+			//
+			// The 'shipping' exclusion mirrors the exempt branch directly above, and has
+			// to: a "Shipping only" product is excluded there, so this path sends it to
+			// TaxJar as taxable and its breakdown line comes back with a real, non-zero
+			// rate. Recording it would make get_itemized_tax_rates() skip that write --
+			// the one case where skipping discards good data instead of preventing a 0%
+			// clobber. WooCommerce applies no *item* tax to such a product, but the row
+			// still matters: it carries `tax_rate_shipping`, and with the default
+			// `woocommerce_shipping_tax_class = 'inherit'` WooCommerce resolves the
+			// shipping tax class to this product's class and looks the rate up there.
+			// TaxJar's own shipping write only ever covers the standard class.
+			//
+			// The backend order path records on `'taxable' !== $tax_status` instead, and
+			// that is correct rather than inconsistent: there the same condition is what
+			// sets the 99999 exempt code, so it too records exactly what it emitted.
+			if ( 'shipping' !== $product->get_tax_status() && ! $product->is_taxable() ) {
 				$this->non_taxable_line_items[ $id . '-' . $cart_item_key ] = true;
 			}
 

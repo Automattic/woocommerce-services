@@ -153,6 +153,18 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Helper to read private properties via reflection.
+	 *
+	 * @param string $property_name Property name.
+	 * @return mixed Property value.
+	 */
+	private function get_private_property( $property_name ) {
+		$reflection = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $property_name );
+		$reflection->setAccessible( true );
+		return $reflection->getValue( $this->integration );
+	}
+
+	/**
 	 * Test that get_line_items includes tax_location key with default value.
 	 */
 	public function test_get_line_items_includes_tax_location_with_default() {
@@ -3821,6 +3833,86 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * that status from the exempt branch. This is the input side of the zeroing bug:
 	 * an exempt code is what makes TaxJar return the 0% breakdown line.
 	 */
+	/**
+	 * Cart path: a "Shipping only" product must NOT be recorded as non-taxable.
+	 *
+	 * The exempt branch in `get_line_items()` deliberately excludes Tax Status
+	 * "shipping", so the line is sent to TaxJar as taxable and its breakdown comes back
+	 * with a real, non-zero rate. Recording it would make `get_itemized_tax_rates()`
+	 * skip that write and throw the rate away — the one case where the skip discards
+	 * good data rather than preventing a 0% clobber.
+	 *
+	 * The row is not redundant: it carries `tax_rate_shipping`, and with the default
+	 * `woocommerce_shipping_tax_class = 'inherit'` WooCommerce resolves the shipping tax
+	 * class to this product's class and looks the rate up there. TaxJar's own shipping
+	 * write only covers the standard class.
+	 *
+	 * The backend order path legitimately differs — there the same status *is* emitted
+	 * as exempt, so there it *is* recorded. See
+	 * `test_get_backend_line_items_sends_shipping_only_status_as_exempt()`.
+	 */
+	public function test_get_line_items_does_not_record_shipping_only_status_as_non_taxable() {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_tax_status( 'shipping' );
+		$product->set_tax_class( '' );
+		$product->save();
+
+		WC()->cart->add_to_cart( $product->get_id(), 1 );
+
+		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+		$recorded   = $this->get_private_property( 'non_taxable_line_items' );
+
+		$this->assertCount( 1, $line_items );
+		$this->assertNotSame(
+			'99999',
+			$line_items[0]['product_tax_code'],
+			'The cart path excludes "Shipping only" from the exempt branch, so it is sent to TaxJar as taxable.'
+		);
+		$this->assertSame(
+			array(),
+			$recorded,
+			'Recording it would discard the real, non-zero rate TaxJar returns for this line.'
+		);
+
+		WC()->cart->empty_cart();
+		WC_Helper_Product::delete_product( $product->get_id() );
+	}
+
+	/**
+	 * The other side of the same boundary: excluding "Shipping only" must not stop a
+	 * genuinely untaxed product from being recorded.
+	 *
+	 * Tax Status "None" is emitted as exempt (99999) and comes back at 0%, which is the
+	 * rate that would overwrite the shared Standard row. Pins that the `'shipping' !==`
+	 * clause narrows the condition by exactly one status and no more.
+	 */
+	public function test_get_line_items_still_records_none_status_as_non_taxable() {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_tax_status( 'none' );
+		$product->set_tax_class( '' );
+		$product->save();
+
+		WC()->cart->add_to_cart( $product->get_id(), 1 );
+
+		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+		$recorded   = $this->get_private_property( 'non_taxable_line_items' );
+
+		$this->assertCount( 1, $line_items );
+		$this->assertSame(
+			'99999',
+			$line_items[0]['product_tax_code'],
+			'A "None" product is still emitted as exempt on the cart path.'
+		);
+		$this->assertArrayHasKey(
+			$line_items[0]['id'],
+			$recorded,
+			'A line emitted as exempt must stay recorded, or its 0% rate overwrites the shared Standard row.'
+		);
+
+		WC()->cart->empty_cart();
+		WC_Helper_Product::delete_product( $product->get_id() );
+	}
+
 	public function test_get_backend_line_items_sends_shipping_only_status_as_exempt() {
 		$product = WC_Helper_Product::create_simple_product();
 		$product->set_tax_status( 'shipping' );
