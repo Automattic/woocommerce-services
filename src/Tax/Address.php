@@ -367,6 +367,12 @@ final class Address {
 	 * to do) covers `'N Y'` and nothing else: `'N.Y.'`, and any state carrying
 	 * non-ASCII, still diverge.
 	 *
+	 * One boundary to that story: a state `sanitize_key()` empties *outright* (`'ЛЕН'`,
+	 * `'东京'`) was never the duplicating shape, because the blank it stores satisfies
+	 * the `''` arm of that `IN` clause whatever the lookup asked for. The rows that
+	 * could not be found again are the ones that collapse *partially*, to a shorter
+	 * non-empty code — `'ÎF'` stored as `'F'`.
+	 *
 	 * Because core applies the same function on the way in, mirroring it here cannot
 	 * lose information the stored value still has.
 	 *
