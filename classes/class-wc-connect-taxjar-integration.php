@@ -1867,7 +1867,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @return string Normalized city, safe for `_update_tax_rate_cities` and `find_rates`.
 	 */
 	protected static function normalize_city( $city ) {
-		wc_deprecated_function( __METHOD__, '3.6.11', '\Automattic\WCServices\Tax\Address::normalize_city()' );
+		wc_deprecated_function( __METHOD__, '3.6.12', '\Automattic\WCServices\Tax\Address::normalize_city()' );
 
 		if ( ! is_string( $city ) ) {
 			return $city;
