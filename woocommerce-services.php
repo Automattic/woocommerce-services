@@ -714,13 +714,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action(
 				'woocommerce_blocks_checkout_block_registration',
 				function ( $integration_registry ) {
-					$integration_registry->register( new WooCommerceBlocksIntegration( $this->wc_connect_base_url ) );
+					$integration_registry->register( new WooCommerceBlocksIntegration() );
 				}
 			);
 			add_action(
 				'woocommerce_blocks_cart_block_registration',
 				function ( $integration_registry ) {
-					$integration_registry->register( new WooCommerceBlocksIntegration( $this->wc_connect_base_url ) );
+					$integration_registry->register( new WooCommerceBlocksIntegration() );
 				}
 			);
 		}
