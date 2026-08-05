@@ -4322,4 +4322,150 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertSame( 'not json', $signature );
 		$this->assertNotSame( $signature, $other );
 	}
+
+	// -------------------------------------------------------------------------
+	// Encoded request body and cache-hit tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * calculate_backend_totals() hands calculate_tax() the order-item-ID-keyed map
+	 * from get_backend_line_items() without re-indexing it, so array_values() in
+	 * calculate_tax() is the only thing keeping 'line_items' a JSON array. A
+	 * string-keyed PHP array encodes as a JSON object, which TaxJar would reject —
+	 * silently, on every admin-side request.
+	 */
+	public function test_calculate_tax_encodes_keyed_line_items_as_json_list() {
+		$captured = null;
+
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'smartcalcs_cache_request', 'get_store_settings', '_log' ) )
+			->getMock();
+
+		// Same state as the destination below, so the cross-state guard does not return early.
+		$integration->method( 'get_store_settings' )->willReturn(
+			array(
+				'country'  => 'US',
+				'state'    => 'CA',
+				'postcode' => '94110',
+				'city'     => 'San Francisco',
+				'street'   => '1 Main St',
+			)
+		);
+
+		$integration->method( 'smartcalcs_cache_request' )->willReturnCallback(
+			function ( $json ) use ( &$captured ) {
+				$captured = $json;
+				// The encoded body is all this test needs; bail before any HTTP work.
+				return false;
+			}
+		);
+
+		WC()->customer->set_is_vat_exempt( false );
+
+		$integration->calculate_tax(
+			array(
+				'to_country'      => 'US',
+				'to_state'        => 'CA',
+				'to_zip'          => '94110',
+				'to_city'         => 'San Francisco',
+				'to_street'       => '2 Other St',
+				'shipping_amount' => 0,
+				// Keyed by order item ID, exactly as get_backend_line_items() returns it.
+				'line_items'      => array(
+					'12' => array(
+						'id'         => '42-abc123def456-0',
+						'quantity'   => 1,
+						'unit_price' => '25.00',
+					),
+					'34' => array(
+						'id'         => '43-bbbbbbbbbbbb-0',
+						'quantity'   => 2,
+						'unit_price' => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertNotNull( $captured, 'calculate_tax() returned before encoding a request body.' );
+
+		$decoded = json_decode( $captured, true );
+
+		$this->assertArrayHasKey( 'line_items', $decoded );
+		// A JSON object would decode to keys '12' and '34' instead.
+		$this->assertSame( array( 0, 1 ), array_keys( $decoded['line_items'] ) );
+		$this->assertSame( '42-abc123def456-0', $decoded['line_items'][0]['id'] );
+		$this->assertSame( '43-bbbbbbbbbbbb-0', $decoded['line_items'][1]['id'] );
+		// Assert on the raw JSON too, since json_decode() hides the array/object distinction.
+		$this->assertStringContainsString( '"line_items":[{', $captured );
+	}
+
+	/**
+	 * The point of the canonical signature: two bodies that differ only in
+	 * formatting must share one cache entry, so the second request never reaches
+	 * the API. Exercises smartcalcs_cache_request() end to end rather than
+	 * comparing get_cache_signature() outputs in isolation.
+	 */
+	public function test_smartcalcs_cache_request_serves_equivalent_bodies_from_one_entry() {
+		$call_count = 0;
+
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		// Real notifier: clear_notices() is static (so it cannot be stubbed) and is a
+		// no-op without a WC session, which the unit-test context does not set up.
+		$notifier = new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false );
+
+		// Real constructor, so cache_time is populated and the transient is written with it.
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->setConstructorArgs( array( $api_client, $logger, 'https://example.com', $tracks, $notifier ) )
+			->onlyMethods( array( 'smartcalcs_request' ) )
+			->getMock();
+
+		$api_response = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( array( 'tax' => array( 'amount_to_collect' => 2.5 ) ) ),
+		);
+
+		$integration->method( 'smartcalcs_request' )->willReturnCallback(
+			function () use ( &$call_count, $api_response ) {
+				++$call_count;
+				return $api_response;
+			}
+		);
+
+		$baseline = $this->get_taxjar_request_body();
+		$variant  = $this->get_taxjar_request_body(
+			array(
+				'to_city'  => '  beverly   hills ',
+				'shipping' => '5',
+			)
+		);
+
+		// Documents the pre-fix baseline: without canonicalization these are two cache entries.
+		$this->assertNotSame( $baseline, $variant, 'The two bodies must differ byte-wise or this test proves nothing.' );
+
+		// from_state 'CA' skips the California nexus check on both the fresh and cached path.
+		$first  = $integration->smartcalcs_cache_request( $baseline, 'CA' );
+		$second = $integration->smartcalcs_cache_request( $variant, 'CA' );
+
+		$this->assertSame( 1, $call_count, 'The equivalent second body should have been served from the cache.' );
+		$this->assertEquals( $api_response, $first );
+		$this->assertEquals( $api_response, $second );
+
+		// The hit must come from the signature key, not the zip/state key — that one
+		// only ever caches 400 zip-to-state mismatches and would mask a broken signature.
+		$signature = $this->invoke_protected_method( 'get_cache_signature', array( $baseline ) );
+		$this->assertEquals( $api_response, get_transient( 'tj_tax_' . hash( 'md5', $signature ) ) );
+		$this->assertFalse( get_transient( 'tj_tax_90210_ca' ) );
+	}
 }

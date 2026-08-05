@@ -1165,7 +1165,7 @@ class WC_Connect_TaxJar_Integration {
 	 * identical lines — an order can legitimately hold the same product twice at the
 	 * same price — distinct, so neither loses its rate.
 	 *
-	 * @since 3.4.0
+	 * @since 3.6.10
 	 *
 	 * @param array $line_items Line items whose 'id' is currently the bare product ID.
 	 *
@@ -1207,7 +1207,7 @@ class WC_Connect_TaxJar_Integration {
 	 * cache keys and line item fingerprints — never to build the request sent to
 	 * TaxJar, which keeps the merchant's values verbatim.
 	 *
-	 * @since 3.4.0
+	 * @since 3.6.10
 	 *
 	 * @param mixed $value Value to normalize.
 	 *
@@ -1237,7 +1237,7 @@ class WC_Connect_TaxJar_Integration {
 	 * silently reinterpreted — notably ZIP codes, where "01234" must never become
 	 * "1234".
 	 *
-	 * @since 3.4.0
+	 * @since 3.6.10
 	 *
 	 * @param mixed $value Value to normalize.
 	 *
@@ -1274,7 +1274,7 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * Only the cache key is derived from this. The body sent to TaxJar is untouched.
 	 *
-	 * @since 3.4.0
+	 * @since 3.6.10
 	 *
 	 * @param string $json Encoded TaxJar request body.
 	 *
@@ -1297,7 +1297,7 @@ class WC_Connect_TaxJar_Integration {
 	 * value, because several address fields hold digit-only strings that must keep
 	 * their exact form (a leading-zero ZIP above all).
 	 *
-	 * @since 3.4.0
+	 * @since 3.6.10
 	 *
 	 * @param mixed  $value Value to canonicalize.
 	 * @param string $key   Key the value was found under.
