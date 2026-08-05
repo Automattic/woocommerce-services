@@ -87,6 +87,17 @@ class WC_Connect_TaxJar_Integration {
 	private $backend_tax_classes;
 
 	/**
+	 * Line items WooCommerce will not apply item tax to.
+	 *
+	 * Recorded while the TaxJar request is built and read back when the response is
+	 * turned into tax rate rows, so both halves share a single taxability decision
+	 * instead of each re-deriving one. Keyed by TaxJar line item id, values unused.
+	 *
+	 * @var array<string, bool>
+	 */
+	private $non_taxable_line_items = array();
+
+	/**
 	 * Tracks instance.
 	 *
 	 * @var WC_Connect_Tracks
@@ -962,8 +973,9 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	protected function get_line_items( $wc_cart_object ) {
-		$line_items       = array();
-		$default_location = get_option( 'woocommerce_tax_based_on', 'shipping' );
+		$line_items                   = array();
+		$this->non_taxable_line_items = array();
+		$default_location             = get_option( 'woocommerce_tax_based_on', 'shipping' );
 
 		foreach ( $wc_cart_object->get_cart() as $cart_item_key => $cart_item ) {
 			$product       = $cart_item['data'];
@@ -981,6 +993,14 @@ class WC_Connect_TaxJar_Integration {
 
 			if ( 'shipping' !== $product->get_tax_status() && ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) ) {
 				$tax_code = '99999';
+			}
+
+			// WC_Cart_Totals gates item tax on is_taxable(), which is filterable, so a
+			// product can be untaxed while still reporting Tax Status "taxable". Record
+			// the decision here rather than re-deriving it from the response, where the
+			// two can disagree and a 0% line ends up overwriting a shared rate row.
+			if ( ! $product->is_taxable() ) {
+				$this->non_taxable_line_items[ $id . '-' . $cart_item_key ] = true;
 			}
 
 			// Get WC Subscription sign-up fees for calculations
@@ -1039,9 +1059,10 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	protected function get_backend_line_items( $order ) {
-		$line_items                = array();
-		$this->backend_tax_classes = array();
-		$default_location          = get_option( 'woocommerce_tax_based_on', 'shipping' );
+		$line_items                   = array();
+		$this->backend_tax_classes    = array();
+		$this->non_taxable_line_items = array();
+		$default_location             = get_option( 'woocommerce_tax_based_on', 'shipping' );
 
 		foreach ( $order->get_items() as $item_key => $item ) {
 			if ( is_object( $item ) ) { // Woo 3.0+
@@ -1069,6 +1090,11 @@ class WC_Connect_TaxJar_Integration {
 			}
 			if ( 'taxable' !== $tax_status ) {
 				$tax_code = '99999';
+
+				// WC_Order_Item::calculate_taxes() gates item tax on the raw tax status,
+				// so the order path records exactly what it emitted as exempt. See the
+				// matching note in get_line_items() for why this is recorded, not derived.
+				$this->non_taxable_line_items[ $id . '-' . $item_key ] = true;
 			}
 
 			/** This filter is documented in get_line_items() */
@@ -1780,6 +1806,15 @@ class WC_Connect_TaxJar_Integration {
 
 			// Add line item tax rates.
 			foreach ( $taxes['line_items'] as $line_item_key => $line_item ) {
+				// A line item WooCommerce will not tax was sent to TaxJar as exempt, so its
+				// breakdown line comes back at 0% — yet it keeps its Tax Class. Since rate
+				// rows are keyed by tax class, writing that 0% overwrites the shared row
+				// used by genuinely taxable products in the same class, zeroing tax for the
+				// whole cart. Skip the write; WooCommerce applies no item tax to it anyway.
+				if ( isset( $this->non_taxable_line_items[ $line_item_key ] ) ) {
+					continue;
+				}
+
 				$line_item_key_chunks = explode( '-', $line_item_key );
 				$product_id           = $line_item_key_chunks[0];
 				$product              = wc_get_product( $product_id );
@@ -1789,16 +1824,6 @@ class WC_Connect_TaxJar_Integration {
 					$tax_class = $product->get_tax_class();
 				} elseif ( isset( $this->backend_tax_classes[ $product_id ] ) ) {
 					$tax_class = $this->backend_tax_classes[ $product_id ];
-				}
-
-				// Products that are not fully taxable (Tax Status "None" or "Shipping
-				// only") are sent to TaxJar as exempt, so their breakdown line returns 0% —
-				// yet they keep their Tax Class. Since rate rows are keyed by tax class,
-				// writing that 0% overwrites the shared row used by genuinely taxable
-				// products in the same class, zeroing tax for the whole cart. Skip the
-				// write; WooCommerce applies no item tax to either status anyway.
-				if ( $product && 'taxable' !== $product->get_tax_status() ) {
-					continue;
 				}
 
 				$_tax_rates = (array) $line_item;
