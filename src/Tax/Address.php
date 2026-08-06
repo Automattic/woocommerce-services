@@ -620,8 +620,10 @@ final class Address {
 	/**
 	 * Back-compat shape used by `get_address()` and `get_backend_address()` return
 	 * values: `to_country`, `to_state`, `to_zip`, `to_city`, `to_street` — but with
-	 * empty-string fields converted to `false` to match the legacy "isset && !empty"
-	 * extraction logic.
+	 * empty-string fields converted to `false`, the value the legacy
+	 * "isset && !empty" extraction produced for a missing field. Deliberately
+	 * narrower than `! empty()`: a literal `'0'` is preserved, where the legacy
+	 * check collapsed it to `false`.
 	 *
 	 * @param string $prefix Either 'to_' (default) or 'from_'.
 	 * @return array<string, string|false>

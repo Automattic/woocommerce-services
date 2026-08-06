@@ -712,6 +712,25 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 		$this->assertFalse( $legacy['to_street'] );
 	}
 
+	/**
+	 * `to_legacy_options` preserves a literal '0', unlike the legacy `! empty()`
+	 * check, which collapsed it to `false`. Only the empty string maps to `false`.
+	 */
+	public function test_to_legacy_options_preserves_literal_zero() {
+		$address = Address::from_options(
+			array(
+				'to_zip'  => '0',
+				'to_city' => '0',
+			)
+		);
+
+		$legacy = $address->to_legacy_options( 'to_' );
+
+		$this->assertSame( '0', $legacy['to_zip'] );
+		$this->assertSame( '0', $legacy['to_city'] );
+		$this->assertFalse( $legacy['to_street'] );
+	}
+
 	/* ──── Validation ──── */
 
 	/**
