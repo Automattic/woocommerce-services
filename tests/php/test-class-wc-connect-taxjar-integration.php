@@ -2571,6 +2571,25 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Destination fields the caller omitted reach the body as empty strings.
+	 *
+	 * The body is built from the value object, which types every field as a string.
+	 * `to_city` and `to_street` were sent as `null` when absent from the options;
+	 * `""` is the new wire value, and the changed JSON shifts the md5 transient
+	 * key, turning over one cache generation.
+	 */
+	public function test_omitted_destination_fields_are_sent_as_empty_strings() {
+		$options = $this->in_state_options();
+		unset( $options['to_city'], $options['to_street'] );
+
+		$body = $this->capture_taxjar_request_json( $options );
+
+		$this->assertIsArray( $body, 'Omitting optional destination fields aborted the request.' );
+		$this->assertSame( '', $body['to_city'] );
+		$this->assertSame( '', $body['to_street'] );
+	}
+
+	/**
 	 * A nexus address whose required field is present but blank must be rejected, so
 	 * the request falls back to the store address.
 	 *
