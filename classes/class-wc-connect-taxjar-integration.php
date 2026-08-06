@@ -1559,13 +1559,17 @@ class WC_Connect_TaxJar_Integration {
 			'tax_rate'        => 0,
 		);
 
-		// Strict conditions to be met before API call can be conducted.
+		// Strict conditions to be met before API call can be conducted. The postcode
+		// check runs on the normalised value, so a postcode that collapses to an
+		// empty string (for example a lone comma) aborts here; log the abort so the
+		// stop is diagnosable.
 		if (
 			empty( $destination->country() ) ||
 			( empty( $destination->postcode() ) && ! in_array( $destination->country(), WC()->countries->get_vat_countries() ) ) ||
 			( empty( $line_items ) && ( empty( $shipping_amount ) ) ) ||
 			WC()->customer->is_vat_exempt()
 		) {
+			$this->_log( 'Destination address or cart data is incomplete, or the customer is VAT exempt. Aborting.' );
 			return false;
 		}
 
