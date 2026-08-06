@@ -2237,6 +2237,49 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Without local pickup, core's four-element tuple passes through unchanged.
+	 *
+	 * This is the most common core path: no substitution runs and the callback
+	 * must behave as a no-op.
+	 */
+	public function test_append_base_address_passes_through_core_tuple_without_local_pickup() {
+		WC()->session->set( 'chosen_shipping_methods', array( 'flat_rate:1' ) );
+
+		$address = $this->integration->append_base_address_to_customer_taxable_address(
+			array( 'US', 'FL', '33030', 'Miami' )
+		);
+
+		$this->assertSame( array( 'US', 'FL', '33030', 'Miami' ), $address );
+	}
+
+	/**
+	 * A malformed short tuple is padded up to the four fields every consumer reads.
+	 */
+	public function test_append_base_address_pads_short_tuple_to_four_elements() {
+		WC()->session->set( 'chosen_shipping_methods', array( 'flat_rate:1' ) );
+
+		$address = $this->integration->append_base_address_to_customer_taxable_address(
+			array( 'US', 'FL', '33030' )
+		);
+
+		$this->assertSame( array( 'US', 'FL', '33030', '' ), $address );
+	}
+
+	/**
+	 * Anything past the street slot is dropped: the output is clamped to five
+	 * elements even when an earlier callback appended a sixth.
+	 */
+	public function test_append_base_address_clamps_long_tuple_to_five_elements() {
+		WC()->session->set( 'chosen_shipping_methods', array( 'flat_rate:1' ) );
+
+		$address = $this->integration->append_base_address_to_customer_taxable_address(
+			array( 'US', 'FL', '33030', 'Miami', '123 Ocean Drive', 'extra' )
+		);
+
+		$this->assertSame( array( 'US', 'FL', '33030', 'Miami', '123 Ocean Drive' ), $address );
+	}
+
+	/**
 	 * A populated street survives the round trip untouched.
 	 */
 	public function test_append_base_address_keeps_populated_street() {
