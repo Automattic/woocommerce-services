@@ -27,6 +27,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	private $product;
 
 	/**
+	 * Closure registered on `taxjar_store_settings` by the local-pickup helper.
+	 *
+	 * @var Closure|null
+	 */
+	private $store_settings_filter;
+
+	/**
 	 * Load required classes before running tests.
 	 */
 	public static function set_up_before_class() {
@@ -526,19 +533,19 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * @param mixed $returned Value the filter callback returns.
 	 */
 	public function test_get_taxable_address_survives_non_array_store_settings( $returned ) {
-		add_filter(
-			'taxjar_store_settings',
-			static function () use ( $returned ) {
-				return $returned;
-			}
-		);
+		$callback = static function () use ( $returned ) {
+			return $returned;
+		};
+		add_filter( 'taxjar_store_settings', $callback );
 
 		$store_country = WC()->countries->get_base_country();
 		$store_state   = WC()->countries->get_base_state();
 
-		$address = $this->invoke_protected_method( 'get_taxable_address', array( 'base' ) );
-
-		remove_all_filters( 'taxjar_store_settings' );
+		try {
+			$address = $this->invoke_protected_method( 'get_taxable_address', array( 'base' ) );
+		} finally {
+			remove_filter( 'taxjar_store_settings', $callback );
+		}
 
 		$this->assertIsArray( $address );
 		$this->assertEquals( $store_country, $address[0] );
@@ -2144,15 +2151,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	private function force_local_pickup_with_store_street( $street ) {
 		WC()->session->set( 'chosen_shipping_methods', array( 'local_pickup:1' ) );
 
-		add_filter(
-			'taxjar_store_settings',
-			function ( $settings ) use ( $street ) {
-				$settings['street']   = $street;
-				$settings['city']     = 'Homestead';
-				$settings['postcode'] = '33033';
-				return $settings;
-			}
-		);
+		$this->store_settings_filter = function ( $settings ) use ( $street ) {
+			$settings['street']   = $street;
+			$settings['city']     = 'Homestead';
+			$settings['postcode'] = '33033';
+			return $settings;
+		};
+		add_filter( 'taxjar_store_settings', $this->store_settings_filter );
 	}
 
 	/**
@@ -2162,7 +2167,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 */
 	private function reset_local_pickup_with_store_street() {
 		WC()->session->set( 'chosen_shipping_methods', array() );
-		remove_all_filters( 'taxjar_store_settings' );
+
+		if ( $this->store_settings_filter ) {
+			remove_filter( 'taxjar_store_settings', $this->store_settings_filter );
+			$this->store_settings_filter = null;
+		}
 	}
 
 	/**
