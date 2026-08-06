@@ -1328,8 +1328,8 @@ class WC_Connect_TaxJar_Integration {
 	 * plugin's own pipeline whenever the street was empty.
 	 *
 	 * @param array $address Positional taxable-address tuple, four or five elements.
-	 * @return array The same tuple, same length, with the base address substituted for
-	 *               local pickup.
+	 * @return array The tuple with the base address substituted for local pickup,
+	 *               its length clamped to four or five elements to match the input.
 	 */
 	public function append_base_address_to_customer_taxable_address( $address ) {
 		$tax_based_on = '';
@@ -1357,16 +1357,11 @@ class WC_Connect_TaxJar_Integration {
 		$tuple = Address::from_taxable_tuple( array( $country, $state, $postcode, $city, $street ) )->to_taxable_tuple();
 
 		/*
-		 * Return the arity we were handed, rather than a length of our own choosing.
-		 * Deliberately expressed as "preserve the input" and not as "core sends four,
-		 * we send five": this stays correct if a WooCommerce version we did not test
-		 * against fires the filter with a different shape, and it does not depend on
-		 * the plugin's declared minimum WooCommerce version holding.
-		 *
-		 * `$tuple` always has five elements, so `array_slice()` bounds the upper end on
-		 * its own. The only clamp needed is the lower one, which keeps a malformed
-		 * short tuple from being propagated below the four fields every consumer of
-		 * this filter reads.
+		 * Return the arity we were handed, clamped to the two shapes this filter is
+		 * known to carry: four elements (core) or five (this plugin). `$tuple` is
+		 * rebuilt with exactly five elements, so a longer input loses anything past
+		 * the street slot, and a shorter one is padded up to the four fields every
+		 * consumer of this filter reads.
 		 */
 		return array_slice( $tuple, 0, max( 4, $tuple_length ) );
 	}
