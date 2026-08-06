@@ -2701,19 +2701,16 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	/**
 	 * A store outside the US keeps its own nexus address even with a blank state.
 	 *
-	 * `to_nexus_array()` always emits a `state` key, and `WC()->countries->get_base_state()`
-	 * returns `''` for 19 of the 31 countries in `get_supported_countries()` — GB, FR,
-	 * NL, BE, DK, SE, PL, PT and the rest of the stateless EU. Requiring a non-blank
-	 * state therefore rejected the nexus this plugin builds for the merchant's own
-	 * store, on every tax calculation, and each rejection wrote a forced error log and
-	 * a persistent admin error notice.
+	 * `to_nexus_array()` always emits a `state` key, blank for a store with no base
+	 * state configured. The old inline schema skipped blank fields, so that nexus
+	 * always passed; `Address::validate()` fails a blank required field, so requiring
+	 * state everywhere would newly reject the store's own nexus on every calculation.
+	 * The US-only requirement prevents that regression.
 	 *
-	 * The provider deliberately mixes countries WooCommerce gives no states (GB, FR, NL,
-	 * DK) with ones it does (DE, ES, IT, CA, AU). Both groups belong here: measured
-	 * against the live TaxJar API, every one of them rates a blank-state nexus
-	 * identically to a populated one, because only the US derives nexus from the origin
-	 * state. Keying the requirement off "does WooCommerce model states for this country"
-	 * would pass the first group and wrongly reject the second.
+	 * The provider mixes countries WooCommerce gives no states with ones it does.
+	 * Both groups belong here: measured against the live TaxJar API, every one of
+	 * them rates a blank-state nexus identically to a populated one, because only
+	 * the US derives nexus from the origin state.
 	 *
 	 * @dataProvider provider_non_us_store_countries
 	 *

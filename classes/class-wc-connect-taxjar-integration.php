@@ -1438,19 +1438,18 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Validates a TaxJar nexus address against the shared address schema.
 	 *
-	 * Delegates to `Address::validate()` so the nexus address is checked by the same
-	 * rules the rest of the integration uses, and — because `calculate_tax()` sends
-	 * the normalised address — is checked in the shape it is sent.
+	 * Delegates to `Address::validate()`, and because `calculate_tax()` sends the
+	 * normalised address, the address is checked in the shape it is sent.
 	 *
 	 * Country is always required. State is required for the US only; see the inline
-	 * comment for the measurement behind that, and for why a blanket requirement
-	 * rejects the plugin's own nexus across most of TaxJar's supported list.
+	 * comment for the measurement behind that, and for why requiring it everywhere
+	 * would reject the plugin's own nexus for stores without a base state.
 	 *
 	 * Validation is deliberately confined to the fields the value object reads. Extra
-	 * keys supplied by a filter are neither validated nor rewritten — `calculate_tax()`
+	 * keys supplied by a filter are neither validated nor rewritten; `calculate_tax()`
 	 * passes them straight through to the request body.
 	 *
-	 * @param  array $address Nexus address, as returned by `woocommerce_taxjar_nexus_address`.
+	 * @param  mixed $address Nexus address, as returned by `woocommerce_taxjar_nexus_address`.
 	 *
 	 * @return bool
 	 */
@@ -1503,14 +1502,13 @@ class WC_Connect_TaxJar_Integration {
 		 * `has_nexus: false` and zero tax. It fails silently, which is exactly why the
 		 * check has to stay for the US.
 		 *
-		 * Requiring it everywhere is what makes this wrong. The nexus address this
-		 * plugin builds for its own store always carries a 'state' key, and
-		 * WC()->countries->get_base_state() is '' for 19 of the 31 countries in
-		 * get_supported_countries() -- so a blanket requirement rejected the store's own
-		 * nexus on every tax calculation for those merchants, dropping the nexus block
-		 * from the request and writing a forced error log plus a persistent admin error
-		 * notice. For a filter-supplied nexus it is worse than noise: falling back to
-		 * the store's from_* address changes which origin TaxJar rates against.
+		 * The carve-out keeps this migration from introducing a rejection that the old
+		 * inline schema never made. That schema skipped fields that were present but
+		 * blank, so the blank state a stateless store carries always passed.
+		 * Address::validate() fails a blank required field, so requiring state
+		 * everywhere would newly reject the store's own nexus on every calculation
+		 * for those stores, and would drop a filter-supplied nexus back to the
+		 * store's from_* address, changing which origin TaxJar rates against.
 		 */
 		$required = ( 'US' === $nexus->country() ) ? array( 'country', 'state' ) : array( 'country' );
 
