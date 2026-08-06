@@ -1590,17 +1590,21 @@ class WC_Connect_TaxJar_Integration {
 		 * Return false or an empty array to disable sending nexus addresses entirely,
 		 * which will cause the request to use the standard from_* address fields instead.
 		 *
-		 * The nexus address array should contain the following keys:
+		 * The nexus address array may contain the following keys:
 		 * - country: Two-letter country code (required).
-		 * - state: Two-letter state/province code (required for US/CA).
-		 * - zip: Postal/ZIP code (required).
-		 * - city: City name (required).
+		 * - state: State/province code (required for US nexus addresses).
+		 * - zip: Postal/ZIP code (optional).
+		 * - city: City name (optional).
 		 * - street: Street address (optional).
+		 *
+		 * The known keys are normalised before sending: case is folded, whitespace
+		 * trimmed, and only the first segment of a comma-separated postcode is kept.
+		 * Unknown keys pass through to the request body unchanged.
 		 *
 		 * @since 3.3.0
 		 *
 		 * @param array $nexus_address The nexus address array to be sent to TaxJar.
-		 * @param array $body          The complete TaxJar API request body.
+		 * @param array $body          The complete TaxJar API request body, already normalised.
 		 *
 		 * @return array|false Modified nexus address array, or false to disable nexus addresses.
 		 *
