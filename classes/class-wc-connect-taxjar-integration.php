@@ -1520,6 +1520,10 @@ class WC_Connect_TaxJar_Integration {
 		$errors = $nexus->validate( $required )->get_error_messages();
 
 		if ( ! empty( $errors ) ) {
+			// The schema names the field postcode; the nexus array key is zip. Report
+			// the key the filter author actually used.
+			$errors = str_replace( '[postcode]', '[zip]', $errors );
+
 			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
 
 			return false;
@@ -1542,11 +1546,8 @@ class WC_Connect_TaxJar_Integration {
 		// Normalize options to an array and safely map to local variables.
 		$options = is_array( $options ) ? $options : array();
 
-		// Both ends of the request go through the same normalisation. That symmetry is
-		// the point: the destination postcode used to be reduced to its first
-		// comma-separated segment while the store's was sent verbatim, so a store
-		// postcode entered as a list reached `validate_taxjar_request()` intact and
-		// aborted the calculation.
+		// Both ends of the request go through the same normalisation, so the address
+		// that is validated is the address that is sent.
 		$destination     = Address::from_options( $options, 'to_' );
 		$shipping_amount = $options['shipping_amount'] ?? 0;
 		$line_items      = $options['line_items'] ?? null;
@@ -1565,7 +1566,7 @@ class WC_Connect_TaxJar_Integration {
 		// stop is diagnosable.
 		if (
 			empty( $destination->country() ) ||
-			( empty( $destination->postcode() ) && ! in_array( $destination->country(), WC()->countries->get_vat_countries() ) ) ||
+			( empty( $destination->postcode() ) && ! in_array( $destination->country(), WC()->countries->get_vat_countries(), true ) ) ||
 			( empty( $line_items ) && ( empty( $shipping_amount ) ) ) ||
 			WC()->customer->is_vat_exempt()
 		) {
@@ -1708,10 +1709,10 @@ class WC_Connect_TaxJar_Integration {
 	 * This must report what the body actually carries. Country and state are
 	 * upper-cased because they are compared against the literal `'US'` and against
 	 * each other, and this runs from the public `validate_taxjar_request()`, which
-	 * any caller can hand a hand-built body. The **postcodes are returned verbatim**:
-	 * re-deriving them here is what previously made the value that was validated
-	 * differ from the value that was sent. Postcode normalisation belongs where the
-	 * body is assembled, in `calculate_tax()`.
+	 * any caller can hand a hand-built body. Postcodes are returned verbatim:
+	 * normalising them here would make the value that is validated differ from the
+	 * value that is sent. Postcode normalisation belongs where the body is
+	 * assembled, in `calculate_tax()`.
 	 *
 	 * @param array $body Request body.
 	 *
