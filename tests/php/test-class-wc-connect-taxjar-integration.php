@@ -2571,6 +2571,36 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * `validate_taxjar_request()` is public and accepts any hand-built body.
+	 *
+	 * A nested JSON object decodes to an array; cast to string that becomes
+	 * `'Array'`, which is non-empty and would slip past every country check. It
+	 * must read as missing instead, so the request is stopped.
+	 */
+	public function test_validate_taxjar_request_handles_a_hand_built_body() {
+		$body = array(
+			'from_country' => 'US',
+			'from_state'   => 'CA',
+			'from_zip'     => '90210',
+			'to_country'   => 'US',
+			'to_state'     => 'CA',
+			'to_zip'       => '94103',
+		);
+
+		$this->assertTrue(
+			$this->integration->validate_taxjar_request( wp_json_encode( $body ) ),
+			'A well-formed US body failed public validation.'
+		);
+
+		$body['from_country'] = array( 'code' => 'US' );
+
+		$this->assertFalse(
+			$this->integration->validate_taxjar_request( wp_json_encode( $body ) ),
+			'A non-scalar origin country passed public validation.'
+		);
+	}
+
+	/**
 	 * Destination fields the caller omitted reach the body as empty strings.
 	 *
 	 * The body is built from the value object, which types every field as a string.

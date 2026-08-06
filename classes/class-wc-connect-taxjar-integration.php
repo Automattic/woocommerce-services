@@ -1714,13 +1714,20 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array
 	 */
 	private function get_address_parts( $body ) {
+		// A hand-built body handed to validate_taxjar_request() can carry non-scalar
+		// values; casting those to string would yield 'Array' and slip past the
+		// country checks, so treat them as absent instead.
+		$scalar = static function ( $value ) {
+			return is_scalar( $value ) ? (string) $value : '';
+		};
+
 		return array(
-			'from_country' => strtoupper( (string) ( $body['nexus_addresses'][0]['country'] ?? $body['from_country'] ?? '' ) ),
-			'from_state'   => strtoupper( (string) ( $body['nexus_addresses'][0]['state'] ?? $body['from_state'] ?? '' ) ),
-			'from_zip'     => (string) ( $body['nexus_addresses'][0]['zip'] ?? $body['from_zip'] ?? '' ),
-			'to_country'   => strtoupper( (string) ( $body['to_country'] ?? '' ) ),
-			'to_state'     => strtoupper( (string) ( $body['to_state'] ?? '' ) ),
-			'to_zip'       => (string) ( $body['to_zip'] ?? '' ),
+			'from_country' => strtoupper( $scalar( $body['nexus_addresses'][0]['country'] ?? $body['from_country'] ?? '' ) ),
+			'from_state'   => strtoupper( $scalar( $body['nexus_addresses'][0]['state'] ?? $body['from_state'] ?? '' ) ),
+			'from_zip'     => $scalar( $body['nexus_addresses'][0]['zip'] ?? $body['from_zip'] ?? '' ),
+			'to_country'   => strtoupper( $scalar( $body['to_country'] ?? '' ) ),
+			'to_state'     => strtoupper( $scalar( $body['to_state'] ?? '' ) ),
+			'to_zip'       => $scalar( $body['to_zip'] ?? '' ),
 		);
 	}
 
