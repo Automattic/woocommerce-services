@@ -2301,6 +2301,15 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * `""`. `Address::to_legacy_options()` is the single source of that decision.
 	 */
 	public function test_read_seam_uses_one_empty_value_representation() {
+		// WC()->customer is a singleton that outlives this test; restore it below.
+		$original_shipping = array(
+			'country'  => WC()->customer->get_shipping_country(),
+			'state'    => WC()->customer->get_shipping_state(),
+			'postcode' => WC()->customer->get_shipping_postcode(),
+			'city'     => WC()->customer->get_shipping_city(),
+			'address'  => WC()->customer->get_shipping_address(),
+		);
+
 		WC()->customer->set_shipping_country( 'US' );
 		WC()->customer->set_shipping_state( 'FL' );
 		WC()->customer->set_shipping_postcode( '33033' );
@@ -2318,6 +2327,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			$backend  = $this->invoke_protected_method( 'get_backend_address' );
 		} finally {
 			unset( $_POST['country'], $_POST['state'], $_POST['postcode'], $_POST['city'], $_POST['street'] );
+
+			WC()->customer->set_shipping_country( $original_shipping['country'] );
+			WC()->customer->set_shipping_state( $original_shipping['state'] );
+			WC()->customer->set_shipping_postcode( $original_shipping['postcode'] );
+			WC()->customer->set_shipping_city( $original_shipping['city'] );
+			WC()->customer->set_shipping_address( $original_shipping['address'] );
 		}
 
 		$this->assertSame(
