@@ -3828,12 +3828,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Tax Status "Shipping only" is exempt from item tax, and the backend order path
-	 * sends it to TaxJar as exempt (code 99999) — unlike the cart path, which excludes
-	 * that status from the exempt branch. This is the input side of the zeroing bug:
-	 * an exempt code is what makes TaxJar return the 0% breakdown line.
-	 */
-	/**
 	 * Cart path: a "Shipping only" product must NOT be recorded as non-taxable.
 	 *
 	 * The exempt branch in `get_line_items()` deliberately excludes Tax Status
@@ -3913,6 +3907,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		WC_Helper_Product::delete_product( $product->get_id() );
 	}
 
+	/**
+	 * Tax Status "Shipping only" is exempt from item tax, and the backend order path
+	 * sends it to TaxJar as exempt (code 99999) — unlike the cart path, which excludes
+	 * that status from the exempt branch. This is the input side of the zeroing bug:
+	 * an exempt code is what makes TaxJar return the 0% breakdown line.
+	 */
 	public function test_get_backend_line_items_sends_shipping_only_status_as_exempt() {
 		$product = WC_Helper_Product::create_simple_product();
 		$product->set_tax_status( 'shipping' );
