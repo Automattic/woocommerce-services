@@ -291,8 +291,10 @@ final class Address {
 		// so unslash the superglobal here. The $post test override is never slashed.
 		$source = is_array( $post ) ? $post : wp_unslash( $_POST ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Nonce/capability verified by the caller (see docblock); each field is sanitized via wc_clean() below.
 
+		// is_scalar() drops array-valued fields (e.g. a crafted `city[]=x`), which
+		// would otherwise cast to the literal string "Array" with a PHP warning.
 		$pluck = static function ( $key ) use ( $source ) {
-			return isset( $source[ $key ] ) ? (string) wc_clean( $source[ $key ] ) : '';
+			return isset( $source[ $key ] ) && is_scalar( $source[ $key ] ) ? (string) wc_clean( $source[ $key ] ) : '';
 		};
 
 		return new self(

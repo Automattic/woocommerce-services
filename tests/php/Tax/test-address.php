@@ -203,6 +203,24 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * An array-valued field (e.g. a crafted `city[]=x`) is treated as empty.
+	 *
+	 * Without the scalar guard it would cast to the literal string "Array" with a
+	 * PHP warning, and reach the TaxJar body and the tax rate city column.
+	 */
+	public function test_from_post_request_ignores_array_valued_fields() {
+		$address = Address::from_post_request(
+			array(
+				'country' => 'US',
+				'city'    => array( 'Homestead' ),
+			)
+		);
+
+		$this->assertSame( 'US', $address->country() );
+		$this->assertSame( '', $address->city() );
+	}
+
+	/**
 	 * `from_jurisdictions` accepts an `stdClass` (matches TaxJar response shape).
 	 */
 	public function test_from_jurisdictions_extracts_partial_fields() {
