@@ -34,6 +34,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	private $store_settings_filter;
 
 	/**
+	 * Error messages logged during the last `capture_taxjar_request_json()` run.
+	 *
+	 * @var string[]
+	 */
+	private $captured_taxjar_errors = array();
+
+	/**
 	 * Load required classes before running tests.
 	 */
 	public static function set_up_before_class() {
@@ -2468,6 +2475,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	private function capture_taxjar_request_json( array $options, $nexus_filter = null, $store = null ) {
 		$sent = null;
 
+		$this->captured_taxjar_errors = array();
+
 		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )
 			->disableOriginalConstructor()
 			->getMock();
@@ -2482,6 +2491,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )
 			->disableOriginalConstructor()
 			->getMock();
+		$logger->method( 'error' )->willReturnCallback(
+			function ( $message ) {
+				$this->captured_taxjar_errors[] = (string) $message;
+			}
+		);
 		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )
 			->disableOriginalConstructor()
 			->getMock();
@@ -2648,6 +2662,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertIsArray( $body, 'A blank nexus country aborted the request instead of falling back to the store address.' );
 		$this->assertArrayNotHasKey( 'nexus_addresses', $body, 'An invalid nexus address was forwarded.' );
 		$this->assertSame( 'US', $body['from_country'] );
+		$this->assertNotEmpty(
+			preg_grep( '/Nexus Address ERRORS/', $this->captured_taxjar_errors ),
+			'The rejected nexus address was dropped without logging an error.'
+		);
 	}
 
 	/**
@@ -2669,7 +2687,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			}
 		);
 
-		$this->assertIsArray( $body );
+		$this->assertIsArray( $body, 'A lower-case nexus country aborted the request.' );
 		$this->assertArrayHasKey(
 			'nexus_addresses',
 			$body,
@@ -2696,7 +2714,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			}
 		);
 
-		$this->assertIsArray( $body );
+		$this->assertIsArray( $body, 'A nexus address with an unknown key aborted the request.' );
 		$this->assertArrayHasKey( 'nexus_addresses', $body );
 		$this->assertSame( 'kept', $body['nexus_addresses'][0]['custom_key'] );
 	}
@@ -2746,8 +2764,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			}
 		);
 
-		$this->assertIsArray( $body );
-		$this->assertArrayNotHasKey( 'nexus_addresses', $body );
+		$this->assertIsArray( $body, 'A non-scalar nexus field aborted the request instead of falling back.' );
+		$this->assertArrayNotHasKey( 'nexus_addresses', $body, 'A nexus address with a non-scalar field was forwarded.' );
+		$this->assertNotEmpty(
+			preg_grep( '/Nexus Address ERRORS/', $this->captured_taxjar_errors ),
+			'The rejected nexus address was dropped without logging an error.'
+		);
 	}
 
 	/**
@@ -2822,6 +2844,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			$body,
 			'A nexus address with a boolean field was forwarded.'
 		);
+		$this->assertNotEmpty(
+			preg_grep( '/Nexus Address ERRORS/', $this->captured_taxjar_errors ),
+			'The rejected nexus address was dropped without logging an error.'
+		);
 	}
 
 	/**
@@ -2843,7 +2869,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			}
 		);
 
-		$this->assertIsArray( $body );
+		$this->assertIsArray( $body, 'A non-scalar value under an unknown nexus key aborted the request.' );
 		$this->assertArrayHasKey(
 			'nexus_addresses',
 			$body,
@@ -2953,6 +2979,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			'nexus_addresses',
 			$body,
 			'A US nexus address with a blank state was forwarded.'
+		);
+		$this->assertNotEmpty(
+			preg_grep( '/Nexus Address ERRORS/', $this->captured_taxjar_errors ),
+			'The rejected nexus address was dropped without logging an error.'
 		);
 	}
 }
