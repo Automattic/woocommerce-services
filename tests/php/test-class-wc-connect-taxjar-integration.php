@@ -2903,10 +2903,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Non-US TaxJar-supported countries, with and without WooCommerce states.
-	 *
-	 * The `has states` flag is recorded only to document that the split is deliberate —
-	 * nothing in the assertion depends on it, which is the point.
+	 * Non-US TaxJar-supported countries, one row per behaviour class: a country
+	 * WooCommerce gives no states, one it does, and CA, which needs a destination
+	 * state to clear `validate_taxjar_request()` while the store's own state stays
+	 * blank. Every row drives the same non-US branch, so more rows add runtime, not
+	 * coverage.
 	 *
 	 * @return array<string, array{0: string, 1: string, 2: string}>
 	 */
@@ -2914,15 +2915,9 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		return array(
 			// No states in WooCommerce.
 			'GB' => array( 'GB', 'SW1A 1AA', '' ),
-			'FR' => array( 'FR', '75001', '' ),
-			'NL' => array( 'NL', '1011 AB', '' ),
-			'DK' => array( 'DK', '1050', '' ),
 
-			// States in WooCommerce, but TaxJar rates them from the destination anyway.
+			// States in WooCommerce, but TaxJar rates from the destination anyway.
 			'DE' => array( 'DE', '10117', '' ),
-			'ES' => array( 'ES', '28001', '' ),
-			'IT' => array( 'IT', '00184', '' ),
-			'AU' => array( 'AU', '2000', '' ),
 
 			// CA needs a destination state to clear `validate_taxjar_request()`; the
 			// store's own state stays blank, which is what this test is about.
