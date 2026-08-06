@@ -2646,6 +2646,32 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A key the filter removed must stay removed.
+	 *
+	 * Normalisation writes back only the keys the filter kept. Merging the full
+	 * normalised shape instead would resurrect a removed key as a blank string, so
+	 * a filter that unset `street` would start sending `"street": ""`.
+	 */
+	public function test_nexus_key_removed_by_filter_is_not_resurrected() {
+		$body = $this->capture_taxjar_request_json(
+			$this->in_state_options(),
+			function ( $nexus_address ) {
+				unset( $nexus_address['street'] );
+
+				return $nexus_address;
+			}
+		);
+
+		$this->assertIsArray( $body, 'Removing an optional nexus key aborted the request.' );
+		$this->assertArrayHasKey( 'nexus_addresses', $body );
+		$this->assertArrayNotHasKey(
+			'street',
+			$body['nexus_addresses'][0],
+			'A key the filter removed was resurrected as a blank string.'
+		);
+	}
+
+	/**
 	 * A non-scalar field must be rejected rather than coerced.
 	 *
 	 * The old schema check rejected non-strings outright. The value object casts every
