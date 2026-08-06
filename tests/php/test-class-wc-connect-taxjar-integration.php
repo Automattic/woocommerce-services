@@ -2493,19 +2493,26 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$integration = new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks, $notifier );
 
-		$store_filter = $this->force_store_settings( null === $store ? $this->default_store_settings() : $store );
-		if ( is_callable( $nexus_filter ) ) {
-			add_filter( 'woocommerce_taxjar_nexus_address', $nexus_filter, 10, 2 );
-		}
-		WC()->customer->set_is_vat_exempt( false );
+		$was_vat_exempt = WC()->customer->is_vat_exempt();
 
+		// Everything that touches shared state happens inside the try, so a throw
+		// anywhere leaves no filter and no customer flag behind.
 		try {
+			$store_filter = $this->force_store_settings( null === $store ? $this->default_store_settings() : $store );
+			if ( is_callable( $nexus_filter ) ) {
+				add_filter( 'woocommerce_taxjar_nexus_address', $nexus_filter, 10, 2 );
+			}
+			WC()->customer->set_is_vat_exempt( false );
+
 			$integration->calculate_tax( $options );
 		} finally {
 			if ( is_callable( $nexus_filter ) ) {
 				remove_filter( 'woocommerce_taxjar_nexus_address', $nexus_filter, 10 );
 			}
-			remove_filter( 'taxjar_store_settings', $store_filter, 99 );
+			if ( isset( $store_filter ) ) {
+				remove_filter( 'taxjar_store_settings', $store_filter, 99 );
+			}
+			WC()->customer->set_is_vat_exempt( $was_vat_exempt );
 		}
 
 		return null === $sent ? null : json_decode( $sent, true );
