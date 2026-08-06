@@ -2699,10 +2699,9 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 *
 	 * The non-scalar guard exists because the value object casts the fields it reads to
 	 * string. Keys it does not read are never cast — they are merged back untouched —
-	 * so they carry no conversion risk. Checking them anyway made a single custom key
-	 * holding an array discard the entire nexus address, silently swapping which nexus
-	 * TaxJar was asked about, and logged "[meta] field must be a string" for a field
-	 * that is never treated as a string.
+	 * so they carry no conversion risk. Checking them anyway would make a single
+	 * custom key holding an array discard the entire nexus address, silently swapping
+	 * which nexus TaxJar is asked about.
 	 */
 	public function test_non_scalar_unknown_nexus_key_is_passed_through() {
 		$body = $this->capture_taxjar_request_json(
@@ -2810,8 +2809,9 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * silent under-collection. Rejecting it here falls back to the store's `from_*`
 	 * address, which carries the real state.
 	 *
-	 * This passes before the relaxation too — it bounds the change rather than
-	 * demonstrating a fixed bug.
+	 * The old schema skipped blank fields, so this nexus was accepted, forwarded
+	 * with a blank state, and the US cross-state gate then dropped the calculation
+	 * without a request. This test fails on the base branch for that reason.
 	 */
 	public function test_blank_state_is_still_rejected_for_a_us_nexus() {
 		$body = $this->capture_taxjar_request_json(
