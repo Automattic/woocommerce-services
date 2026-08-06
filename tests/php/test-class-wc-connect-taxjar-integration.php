@@ -560,6 +560,35 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A `taxjar_store_settings` callback returning a partial array must not drop keys.
+	 *
+	 * Callers index the result directly, so a missing key used to raise undefined
+	 * key warnings and feed null into strtoupper(). Missing keys are backfilled
+	 * from the unfiltered store settings; keys the callback did set still win.
+	 */
+	public function test_get_store_settings_backfills_partial_array() {
+		$callback = static function () {
+			return array( 'postcode' => '90210' );
+		};
+		add_filter( 'taxjar_store_settings', $callback );
+
+		try {
+			$settings = $this->integration->get_store_settings();
+		} finally {
+			remove_filter( 'taxjar_store_settings', $callback );
+		}
+
+		$this->assertSame( '90210', $settings['postcode'] );
+
+		foreach ( array( 'street', 'city', 'state', 'country' ) as $key ) {
+			$this->assertArrayHasKey( $key, $settings );
+		}
+
+		$this->assertSame( WC()->countries->get_base_country(), $settings['country'] );
+		$this->assertSame( WC()->countries->get_base_city(), $settings['city'] );
+	}
+
+	/**
 	 * Test that location_type 'shipping' returns customer shipping address.
 	 */
 	public function test_get_taxable_address_shipping_returns_customer_address() {

@@ -446,12 +446,15 @@ class WC_Connect_TaxJar_Integration {
 	 * Modified version of TaxJar's plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L910
 	 *
-	 * The `taxjar_store_settings` return value is guaranteed to be an array, matching
-	 * this method's documented contract. The filter is public and unguarded, so a
-	 * callback returning null / false / a string would otherwise flow into callers that
-	 * index it — and, since the address value object declares `array $settings`, into an
-	 * uncaught TypeError on every cart and checkout render that resolves a base address.
-	 * A non-array return is treated as "no opinion" and the unfiltered settings are used.
+	 * The `taxjar_store_settings` return value is guaranteed to be an array carrying
+	 * all five address keys, matching this method's documented contract. The filter is
+	 * public and unguarded, so a callback returning null / false / a string would
+	 * otherwise flow into callers that index it — and, since the address value object
+	 * declares `array $settings`, into an uncaught TypeError on every cart and checkout
+	 * render that resolves a base address. A non-array return is treated as "no
+	 * opinion" and the unfiltered settings are used; keys missing from an array return
+	 * are backfilled from the unfiltered settings, so callers can keep indexing the
+	 * result directly.
 	 *
 	 * @return array
 	 */
@@ -472,7 +475,7 @@ class WC_Connect_TaxJar_Integration {
 			return $store_settings;
 		}
 
-		return $filtered;
+		return array_merge( $store_settings, $filtered );
 	}
 
 	/**
