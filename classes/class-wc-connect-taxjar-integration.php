@@ -1470,6 +1470,8 @@ class WC_Connect_TaxJar_Integration {
 
 		// The value object casts these fields to string, so reject anything that cannot
 		// survive that cast rather than triggering an array-to-string conversion.
+		// Booleans survive the cast but silently change the sent value (false becomes
+		// "" and true becomes "1"), so they are rejected too, as the old schema did.
 		//
 		// Only the fields the value object reads are checked. Any other key a filter
 		// added is passed through untouched below and is never cast, so it carries no
@@ -1482,8 +1484,11 @@ class WC_Connect_TaxJar_Integration {
 
 			$value = $address[ $field ];
 
-			if ( null !== $value && ! is_scalar( $value ) ) {
-				$this->logger->error( 'Nexus Address ERRORS: [' . $field . '] field must be a string' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . wp_json_encode( $address ), 'WCS Tax' );
+			if ( null !== $value && ( ! is_scalar( $value ) || is_bool( $value ) ) ) {
+				// wp_json_encode() returns false for unencodable payloads, which is
+				// what this branch catches; fall back so the log keeps the address.
+				$encoded = wp_json_encode( $address );
+				$this->logger->error( 'Nexus Address ERRORS: [' . $field . '] field must be a string' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . ( false === $encoded ? print_r( $address, true ) : $encoded ), 'WCS Tax' );
 
 				return false;
 			}

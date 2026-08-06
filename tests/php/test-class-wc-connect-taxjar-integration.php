@@ -2714,6 +2714,31 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A boolean nexus field is rejected, not cast.
+	 *
+	 * `false` casts to `""` and `true` to `"1"`, either of which silently changes
+	 * the origin TaxJar rates against. The old schema rejected non-strings
+	 * outright; booleans keep that treatment while numeric postcodes are accepted.
+	 */
+	public function test_boolean_nexus_field_is_rejected() {
+		$body = $this->capture_taxjar_request_json(
+			$this->in_state_options(),
+			function ( $nexus_address ) {
+				$nexus_address['zip'] = false;
+
+				return $nexus_address;
+			}
+		);
+
+		$this->assertIsArray( $body, 'A boolean nexus field aborted the request instead of falling back.' );
+		$this->assertArrayNotHasKey(
+			'nexus_addresses',
+			$body,
+			'A nexus address with a boolean field was forwarded.'
+		);
+	}
+
+	/**
 	 * A non-scalar value under an unknown key must not reject the whole address.
 	 *
 	 * The non-scalar guard exists because the value object casts the fields it reads to
