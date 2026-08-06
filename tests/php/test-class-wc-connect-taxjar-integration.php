@@ -2592,11 +2592,9 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * `validate_taxjar_request()` is public and accepts any hand-built body.
-	 *
-	 * A nested JSON object decodes to an array; cast to string that becomes
-	 * `'Array'`, which is non-empty and would slip past every country check. It
-	 * must read as missing instead, so the request is stopped.
+	 * `validate_taxjar_request()` is public and accepts any hand-built body, so the
+	 * verbatim-postcode contract has to hold through it, not just through the
+	 * private projection.
 	 */
 	public function test_validate_taxjar_request_handles_a_hand_built_body() {
 		$body = array(
@@ -2613,11 +2611,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			'A well-formed US body failed public validation.'
 		);
 
-		$body['from_country'] = array( 'code' => 'US' );
+		$body['from_zip'] = 'not-a-zip';
 
 		$this->assertFalse(
 			$this->integration->validate_taxjar_request( wp_json_encode( $body ) ),
-			'A non-scalar origin country passed public validation.'
+			'A malformed US store postcode passed public validation.'
 		);
 	}
 
