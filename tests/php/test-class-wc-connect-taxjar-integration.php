@@ -2751,6 +2751,55 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A numeric nexus postcode is accepted and sent as a string.
+	 *
+	 * The old schema rejected every non-string; the scalar guard deliberately lets
+	 * numbers through and the value object casts them. This pins the accept side of
+	 * that delta — the reject side is covered by the boolean and array tests.
+	 */
+	public function test_numeric_nexus_postcode_is_accepted() {
+		$body = $this->capture_taxjar_request_json(
+			$this->in_state_options(),
+			function ( $nexus_address ) {
+				$nexus_address['zip'] = 90210;
+
+				return $nexus_address;
+			}
+		);
+
+		$this->assertIsArray( $body, 'A numeric nexus postcode aborted the request.' );
+		$this->assertArrayHasKey(
+			'nexus_addresses',
+			$body,
+			'A numeric nexus postcode was rejected instead of being cast to a string.'
+		);
+		$this->assertSame( '90210', $body['nexus_addresses'][0]['zip'] );
+	}
+
+	/**
+	 * City and street normalisation applies to the assembled body.
+	 *
+	 * The value object strips semicolons and collapses whitespace in cities and
+	 * trims streets. These values reach the wire and the md5 transient key, so the
+	 * normalisation is part of the request contract, not an internal detail.
+	 */
+	public function test_body_fields_are_normalised_on_assembly() {
+		$options              = $this->in_state_options();
+		$options['to_city']   = 'San;  Francisco';
+		$options['to_street'] = ' 1 Market St ';
+
+		$store         = $this->default_store_settings();
+		$store['city'] = 'Beverly;  Hills';
+
+		$body = $this->capture_taxjar_request_json( $options, null, $store );
+
+		$this->assertIsArray( $body, 'A city containing a semicolon aborted the request.' );
+		$this->assertSame( 'San Francisco', $body['to_city'] );
+		$this->assertSame( '1 Market St', $body['to_street'] );
+		$this->assertSame( 'Beverly Hills', $body['nexus_addresses'][0]['city'] );
+	}
+
+	/**
 	 * A boolean nexus field is rejected, not cast.
 	 *
 	 * `false` casts to `""` and `true` to `"1"`, either of which silently changes
