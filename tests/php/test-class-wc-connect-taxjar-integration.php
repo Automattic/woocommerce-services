@@ -2611,11 +2611,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			'A well-formed US body failed public validation.'
 		);
 
-		$body['from_zip'] = 'not-a-zip';
+		unset( $body['from_country'] );
 
 		$this->assertFalse(
 			$this->integration->validate_taxjar_request( wp_json_encode( $body ) ),
-			'A malformed US store postcode passed public validation.'
+			'A body without an origin country passed public validation.'
 		);
 	}
 
