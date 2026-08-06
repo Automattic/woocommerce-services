@@ -71,10 +71,12 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.6.12 - 2026-xx-xx =
-* Tweak - Centralize TaxJar address handling in an internal value object. No change to tax calculation.
 * Fix   - Restore tax rate lookups for local pickup orders, which could return no rates at all.
 * Fix   - Preserve apostrophes in city and street when taxes are recalculated from the order edit screen.
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when a customization supplies an invalid store address.
+* Fix   - Send the same values for empty address fields whether taxes are calculated at checkout or from the order edit screen.
+* Fix   - Ignore array-valued address fields when taxes are recalculated from the order edit screen.
+* Tweak - Centralize TaxJar address handling in an internal value object. No change to tax calculation.
 
 = 3.6.11 - 2026-08-05 =
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.
