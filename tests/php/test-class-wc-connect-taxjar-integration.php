@@ -2290,6 +2290,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 	/**
 	 * A populated street survives the round trip untouched.
+	 *
+	 * Note: this is a behavior pin, not one of the defect reproductions. The
+	 * pre-fix code also passed it, since a populated street already returned a
+	 * five-element tuple with the street intact.
 	 */
 	public function test_append_base_address_keeps_populated_street() {
 		$address = $this->integration->append_base_address_to_customer_taxable_address(
