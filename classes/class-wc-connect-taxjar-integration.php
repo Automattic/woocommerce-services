@@ -1,6 +1,7 @@
 <?php
 
 use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
+use Automattic\WCServices\Tax\Address;
 
 class WC_Connect_TaxJar_Integration {
 
@@ -1821,19 +1822,28 @@ class WC_Connect_TaxJar_Integration {
 	 * Stripping `;` (and collapsing the resulting whitespace runs) before any path
 	 * touches the tax-rate tables or the TaxJar API restores the round-trip.
 	 *
+	 * @deprecated 3.6.12 Use {@see \Automattic\WCServices\Tax\Address::normalize_city()} instead.
+	 *
+	 * The canonical implementation now lives on the address value object, so the
+	 * normalisation policy has one home rather than one copy per consumer. This
+	 * method is retained as a delegate — it is `protected static`, so a subclass
+	 * outside this repository may be calling it, and removing it would break that
+	 * subclass on load. The remaining in-repo call sites move to the value object
+	 * when their seams are migrated; no `_deprecated_function()` notice is raised
+	 * because those call sites are still live and would fire it on every checkout.
+	 *
+	 * The non-string guard is preserved: this method has always returned its
+	 * argument untouched when handed a non-string, and callers may rely on that.
+	 *
 	 * @param string $city Raw city value, possibly user-entered.
 	 * @return string Normalized city, safe for `_update_tax_rate_cities` and `find_rates`.
 	 */
 	protected static function normalize_city( $city ) {
-		if ( ! is_string( $city ) || '' === $city ) {
+		if ( ! is_string( $city ) ) {
 			return $city;
 		}
 
-		$city = str_replace( ';', ' ', $city );
-		$city = preg_replace( '/\s+/u', ' ', $city );
-
-		// `preg_replace` returns null on malformed UTF-8 with the /u flag; cast so trim() stays safe.
-		return trim( (string) $city );
+		return Address::normalize_city( $city );
 	}
 
 	/**

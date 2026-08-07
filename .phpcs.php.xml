@@ -18,9 +18,17 @@
 		Test files use PascalCase_Underscored naming by convention (e.g. My_Class_Test.php),
 		and the plugin bootstrap is named for the plugin slug. Suppress file-naming sniffs there.
 		(woocommerce-services.php exclusion preserved from the previous phpcs.xml.dist.)
+
+		src/ is excluded because it is PSR-4 autoloaded (composer.json maps
+		Automattic\WCServices\ => src/), and PSR-4 requires the file name to match the
+		class name exactly. The WordPress `class-my-thing.php` convention is
+		unsatisfiable there, so the sniff reported two unfixable errors on every file
+		under src/. This exclusion does not apply to classes/, which keeps the
+		WordPress naming convention.
 	-->
 	<rule ref="WordPress.Files.FileName">
 		<exclude-pattern>tests/</exclude-pattern>
+		<exclude-pattern>src/</exclude-pattern>
 		<exclude-pattern>woocommerce-services.php</exclude-pattern>
 	</rule>
 

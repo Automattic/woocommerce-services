@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.12 - 2026-xx-xx =
+* Tweak - Centralize TaxJar address handling in an internal value object. No change to tax calculation.
+
 = 3.6.11 - 2026-08-05 =
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.
 * Fix   - React 19 compatibility for store notices on the block cart and checkout.
