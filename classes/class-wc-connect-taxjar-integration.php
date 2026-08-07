@@ -1065,7 +1065,20 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 
-		return $this->assign_canonical_line_item_ids( $line_items );
+		$line_items = $this->assign_canonical_line_item_ids( $line_items );
+
+		// The exempt record was keyed while ids were still context-specific; move it onto
+		// the canonical ids, which is what get_itemized_tax_rates() looks up.
+		$non_taxable = array();
+		foreach ( array_keys( $this->non_taxable_line_items ) as $legacy_key ) {
+			$item_key = substr( $legacy_key, (int) strpos( $legacy_key, '-' ) + 1 );
+			if ( isset( $line_items[ $item_key ] ) ) {
+				$non_taxable[ $line_items[ $item_key ]['id'] ] = true;
+			}
+		}
+		$this->non_taxable_line_items = $non_taxable;
+
+		return $line_items;
 	}
 
 	/**
@@ -1136,7 +1149,21 @@ class WC_Connect_TaxJar_Integration {
 				);
 			}
 		}
-		return $this->assign_canonical_line_item_ids( $line_items );
+
+		$line_items = $this->assign_canonical_line_item_ids( $line_items );
+
+		// The exempt record was keyed while ids were still context-specific; move it onto
+		// the canonical ids, which is what get_itemized_tax_rates() looks up.
+		$non_taxable = array();
+		foreach ( array_keys( $this->non_taxable_line_items ) as $legacy_key ) {
+			$item_key = substr( $legacy_key, (int) strpos( $legacy_key, '-' ) + 1 );
+			if ( isset( $line_items[ $item_key ] ) ) {
+				$non_taxable[ $line_items[ $item_key ]['id'] ] = true;
+			}
+		}
+		$this->non_taxable_line_items = $non_taxable;
+
+		return $line_items;
 	}
 
 	protected function get_line_item( $id, $line_items ) {

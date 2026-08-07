@@ -3862,9 +3862,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$recorded   = $this->get_private_property( 'non_taxable_line_items' );
 
 		$this->assertCount( 1, $line_items );
+
+		// get_line_items() keys by cart item key, not position.
+		$line_item = reset( $line_items );
+
 		$this->assertNotSame(
 			'99999',
-			$line_items[0]['product_tax_code'],
+			$line_item['product_tax_code'],
 			'The cart path excludes "Shipping only" from the exempt branch, so it is sent to TaxJar as taxable.'
 		);
 		$this->assertSame(
@@ -3897,15 +3901,19 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$recorded   = $this->get_private_property( 'non_taxable_line_items' );
 
 		$this->assertCount( 1, $line_items );
+
+		// get_line_items() keys by cart item key, not position.
+		$line_item = reset( $line_items );
+
 		$this->assertSame(
 			'99999',
-			$line_items[0]['product_tax_code'],
+			$line_item['product_tax_code'],
 			'A "None" product is still emitted as exempt on the cart path.'
 		);
 		$this->assertArrayHasKey(
-			$line_items[0]['id'],
+			$line_item['id'],
 			$recorded,
-			'A line emitted as exempt must stay recorded, or its 0% rate overwrites the shared Standard row.'
+			'A line emitted as exempt must stay recorded under its canonical id, or its 0% rate overwrites the shared Standard row.'
 		);
 
 		WC()->cart->empty_cart();
@@ -3931,9 +3939,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$line_items = $this->invoke_protected_method( 'get_backend_line_items', array( $order ) );
 
 		$this->assertCount( 1, $line_items );
+
+		// get_backend_line_items() keys by order item ID, not position.
+		$line_item = reset( $line_items );
+
 		$this->assertSame(
 			'99999',
-			$line_items[0]['product_tax_code'],
+			$line_item['product_tax_code'],
 			'A "Shipping only" product must be sent to TaxJar as exempt on the backend order path.'
 		);
 
