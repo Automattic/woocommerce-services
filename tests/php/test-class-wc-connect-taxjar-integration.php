@@ -86,6 +86,9 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// Remove any filters added during tests.
 		remove_all_filters( 'woocommerce_tax_line_item_location' );
 		remove_all_filters( 'woocommerce_services_override_tax_rate' );
+		remove_all_filters( 'woocommerce_product_is_taxable' );
+
+		delete_option( 'woocommerce_calc_taxes' );
 
 		// Clean up products.
 		if ( $this->product ) {
@@ -147,6 +150,18 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$reflection = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $property_name );
 		$reflection->setAccessible( true );
 		$reflection->setValue( $this->integration, $value );
+	}
+
+	/**
+	 * Helper to read private properties via reflection.
+	 *
+	 * @param string $property_name Property name.
+	 * @return mixed Property value.
+	 */
+	private function get_private_property( $property_name ) {
+		$reflection = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $property_name );
+		$reflection->setAccessible( true );
+		return $reflection->getValue( $this->integration );
 	}
 
 	/**
@@ -3587,5 +3602,404 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 				'Expected this address to be invisible to the matched-rates lookup — the pinned defect is no longer reproducing, so the expectation needs revisiting rather than the assertion relaxing.'
 			);
 		}
+	}
+
+	/**
+	 * Find the TaxJar line item id emitted for a given product.
+	 *
+	 * The id is a composite of the product id and the cart/order item key, so tests
+	 * must read it back from the request side rather than reconstruct it.
+	 *
+	 * @param array $line_items Line items as built for the TaxJar request.
+	 * @param int   $product_id Product id to look for.
+	 * @return string|null
+	 */
+	private function find_taxjar_line_item_id( $line_items, $product_id ) {
+		foreach ( $line_items as $line_item ) {
+			$chunks = explode( '-', $line_item['id'] );
+			if ( (int) $chunks[0] === (int) $product_id ) {
+				return $line_item['id'];
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Build a TaxJar response with an itemized breakdown.
+	 *
+	 * @param array $rate_by_key Map of TaxJar line item id => combined tax rate, in
+	 *                           the order the breakdown should list them.
+	 * @return object
+	 */
+	private function build_itemized_taxjar_response( $rate_by_key ) {
+		$breakdown_line_items = array();
+		foreach ( $rate_by_key as $line_item_key => $rate ) {
+			$breakdown_line_items[] = (object) array(
+				'id'                => $line_item_key,
+				'combined_tax_rate' => $rate,
+				'state_tax_rate'    => $rate,
+			);
+		}
+
+		return (object) array(
+			'freight_taxable' => 0,
+			'has_nexus'       => 1,
+			'rate'            => 0.0725,
+			'jurisdictions'   => (object) array(
+				'county' => '',
+				'city'   => '',
+			),
+			'breakdown'       => (object) array(
+				'line_items' => $breakdown_line_items,
+			),
+		);
+	}
+
+	/**
+	 * Destination used by the itemized rate tests.
+	 *
+	 * @return array
+	 */
+	private function itemized_rate_options() {
+		return array(
+			'to_country' => 'US',
+			'to_state'   => 'CA',
+			'to_zip'     => '90210',
+			'to_city'    => 'Beverly Hills',
+		);
+	}
+
+	/**
+	 * A non-taxable product (Tax Status = "None") that shares the standard Tax
+	 * Class with a taxable product must not zero out the shared Standard rate row.
+	 *
+	 * TaxJar returns a 0% breakdown line for the exempt product (sent as code
+	 * 99999). Because rate rows are keyed by tax class — and Tax Status "None"
+	 * does not change the Tax Class — that 0% would overwrite the same Standard
+	 * row the taxable product just populated, zeroing tax for the whole cart.
+	 *
+	 * Driven through get_line_items() first: the skip decision is recorded while the
+	 * request is built, so a test that fabricates breakdown keys would not exercise it.
+	 */
+	public function test_get_itemized_tax_rates_non_taxable_line_does_not_zero_standard_rate() {
+		// is_taxable() is false for every product while taxes are off, and this path only
+		// runs on stores that have them on.
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		$taxable_product = WC_Helper_Product::create_simple_product();
+		$taxable_product->set_tax_status( 'taxable' );
+		$taxable_product->set_tax_class( '' );
+		$taxable_product->save();
+
+		$exempt_product = WC_Helper_Product::create_simple_product();
+		$exempt_product->set_tax_status( 'none' );
+		$exempt_product->set_tax_class( '' );
+		$exempt_product->save();
+
+		$taxable_id = $taxable_product->get_id();
+		$exempt_id  = $exempt_product->get_id();
+
+		WC()->cart->add_to_cart( $taxable_id, 1 );
+		WC()->cart->add_to_cart( $exempt_id, 1 );
+
+		$line_items  = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+		$taxable_key = $this->find_taxjar_line_item_id( $line_items, $taxable_id );
+		$exempt_key  = $this->find_taxjar_line_item_id( $line_items, $exempt_id );
+
+		$this->assertNotNull( $taxable_key );
+		$this->assertNotNull( $exempt_key );
+
+		// Taxable line is listed first, so without the fix the exempt line would
+		// overwrite the shared Standard rate row to 0% afterwards.
+		$taxjar_taxes = $this->build_itemized_taxjar_response(
+			array(
+				$taxable_key => 0.0725,
+				$exempt_key  => 0.0,
+			)
+		);
+
+		$result = $this->invoke_protected_method(
+			'get_itemized_tax_rates',
+			array(
+				array(
+					'rate_ids'   => array(),
+					'line_items' => array(),
+				),
+				$taxjar_taxes,
+				$this->itemized_rate_options(),
+			)
+		);
+
+		// The exempt line must not create or update any tax rate row.
+		$this->assertArrayNotHasKey( $exempt_key, $result['rate_ids'], 'Non-taxable line item should not write a tax rate row.' );
+
+		// The taxable line's Standard rate row must remain at 7.25%, not clobbered to 0.
+		$this->assertArrayHasKey( $taxable_key, $result['rate_ids'] );
+		$taxable_rate_id = $result['rate_ids'][ $taxable_key ][0];
+		$rate_data       = WC_Tax::_get_tax_rate( $taxable_rate_id );
+		$this->assertSame( 7.25, (float) $rate_data['tax_rate'], 'Standard rate row was zeroed by the non-taxable line item.' );
+
+		WC_Helper_Product::delete_product( $taxable_id );
+		WC_Helper_Product::delete_product( $exempt_id );
+	}
+
+	/**
+	 * Taxability is filterable: woocommerce_product_is_taxable can make a product
+	 * untaxed while it still reports Tax Status "taxable".
+	 *
+	 * get_line_items() sets the exempt code from is_taxable() (the filtered value),
+	 * which is also what WC_Cart_Totals gates item tax on. A response-side guard that
+	 * re-derives taxability from get_tax_status() (the raw value) disagrees with it,
+	 * and the resulting 0% line zeroes the shared Standard rate row.
+	 */
+	public function test_get_itemized_tax_rates_filtered_non_taxable_line_does_not_zero_standard_rate() {
+		// See the sibling "None" test: is_taxable() also depends on taxes being enabled.
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		$taxable_product = WC_Helper_Product::create_simple_product();
+		$taxable_product->set_tax_status( 'taxable' );
+		$taxable_product->set_tax_class( '' );
+		$taxable_product->save();
+
+		// Tax Status stays "taxable"; only is_taxable() is filtered off.
+		$filtered_product = WC_Helper_Product::create_simple_product();
+		$filtered_product->set_tax_status( 'taxable' );
+		$filtered_product->set_tax_class( '' );
+		$filtered_product->save();
+
+		$taxable_id  = $taxable_product->get_id();
+		$filtered_id = $filtered_product->get_id();
+
+		add_filter(
+			'woocommerce_product_is_taxable',
+			function ( $taxable, $product ) use ( $filtered_id ) {
+				return $product->get_id() === $filtered_id ? false : $taxable;
+			},
+			10,
+			2
+		);
+
+		WC()->cart->add_to_cart( $taxable_id, 1 );
+		WC()->cart->add_to_cart( $filtered_id, 1 );
+
+		$line_items   = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+		$taxable_key  = $this->find_taxjar_line_item_id( $line_items, $taxable_id );
+		$filtered_key = $this->find_taxjar_line_item_id( $line_items, $filtered_id );
+
+		$this->assertNotNull( $taxable_key );
+		$this->assertNotNull( $filtered_key );
+
+		// Input side: the filtered product is sent to TaxJar as exempt even though its
+		// Tax Status is "taxable" — this is what makes TaxJar return the 0% line.
+		foreach ( $line_items as $line_item ) {
+			if ( $line_item['id'] === $filtered_key ) {
+				$this->assertSame( '99999', $line_item['product_tax_code'], 'A product filtered non-taxable must be sent to TaxJar as exempt.' );
+			}
+		}
+
+		$taxjar_taxes = $this->build_itemized_taxjar_response(
+			array(
+				$taxable_key  => 0.0725,
+				$filtered_key => 0.0,
+			)
+		);
+
+		$result = $this->invoke_protected_method(
+			'get_itemized_tax_rates',
+			array(
+				array(
+					'rate_ids'   => array(),
+					'line_items' => array(),
+				),
+				$taxjar_taxes,
+				$this->itemized_rate_options(),
+			)
+		);
+
+		$this->assertArrayNotHasKey( $filtered_key, $result['rate_ids'], 'A line item filtered non-taxable should not write a tax rate row.' );
+
+		$this->assertArrayHasKey( $taxable_key, $result['rate_ids'] );
+		$taxable_rate_id = $result['rate_ids'][ $taxable_key ][0];
+		$rate_data       = WC_Tax::_get_tax_rate( $taxable_rate_id );
+		$this->assertSame( 7.25, (float) $rate_data['tax_rate'], 'Standard rate row was zeroed by a line item whose taxability was filtered off.' );
+
+		WC_Helper_Product::delete_product( $taxable_id );
+		WC_Helper_Product::delete_product( $filtered_id );
+	}
+
+	/**
+	 * Cart path: a "Shipping only" product must NOT be recorded as non-taxable.
+	 *
+	 * The exempt branch in `get_line_items()` deliberately excludes Tax Status
+	 * "shipping", so the line is sent to TaxJar as taxable and its breakdown comes back
+	 * with a real, non-zero rate. Recording it would make `get_itemized_tax_rates()`
+	 * skip that write and throw the rate away — the one case where the skip discards
+	 * good data rather than preventing a 0% clobber.
+	 *
+	 * The row is not redundant: it carries `tax_rate_shipping`, and with the default
+	 * `woocommerce_shipping_tax_class = 'inherit'` WooCommerce resolves the shipping tax
+	 * class to this product's class and looks the rate up there. TaxJar's own shipping
+	 * write only covers the standard class.
+	 *
+	 * The backend order path legitimately differs — there the same status *is* emitted
+	 * as exempt, so there it *is* recorded. See
+	 * `test_get_backend_line_items_sends_shipping_only_status_as_exempt()`.
+	 */
+	public function test_get_line_items_does_not_record_shipping_only_status_as_non_taxable() {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_tax_status( 'shipping' );
+		$product->set_tax_class( '' );
+		$product->save();
+
+		WC()->cart->add_to_cart( $product->get_id(), 1 );
+
+		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+		$recorded   = $this->get_private_property( 'non_taxable_line_items' );
+
+		$this->assertCount( 1, $line_items );
+		$this->assertNotSame(
+			'99999',
+			$line_items[0]['product_tax_code'],
+			'The cart path excludes "Shipping only" from the exempt branch, so it is sent to TaxJar as taxable.'
+		);
+		$this->assertSame(
+			array(),
+			$recorded,
+			'Recording it would discard the real, non-zero rate TaxJar returns for this line.'
+		);
+
+		WC()->cart->empty_cart();
+		WC_Helper_Product::delete_product( $product->get_id() );
+	}
+
+	/**
+	 * The other side of the same boundary: excluding "Shipping only" must not stop a
+	 * genuinely untaxed product from being recorded.
+	 *
+	 * Tax Status "None" is emitted as exempt (99999) and comes back at 0%, which is the
+	 * rate that would overwrite the shared Standard row. Pins that the `'shipping' !==`
+	 * clause narrows the condition by exactly one status and no more.
+	 */
+	public function test_get_line_items_still_records_none_status_as_non_taxable() {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_tax_status( 'none' );
+		$product->set_tax_class( '' );
+		$product->save();
+
+		WC()->cart->add_to_cart( $product->get_id(), 1 );
+
+		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+		$recorded   = $this->get_private_property( 'non_taxable_line_items' );
+
+		$this->assertCount( 1, $line_items );
+		$this->assertSame(
+			'99999',
+			$line_items[0]['product_tax_code'],
+			'A "None" product is still emitted as exempt on the cart path.'
+		);
+		$this->assertArrayHasKey(
+			$line_items[0]['id'],
+			$recorded,
+			'A line emitted as exempt must stay recorded, or its 0% rate overwrites the shared Standard row.'
+		);
+
+		WC()->cart->empty_cart();
+		WC_Helper_Product::delete_product( $product->get_id() );
+	}
+
+	/**
+	 * Tax Status "Shipping only" is exempt from item tax, and the backend order path
+	 * sends it to TaxJar as exempt (code 99999) — unlike the cart path, which excludes
+	 * that status from the exempt branch. This is the input side of the zeroing bug:
+	 * an exempt code is what makes TaxJar return the 0% breakdown line.
+	 */
+	public function test_get_backend_line_items_sends_shipping_only_status_as_exempt() {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_tax_status( 'shipping' );
+		$product->set_tax_class( '' );
+		$product->save();
+
+		$order = wc_create_order();
+		$order->add_product( $product, 1 );
+		$order->save();
+
+		$line_items = $this->invoke_protected_method( 'get_backend_line_items', array( $order ) );
+
+		$this->assertCount( 1, $line_items );
+		$this->assertSame(
+			'99999',
+			$line_items[0]['product_tax_code'],
+			'A "Shipping only" product must be sent to TaxJar as exempt on the backend order path.'
+		);
+
+		$order->delete( true );
+		WC_Helper_Product::delete_product( $product->get_id() );
+	}
+
+	/**
+	 * Output side of the same case: the 0% breakdown line TaxJar returns for a
+	 * "Shipping only" product must not overwrite the shared Standard rate row.
+	 *
+	 * Guarding on `'none' === $tax_status` instead of `'taxable' !== $tax_status`
+	 * passes the sibling "None" test while still zeroing the cart here.
+	 */
+	public function test_get_itemized_tax_rates_shipping_only_line_does_not_zero_standard_rate() {
+		$taxable_product = WC_Helper_Product::create_simple_product();
+		$taxable_product->set_tax_status( 'taxable' );
+		$taxable_product->set_tax_class( '' );
+		$taxable_product->save();
+
+		$shipping_only_product = WC_Helper_Product::create_simple_product();
+		$shipping_only_product->set_tax_status( 'shipping' );
+		$shipping_only_product->set_tax_class( '' );
+		$shipping_only_product->save();
+
+		$taxable_id       = $taxable_product->get_id();
+		$shipping_only_id = $shipping_only_product->get_id();
+
+		// The backend order path is where "Shipping only" is emitted as exempt; the cart
+		// path excludes that status from the exempt branch (see get_line_items()).
+		$order = wc_create_order();
+		$order->add_product( $taxable_product, 1 );
+		$order->add_product( $shipping_only_product, 1 );
+		$order->save();
+
+		$line_items        = $this->invoke_protected_method( 'get_backend_line_items', array( $order ) );
+		$taxable_key       = $this->find_taxjar_line_item_id( $line_items, $taxable_id );
+		$shipping_only_key = $this->find_taxjar_line_item_id( $line_items, $shipping_only_id );
+
+		$this->assertNotNull( $taxable_key );
+		$this->assertNotNull( $shipping_only_key );
+
+		// Taxable line first, so the exempt line would overwrite the shared row after it.
+		$taxjar_taxes = $this->build_itemized_taxjar_response(
+			array(
+				$taxable_key       => 0.0725,
+				$shipping_only_key => 0.0,
+			)
+		);
+
+		$result = $this->invoke_protected_method(
+			'get_itemized_tax_rates',
+			array(
+				array(
+					'rate_ids'   => array(),
+					'line_items' => array(),
+				),
+				$taxjar_taxes,
+				$this->itemized_rate_options(),
+			)
+		);
+
+		$this->assertArrayNotHasKey( $shipping_only_key, $result['rate_ids'], '"Shipping only" line item should not write a tax rate row.' );
+
+		$this->assertArrayHasKey( $taxable_key, $result['rate_ids'] );
+		$taxable_rate_id = $result['rate_ids'][ $taxable_key ][0];
+		$rate_data       = WC_Tax::_get_tax_rate( $taxable_rate_id );
+		$this->assertSame( 7.25, (float) $rate_data['tax_rate'], 'Standard rate row was zeroed by a "Shipping only" line item.' );
+
+		$order->delete( true );
+		WC_Helper_Product::delete_product( $taxable_id );
+		WC_Helper_Product::delete_product( $shipping_only_id );
 	}
 }
