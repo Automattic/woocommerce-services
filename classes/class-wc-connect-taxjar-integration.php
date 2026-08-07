@@ -446,6 +446,16 @@ class WC_Connect_TaxJar_Integration {
 	 * Modified version of TaxJar's plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L910
 	 *
+	 * The `taxjar_store_settings` return value is guaranteed to be an array carrying
+	 * all five address keys, matching this method's documented contract. The filter is
+	 * public and unguarded, so a callback returning null / false / a string would
+	 * otherwise flow into callers that index it — and, since the address value object
+	 * declares `array $settings`, into an uncaught TypeError on every cart and checkout
+	 * render that resolves a base address. A non-array return is treated as "no
+	 * opinion" and the unfiltered settings are used; keys missing from an array return
+	 * are backfilled from the unfiltered settings, so callers can keep indexing the
+	 * result directly.
+	 *
 	 * @return array
 	 */
 	public function get_store_settings() {
@@ -457,7 +467,15 @@ class WC_Connect_TaxJar_Integration {
 			'postcode' => WC()->countries->get_base_postcode(),
 		);
 
-		return apply_filters( 'taxjar_store_settings', $store_settings, array() );
+		$filtered = apply_filters( 'taxjar_store_settings', $store_settings, array() );
+
+		if ( ! is_array( $filtered ) ) {
+			$this->_log( 'Warning: the taxjar_store_settings filter returned a non-array value; ignoring it and using the store address.' );
+
+			return $store_settings;
+		}
+
+		return array_merge( $store_settings, $filtered );
 	}
 
 	/**
@@ -673,6 +691,10 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Get formatted address for tax calculation.
 	 *
+	 * Empty fields come back as `false` rather than `''`. That is the historic shape of
+	 * this array and `Address::to_legacy_options()` is the single place the choice is
+	 * made, so `get_backend_address()` cannot drift away from it.
+	 *
 	 * @param string|null $location_type Location type: 'base', 'shipping', or 'billing'.
 	 *                                   If null, uses default behavior from get_taxable_address().
 	 * @return array Address array with to_country, to_state, etc.
@@ -681,19 +703,7 @@ class WC_Connect_TaxJar_Integration {
 		$taxable_address = $this->get_taxable_address( $location_type );
 		$taxable_address = is_array( $taxable_address ) ? $taxable_address : array();
 
-		$to_country = isset( $taxable_address[0] ) && ! empty( $taxable_address[0] ) ? strtoupper( $taxable_address[0] ) : false;
-		$to_state   = isset( $taxable_address[1] ) && ! empty( $taxable_address[1] ) ? strtoupper( $taxable_address[1] ) : false;
-		$to_zip     = isset( $taxable_address[2] ) && ! empty( $taxable_address[2] ) ? $taxable_address[2] : false;
-		$to_city    = isset( $taxable_address[3] ) && ! empty( $taxable_address[3] ) ? self::normalize_city( $taxable_address[3] ) : false;
-		$to_street  = isset( $taxable_address[4] ) && ! empty( $taxable_address[4] ) ? $taxable_address[4] : false;
-
-		return array(
-			'to_country' => $to_country,
-			'to_state'   => $to_state,
-			'to_zip'     => $to_zip,
-			'to_city'    => $to_city,
-			'to_street'  => $to_street,
-		);
+		return Address::from_taxable_tuple( $taxable_address )->to_legacy_options();
 	}
 
 	/**
@@ -873,6 +883,11 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Get taxable address.
 	 *
+	 * The address is built through {@see Address}, so country/state casing, the
+	 * comma-list postcode split and the city semicolon rules are applied once here
+	 * rather than re-derived by each consumer. The return value stays WooCommerce's
+	 * positional 5-tuple — `Address` is internal and never crosses the filter.
+	 *
 	 * @param string|null $location_type Location type: 'base', 'shipping', or 'billing'.
 	 *                                   If null, uses woocommerce_tax_based_on option with
 	 *                                   local pickup override. Null is kept for backward
@@ -892,56 +907,55 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( 'base' === $tax_based_on ) {
-			$store_settings = $this->get_store_settings();
-			$country        = $store_settings['country'];
-			$state          = $store_settings['state'];
-			$postcode       = $store_settings['postcode'];
-			$city           = $store_settings['city'];
-			$street         = $store_settings['street'];
+			$address = Address::from_store_settings( $this->get_store_settings() );
 		} elseif ( null === WC()->customer ) {
 			$this->_log( 'Warning: WC()->customer is null when resolving ' . $tax_based_on . ' address.' );
 			return array( '', '', '', '', '' );
 		} elseif ( 'billing' === $tax_based_on ) {
-			$country  = WC()->customer->get_billing_country();
-			$state    = WC()->customer->get_billing_state();
-			$postcode = WC()->customer->get_billing_postcode();
-			$city     = WC()->customer->get_billing_city();
-			$street   = WC()->customer->get_billing_address();
+			$address = Address::from_customer_billing( WC()->customer );
 		} else {
-			$country  = WC()->customer->get_shipping_country();
-			$state    = WC()->customer->get_shipping_state();
-			$postcode = WC()->customer->get_shipping_postcode();
-			$city     = WC()->customer->get_shipping_city();
-			$street   = WC()->customer->get_shipping_address();
+			$address = Address::from_customer_shipping( WC()->customer );
 		}
 
-		return apply_filters( 'woocommerce_customer_taxable_address', array( $country, $state, $postcode, $city, $street ) );
+		return apply_filters( 'woocommerce_customer_taxable_address', $address->to_taxable_tuple() );
 	}
 
 	/**
 	 * Get address details of customer for backend orders
 	 *
-	 * Unchanged from the TaxJar plugin.
+	 * Derived from the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L607
+	 *
+	 * Sanitization (and the `wp_unslash()` that used to be missing here) now lives in
+	 * `Address::from_post_request()`, and the empty-field representation comes from
+	 * `Address::to_legacy_options()` — the same one `get_address()` uses, so the cart and
+	 * admin-recalculate paths can no longer put different values on the wire for the
+	 * same empty input.
+	 *
+	 * Security: WooCommerce has already verified the nonce and capability by the time
+	 * `woocommerce_before_save_order_items` fires.
 	 *
 	 * @return array
 	 */
 	protected function get_backend_address() {
-    // phpcs:disable WordPress.Security.NonceVerification.Missing --- Security handled by WooCommerce
-		$to_country = isset( $_POST['country'] ) ? strtoupper( wc_clean( $_POST['country'] ) ) : false;
-		$to_state   = isset( $_POST['state'] ) ? strtoupper( wc_clean( $_POST['state'] ) ) : false;
-		$to_zip     = isset( $_POST['postcode'] ) ? strtoupper( wc_clean( $_POST['postcode'] ) ) : false;
-		$to_city    = isset( $_POST['city'] ) ? self::normalize_city( strtoupper( wc_clean( $_POST['city'] ) ) ) : false;
-		$to_street  = isset( $_POST['street'] ) ? strtoupper( wc_clean( $_POST['street'] ) ) : false;
-    // phpcs:enable WordPress.Security.NonceVerification.Missing
+		$address = Address::from_post_request()->to_legacy_options();
 
-		return array(
-			'to_country' => $to_country,
-			'to_state'   => $to_state,
-			'to_zip'     => $to_zip,
-			'to_city'    => $to_city,
-			'to_street'  => $to_street,
-		);
+		/*
+		 * Historic behaviour of this method, preserved deliberately: the admin path
+		 * upper-cases every field, not only country and state (which `Address` already
+		 * normalises). It is load-bearing for the city, which reaches the
+		 * `wp_woocommerce_tax_rates` city column, and pinned by
+		 * `test_get_backend_address_normalizes_semicolon_city()`. Reconciling the casing
+		 * asymmetry between this path and `get_address()` belongs with the rate-table
+		 * seam, where both ends of the write/read round trip can move together.
+		 */
+		foreach ( array( 'to_zip', 'to_city', 'to_street' ) as $key ) {
+			if ( is_string( $address[ $key ] ) ) {
+				$address[ $key ] = strtoupper( $address[ $key ] );
+			}
+		}
+
+		return $address;
 	}
 
 	/**
@@ -1294,13 +1308,32 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Set customer zip code and state to store if local shipping option set
 	 *
-	 * Unchanged from the TaxJar plugin.
+	 * Derived from the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c587/includes/class-wc-taxjar-integration.php#L653
 	 *
-	 * @return array
+	 * This is a callback on `woocommerce_customer_taxable_address`, and that filter is
+	 * fired with two different tuple lengths depending on who fires it:
+	 *
+	 * - WooCommerce core (`WC_Customer::get_taxable_address()`) passes **four** elements —
+	 *   country, state, postcode, city. `WC_Tax::get_rates_from_location()` then gates on
+	 *   `count( $location ) === 4`, a strict comparison, so a five-element return makes
+	 *   core skip `WC_Tax::find_rates()` and hand back an empty rate set.
+	 * - This plugin (`get_taxable_address()`) passes **five**, the fifth being the street,
+	 *   which `get_address()` reads off index `[4]`.
+	 *
+	 * The callback therefore returns a tuple of exactly the length it was handed. It used
+	 * to key the length off whether the street was empty instead, which returned five
+	 * elements into core's four-element pipeline on any local-pickup checkout where the
+	 * store has a street address configured, and dropped the street slot from the
+	 * plugin's own pipeline whenever the street was empty.
+	 *
+	 * @param array $address Positional taxable-address tuple, four or five elements.
+	 * @return array The tuple with the base address substituted for local pickup,
+	 *               its length clamped to four or five elements to match the input.
 	 */
 	public function append_base_address_to_customer_taxable_address( $address ) {
 		$tax_based_on = '';
+		$tuple_length = count( $address );
 
 		list( $country, $state, $postcode, $city, $street ) = array_pad( $address, 5, '' );
 
@@ -1321,11 +1354,16 @@ class WC_Connect_TaxJar_Integration {
 			$street         = $store_settings['street'];
 		}
 
-		if ( '' != $street ) {
-			return array( $country, $state, $postcode, $city, $street );
-		}
+		$tuple = Address::from_taxable_tuple( array( $country, $state, $postcode, $city, $street ) )->to_taxable_tuple();
 
-		return array( $country, $state, $postcode, $city );
+		/*
+		 * Return the arity we were handed, clamped to the two shapes this filter is
+		 * known to carry: four elements (core) or five (this plugin). `$tuple` is
+		 * rebuilt with exactly five elements, so a longer input loses anything past
+		 * the street slot, and a shorter one is padded up to the four fields every
+		 * consumer of this filter reads.
+		 */
+		return array_slice( $tuple, 0, max( 4, $tuple_length ) );
 	}
 
 	/**

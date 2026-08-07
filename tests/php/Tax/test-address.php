@@ -144,7 +144,7 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 	 * `wp_unslash()` a value like `O'Brien` would be stored as `O\'Brien`.
 	 */
 	public function test_from_post_request_unslashes_superglobal() {
-		$original_post = $_POST;
+		$original_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Test fixture; nothing is processed, the superglobal is saved and restored.
 
 		// Simulate the slashing WordPress applies to $_POST on real requests.
 		$_POST = array(
@@ -159,6 +159,65 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 		$this->assertSame( "123 O'Malley St", $address->street() );
 
 		$_POST = $original_post;
+	}
+
+	/**
+	 * `from_post_request` unslashes exactly once.
+	 *
+	 * `wp_unslash()` is `stripslashes_deep()` and is not idempotent, so a second pass
+	 * would consume a backslash that is genuinely part of the value. A street entered
+	 * as `A\B` arrives slashed as `A\\B`; one pass restores `A\B`, two passes destroy
+	 * it to `AB`. Pins that only the superglobal is unslashed, not each field again.
+	 */
+	public function test_from_post_request_unslashes_only_once() {
+		$original_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Test fixture; nothing is processed, the superglobal is saved and restored.
+
+		// WP slashes a literal backslash, so `A\B` arrives as `A\\B`.
+		$_POST = array(
+			'country' => 'US',
+			'street'  => 'A\\\\B',
+		);
+
+		$address = Address::from_post_request();
+
+		$this->assertSame( 'A\\B', $address->street() );
+
+		$_POST = $original_post;
+	}
+
+	/**
+	 * The `$post` override is a test seam and is never slashed, so it is not unslashed.
+	 *
+	 * Unslashing it would silently corrupt any caller that passes an already-clean
+	 * array containing a backslash.
+	 */
+	public function test_from_post_request_does_not_unslash_the_override() {
+		$address = Address::from_post_request(
+			array(
+				'country' => 'US',
+				'street'  => 'A\\B',
+			)
+		);
+
+		$this->assertSame( 'A\\B', $address->street() );
+	}
+
+	/**
+	 * An array-valued field (e.g. a crafted `city[]=x`) is treated as empty.
+	 *
+	 * Without the scalar guard it would cast to the literal string "Array" with a
+	 * PHP warning, and reach the TaxJar body and the tax rate city column.
+	 */
+	public function test_from_post_request_ignores_array_valued_fields() {
+		$address = Address::from_post_request(
+			array(
+				'country' => 'US',
+				'city'    => array( 'Homestead' ),
+			)
+		);
+
+		$this->assertSame( 'US', $address->country() );
+		$this->assertSame( '', $address->city() );
 	}
 
 	/**
@@ -650,6 +709,25 @@ class WP_Test_WCServices_Tax_Address extends WC_Unit_Test_Case {
 		$this->assertSame( 'FL', $legacy['to_state'] );
 		$this->assertFalse( $legacy['to_zip'] );
 		$this->assertFalse( $legacy['to_city'] );
+		$this->assertFalse( $legacy['to_street'] );
+	}
+
+	/**
+	 * `to_legacy_options` preserves a literal '0', unlike the legacy `! empty()`
+	 * check, which collapsed it to `false`. Only the empty string maps to `false`.
+	 */
+	public function test_to_legacy_options_preserves_literal_zero() {
+		$address = Address::from_options(
+			array(
+				'to_zip'  => '0',
+				'to_city' => '0',
+			)
+		);
+
+		$legacy = $address->to_legacy_options( 'to_' );
+
+		$this->assertSame( '0', $legacy['to_zip'] );
+		$this->assertSame( '0', $legacy['to_city'] );
 		$this->assertFalse( $legacy['to_street'] );
 	}
 
