@@ -182,11 +182,14 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertNotEmpty( $line_items );
 		$this->assertCount( 1, $line_items );
 
+		// Line items are keyed by cart item key, so take the first value.
+		$first_item = reset( $line_items );
+
 		// Assert tax_location key exists.
-		$this->assertArrayHasKey( 'tax_location', $line_items[0] );
+		$this->assertArrayHasKey( 'tax_location', $first_item );
 
 		// Default should be 'shipping' (the WooCommerce default).
-		$this->assertEquals( 'shipping', $line_items[0]['tax_location'] );
+		$this->assertEquals( 'shipping', $first_item['tax_location'] );
 	}
 
 	/**
@@ -207,7 +210,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
 
 		// Assert tax_location uses billing.
-		$this->assertEquals( 'billing', $line_items[0]['tax_location'] );
+		$first_item = reset( $line_items );
+		$this->assertEquals( 'billing', $first_item['tax_location'] );
 
 		// Clean up option.
 		delete_option( 'woocommerce_tax_based_on' );
@@ -238,7 +242,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
 
 		// Assert filter overrode the location.
-		$this->assertEquals( 'base', $line_items[0]['tax_location'] );
+		$first_item = reset( $line_items );
+		$this->assertEquals( 'base', $first_item['tax_location'] );
 	}
 
 	/**
@@ -313,7 +318,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// Assert we have 2 line items.
 		$this->assertCount( 2, $line_items );
 
-		// Find items by product ID (they're in format "product_id-cart_key").
+		// Find items by product ID (they're in format "product_id-fingerprint-occurrence").
 		$item_a = null;
 		$item_b = null;
 		foreach ( $line_items as $item ) {
@@ -428,7 +433,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// Assert structure.
 		$this->assertCount( 1, $line_items );
 
-		$item = $line_items[0];
+		$item = reset( $line_items );
 		$this->assertArrayHasKey( 'id', $item );
 		$this->assertArrayHasKey( 'quantity', $item );
 		$this->assertArrayHasKey( 'product_tax_code', $item );
@@ -3857,9 +3862,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$recorded   = $this->get_private_property( 'non_taxable_line_items' );
 
 		$this->assertCount( 1, $line_items );
+
+		// get_line_items() keys by cart item key, not position.
+		$line_item = reset( $line_items );
+
 		$this->assertNotSame(
 			'99999',
-			$line_items[0]['product_tax_code'],
+			$line_item['product_tax_code'],
 			'The cart path excludes "Shipping only" from the exempt branch, so it is sent to TaxJar as taxable.'
 		);
 		$this->assertSame(
@@ -3892,15 +3901,19 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$recorded   = $this->get_private_property( 'non_taxable_line_items' );
 
 		$this->assertCount( 1, $line_items );
+
+		// get_line_items() keys by cart item key, not position.
+		$line_item = reset( $line_items );
+
 		$this->assertSame(
 			'99999',
-			$line_items[0]['product_tax_code'],
+			$line_item['product_tax_code'],
 			'A "None" product is still emitted as exempt on the cart path.'
 		);
 		$this->assertArrayHasKey(
-			$line_items[0]['id'],
+			$line_item['id'],
 			$recorded,
-			'A line emitted as exempt must stay recorded, or its 0% rate overwrites the shared Standard row.'
+			'A line emitted as exempt must stay recorded under its canonical id, or its 0% rate overwrites the shared Standard row.'
 		);
 
 		WC()->cart->empty_cart();
@@ -3926,9 +3939,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$line_items = $this->invoke_protected_method( 'get_backend_line_items', array( $order ) );
 
 		$this->assertCount( 1, $line_items );
+
+		// get_backend_line_items() keys by order item ID, not position.
+		$line_item = reset( $line_items );
+
 		$this->assertSame(
 			'99999',
-			$line_items[0]['product_tax_code'],
+			$line_item['product_tax_code'],
 			'A "Shipping only" product must be sent to TaxJar as exempt on the backend order path.'
 		);
 
@@ -4001,5 +4018,466 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$order->delete( true );
 		WC_Helper_Product::delete_product( $taxable_id );
 		WC_Helper_Product::delete_product( $shipping_only_id );
+	}
+
+	/**
+	 * The cart path must key its return value by cart item key.
+	 *
+	 * calculate_totals() looks the canonical ID up by cart item key to decide which
+	 * products to mark non-taxable, so this is a contract, not an implementation
+	 * detail. Regression for WOOTAX-258.
+	 */
+	public function test_get_line_items_is_keyed_by_cart_item_key() {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_regular_price( '10.00' );
+		$product->save();
+
+		$cart_item_key = WC()->cart->add_to_cart( $product->get_id(), 2 );
+		WC()->cart->calculate_totals();
+
+		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+
+		$this->assertArrayHasKey( $cart_item_key, $line_items );
+		$this->assertNotEquals( $cart_item_key, $line_items[ $cart_item_key ]['id'], 'The id must be the canonical TaxJar id, not the cart item key.' );
+	}
+
+	/**
+	 * The same basket must produce the same TaxJar line item id whether it was built
+	 * from the cart or from a saved order.
+	 *
+	 * This is the substance of WOOTAX-258: the cart path used to emit
+	 * "<product>-<cart item key>" and the order path "<product>-<order item id>", so
+	 * the two request bodies never hashed alike and the admin order-save path always
+	 * missed the transient cache written at checkout.
+	 */
+	public function test_canonical_line_item_id_matches_across_cart_and_order_paths() {
+		// Taxes must be on: the cart path routes the tax code through is_taxable(),
+		// which is false whenever taxes are globally disabled, while the order path
+		// reads get_tax_status() directly. With taxes off the two paths disagree on
+		// product_tax_code — but TaxJar is never called then either.
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_regular_price( '10.00' );
+		$product->save();
+
+		WC()->cart->add_to_cart( $product->get_id(), 2 );
+		WC()->cart->calculate_totals();
+		$cart_line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+
+		$order = new WC_Order();
+		$item  = new WC_Order_Item_Product();
+		$item->set_product( $product );
+		$item->set_quantity( 2 );
+		$item->set_subtotal( 20 );
+		$item->set_total( 20 );
+		$order->add_item( $item );
+		$order->save();
+
+		$order_line_items = $this->invoke_protected_method( 'get_backend_line_items', array( $order ) );
+
+		$cart_item  = reset( $cart_line_items );
+		$order_item = reset( $order_line_items );
+
+		$this->assertNotFalse( $cart_item );
+		$this->assertNotFalse( $order_item );
+		$this->assertSame(
+			$cart_item['id'],
+			$order_item['id'],
+			'Cart and order paths produced different TaxJar line item ids for the same product, quantity and price — the order path will always miss the cache.'
+		);
+
+		delete_option( 'woocommerce_calc_taxes' );
+	}
+
+	/**
+	 * Two order lines that are identical in every tax-relevant respect must still
+	 * receive distinct ids, or the second silently overwrites the first in the
+	 * response map and loses its rate.
+	 */
+	public function test_canonical_line_item_id_distinguishes_identical_lines() {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_regular_price( '10.00' );
+		$product->save();
+
+		$order = new WC_Order();
+		foreach ( array( 1, 2 ) as $unused ) {
+			$item = new WC_Order_Item_Product();
+			$item->set_product( $product );
+			$item->set_quantity( 1 );
+			$item->set_subtotal( 10 );
+			$item->set_total( 10 );
+			$order->add_item( $item );
+		}
+		$order->save();
+
+		$line_items = $this->invoke_protected_method( 'get_backend_line_items', array( $order ) );
+		$ids        = wp_list_pluck( $line_items, 'id' );
+
+		$this->assertCount( 2, $ids );
+		$this->assertCount( 2, array_unique( $ids ), 'Two identical order lines collapsed onto one TaxJar line item id.' );
+	}
+
+	/**
+	 * get_itemized_tax_rates() recovers the product with explode( '-', $key )[0], and
+	 * override_cart_item_tax_rates() matches on the "<product_id>-" prefix, so the
+	 * product ID has to stay the first segment of the canonical id.
+	 */
+	public function test_canonical_line_item_id_keeps_product_id_prefix() {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_regular_price( '10.00' );
+		$product->save();
+
+		WC()->cart->add_to_cart( $product->get_id(), 1 );
+		WC()->cart->calculate_totals();
+
+		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+		$item       = reset( $line_items );
+		$chunks     = explode( '-', $item['id'] );
+
+		$this->assertEquals( $product->get_id(), $chunks[0] );
+		$this->assertSame( 0, strpos( $item['id'], $product->get_id() . '-' ) );
+	}
+
+	/**
+	 * Build a representative TaxJar request body for cache-signature tests.
+	 *
+	 * @param array $overrides Values to replace.
+	 *
+	 * @return string Encoded body.
+	 */
+	private function get_taxjar_request_body( $overrides = array() ) {
+		$body = array_merge(
+			array(
+				'from_country' => 'US',
+				'from_state'   => 'CA',
+				'from_zip'     => '90210',
+				'from_city'    => 'Beverly Hills',
+				'from_street'  => '1 Main St',
+				'to_country'   => 'US',
+				'to_state'     => 'CA',
+				'to_zip'       => '90210',
+				'to_city'      => 'Beverly Hills',
+				'to_street'    => '2 Other St',
+				'shipping'     => '5.00',
+				'plugin'       => 'woo',
+				'line_items'   => array(
+					array(
+						'id'               => '42-abc123def456-0',
+						'quantity'         => 2,
+						'product_tax_code' => '',
+						'unit_price'       => '10.00',
+						'discount'         => '0',
+						'tax_location'     => 'shipping',
+					),
+				),
+			),
+			$overrides
+		);
+
+		return wp_json_encode( $body );
+	}
+
+	/**
+	 * Case and whitespace differences in the address must not split the cache.
+	 *
+	 * Raised by Sam Najian on WOOTAX-258: the key was an md5 of the raw JSON, so
+	 * "Beverly Hills" and "beverly hills" were two entries for one answer.
+	 */
+	public function test_cache_signature_ignores_address_case_and_whitespace() {
+		$baseline_body = $this->get_taxjar_request_body();
+		$variant_body  = $this->get_taxjar_request_body(
+			array(
+				'to_city'   => ' beverly  hills ',
+				'to_street' => '2 other st',
+			)
+		);
+
+		// Baseline: these bodies are not byte-identical, so hashing the raw JSON —
+		// what the plugin did before — produced two cache entries.
+		$this->assertNotSame( $baseline_body, $variant_body );
+
+		$baseline = $this->invoke_protected_method( 'get_cache_signature', array( $baseline_body ) );
+		$variant  = $this->invoke_protected_method( 'get_cache_signature', array( $variant_body ) );
+
+		$this->assertSame( $baseline, $variant );
+	}
+
+	/**
+	 * Amounts reach the body as wc_format_decimal() strings of varying precision, so
+	 * the same money must not hash differently.
+	 */
+	public function test_cache_signature_ignores_amount_formatting() {
+		$baseline_body = $this->get_taxjar_request_body();
+		$variant_body  = $this->get_taxjar_request_body(
+			array(
+				'shipping'   => 5,
+				'line_items' => array(
+					array(
+						'id'               => '42-abc123def456-0',
+						'quantity'         => '2',
+						'product_tax_code' => '',
+						'unit_price'       => 10,
+						'discount'         => '0.000',
+						'tax_location'     => 'shipping',
+					),
+				),
+			)
+		);
+
+		// Baseline: byte-different, so the raw-JSON key missed.
+		$this->assertNotSame( $baseline_body, $variant_body );
+
+		$baseline = $this->invoke_protected_method( 'get_cache_signature', array( $baseline_body ) );
+		$variant  = $this->invoke_protected_method( 'get_cache_signature', array( $variant_body ) );
+
+		$this->assertSame( $baseline, $variant );
+	}
+
+	/**
+	 * Line item order carries no meaning, and the cart and order paths do not
+	 * necessarily iterate in the same order.
+	 */
+	public function test_cache_signature_ignores_line_item_order() {
+		$first  = array(
+			'id'               => '42-aaaaaaaaaaaa-0',
+			'quantity'         => 1,
+			'product_tax_code' => '',
+			'unit_price'       => '10.00',
+			'discount'         => '0',
+			'tax_location'     => 'shipping',
+		);
+		$second = array(
+			'id'               => '43-bbbbbbbbbbbb-0',
+			'quantity'         => 1,
+			'product_tax_code' => '',
+			'unit_price'       => '20.00',
+			'discount'         => '0',
+			'tax_location'     => 'shipping',
+		);
+
+		$baseline_body = $this->get_taxjar_request_body( array( 'line_items' => array( $first, $second ) ) );
+		$reversed_body = $this->get_taxjar_request_body( array( 'line_items' => array( $second, $first ) ) );
+
+		// Baseline: byte-different, so the raw-JSON key missed.
+		$this->assertNotSame( $baseline_body, $reversed_body );
+
+		$baseline = $this->invoke_protected_method( 'get_cache_signature', array( $baseline_body ) );
+		$reversed = $this->invoke_protected_method( 'get_cache_signature', array( $reversed_body ) );
+
+		$this->assertSame( $baseline, $reversed );
+	}
+
+	/**
+	 * A leading-zero ZIP must never be treated as a number — "01234" and "1234" are
+	 * different places and must not share a cached tax response.
+	 */
+	public function test_cache_signature_preserves_leading_zero_zip() {
+		$padded = $this->invoke_protected_method( 'get_cache_signature', array( $this->get_taxjar_request_body( array( 'to_zip' => '01234' ) ) ) );
+		$bare   = $this->invoke_protected_method( 'get_cache_signature', array( $this->get_taxjar_request_body( array( 'to_zip' => '1234' ) ) ) );
+
+		$this->assertNotSame( $padded, $bare );
+	}
+
+	/**
+	 * Normalization must not become over-collapsing: anything that can change the
+	 * tax owed still has to produce a fresh API call.
+	 *
+	 * @dataProvider provide_cache_signature_distinguishing_changes
+	 *
+	 * @param array $overrides Body values that differ from the baseline.
+	 */
+	public function test_cache_signature_changes_when_tax_relevant_input_changes( $overrides ) {
+		$baseline = $this->invoke_protected_method( 'get_cache_signature', array( $this->get_taxjar_request_body() ) );
+		$variant  = $this->invoke_protected_method( 'get_cache_signature', array( $this->get_taxjar_request_body( $overrides ) ) );
+
+		$this->assertNotSame( $baseline, $variant );
+	}
+
+	/**
+	 * Body changes that must each invalidate the cache.
+	 *
+	 * @return array
+	 */
+	public function provide_cache_signature_distinguishing_changes() {
+		$line_item = array(
+			'id'               => '42-abc123def456-0',
+			'quantity'         => 2,
+			'product_tax_code' => '',
+			'unit_price'       => '10.00',
+			'discount'         => '0',
+			'tax_location'     => 'shipping',
+		);
+
+		return array(
+			'destination zip'   => array( array( 'to_zip' => '10001' ) ),
+			'destination state' => array( array( 'to_state' => 'NY' ) ),
+			'origin zip'        => array( array( 'from_zip' => '10001' ) ),
+			'shipping amount'   => array( array( 'shipping' => '7.00' ) ),
+			'quantity'          => array( array( 'line_items' => array( array_merge( $line_item, array( 'quantity' => 3 ) ) ) ) ),
+			'unit price'        => array( array( 'line_items' => array( array_merge( $line_item, array( 'unit_price' => '11.00' ) ) ) ) ),
+			'discount'          => array( array( 'line_items' => array( array_merge( $line_item, array( 'discount' => '2.00' ) ) ) ) ),
+			'tax code'          => array( array( 'line_items' => array( array_merge( $line_item, array( 'product_tax_code' => '99999' ) ) ) ) ),
+			'tax location'      => array( array( 'line_items' => array( array_merge( $line_item, array( 'tax_location' => 'base' ) ) ) ) ),
+			'extra line item'   => array( array( 'line_items' => array( $line_item, array_merge( $line_item, array( 'id' => '43-bbbbbbbbbbbb-0' ) ) ) ) ),
+		);
+	}
+
+	/**
+	 * A body that will not decode must fall back to hashing the raw string rather
+	 * than collapsing every malformed request onto one cache entry.
+	 */
+	public function test_cache_signature_falls_back_for_undecodable_body() {
+		$signature = $this->invoke_protected_method( 'get_cache_signature', array( 'not json' ) );
+		$other     = $this->invoke_protected_method( 'get_cache_signature', array( 'also not json' ) );
+
+		$this->assertSame( 'not json', $signature );
+		$this->assertNotSame( $signature, $other );
+	}
+
+	// -------------------------------------------------------------------------
+	// Encoded request body and cache-hit tests
+	// -------------------------------------------------------------------------
+
+	/**
+	 * calculate_backend_totals() hands calculate_tax() the order-item-ID-keyed map
+	 * from get_backend_line_items() without re-indexing it, so array_values() in
+	 * calculate_tax() is the only thing keeping 'line_items' a JSON array. A
+	 * string-keyed PHP array encodes as a JSON object, which TaxJar would reject —
+	 * silently, on every admin-side request.
+	 */
+	public function test_calculate_tax_encodes_keyed_line_items_as_json_list() {
+		$captured = null;
+
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'smartcalcs_cache_request', 'get_store_settings', '_log' ) )
+			->getMock();
+
+		// Same state as the destination below, so the cross-state guard does not return early.
+		$integration->method( 'get_store_settings' )->willReturn(
+			array(
+				'country'  => 'US',
+				'state'    => 'CA',
+				'postcode' => '94110',
+				'city'     => 'San Francisco',
+				'street'   => '1 Main St',
+			)
+		);
+
+		$integration->method( 'smartcalcs_cache_request' )->willReturnCallback(
+			function ( $json ) use ( &$captured ) {
+				$captured = $json;
+				// The encoded body is all this test needs; bail before any HTTP work.
+				return false;
+			}
+		);
+
+		WC()->customer->set_is_vat_exempt( false );
+
+		$integration->calculate_tax(
+			array(
+				'to_country'      => 'US',
+				'to_state'        => 'CA',
+				'to_zip'          => '94110',
+				'to_city'         => 'San Francisco',
+				'to_street'       => '2 Other St',
+				'shipping_amount' => 0,
+				// Keyed by order item ID, exactly as get_backend_line_items() returns it.
+				'line_items'      => array(
+					'12' => array(
+						'id'         => '42-abc123def456-0',
+						'quantity'   => 1,
+						'unit_price' => '25.00',
+					),
+					'34' => array(
+						'id'         => '43-bbbbbbbbbbbb-0',
+						'quantity'   => 2,
+						'unit_price' => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertNotNull( $captured, 'calculate_tax() returned before encoding a request body.' );
+
+		$decoded = json_decode( $captured, true );
+
+		$this->assertArrayHasKey( 'line_items', $decoded );
+		// A JSON object would decode to keys '12' and '34' instead.
+		$this->assertSame( array( 0, 1 ), array_keys( $decoded['line_items'] ) );
+		$this->assertSame( '42-abc123def456-0', $decoded['line_items'][0]['id'] );
+		$this->assertSame( '43-bbbbbbbbbbbb-0', $decoded['line_items'][1]['id'] );
+		// Assert on the raw JSON too, since json_decode() hides the array/object distinction.
+		$this->assertStringContainsString( '"line_items":[{', $captured );
+	}
+
+	/**
+	 * The point of the canonical signature: two bodies that differ only in
+	 * formatting must share one cache entry, so the second request never reaches
+	 * the API. Exercises smartcalcs_cache_request() end to end rather than
+	 * comparing get_cache_signature() outputs in isolation.
+	 */
+	public function test_smartcalcs_cache_request_serves_equivalent_bodies_from_one_entry() {
+		$call_count = 0;
+
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )
+			->disableOriginalConstructor()
+			->getMock();
+
+		// Real notifier: clear_notices() is static (so it cannot be stubbed) and is a
+		// no-op without a WC session, which the unit-test context does not set up.
+		$notifier = new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false );
+
+		// Real constructor, so cache_time is populated and the transient is written with it.
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->setConstructorArgs( array( $api_client, $logger, 'https://example.com', $tracks, $notifier ) )
+			->onlyMethods( array( 'smartcalcs_request' ) )
+			->getMock();
+
+		$api_response = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( array( 'tax' => array( 'amount_to_collect' => 2.5 ) ) ),
+		);
+
+		$integration->method( 'smartcalcs_request' )->willReturnCallback(
+			function () use ( &$call_count, $api_response ) {
+				++$call_count;
+				return $api_response;
+			}
+		);
+
+		$baseline = $this->get_taxjar_request_body();
+		$variant  = $this->get_taxjar_request_body(
+			array(
+				'to_city'  => '  beverly   hills ',
+				'shipping' => '5',
+			)
+		);
+
+		// Documents the pre-fix baseline: without canonicalization these are two cache entries.
+		$this->assertNotSame( $baseline, $variant, 'The two bodies must differ byte-wise or this test proves nothing.' );
+
+		// from_state 'CA' skips the California nexus check on both the fresh and cached path.
+		$first  = $integration->smartcalcs_cache_request( $baseline, 'CA' );
+		$second = $integration->smartcalcs_cache_request( $variant, 'CA' );
+
+		$this->assertSame( 1, $call_count, 'The equivalent second body should have been served from the cache.' );
+		$this->assertEquals( $api_response, $first );
+		$this->assertEquals( $api_response, $second );
+
+		// The hit must come from the signature key, not the zip/state key — that one
+		// only ever caches 400 zip-to-state mismatches and would mask a broken signature.
+		$signature = $this->invoke_protected_method( 'get_cache_signature', array( $baseline ) );
+		$this->assertEquals( $api_response, get_transient( 'tj_tax_' . hash( 'md5', $signature ) ) );
+		$this->assertFalse( get_transient( 'tj_tax_90210_ca' ) );
 	}
 }

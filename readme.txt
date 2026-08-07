@@ -84,6 +84,7 @@ This plugin relies on the following external services:
 * Fix   - Calculate tax correctly for carts mixing taxable and non-taxable products, so a non-taxable product no longer resets the standard tax rate to zero.
 * Tweak - Centralize TaxJar address handling in an internal value object. No change to tax calculation.
 * Tweak - Store tax rate rows against the postcode the rate was quoted for when the address postcode holds more than one comma-separated value.
+* Tweak - Reduce redundant TaxJar API calls by matching cached tax responses across the cart and order paths and ignoring irrelevant formatting differences.
 
 = 3.6.11 - 2026-08-05 =
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.

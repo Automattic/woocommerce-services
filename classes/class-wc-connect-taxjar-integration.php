@@ -617,9 +617,11 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		foreach ( $wc_cart_object->get_cart() as $cart_item_key => $cart_item ) {
-			$product       = $cart_item['data'];
-			$line_item_key = $product->get_id() . '-' . $cart_item_key;
-			if ( isset( $taxes['line_items'][ $line_item_key ] ) && ! $taxes['line_items'][ $line_item_key ]->combined_tax_rate ) {
+			$product = $cart_item['data'];
+			// get_line_items() keys by cart item key and stores the canonical TaxJar ID
+			// under 'id'; the response is keyed by that canonical ID.
+			$line_item_key = $line_items[ $cart_item_key ]['id'] ?? null;
+			if ( null !== $line_item_key && isset( $taxes['line_items'][ $line_item_key ] ) && ! $taxes['line_items'][ $line_item_key ]->combined_tax_rate ) {
 				if ( method_exists( $product, 'set_tax_status' ) ) {
 					$product->set_tax_status( 'none' ); // Woo 3.0+
 				} else {
@@ -680,9 +682,10 @@ class WC_Connect_TaxJar_Integration {
 			 * @var WC_Order_Item_Product $item Product Order Item.
 			 */
 			foreach ( $order->get_items() as $item_key => $item ) {
-				$product_id    = $item->get_product_id();
-				$line_item_key = $product_id . '-' . $item_key;
-				if ( isset( $taxes['rate_ids'][ $line_item_key ] ) ) {
+				// get_backend_line_items() keys by order item ID and stores the canonical
+				// TaxJar ID under 'id'; the response is keyed by that canonical ID.
+				$line_item_key = $line_items[ $item_key ]['id'] ?? null;
+				if ( null !== $line_item_key && isset( $taxes['rate_ids'][ $line_item_key ] ) ) {
 					$rate_id  = $taxes['rate_ids'][ $line_item_key ];
 					$item_tax = new WC_Order_Item_Tax();
 					$item_tax->set_rate( $rate_id );
@@ -967,10 +970,13 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Get line items at checkout
 	 *
-	 * Unchanged from the TaxJar plugin.
+	 * Based on the TaxJar plugin, with canonical line item IDs added.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L645
 	 *
-	 * @return array
+	 * @param WC_Cart $wc_cart_object Cart object.
+	 *
+	 * @return array Line items keyed by cart item key. Each item's 'id' is the
+	 *               canonical TaxJar line item ID, not the cart item key.
 	 */
 	protected function get_line_items( $wc_cart_object ) {
 		$line_items                   = array();
@@ -1049,18 +1055,28 @@ class WC_Connect_TaxJar_Integration {
 				$this->_log( 'Tax location override for product ' . $id . ': ' . $default_location . ' -> ' . $tax_location );
 			}
 
-			array_push(
-				$line_items,
-				array(
-					'id'               => $id . '-' . $cart_item_key,
-					'quantity'         => $quantity,
-					'product_tax_code' => $tax_code,
-					'unit_price'       => $unit_price,
-					'discount'         => $discount,
-					'tax_location'     => $tax_location,
-				)
+			$line_items[ $cart_item_key ] = array(
+				'id'               => $id,
+				'quantity'         => $quantity,
+				'product_tax_code' => $tax_code,
+				'unit_price'       => $unit_price,
+				'discount'         => $discount,
+				'tax_location'     => $tax_location,
 			);
 		}
+
+		$line_items = $this->assign_canonical_line_item_ids( $line_items );
+
+		// The exempt record was keyed while ids were still context-specific; move it onto
+		// the canonical ids, which is what get_itemized_tax_rates() looks up.
+		$non_taxable = array();
+		foreach ( array_keys( $this->non_taxable_line_items ) as $legacy_key ) {
+			$item_key = substr( $legacy_key, (int) strpos( $legacy_key, '-' ) + 1 );
+			if ( isset( $line_items[ $item_key ] ) ) {
+				$non_taxable[ $line_items[ $item_key ]['id'] ] = true;
+			}
+		}
+		$this->non_taxable_line_items = $non_taxable;
 
 		return $line_items;
 	}
@@ -1068,10 +1084,13 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Get line items for backend orders
 	 *
-	 * Unchanged from the TaxJar plugin.
+	 * Based on the TaxJar plugin, with canonical line item IDs added.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L695
 	 *
-	 * @return array
+	 * @param WC_Order $order Order object.
+	 *
+	 * @return array Line items keyed by order item ID. Each item's 'id' is the
+	 *               canonical TaxJar line item ID, not the order item ID.
 	 */
 	protected function get_backend_line_items( $order ) {
 		$line_items                   = array();
@@ -1120,19 +1139,30 @@ class WC_Connect_TaxJar_Integration {
 			}
 
 			if ( $unit_price ) {
-				array_push(
-					$line_items,
-					array(
-						'id'               => $id . '-' . $item_key,
-						'quantity'         => $quantity,
-						'product_tax_code' => $tax_code,
-						'unit_price'       => $unit_price,
-						'discount'         => $discount,
-						'tax_location'     => $tax_location,
-					)
+				$line_items[ $item_key ] = array(
+					'id'               => $id,
+					'quantity'         => $quantity,
+					'product_tax_code' => $tax_code,
+					'unit_price'       => $unit_price,
+					'discount'         => $discount,
+					'tax_location'     => $tax_location,
 				);
 			}
 		}
+
+		$line_items = $this->assign_canonical_line_item_ids( $line_items );
+
+		// The exempt record was keyed while ids were still context-specific; move it onto
+		// the canonical ids, which is what get_itemized_tax_rates() looks up.
+		$non_taxable = array();
+		foreach ( array_keys( $this->non_taxable_line_items ) as $legacy_key ) {
+			$item_key = substr( $legacy_key, (int) strpos( $legacy_key, '-' ) + 1 );
+			if ( isset( $line_items[ $item_key ] ) ) {
+				$non_taxable[ $line_items[ $item_key ]['id'] ] = true;
+			}
+		}
+		$this->non_taxable_line_items = $non_taxable;
+
 		return $line_items;
 	}
 
@@ -1143,6 +1173,195 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 		return null;
+	}
+
+	/**
+	 * Replace each line item's product ID with a canonical TaxJar line item ID.
+	 *
+	 * The cart path used to key line items by WooCommerce's cart item key and the
+	 * order path by the numeric order item ID, so the same basket produced two
+	 * different request bodies — and therefore two different cache keys — depending
+	 * on which path built it. TaxJar treats `id` as an opaque echo field, so the two
+	 * paths can agree on one value derived purely from the tax-relevant inputs:
+	 * product, tax code, quantity, unit price, discount and tax location.
+	 *
+	 * Format is `<product_id>-<fingerprint>-<occurrence>`. The product ID stays the
+	 * first `-` segment because `get_itemized_tax_rates()` recovers the product from
+	 * it, and `override_cart_item_tax_rates()` / `override_order_item_taxes()` match
+	 * on the `<product_id>-` prefix. The occurrence counter keeps two otherwise
+	 * identical lines — an order can legitimately hold the same product twice at the
+	 * same price — distinct, so neither loses its rate.
+	 *
+	 * @since 3.6.12
+	 *
+	 * @param array $line_items Line items whose 'id' is currently the bare product ID.
+	 *
+	 * @return array The same array with 'id' expanded to the canonical ID.
+	 */
+	private function assign_canonical_line_item_ids( array $line_items ): array {
+		$occurrences = array();
+
+		foreach ( $line_items as $key => $line_item ) {
+			$product_id = $line_item['id'];
+
+			$fingerprint = hash(
+				'md5',
+				(string) wp_json_encode(
+					array(
+						'product_id'       => (string) $product_id,
+						'product_tax_code' => $this->normalize_cache_string( $line_item['product_tax_code'] ),
+						'quantity'         => $this->normalize_cache_number( $line_item['quantity'] ),
+						'unit_price'       => $this->normalize_cache_number( $line_item['unit_price'] ),
+						'discount'         => $this->normalize_cache_number( $line_item['discount'] ),
+						'tax_location'     => $this->normalize_cache_string( $line_item['tax_location'] ),
+					)
+				)
+			);
+
+			$occurrences[ $fingerprint ] = isset( $occurrences[ $fingerprint ] ) ? $occurrences[ $fingerprint ] + 1 : 0;
+
+			$line_items[ $key ]['id'] = $product_id . '-' . substr( $fingerprint, 0, 12 ) . '-' . $occurrences[ $fingerprint ];
+		}
+
+		return $line_items;
+	}
+
+	/**
+	 * Normalize a string for cache-key purposes.
+	 *
+	 * Trims, collapses runs of whitespace and upper-cases, so that "beverly hills",
+	 * "Beverly  Hills" and "Beverly Hills " all hash the same. Used only to derive
+	 * cache keys and line item fingerprints — never to build the request sent to
+	 * TaxJar, which keeps the merchant's values verbatim.
+	 *
+	 * @since 3.6.12
+	 *
+	 * @param mixed $value Value to normalize.
+	 *
+	 * @return string
+	 */
+	private function normalize_cache_string( $value ): string {
+		if ( is_bool( $value ) ) {
+			$value = $value ? '1' : '0';
+		}
+
+		if ( ! is_scalar( $value ) && null !== $value ) {
+			return '';
+		}
+
+		$value = preg_replace( '/\s+/u', ' ', trim( (string) $value ) );
+
+		return function_exists( 'mb_strtoupper' ) ? mb_strtoupper( $value, 'UTF-8' ) : strtoupper( $value );
+	}
+
+	/**
+	 * Normalize a numeric value for cache-key purposes.
+	 *
+	 * Amounts reach the request body as `wc_format_decimal()` strings with varying
+	 * precision, so 5, "5" and "5.00" are the same money but three different bytes.
+	 * Collapses them to one representation. Non-numeric input is left to
+	 * normalize_cache_string() so a value that is not really a number cannot be
+	 * silently reinterpreted — notably ZIP codes, where "01234" must never become
+	 * "1234".
+	 *
+	 * @since 3.6.12
+	 *
+	 * @param mixed $value Value to normalize.
+	 *
+	 * @return string
+	 */
+	private function normalize_cache_number( $value ): string {
+		if ( ! is_numeric( $value ) ) {
+			return $this->normalize_cache_string( $value );
+		}
+
+		$normalized = number_format( (float) $value, 6, '.', '' );
+
+		if ( false !== strpos( $normalized, '.' ) ) {
+			$normalized = rtrim( rtrim( $normalized, '0' ), '.' );
+		}
+
+		// rtrim() eats the whole string for 0.000000, and -0 is still 0.
+		if ( '' === $normalized || '-' === $normalized || '-0' === $normalized ) {
+			$normalized = '0';
+		}
+
+		return $normalized;
+	}
+
+	/**
+	 * Build the cache signature for a TaxJar request body.
+	 *
+	 * Hashing the raw JSON makes the cache byte-sensitive: a differently-cased city,
+	 * a stray double space in a street address or "5" versus "5.00" for the same
+	 * price all miss a cache entry that would have answered correctly. This projects
+	 * the body onto a canonical form first — whitespace and case folded, amounts
+	 * given one representation, key order fixed, line items sorted — so equivalent
+	 * requests share one entry.
+	 *
+	 * Only the cache key is derived from this. The body sent to TaxJar is untouched.
+	 *
+	 * @since 3.6.12
+	 *
+	 * @param string $json Encoded TaxJar request body.
+	 *
+	 * @return string Canonical signature, or the input unchanged if it will not decode.
+	 */
+	private function get_cache_signature( $json ): string {
+		$body = json_decode( (string) $json, true );
+
+		if ( ! is_array( $body ) ) {
+			return (string) $json;
+		}
+
+		return (string) wp_json_encode( $this->canonicalize_cache_payload( $body ) );
+	}
+
+	/**
+	 * Recursively canonicalize a request body for cache-key derivation.
+	 *
+	 * Numeric normalization is applied by field name rather than by looking at the
+	 * value, because several address fields hold digit-only strings that must keep
+	 * their exact form (a leading-zero ZIP above all).
+	 *
+	 * @since 3.6.12
+	 *
+	 * @param mixed  $value Value to canonicalize.
+	 * @param string $key   Key the value was found under.
+	 *
+	 * @return mixed
+	 */
+	private function canonicalize_cache_payload( $value, $key = '' ) {
+		$numeric_fields = array( 'amount', 'shipping', 'quantity', 'unit_price', 'discount' );
+
+		if ( is_array( $value ) ) {
+			$canonical = array();
+
+			foreach ( $value as $child_key => $child_value ) {
+				$canonical[ $child_key ] = $this->canonicalize_cache_payload( $child_value, (string) $child_key );
+			}
+
+			if ( wp_is_numeric_array( $canonical ) ) {
+				// Lists (line items, nexus addresses) carry no meaning in their order,
+				// so sort them to keep the signature independent of how they were built.
+				usort(
+					$canonical,
+					function ( $first, $second ) {
+						return strcmp( (string) wp_json_encode( $first ), (string) wp_json_encode( $second ) );
+					}
+				);
+			} else {
+				ksort( $canonical );
+			}
+
+			return $canonical;
+		}
+
+		if ( in_array( $key, $numeric_fields, true ) ) {
+			return $this->normalize_cache_number( $value );
+		}
+
+		return $this->normalize_cache_string( $value );
 	}
 
 	/**
@@ -1173,7 +1392,7 @@ class WC_Connect_TaxJar_Integration {
 		$product_id = $product->get_id();
 
 		// Find the matching line_item_key in response_rate_ids.
-		// Format is "product_id-cart_item_key". The trailing "-" delimiter prevents
+		// Format is "product_id-fingerprint-occurrence". The trailing "-" delimiter prevents
 		// false prefix matches (e.g. product ID 1 won't match "10-xyz" because "1-" != "10").
 		// First-match-wins is safe: if the same product ID appears multiple times (e.g.
 		// two bookings), they share the same tax_location and thus the same tax rates.
@@ -1240,7 +1459,7 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		// Find matching rate_ids by product_id prefix (format: "product_id-cart_item_key").
+		// Find matching rate_ids by product_id prefix (format: "product_id-fingerprint-occurrence").
 		// The trailing "-" delimiter prevents false prefix matches between IDs (e.g. 1 vs 10).
 		// First-match-wins is safe: same product always shares the same tax_location and rates.
 		$matching_rate_ids = null;
@@ -1709,7 +1928,9 @@ class WC_Connect_TaxJar_Integration {
 		if ( empty( $line_items ) ) {
 			$body['amount'] = 0.01;
 		} else {
-			$body['line_items'] = $line_items;
+			// Line items arrive keyed by cart item key / order item ID; TaxJar expects a
+			// JSON array, and a string-keyed PHP array would encode as an object.
+			$body['line_items'] = array_values( $line_items );
 		}
 
 		$response = $this->smartcalcs_cache_request( wp_json_encode( $body ), $from_state );
@@ -2113,7 +2334,8 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Wrap SmartCalcs API requests in a transient-based caching layer.
 	 *
-	 * Unchanged from the TaxJar plugin.
+	 * Based on the TaxJar plugin. The cache key is derived from a canonical
+	 * projection of the body rather than its raw bytes — see get_cache_signature().
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L451
 	 *
 	 * @param $json
@@ -2122,7 +2344,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @return mixed|WP_Error
 	 */
 	public function smartcalcs_cache_request( $json, $from_state ) {
-		$cache_key           = 'tj_tax_' . hash( 'md5', $json );
+		$cache_key           = 'tj_tax_' . hash( 'md5', $this->get_cache_signature( $json ) );
 		$zip_state_cache_key = false;
 		$request             = json_decode( $json );
 		$to_zip              = isset( $request->to_zip ) ? (string) $request->to_zip : false;
