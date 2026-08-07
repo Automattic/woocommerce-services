@@ -81,6 +81,7 @@ This plugin relies on the following external services:
 * Fix   - Fall back to the store address when a custom nexus address is incomplete instead of abandoning the calculation.
 * Fix   - Prevent unbounded growth of WooCommerce tax rate rows when the customer state contains a character WooCommerce strips before storing it, such as a period or an accented letter.
 * Fix   - Restore tax rates on the price display, shipping tax and coupon paths for addresses whose state was stored in a normalized form.
+* Fix   - Calculate tax correctly for carts mixing taxable and non-taxable products, so a non-taxable product no longer resets the standard tax rate to zero.
 * Tweak - Centralize TaxJar address handling in an internal value object. No change to tax calculation.
 * Tweak - Store tax rate rows against the postcode the rate was quoted for when the address postcode holds more than one comma-separated value.
 
@@ -98,7 +99,6 @@ This plugin relies on the following external services:
 * Fix   - TaxJar tax lines wiped when REST API order update includes address change.
 * Fix   - Prevent fatal error on sites running WooCommerce versions without StoreApi support.
 * Fix   - Prevent unbounded growth of WooCommerce tax rate rows when checkout city contains a semicolon.
-* Fix   - Calculate tax correctly for carts mixing taxable and non-taxable products, so a non-taxable product no longer resets the standard tax rate to zero.
 
 = 3.6.7 - 2026-07-06 =
 * Fix   - Prevent fatal error on Atomic sites caused by incorrect path resolution when loading the API client class.
