@@ -85,6 +85,7 @@ This plugin relies on the following external services:
 * Tweak - Centralize TaxJar address handling in an internal value object. No change to tax calculation.
 * Tweak - Store tax rate rows against the postcode the rate was quoted for when the address postcode holds more than one comma-separated value.
 * Tweak - Reduce redundant TaxJar API calls by matching cached tax responses across the cart and order paths and ignoring irrelevant formatting differences.
+* Tweak - Stop registering a redundant copy of the continents REST endpoint on requests that cannot reach it.
 
 = 3.6.11 - 2026-08-05 =
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.

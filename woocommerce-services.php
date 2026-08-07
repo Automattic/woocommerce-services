@@ -1298,9 +1298,27 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Delete this when the "v3" REST API is included in all the WC versions we support.
 		 */
 		public function wc_api_dev_init() {
+			/*
+			 * Ask whether WooCommerce *provides* the endpoint, not whether it happens to be in the
+			 * route table for this request.
+			 *
+			 * Since WooCommerce 9.2 the wc/v3 namespace is registered lazily: Server::get_rest_namespaces()
+			 * consults wc_rest_should_load_namespace(), which returns false whenever the current request
+			 * targets a different known namespace (wc/store, wc-analytics, wc-admin, ...). On all of those
+			 * requests /wc/v3/data/continents is legitimately absent even though core supplies it, so
+			 * registering our bundled copy there is dead work: the request cannot dispatch to the route,
+			 * and route registrations do not outlive the request that made them.
+			 */
+			if ( class_exists( 'WC_REST_Data_Continents_Controller' ) ) {
+				return;
+			}
+
 			$rest_server     = rest_get_server();
 			$existing_routes = $rest_server->get_routes();
 			if ( ! isset( $existing_routes['/wc/v3/data/continents'] ) ) {
+				// The controller below constructs WC_Connect_Continents; keep the fallback self-contained
+				// rather than relying on load_dependencies() having already required it.
+				require_once __DIR__ . '/classes/class-wc-connect-continents.php';
 				require_once __DIR__ . '/classes/wc-api-dev/class-wc-rest-dev-data-controller.php';
 				require_once __DIR__ . '/classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php';
 				$continents = new WC_REST_Dev_Data_Continents_Controller();

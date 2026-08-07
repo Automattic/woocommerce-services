@@ -91,6 +91,81 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * The bundled wc-api-dev copy of /wc/v3/data/continents is a fallback for WooCommerce versions
+	 * that predate the endpoint. Core has shipped it since WC 3.5, so on any supported WooCommerce
+	 * the fallback must stay dormant.
+	 *
+	 * This is the regression guard for the lazy-namespace interaction: since WC 9.2 core skips
+	 * registering the whole wc/v3 namespace on requests aimed at another namespace, so the route
+	 * table alone cannot tell us whether core provides the endpoint.
+	 *
+	 * Declared before test_bundled_continents_controller_is_constructible(), which deliberately
+	 * loads the bundled class this test asserts is absent.
+	 *
+	 * @covers WC_Connect_Loader::wc_api_dev_init
+	 */
+	public function test_wc_api_dev_init_defers_to_core_continents_controller() {
+		global $wp, $wp_rest_server;
+
+		if ( ! function_exists( 'wc_rest_should_load_namespace' ) ) {
+			$this->markTestSkipped( 'This WooCommerce does not register REST namespaces lazily.' );
+		}
+
+		$this->assertTrue(
+			class_exists( 'WC_REST_Data_Continents_Controller' ),
+			'WooCommerce core is expected to provide WC_REST_Data_Continents_Controller.'
+		);
+
+		$original_server = $wp_rest_server;
+		$original_route  = isset( $wp->query_vars['rest_route'] ) ? $wp->query_vars['rest_route'] : null;
+
+		// Reproduce a Store API request: core then skips the whole wc/v3 namespace, so
+		// /wc/v3/data/continents is missing from the route table even though core provides it.
+		$wp->query_vars['rest_route'] = '/wc/store/v1/cart';
+		$wp_rest_server               = null;
+
+		try {
+			$this->assertArrayNotHasKey(
+				'/wc/v3/data/continents',
+				rest_get_server()->get_routes(),
+				'Expected WooCommerce to defer the wc/v3 namespace on a wc/store request.'
+			);
+
+			$this->mockLoader()->wc_api_dev_init();
+
+			$this->assertFalse(
+				class_exists( 'WC_REST_Dev_Data_Continents_Controller', false ),
+				'The bundled wc-api-dev continents controller must not be loaded when WooCommerce core provides its own.'
+			);
+		} finally {
+			$wp_rest_server = $original_server;
+
+			if ( null === $original_route ) {
+				unset( $wp->query_vars['rest_route'] );
+			} else {
+				$wp->query_vars['rest_route'] = $original_route;
+			}
+		}
+	}
+
+	/**
+	 * Pins the fix shipped in 2.5.1: the bundled controller used to call parent::__construct(),
+	 * but no class in its ancestry (WC_REST_Dev_Data_Controller, WC_REST_Controller,
+	 * WP_REST_Controller) declares a constructor, so that call raised
+	 * "Uncaught Error: Cannot call constructor" every time the fallback branch was reached.
+	 */
+	public function test_bundled_continents_controller_is_constructible() {
+
+		require_once __DIR__ . '/../../classes/class-wc-connect-continents.php';
+		require_once __DIR__ . '/../../classes/wc-api-dev/class-wc-rest-dev-data-controller.php';
+		require_once __DIR__ . '/../../classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php';
+
+		$controller = new WC_REST_Dev_Data_Continents_Controller();
+
+		$this->assertInstanceOf( 'WC_REST_Dev_Data_Continents_Controller', $controller );
+	}
+
+	/**
 	 * @covers WC_Connect_Loader::__construct
 	 */
 	public function test_init_hook_attached_in_constructor() {
