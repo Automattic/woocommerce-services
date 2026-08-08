@@ -4148,10 +4148,17 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * remember it. Forgetting it has already caused one silent regression: the map
 	 * stayed keyed by the pre-canonical id while `get_itemized_tax_rates()` looked up
 	 * the canonical one, so the non-taxable guard never fired and no test failed.
+	 *
+	 * Two exempt lines, not one, because the re-key accumulates: the assignment sits
+	 * inside an `isset()` guard, so with a single exempt line "add to the map" and
+	 * "replace the map" are indistinguishable and a suite of one-exempt-item fixtures
+	 * stays green either way. A cart with two exempt products would then leave only the
+	 * last one guarded, and the first one's 0% breakdown line would overwrite the shared
+	 * tax-class rate row — the exact WOOTAX-240 regression this seam exists to prevent.
 	 */
 	public function test_assign_canonical_line_item_ids_rekeys_non_taxable_map() {
 		$line_items = array(
-			'cart_key_exempt'  => array(
+			'cart_key_exempt'   => array(
 				'id'               => 101,
 				'product_tax_code' => '99999',
 				'quantity'         => 1,
@@ -4159,7 +4166,15 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 				'discount'         => '0.00',
 				'tax_location'     => 'shipping',
 			),
-			'cart_key_taxable' => array(
+			'cart_key_exempt_2' => array(
+				'id'               => 303,
+				'product_tax_code' => '99999',
+				'quantity'         => 1,
+				'unit_price'       => '30.00',
+				'discount'         => '0.00',
+				'tax_location'     => 'shipping',
+			),
+			'cart_key_taxable'  => array(
 				'id'               => 202,
 				'product_tax_code' => '',
 				'quantity'         => 1,
@@ -4170,15 +4185,24 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		);
 
 		// Keyed the way both callers record it: "<product_id>-<context-specific key>".
-		$this->set_private_property( 'non_taxable_line_items', array( '101-cart_key_exempt' => true ) );
+		$this->set_private_property(
+			'non_taxable_line_items',
+			array(
+				'101-cart_key_exempt'   => true,
+				'303-cart_key_exempt_2' => true,
+			)
+		);
 
 		$result   = $this->invoke_protected_method( 'assign_canonical_line_item_ids', array( $line_items ) );
 		$recorded = $this->get_private_property( 'non_taxable_line_items' );
 
 		$this->assertSame(
-			array( $result['cart_key_exempt']['id'] => true ),
+			array(
+				$result['cart_key_exempt']['id']   => true,
+				$result['cart_key_exempt_2']['id'] => true,
+			),
 			$recorded,
-			'The helper must leave the map keyed by canonical id, since that is what get_itemized_tax_rates() looks up.'
+			'Every exempt line must survive the re-key, accumulated onto its own canonical id — not just the last one.'
 		);
 		$this->assertArrayNotHasKey(
 			'101-cart_key_exempt',
