@@ -99,8 +99,9 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	 * registering the whole wc/v3 namespace on requests aimed at another namespace, so the route
 	 * table alone cannot tell us whether core provides the endpoint.
 	 *
-	 * Declared before test_bundled_continents_controller_is_constructible(), which deliberately
-	 * loads the bundled class this test asserts is absent.
+	 * Asserted against the route table rather than against class-load state: whether the bundled
+	 * class has been required is process-global and outlives whichever test loaded it, so it cannot
+	 * carry this contract under an arbitrary execution order.
 	 *
 	 * @covers WC_Connect_Loader::wc_api_dev_init
 	 */
@@ -133,9 +134,10 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 			$this->mockLoader()->wc_api_dev_init();
 
-			$this->assertFalse(
-				class_exists( 'WC_REST_Dev_Data_Continents_Controller', false ),
-				'The bundled wc-api-dev continents controller must not be loaded when WooCommerce core provides its own.'
+			$this->assertArrayNotHasKey(
+				'/wc/v3/data/continents',
+				rest_get_server()->get_routes(),
+				'The bundled wc-api-dev continents controller must not register a route when WooCommerce core provides its own.'
 			);
 		} finally {
 			$wp_rest_server = $original_server;
