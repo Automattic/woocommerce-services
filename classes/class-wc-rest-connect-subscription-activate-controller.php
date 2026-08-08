@@ -20,7 +20,7 @@ class WC_REST_Connect_Subscription_Activate_Controller extends WC_REST_Connect_B
 			return $response;
 		}
 
-		$activated = wp_remote_retrieve_response_code( $activation_response ) === 200;
+		$activated = wp_remote_retrieve_response_code( $response ) === 200;
 		$body      = json_decode( wp_remote_retrieve_body( $response ), true );
 		if ( ( ! $activated && ! empty( $body['code'] ) && 'already_connected' === $body['code'] ) ) {
 			return new WP_Error(
