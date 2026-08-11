@@ -1065,18 +1065,8 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 
+		// Re-keys $non_taxable_line_items onto the canonical ids as it goes.
 		$line_items = $this->assign_canonical_line_item_ids( $line_items );
-
-		// The exempt record was keyed while ids were still context-specific; move it onto
-		// the canonical ids, which is what get_itemized_tax_rates() looks up.
-		$non_taxable = array();
-		foreach ( array_keys( $this->non_taxable_line_items ) as $legacy_key ) {
-			$item_key = substr( $legacy_key, (int) strpos( $legacy_key, '-' ) + 1 );
-			if ( isset( $line_items[ $item_key ] ) ) {
-				$non_taxable[ $line_items[ $item_key ]['id'] ] = true;
-			}
-		}
-		$this->non_taxable_line_items = $non_taxable;
 
 		return $line_items;
 	}
@@ -1150,18 +1140,8 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
+		// Re-keys $non_taxable_line_items onto the canonical ids as it goes.
 		$line_items = $this->assign_canonical_line_item_ids( $line_items );
-
-		// The exempt record was keyed while ids were still context-specific; move it onto
-		// the canonical ids, which is what get_itemized_tax_rates() looks up.
-		$non_taxable = array();
-		foreach ( array_keys( $this->non_taxable_line_items ) as $legacy_key ) {
-			$item_key = substr( $legacy_key, (int) strpos( $legacy_key, '-' ) + 1 );
-			if ( isset( $line_items[ $item_key ] ) ) {
-				$non_taxable[ $line_items[ $item_key ]['id'] ] = true;
-			}
-		}
-		$this->non_taxable_line_items = $non_taxable;
 
 		return $line_items;
 	}
@@ -1192,6 +1172,15 @@ class WC_Connect_TaxJar_Integration {
 	 * identical lines — an order can legitimately hold the same product twice at the
 	 * same price — distinct, so neither loses its rate.
 	 *
+	 * Rewriting the ids invalidates `$non_taxable_line_items`, which callers record
+	 * while ids are still context-specific but `get_itemized_tax_rates()` reads back
+	 * under the canonical id. So this method re-keys that map itself rather than
+	 * leaving each caller to repair it afterwards: the map is never observable in the
+	 * stale keying, and a future caller inherits the invariant instead of having to
+	 * remember it. Callers reset the map before building, so replacing it wholesale
+	 * here is safe — an entry whose line item did not survive into $line_items (the
+	 * order path skips zero-priced lines) is dropped, exactly as before.
+	 *
 	 * @since 3.6.12
 	 *
 	 * @param array $line_items Line items whose 'id' is currently the bare product ID.
@@ -1200,6 +1189,7 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private function assign_canonical_line_item_ids( array $line_items ): array {
 		$occurrences = array();
+		$non_taxable = array();
 
 		foreach ( $line_items as $key => $line_item ) {
 			$product_id = $line_item['id'];
@@ -1220,8 +1210,16 @@ class WC_Connect_TaxJar_Integration {
 
 			$occurrences[ $fingerprint ] = isset( $occurrences[ $fingerprint ] ) ? $occurrences[ $fingerprint ] + 1 : 0;
 
-			$line_items[ $key ]['id'] = $product_id . '-' . substr( $fingerprint, 0, 12 ) . '-' . $occurrences[ $fingerprint ];
+			$canonical_id = $product_id . '-' . substr( $fingerprint, 0, 12 ) . '-' . $occurrences[ $fingerprint ];
+
+			if ( isset( $this->non_taxable_line_items[ $product_id . '-' . $key ] ) ) {
+				$non_taxable[ $canonical_id ] = true;
+			}
+
+			$line_items[ $key ]['id'] = $canonical_id;
 		}
+
+		$this->non_taxable_line_items = $non_taxable;
 
 		return $line_items;
 	}
