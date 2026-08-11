@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.6.13 - 2026-xx-xx =
+* Tweak - Stop registering a redundant copy of the continents REST endpoint on requests that cannot reach it.
+
 = 3.6.12 - 2026-08-10 =
 * Fix   - Restore tax rate lookups for local pickup orders, which could return no rates at all.
 * Fix   - Preserve apostrophes in city and street when taxes are recalculated from the order edit screen.
@@ -15,7 +18,6 @@
 * Tweak - Centralize TaxJar address handling in an internal value object. No change to tax calculation.
 * Tweak - Store tax rate rows against the postcode the rate was quoted for when the address postcode holds more than one comma-separated value.
 * Tweak - Reduce redundant TaxJar API calls by matching cached tax responses across the cart and order paths and ignoring irrelevant formatting differences.
-* Tweak - Stop registering a redundant copy of the continents REST endpoint on requests that cannot reach it.
 
 = 3.6.11 - 2026-08-05 =
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when TaxJar returns an incomplete tax response.
