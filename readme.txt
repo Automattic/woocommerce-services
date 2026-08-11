@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 7.0
 WC requires at least: 10.8
 WC tested up to: 11.0
-Stable tag: 3.6.11
+Stable tag: 3.6.12
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.6.12 - 2026-xx-xx =
+= 3.6.12 - 2026-08-10 =
 * Fix   - Restore tax rate lookups for local pickup orders, which could return no rates at all.
 * Fix   - Preserve apostrophes in city and street when taxes are recalculated from the order edit screen.
 * Fix   - Prevent a fatal error during cart and checkout tax calculation when a customization supplies an invalid store address.
