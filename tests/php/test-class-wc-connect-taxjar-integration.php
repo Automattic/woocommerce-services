@@ -4140,6 +4140,111 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Rewriting the ids is what invalidates `$non_taxable_line_items`, so re-keying it
+	 * belongs to the method that does the rewriting — not to each caller afterwards.
+	 *
+	 * Called directly here, with no caller involved, precisely so a future third caller
+	 * of `assign_canonical_line_item_ids()` inherits the remap instead of having to
+	 * remember it. Forgetting it has already caused one silent regression: the map
+	 * stayed keyed by the pre-canonical id while `get_itemized_tax_rates()` looked up
+	 * the canonical one, so the non-taxable guard never fired and no test failed.
+	 *
+	 * Two exempt lines, not one, because the re-key accumulates: the assignment sits
+	 * inside an `isset()` guard, so with a single exempt line "add to the map" and
+	 * "replace the map" are indistinguishable and a suite of one-exempt-item fixtures
+	 * stays green either way. A cart with two exempt products would then leave only the
+	 * last one guarded, and the first one's 0% breakdown line would overwrite the shared
+	 * tax-class rate row — the exact WOOTAX-240 regression this seam exists to prevent.
+	 */
+	public function test_assign_canonical_line_item_ids_rekeys_non_taxable_map() {
+		$line_items = array(
+			'cart_key_exempt'   => array(
+				'id'               => 101,
+				'product_tax_code' => '99999',
+				'quantity'         => 1,
+				'unit_price'       => '10.00',
+				'discount'         => '0.00',
+				'tax_location'     => 'shipping',
+			),
+			'cart_key_exempt_2' => array(
+				'id'               => 303,
+				'product_tax_code' => '99999',
+				'quantity'         => 1,
+				'unit_price'       => '30.00',
+				'discount'         => '0.00',
+				'tax_location'     => 'shipping',
+			),
+			'cart_key_taxable'  => array(
+				'id'               => 202,
+				'product_tax_code' => '',
+				'quantity'         => 1,
+				'unit_price'       => '20.00',
+				'discount'         => '0.00',
+				'tax_location'     => 'shipping',
+			),
+		);
+
+		// Keyed the way both callers record it: "<product_id>-<context-specific key>".
+		$this->set_private_property(
+			'non_taxable_line_items',
+			array(
+				'101-cart_key_exempt'   => true,
+				'303-cart_key_exempt_2' => true,
+			)
+		);
+
+		$result   = $this->invoke_protected_method( 'assign_canonical_line_item_ids', array( $line_items ) );
+		$recorded = $this->get_private_property( 'non_taxable_line_items' );
+
+		$this->assertSame(
+			array(
+				$result['cart_key_exempt']['id']   => true,
+				$result['cart_key_exempt_2']['id'] => true,
+			),
+			$recorded,
+			'Every exempt line must survive the re-key, accumulated onto its own canonical id — not just the last one.'
+		);
+		$this->assertArrayNotHasKey(
+			'101-cart_key_exempt',
+			$recorded,
+			'The pre-canonical key must not survive, or the stale entry outlives the id it described.'
+		);
+	}
+
+	/**
+	 * Replacing the map wholesale is only safe because an entry with no surviving line
+	 * item is meant to be dropped.
+	 *
+	 * `get_backend_line_items()` records the exempt status before the `if ( $unit_price )`
+	 * guard decides whether the line is sent at all, so a zero-priced exempt item is
+	 * recorded and then omitted. It has no canonical id to be re-keyed onto, and TaxJar
+	 * never echoes a breakdown line for it, so carrying it forward would be dead state.
+	 */
+	public function test_assign_canonical_line_item_ids_drops_non_taxable_entries_without_a_line_item() {
+		$line_items = array(
+			'item_1' => array(
+				'id'               => 101,
+				'product_tax_code' => '',
+				'quantity'         => 1,
+				'unit_price'       => '10.00',
+				'discount'         => '0.00',
+				'tax_location'     => 'shipping',
+			),
+		);
+
+		// 303 was recorded as exempt but never made it into $line_items.
+		$this->set_private_property( 'non_taxable_line_items', array( '303-item_2' => true ) );
+
+		$this->invoke_protected_method( 'assign_canonical_line_item_ids', array( $line_items ) );
+
+		$this->assertSame(
+			array(),
+			$this->get_private_property( 'non_taxable_line_items' ),
+			'An exempt record with no line item to re-key onto must be dropped, not carried forward.'
+		);
+	}
+
+	/**
 	 * Build a representative TaxJar request body for cache-signature tests.
 	 *
 	 * @param array $overrides Values to replace.
