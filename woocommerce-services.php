@@ -1309,7 +1309,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			 * registering our bundled copy there is dead work: the request cannot dispatch to the route,
 			 * and route registrations do not outlive the request that made them.
 			 */
-			if ( class_exists( 'WC_REST_Data_Continents_Controller' ) ) {
+			if ( $this->core_provides_continents_controller() ) {
 				return;
 			}
 
@@ -1324,6 +1324,24 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$continents = new WC_REST_Dev_Data_Continents_Controller();
 				$continents->register_routes();
 			}
+		}
+
+		/**
+		 * Whether WooCommerce core supplies the /wc/v3/data/continents controller.
+		 *
+		 * Answered with class_exists(), which resolves through WooCommerce's autoloader — its
+		 * wc_rest_ branch searches includes/rest-api/Controllers/Version{1,2,3}/ — so the answer
+		 * does not depend on what the current request has loaded so far. Core has shipped this
+		 * controller since WC 3.5.
+		 *
+		 * Kept as its own method so the fallback branch of wc_api_dev_init() is reachable from a
+		 * test: on any supported WooCommerce the class does exist, and class_exists() cannot be
+		 * made to answer otherwise within a process.
+		 *
+		 * @return bool
+		 */
+		protected function core_provides_continents_controller() {
+			return class_exists( 'WC_REST_Data_Continents_Controller' );
 		}
 
 		/**
