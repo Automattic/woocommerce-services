@@ -2,9 +2,9 @@
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: tax, vat, gst, woocommerce, payment
 Requires PHP: 7.4
-Requires at least: 6.9
+Requires at least: 7.0
 Requires Plugins: woocommerce
-Tested up to: 7.0
+Tested up to: 7.1
 WC requires at least: 10.8
 WC tested up to: 11.0
 Stable tag: 3.6.12
@@ -69,6 +69,9 @@ This plugin relies on the following external services:
 2. Checking on the health of WooCommerce Tax
 
 == Changelog ==
+
+= 3.6.13 - 2026-xx-xx =
+* Tweak - WordPress 7.1 Compatibility.
 
 = 3.6.12 - 2026-08-10 =
 * Fix   - Restore tax rate lookups for local pickup orders, which could return no rates at all.
