@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.6.13 - 2026-xx-xx =
+* Tweak - WordPress 7.1 Compatibility.
+
 = 3.6.12 - 2026-08-10 =
 * Fix   - Restore tax rate lookups for local pickup orders, which could return no rates at all.
 * Fix   - Preserve apostrophes in city and street when taxes are recalculated from the order edit screen.
