@@ -1,0 +1,460 @@
+# Maintenance: Update version requirements
+#
+# Keeps the WordPress / WooCommerce / PHP version requirement headers current in the
+# main plugin file, readme.txt, and README.md, and opens a PR when a bump is needed.
+#
+# Version policy:
+# - "Tested up to" (WP) moves to the next WordPress minor as soon as one of its
+#   release candidates is available; otherwise it tracks the latest stable minor.
+# - "WC tested up to" moves to the next WooCommerce minor as soon as beta 2 (or a
+#   later prerelease) is published; otherwise it tracks the latest stable minor.
+# - "Requires at least" (WP) = latest stable WordPress minor - 1.
+# - "WC requires at least" = latest stable WooCommerce minor - 2.
+# - "Requires PHP" mirrors WooCommerce core's own requirement.
+# All updates are upgrade-only; headers are never downgraded.
+#
+# This file is intentionally identical across all extension repos: the main plugin
+# file and the default branch are auto-detected, so do not add per-repo configuration.
+#
+# Note: PRs are created with the default GITHUB_TOKEN, so CI does not run on them
+# automatically. Close and reopen the PR (or push an empty commit) to trigger CI.
+name: "Maintenance: Update version requirements"
+
+on:
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: maintenance-update-version-requirements
+  cancel-in-progress: false
+
+jobs:
+  update-version-requirements:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      BASE_BRANCH: ${{ github.event.repository.default_branch }}
+      HEAD_BRANCH: maintenance/update-version-requirements
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Skip if a version update PR is already open
+        id: guard
+        run: |
+          set -euo pipefail
+          count=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --json headRefName \
+            --jq '[.[] | select((.headRefName | startswith("maintenance/update-version-requirements"))
+                             or (.headRefName | startswith("tweak/update-requires-headers")))] | length')
+          if [ "$count" -gt 0 ]; then
+            echo "An open version update PR already exists. Skipping this run."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compute target versions
+        id: versions
+        if: steps.guard.outputs.skip != 'true'
+        run: |
+          set -euo pipefail
+          fail() { echo "::error::$1"; exit 1; }
+          is_minor() { echo "$1" | grep -Eq '^[0-9]+\.[0-9]+$'; }
+
+          # WordPress: latest stable minor.
+          wp_stable_full=$(curl -sf --retry 3 "https://api.wordpress.org/core/version-check/1.7/" | jq -r '.offers[0].current')
+          echo "$wp_stable_full" | grep -Eq '^[0-9]+(\.[0-9]+)+$' || fail "Unexpected WordPress version: $wp_stable_full"
+          wp_stable=$(echo "$wp_stable_full" | cut -d. -f1-2)
+          wp_major=${wp_stable%%.*}
+          wp_minor=${wp_stable#*.}
+
+          # WordPress minors roll over from X.9 to (X+1).0.
+          if [ "$wp_minor" -eq 9 ]; then wp_next="$((wp_major + 1)).0"; else wp_next="$wp_major.$((wp_minor + 1))"; fi
+          if [ "$wp_minor" -eq 0 ]; then wp_requires="$((wp_major - 1)).9"; else wp_requires="$wp_major.$((wp_minor - 1))"; fi
+
+          # Tested up to: the next minor once one of its release candidates exists.
+          wp_tested=$wp_stable
+          for rc in 1 2 3; do
+            if curl -sfI --retry 2 -o /dev/null "https://wordpress.org/wordpress-${wp_next}-RC${rc}.zip"; then
+              wp_tested=$wp_next
+              break
+            fi
+          done
+
+          # WooCommerce: latest stable minor.
+          wc_stable_tag=$(gh api repos/woocommerce/woocommerce/releases/latest --jq .tag_name)
+          echo "$wc_stable_tag" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$' || fail "Unexpected WooCommerce tag: $wc_stable_tag"
+          wc_stable=$(echo "$wc_stable_tag" | cut -d. -f1-2)
+          wc_major=${wc_stable%%.*}
+          wc_minor=${wc_stable#*.}
+
+          # WC tested up to: the newest minor that is either stable or has reached
+          # beta 2 (or a later prerelease). Appending the stable minor before taking
+          # the max means an older prerelease minor can never win.
+          wc_tested=$(
+            {
+              gh api "repos/woocommerce/woocommerce/releases?per_page=100" --jq '.[].tag_name' \
+                | grep -E '^[0-9]+\.[0-9]+\.0-(beta|rc)\.[0-9]+$' \
+                | awk -F'[.-]' '($4 == "rc") || ($4 == "beta" && $5 >= 2) { print $1 "." $2 }' \
+                || true
+              echo "$wc_stable"
+            } | sort -uV | tail -n 1
+          )
+
+          # WooCommerce minors roll over from X.9 to (X+1).0, so borrow when subtracting.
+          wc_requires_minor=$((wc_minor - 2))
+          if [ "$wc_requires_minor" -lt 0 ]; then
+            wc_requires="$((wc_major - 1)).$((wc_requires_minor + 10))"
+          else
+            wc_requires="$wc_major.$wc_requires_minor"
+          fi
+
+          # PHP: mirror WooCommerce core's requirement at the stable tag.
+          php_requires=$(curl -sf --retry 3 "https://raw.githubusercontent.com/woocommerce/woocommerce/${wc_stable_tag}/plugins/woocommerce/woocommerce.php" \
+            | sed -n 's/^[[:space:]]*\*[[:space:]]*Requires PHP:[[:space:]]*//p' | head -n 1 | tr -d '[:space:]')
+          echo "$php_requires" | grep -Eq '^[0-9]+\.[0-9]+(\.[0-9]+)?$' || fail "Unexpected PHP version: $php_requires"
+
+          for v in "$wp_tested" "$wp_requires" "$wc_tested" "$wc_requires"; do
+            is_minor "$v" || fail "Unexpected computed version: $v"
+          done
+
+          echo "WP tested up to: $wp_tested | WP requires: $wp_requires | WC tested up to: $wc_tested | WC requires: $wc_requires | PHP: $php_requires"
+          {
+            echo "wp_tested=$wp_tested"
+            echo "wp_requires=$wp_requires"
+            echo "wc_tested=$wc_tested"
+            echo "wc_requires=$wc_requires"
+            echo "php_requires=$php_requires"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Update version headers
+        id: update
+        if: steps.guard.outputs.skip != 'true'
+        env:
+          WP_TESTED: ${{ steps.versions.outputs.wp_tested }}
+          WP_REQUIRES: ${{ steps.versions.outputs.wp_requires }}
+          WC_TESTED: ${{ steps.versions.outputs.wc_tested }}
+          WC_REQUIRES: ${{ steps.versions.outputs.wc_requires }}
+          PHP_REQUIRES: ${{ steps.versions.outputs.php_requires }}
+        run: |
+          set -euo pipefail
+          CHANGES_FILE="$RUNNER_TEMP/version-header-changes.txt"
+          : > "$CHANGES_FILE"
+
+          # Locate the main plugin file: a root-level PHP file whose first 8KB declare
+          # a plugin header, preferring the file named after the repository.
+          repo_name=${GITHUB_REPOSITORY#*/}
+          candidates=""
+          for f in *.php; do
+            [ -f "$f" ] || continue
+            if head -c 8192 "$f" | grep -q "Plugin Name:"; then
+              candidates="$candidates $f"
+            fi
+          done
+          candidates=${candidates# }
+          plugin_file=""
+          case " $candidates " in
+            *" $repo_name.php "*) plugin_file="$repo_name.php" ;;
+          esac
+          if [ -z "$plugin_file" ]; then
+            # shellcheck disable=SC2086  # intentional word splitting of the candidates list
+            set -- $candidates
+            if [ "$#" -eq 1 ]; then
+              plugin_file="$1"
+            else
+              echo "::error::Could not determine the main plugin file (candidates: ${candidates:-none})."
+              exit 1
+            fi
+          fi
+          echo "Main plugin file: $plugin_file"
+
+          version_gt() {
+            [ "$1" != "$2" ] && [ "$(printf '%s\n%s\n' "$1" "$2" | sort -V | tail -n 1)" = "$1" ]
+          }
+
+          # update_header <file> <format> <mode> <key> <value>
+          #   format: "plugin" for the docblock style (" * Key: value"),
+          #           "text" for readme-style lines ("Key: value", optionally behind
+          #           a "*" or "-" bullet as used in some README.md files).
+          #   mode:   "add" inserts the header when missing; "update" only rewrites
+          #           an existing header.
+          # Values are only rewritten upward, the prefix up to the colon is preserved,
+          # and lines whose value is not a plain version number are left alone.
+          update_header() {
+            file=$1 fmt=$2 mode=$3 key=$4 new=$5
+            [ -f "$file" ] || return 0
+            if [ "$fmt" = "plugin" ]; then
+              key_re="^[[:space:]]*\\*[[:space:]]*${key}:"
+            else
+              key_re="^[[:space:]]*([*-][[:space:]]+)?${key}:"
+            fi
+            match_line=$(grep -nE "$key_re" "$file" | head -n 1 || true)
+            if [ -n "$match_line" ]; then
+              lineno=${match_line%%:*}
+              cur=$(echo "${match_line#*:}" | sed 's/^[^:]*://' | tr -d ' \t\r')
+              case "$cur" in
+                ''|*[!0-9.]*)
+                  echo "Skipping '$key' in $file: current value '$cur' is not a plain version."
+                  return 0
+                  ;;
+              esac
+              if version_gt "$new" "$cur"; then
+                awk -v n="$lineno" -v new="$new" \
+                  'NR == n { print substr($0, 1, index($0, ":")) " " new; next } { print }' \
+                  "$file" > "$file.tmp"
+                mv "$file.tmp" "$file"
+                echo "$file: $key $cur => $new" >> "$CHANGES_FILE"
+              fi
+              return 0
+            fi
+            [ "$mode" = "add" ] || return 0
+            if [ "$fmt" = "plugin" ]; then
+              # Insert directly after the "Version:" header line, reusing its prefix.
+              awk -v key="$key" -v new="$new" '
+                { print }
+                !done && /^[[:space:]]*\*[[:space:]]*Version:/ {
+                  print substr($0, 1, match($0, /Version:/) - 1) key ": " new
+                  done = 1
+                }
+              ' "$file" > "$file.tmp"
+            else
+              awk -v key="$key" -v new="$new" '
+                !done && /^Stable tag:/ { print key ": " new; done = 1 }
+                { print }
+              ' "$file" > "$file.tmp"
+            fi
+            mv "$file.tmp" "$file"
+            if grep -qE "$key_re" "$file"; then
+              echo "$file: added $key: $new" >> "$CHANGES_FILE"
+            else
+              echo "::warning::Could not add missing header '$key' to $file."
+            fi
+          }
+
+          # Main plugin file. Additions land right below "Version:", so the calls are
+          # made in reverse of the final header order.
+          update_header "$plugin_file" plugin update "Tested up to" "$WP_TESTED"
+          update_header "$plugin_file" plugin add "WC tested up to" "$WC_TESTED"
+          update_header "$plugin_file" plugin add "WC requires at least" "$WC_REQUIRES"
+          update_header "$plugin_file" plugin add "Requires PHP" "$PHP_REQUIRES"
+          update_header "$plugin_file" plugin add "Requires at least" "$WP_REQUIRES"
+
+          # readme.txt: all headers are managed, added before "Stable tag:" if missing.
+          update_header readme.txt text add "Requires at least" "$WP_REQUIRES"
+          update_header readme.txt text add "Tested up to" "$WP_TESTED"
+          update_header readme.txt text add "Requires PHP" "$PHP_REQUIRES"
+          update_header readme.txt text add "WC requires at least" "$WC_REQUIRES"
+          update_header readme.txt text add "WC tested up to" "$WC_TESTED"
+
+          # README.md: only update headers that already exist; never inject new ones.
+          update_header README.md text update "Requires at least" "$WP_REQUIRES"
+          update_header README.md text update "Tested up to" "$WP_TESTED"
+          update_header README.md text update "Requires PHP" "$PHP_REQUIRES"
+          update_header README.md text update "WC requires at least" "$WC_REQUIRES"
+          update_header README.md text update "WC tested up to" "$WC_TESTED"
+
+          # ------------------------------------------------------------------
+          # Changelog entries for the header changes, added to changelog.txt,
+          # the "== Changelog ==" section of readme.txt, and a markdown
+          # changelog in README.md, wherever those exist. Entries land in the
+          # unreleased section when one exists (skipping entries already
+          # present there); otherwise a new unreleased section is created in
+          # the same style, using the next patch version.
+          # ------------------------------------------------------------------
+          if [ -s "$CHANGES_FILE" ]; then
+            notes=""
+            if grep -qE ': (added )?Tested up to[ :]' "$CHANGES_FILE"; then
+              notes="WordPress $WP_TESTED Compatibility."
+            fi
+            if grep -qE ': (added )?WC tested up to[ :]' "$CHANGES_FILE"; then
+              wc_note="WooCommerce $WC_TESTED Compatibility."
+              if [ -n "$notes" ]; then notes=$(printf '%s\n%s' "$notes" "$wc_note"); else notes=$wc_note; fi
+            fi
+            if [ -z "$notes" ]; then
+              notes="Update minimum required versions."
+            fi
+
+            plugin_version=$(sed -n 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]*//p' "$plugin_file" | head -n 1 | tr -d ' \t\r')
+            next_version=$(echo "$plugin_version" | awk -F. '{ $NF = $NF + 1; print }' OFS=.)
+            year=$(date +%Y)
+
+            # insert_line <file> <lineno> <text>: insert text after the given
+            # line (0 inserts at the top). "\n" sequences become real newlines.
+            insert_line() {
+              awk -v n="$2" -v text="$3" '
+                BEGIN { if (n == 0) print text }
+                { print }
+                NR == n { print text }
+              ' "$1" > "$1.tmp" && mv "$1.tmp" "$1"
+            }
+
+            # build_block <first_line> <bullet>: the heading plus one bullet
+            # per note, as a single "\n"-joined string for insert_line.
+            build_block() {
+              block=$1
+              while IFS= read -r note; do
+                [ -n "$note" ] && block="$block\n$2$note"
+              done <<< "$notes"
+              printf '%s\\n' "$block"
+            }
+
+            # add_notes_to_section <file> <start> <end> <insert_after> <bullet>
+            # Adds each note below the insertion point, skipping notes already
+            # present inside the section, preserving the note order.
+            add_notes_to_section() {
+              sect=$(sed -n "${2},${3}p" "$1")
+              echo "$notes" | sed '1!G;h;$!d' | while IFS= read -r note; do
+                [ -n "$note" ] || continue
+                if ! echo "$sect" | grep -qF "$note"; then
+                  insert_line "$1" "$4" "${5}${note}"
+                  echo "$1: added changelog entry: $note" >> "$CHANGES_FILE"
+                fi
+              done
+            }
+
+            # section_end <file> <after_lineno> <heading_regex>: line number of
+            # the last line before the next heading (or EOF).
+            section_end() {
+              next=$(awk -v s="$2" -v re="$3" 'NR > s && $0 ~ re { print NR; exit }' "$1")
+              if [ -n "$next" ]; then echo $((next - 1)); else wc -l < "$1" | tr -d ' '; fi
+            }
+
+            unreleased_version=$next_version
+
+            # changelog.txt: "YYYY-MM-DD - version X.Y.Z" or "= X.Y.Z - YYYY-MM-DD =".
+            if [ -f changelog.txt ]; then
+              a_re='^[0-9]{4}-[0-9xX]{2}-[0-9xX]{2} - version [0-9.]+'
+              b_re='^= [0-9.]+ - [0-9]{4}-[0-9xX]{2}-[0-9xX]{2} =$'
+              head_line=$(grep -nE "$a_re|$b_re" changelog.txt | head -n 1 || true)
+              if [ -n "$head_line" ]; then
+                head_no=${head_line%%:*}
+                head_text=${head_line#*:}
+                case "$head_text" in
+                  "= "*) style=b ;;
+                  *) style=a ;;
+                esac
+                case "$head_text" in
+                  *xx*|*xX*|*Xx*)
+                    if [ "$style" = "a" ]; then
+                      unreleased_version=$(echo "$head_text" | sed 's/.*version //' | tr -d ' \t\r')
+                    else
+                      unreleased_version=$(echo "$head_text" | awk '{ print $2 }')
+                    fi
+                    end_no=$(section_end changelog.txt "$head_no" "$a_re|$b_re")
+                    add_notes_to_section changelog.txt "$head_no" "$end_no" "$head_no" "* Tweak - "
+                    ;;
+                  *)
+                    # If the top (released) heading carries a version at or above
+                    # the plugin header's next patch, continue from the heading's
+                    # version instead so the new section sorts on top.
+                    if [ "$style" = "a" ]; then
+                      top_version=$(echo "$head_text" | sed 's/.*version //' | tr -d ' \t\r')
+                    else
+                      top_version=$(echo "$head_text" | awk '{ print $2 }')
+                    fi
+                    if [ "$top_version" = "$next_version" ] || \
+                       [ "$(printf '%s\n%s\n' "$top_version" "$next_version" | sort -V | tail -n 1)" = "$top_version" ]; then
+                      next_version=$(echo "$top_version" | awk -F. '{ $NF = $NF + 1; print }' OFS=.)
+                      unreleased_version=$next_version
+                    fi
+                    if [ "$style" = "a" ]; then
+                      new_heading="${year}-xx-xx - version ${next_version}"
+                    else
+                      new_heading="= ${next_version} - ${year}-xx-xx ="
+                    fi
+                    insert_line changelog.txt $((head_no - 1)) "$(build_block "$new_heading" "* Tweak - ")"
+                    echo "changelog.txt: added section for version $next_version" >> "$CHANGES_FILE"
+                    ;;
+                esac
+              else
+                echo "::warning::changelog.txt found but no recognizable version heading; skipping changelog entry."
+              fi
+            fi
+
+            # readme.txt: "= X.Y.Z - YYYY-MM-DD =" headings under "== Changelog ==".
+            if [ -f readme.txt ] && grep -q '^== Changelog ==' readme.txt; then
+              cl_no=$(grep -n '^== Changelog ==' readme.txt | head -n 1 | cut -d: -f1)
+              r_re='^= [0-9.]+.*=$'
+              head_no=$(awk -v s="$cl_no" 'NR > s && /^= [0-9.]+.*=$/ { print NR; exit }' readme.txt)
+              head_text=""
+              if [ -n "$head_no" ]; then head_text=$(sed -n "${head_no}p" readme.txt); fi
+              case "$head_text" in
+                *xx*|*xX*|*Xx*)
+                  end_no=$(section_end readme.txt "$head_no" "$r_re|^== ")
+                  add_notes_to_section readme.txt "$head_no" "$end_no" "$head_no" "* Tweak - "
+                  ;;
+                *)
+                  at=$cl_no
+                  [ -z "$(sed -n "$((cl_no + 1))p" readme.txt)" ] && at=$((cl_no + 1))
+                  insert_line readme.txt "$at" "$(build_block "= ${unreleased_version} - ${year}-xx-xx =" "* Tweak - ")"
+                  echo "readme.txt: added changelog section for version $unreleased_version" >> "$CHANGES_FILE"
+                  ;;
+              esac
+            fi
+
+            # README.md: "## Changelog" with "### Version X.Y.Z" headings.
+            if [ -f README.md ] && grep -qE '^#{1,6}[[:space:]]+Changelog[[:space:]]*$' README.md; then
+              cl_no=$(grep -nE '^#{1,6}[[:space:]]+Changelog[[:space:]]*$' README.md | head -n 1 | cut -d: -f1)
+              head_no=$(awk -v s="$cl_no" -v v="$unreleased_version" \
+                'NR > s && $0 ~ ("^#+[ \t]+Version[ \t]+" v "$") { print NR; exit }' README.md)
+              if [ -n "$head_no" ]; then
+                end_no=$(section_end README.md "$head_no" "^#")
+                at=$head_no
+                [ -z "$(sed -n "$((head_no + 1))p" README.md)" ] && at=$((head_no + 1))
+                add_notes_to_section README.md "$head_no" "$end_no" "$at" "- "
+              else
+                at=$cl_no
+                [ -z "$(sed -n "$((cl_no + 1))p" README.md)" ] && at=$((cl_no + 1))
+                insert_line README.md "$at" "$(build_block "### Version ${unreleased_version}\n" "- ")"
+                echo "README.md: added changelog section for version $unreleased_version" >> "$CHANGES_FILE"
+              fi
+            fi
+          fi
+
+          if [ -s "$CHANGES_FILE" ]; then
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Header changes:"
+            cat "$CHANGES_FILE"
+          else
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "All version headers are already up to date."
+          fi
+
+      - name: Create pull request
+        if: steps.guard.outputs.skip != 'true' && steps.update.outputs.changed == 'true'
+        env:
+          WP_TESTED: ${{ steps.versions.outputs.wp_tested }}
+          WC_TESTED: ${{ steps.versions.outputs.wc_tested }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$HEAD_BRANCH"
+          git commit -am "Update WordPress and WooCommerce version requirement headers"
+          git push -f origin "$HEAD_BRANCH"
+
+          {
+            echo "Bumps the version requirement headers to match the current WordPress and WooCommerce releases:"
+            echo
+            sed 's/^/- /' "$RUNNER_TEMP/version-header-changes.txt"
+            echo
+            echo "Please test the plugin against these versions and merge if everything works."
+          } > "$RUNNER_TEMP/pr-body.md"
+
+          pr_url=$(gh pr create \
+            --base "$BASE_BRANCH" \
+            --head "$HEAD_BRANCH" \
+            --title "Update version requirements (WP $WP_TESTED, WC $WC_TESTED)" \
+            --body-file "$RUNNER_TEMP/pr-body.md")
+          echo "Created $pr_url"
+
+          for reviewer in dustinparker iyut bartech abdalsalaam; do
+            gh pr edit "$pr_url" --add-reviewer "$reviewer" || echo "::warning::Could not add reviewer $reviewer"
+          done
