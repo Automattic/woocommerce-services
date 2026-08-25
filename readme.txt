@@ -5,8 +5,8 @@ Requires PHP: 7.4
 Requires at least: 7.0
 Requires Plugins: woocommerce
 Tested up to: 7.1
-WC requires at least: 10.8
-WC tested up to: 11.0
+WC requires at least: 10.9
+WC tested up to: 11.1
 Stable tag: 3.6.13
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -69,6 +69,9 @@ This plugin relies on the following external services:
 2. Checking on the health of WooCommerce Tax
 
 == Changelog ==
+
+= 3.6.14 - 2026-xx-xx =
+* Tweak - WooCommerce 11.1 Compatibility.
 
 = 3.6.13 - 2026-08-24 =
 * Tweak - WordPress 7.1 Compatibility.
