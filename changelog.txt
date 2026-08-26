@@ -1,5 +1,8 @@
 *** WooCommerce Tax Changelog ***
 
+= 3.6.14 - 2026-xx-xx =
+* Fix   - Prevent a fatal error at checkout when a cart line's price is not numeric.
+
 = 3.6.13 - 2026-08-24 =
 * Tweak - WordPress 7.1 Compatibility.
 
