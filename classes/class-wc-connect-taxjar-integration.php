@@ -1055,14 +1055,17 @@ class WC_Connect_TaxJar_Integration {
 				$this->_log( 'Tax location override for product ' . $id . ': ' . $default_location . ' -> ' . $tax_location );
 			}
 
-			$line_items[ $cart_item_key ] = array(
-				'id'               => $id,
-				'quantity'         => $quantity,
-				'product_tax_code' => $tax_code,
-				'unit_price'       => $unit_price,
-				'discount'         => $discount,
-				'tax_location'     => $tax_location,
-			);
+			// A malformed price reduces to '' or '-', which is fatal in the totals arithmetic. A 0 is legitimate.
+			if ( is_numeric( $unit_price ) ) {
+				$line_items[ $cart_item_key ] = array(
+					'id'               => $id,
+					'quantity'         => $quantity,
+					'product_tax_code' => $tax_code,
+					'unit_price'       => $unit_price,
+					'discount'         => $discount,
+					'tax_location'     => $tax_location,
+				);
+			}
 		}
 
 		// Re-keys $non_taxable_line_items onto the canonical ids as it goes.
