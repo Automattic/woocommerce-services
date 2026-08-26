@@ -447,9 +447,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * A pricing filter can empty a price after the item is already in the cart.
-	 * wc_format_decimal() passes that through, and a non-numeric unit price is fatal
-	 * in the totals arithmetic, so the line is skipped.
+	 * Test that a line emptied by a pricing filter after being added to the cart is skipped.
 	 */
 	public function test_get_line_items_skips_line_with_non_numeric_price() {
 		$this->product = WC_Helper_Product::create_simple_product();
@@ -465,10 +463,29 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * A zero price is legitimate and must keep reaching TaxJar, so the guard has to be
-	 * is_numeric() and not a truthiness check. See
-	 * test_zero_amount_response_persists_real_itemized_rates() for what the response to
-	 * a $0 line carries.
+	 * Test that a '-' price is skipped, being truthy and non-empty where '' is neither.
+	 */
+	public function test_get_line_items_skips_line_with_dash_price() {
+		$this->assertSame( '-', wc_format_decimal( '-' ) );
+
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->save();
+
+		WC()->cart->add_to_cart( $this->product->get_id(), 2 );
+
+		$dash_price = function () {
+			return '-';
+		};
+
+		add_filter( 'woocommerce_product_get_price', $dash_price );
+		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+		remove_filter( 'woocommerce_product_get_price', $dash_price );
+
+		$this->assertSame( array(), $line_items );
+	}
+
+	/**
+	 * Test that a zero price still reaches TaxJar, being falsy but numeric.
 	 */
 	public function test_get_line_items_keeps_line_priced_zero() {
 		$this->product = WC_Helper_Product::create_simple_product();

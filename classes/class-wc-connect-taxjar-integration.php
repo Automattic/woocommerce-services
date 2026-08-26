@@ -1065,6 +1065,9 @@ class WC_Connect_TaxJar_Integration {
 					'discount'         => $discount,
 					'tax_location'     => $tax_location,
 				);
+			} else {
+				// A cart left with no numeric line sends no request, so this is its only trace.
+				$this->_log( 'Skipping line item for product ' . $id . ': non-numeric price "' . $unit_price . '"' );
 			}
 		}
 
