@@ -87,6 +87,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		remove_all_filters( 'woocommerce_tax_line_item_location' );
 		remove_all_filters( 'woocommerce_services_override_tax_rate' );
 		remove_all_filters( 'woocommerce_product_is_taxable' );
+		remove_all_filters( 'woocommerce_product_get_price' );
 
 		delete_option( 'woocommerce_calc_taxes' );
 
@@ -443,6 +444,44 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// Assert quantity.
 		$this->assertEquals( 2, $item['quantity'] );
+	}
+
+	/**
+	 * A pricing filter can empty a price after the item is already in the cart.
+	 * wc_format_decimal() passes that through, and a non-numeric unit price is fatal
+	 * in the totals arithmetic, so the line is skipped.
+	 */
+	public function test_get_line_items_skips_line_with_non_numeric_price() {
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->save();
+
+		WC()->cart->add_to_cart( $this->product->get_id(), 2 );
+
+		add_filter( 'woocommerce_product_get_price', '__return_empty_string' );
+		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+		remove_filter( 'woocommerce_product_get_price', '__return_empty_string' );
+
+		$this->assertSame( array(), $line_items );
+	}
+
+	/**
+	 * A zero price is legitimate and must keep reaching TaxJar, so the guard has to be
+	 * is_numeric() and not a truthiness check. See
+	 * test_zero_amount_response_persists_real_itemized_rates() for what the response to
+	 * a $0 line carries.
+	 */
+	public function test_get_line_items_keeps_line_priced_zero() {
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->set_regular_price( 0 );
+		$this->product->set_price( 0 );
+		$this->product->save();
+
+		WC()->cart->add_to_cart( $this->product->get_id(), 2 );
+
+		$line_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+
+		$this->assertCount( 1, $line_items );
+		$this->assertSame( '0', reset( $line_items )['unit_price'] );
 	}
 
 	// -------------------------------------------------------------------------
