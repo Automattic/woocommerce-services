@@ -286,36 +286,28 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			return self::JETPACK_CONNECTED;
 		}
 
+		/**
+		 * Whether the WooCommerce Tax connection banner may render on the given screen.
+		 *
+		 * The banner only offers WooCommerce Tax, so it is confined to where WooCommerce
+		 * Tax is configured: WooCommerce » Settings » Tax, including that tab's rate-table
+		 * sections. The Plugins page is kept as well, since that is where a store lands
+		 * right after activating the plugin and has not connected yet.
+		 *
+		 * @param WP_Screen|null $screen Current admin screen.
+		 * @return bool
+		 */
 		public function should_display_nux_notice_on_screen( $screen ) {
-			if ( // Display if on any of these admin pages.
-				( // Products list.
-					'product' === $screen->post_type
-					&& 'edit' === $screen->base
-				)
-				|| ( // Orders list and edit order page when not using HPOS.
-					'shop_order' === $screen->post_type
-					&& in_array( $screen->base, array( 'edit', 'post' ), true )
-					)
-				|| ( // Orders list and edit order page when using HPOS.
-					wc_get_page_screen_id( 'shop_order' ) === $screen->id
-				)
-				|| ( // WooCommerce settings.
-					'woocommerce_page_wc-settings' === $screen->base
-					)
-				|| ( // WooCommerce featured extension page
-					'woocommerce_page_wc-addons' === $screen->base
-					&& isset( $_GET['section'] ) && 'featured' === $_GET['section']
-					)
-				|| ( // WooCommerce shipping extension page
-					'woocommerce_page_wc-addons' === $screen->base
-					&& isset( $_GET['section'] ) && 'shipping_methods' === $_GET['section']
-					)
-				|| 'plugins' === $screen->base
-			) {
+			if ( ! $screen || ! isset( $screen->base ) ) {
+				return false;
+			}
+
+			if ( 'plugins' === $screen->base ) {
 				return true;
 			}
 
-			return false;
+			return 'woocommerce_page_wc-settings' === $screen->base
+				&& isset( $_GET['tab'] ) && 'tax' === $_GET['tab'];
 		}
 
 		/**
