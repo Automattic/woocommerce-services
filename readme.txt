@@ -71,6 +71,8 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.6.14 - 2026-xx-xx =
+* Fix   - Prevent a fatal error at checkout when a cart line's price is not numeric.
+* Tweak - Limit the WordPress.com connection banner to the Tax settings and Plugins pages, so it no longer appears on unrelated admin screens.
 * Tweak - WooCommerce 11.1 Compatibility.
 
 = 3.6.13 - 2026-08-24 =
