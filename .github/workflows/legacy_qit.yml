@@ -15,10 +15,10 @@ jobs:
       - name: Set Git to use HTTPS instead of SSH
         run: git config --global url.https://github.com/.insteadOf git://github.com/
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
         with:
             submodules: recursive
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
       - name: Install NPM dependencies
@@ -28,7 +28,7 @@ jobs:
 
       # Switch to a modern Node for QIT CLI internals (CTRF merge requires Node 12+).
       # The npm build above already completed on Node 10 from .nvmrc.
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v7
         with:
           node-version: '20'
 
@@ -60,7 +60,7 @@ jobs:
         run: cat ${{ github.workspace }}/qit-results/qit-security-results.txt
       - name: Upload results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: qit-results
           path: ${{ github.workspace }}/qit-results/

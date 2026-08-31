@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Set Git to use HTTPS instead of SSH
         run: git config --global url.https://github.com/.insteadOf git://github.com/
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
       - uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
@@ -18,7 +18,7 @@ jobs:
           tools: composer
           extensions: mysql
           coverage: none
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
       - name: Kill process running on port 8084 to unblock it

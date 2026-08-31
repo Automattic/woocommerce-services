@@ -24,11 +24,11 @@ jobs:
         run: git config --global url.https://github.com/.insteadOf git://github.com/
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           submodules: recursive
 
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
 
@@ -53,7 +53,7 @@ jobs:
           rm -rf "$PLUGIN_NAME"
 
       - name: Upload plugin zip
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ env.PLUGIN_NAME }}
           path: ${{ env.PLUGIN_NAME }}.zip
