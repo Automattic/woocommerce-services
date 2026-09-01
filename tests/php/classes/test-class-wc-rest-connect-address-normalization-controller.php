@@ -33,7 +33,6 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 		require_once __DIR__ . '/../../../classes/class-wc-connect-package-settings.php';
 		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-base-controller.php';
 		require_once __DIR__ . '/../../../classes/class-wc-rest-connect-address-normalization-controller.php';
-		require_once __DIR__ . '/../class-wc-connect-test-header-recording-rest-server.php';
 	}
 
 	/**
@@ -46,7 +45,13 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	public function setUp(): void {
 		parent::setUp();
 
-		$GLOBALS['wp_rest_server'] = new WC_Connect_Test_Header_Recording_REST_Server();
+		// The plugin does not register its own routes under test, so the controller
+		// registered below is the only handler the REST server dispatches to.
+		$this->assertArrayNotHasKey( self::ROUTE, $this->server->get_routes(), 'The route must not be registered before the test controller registers it' );
+
+		// The base controller sends a no-cache header on every dispatch, which PHPUnit
+		// would report as "headers already sent". Core's spy server records headers instead.
+		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
 		$this->server              = $GLOBALS['wp_rest_server'];
 
 		// Creating a mock class and override protected request method so that we can mock the API response.
@@ -58,10 +63,6 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 		$this->connect_logger_mock        = $this->createMock( WC_Connect_Logger::class );
 		$this->service_schemas_store_mock = $this->createMock( WC_Connect_Service_Schemas_Store::class );
 		$this->settings_store             = new WC_Connect_Service_Settings_Store( $this->service_schemas_store_mock, $this->api_client_mock, $this->connect_logger_mock );
-
-		// The plugin does not register its own routes under test, so the controller
-		// registered here is the only handler the REST server dispatches to.
-		$this->assertArrayNotHasKey( self::ROUTE, $this->server->get_routes(), 'The route must not be registered before the test controller registers it' );
 
 		$this->controller = new WC_REST_Connect_Address_Normalization_Controller( $this->api_client_mock, $this->settings_store, $this->connect_logger_mock );
 		$this->controller->register_routes();
@@ -221,11 +222,11 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 
 	/**
 	 * Test that the wcship_user_can_manage_labels filter still decides access, so existing
-	 * integrations that grant the capability through the filter keep working.
+	 * integrations that grant the permission to other roles through the filter keep working.
 	 */
 	public function test_manage_labels_filter_grants_access() {
 		// Given.
-		wp_set_current_user( 0 );
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'subscriber' ) ) );
 		add_filter( 'wcship_user_can_manage_labels', '__return_true' );
 		$this->mock_successful_normalization();
 
