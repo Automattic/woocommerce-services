@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.6.14 - 2026-xx-xx =
 * Fix   - Prevent a fatal error at checkout when a cart line's price is not numeric.
+* Fix   - Require the shipping label permission for every address normalization request, including the destination address.
 * Tweak - Limit the WordPress.com connection banner to the Tax settings and Plugins pages, so it no longer appears on unrelated admin screens.
 * Tweak - WooCommerce 11.1 Compatibility.
 
