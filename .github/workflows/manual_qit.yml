@@ -62,7 +62,7 @@ jobs:
       wc_rc_version: ${{ steps.get_wc_rc_versions_for_matrix.outputs.wc_rc_version }}
     steps:
       - name: Checkout WooCommerce Shipping
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Get current branch
         id: get_branch
         run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
@@ -92,10 +92,10 @@ jobs:
     name: JS ESLint Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           submodules: recursive
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v7
         with:
           node-version-file: '.nvmrc'
       - run: git config --global url.https://github.com/.insteadOf git://github.com/

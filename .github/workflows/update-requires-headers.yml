@@ -16,7 +16,7 @@ jobs:
     steps:
       # Step 1: Checkout the repository
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v7
 
       # Step 2: Fetch the latest WooCommerce release
       - name: Fetch Latest WooCommerce Release

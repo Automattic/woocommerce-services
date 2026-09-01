@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout latest WCS
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: Setup PHP
@@ -25,7 +25,7 @@ jobs:
       wp-versions: ${{ steps.get_wp_versions_for_matrix.outputs.wp-versions }}
     steps:
       - name: Checkout WCS&T
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
       - name: Get the 3 latest WP minor versions
         id: get_wp_versions_for_matrix
         run: echo "::set-output name=wp-versions::$(git ls-remote --tags --refs https://github.com/WordPress/WordPress.git | sed 's/.*refs\/tags\///' | php ./bin/get-latest-version.php)"
@@ -62,7 +62,7 @@ jobs:
             echo "SVN is already installed."
           fi
       - name: Checkout WCS&T
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
         with:
           submodules: recursive
       - name: Checkout WooCommerce
@@ -75,10 +75,10 @@ jobs:
         id: get_wc_pnpm_version
         run: echo "WC_PNPM=$( grep packageManager /tmp/woocommerce/package.json | sed -nr 's/.+packageManager.+pnpm@([[:digit:].]+).+/\1/p' )" >> "$GITHUB_OUTPUT"
       - name: Setup PNPM
-        uses: pnpm/action-setup@eae0cfeb286e66ffb5155f1a79b90583a127a68b # v2.4.1
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
         with:
           version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v7
         with:
           node-version: 'v16'
 
