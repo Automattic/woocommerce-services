@@ -149,6 +149,124 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		);
 	}
 
+	/**
+	 * A site that registered but never had an account linked gets its own banner.
+	 *
+	 * Jetpack reports this state as "not connected" - WC_Connect_Jetpack::is_connected()
+	 * requires a connected owner - so without this branch the store is told to connect a site
+	 * that is already connected, and the only missing step is never named.
+	 */
+	public function test_get_banner_type_to_display_site_only_connection() {
+		$this->assertEquals(
+			'site_only_connection',
+			WC_Connect_Nux::get_banner_type_to_display(
+				array(
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_NOT_CONNECTED,
+					'tos_accepted'                    => false,
+					'can_accept_tos'                  => false,
+					'should_display_after_cxn_banner' => false,
+					'is_site_only_connection'         => true,
+				)
+			)
+		);
+
+		// TOS acceptance is irrelevant to it: nothing can be accepted without an owner anyway.
+		$this->assertEquals(
+			'site_only_connection',
+			WC_Connect_Nux::get_banner_type_to_display(
+				array(
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_NOT_CONNECTED,
+					'tos_accepted'                    => true,
+					'can_accept_tos'                  => true,
+					'should_display_after_cxn_banner' => false,
+					'is_site_only_connection'         => true,
+				)
+			)
+		);
+	}
+
+	/**
+	 * A store with no connection at all keeps the original "connect your site" banner.
+	 */
+	public function test_get_banner_type_to_display_not_connected_is_not_site_only() {
+		$this->assertEquals(
+			'before_jetpack_connection',
+			WC_Connect_Nux::get_banner_type_to_display(
+				array(
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_NOT_CONNECTED,
+					'tos_accepted'                    => false,
+					'can_accept_tos'                  => false,
+					'should_display_after_cxn_banner' => false,
+					'is_site_only_connection'         => false,
+				)
+			)
+		);
+	}
+
+	/**
+	 * Callers that never pass the new key keep the exact behaviour they had before it existed.
+	 *
+	 * This method is public static on a globally-named class, so third-party code can call it
+	 * with the four keys it has always taken. Omitting the key must not reach the new banner.
+	 */
+	public function test_get_banner_type_to_display_without_the_site_only_key_is_unchanged() {
+		$this->assertEquals(
+			'before_jetpack_connection',
+			WC_Connect_Nux::get_banner_type_to_display(
+				array(
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_NOT_CONNECTED,
+					'tos_accepted'                    => false,
+					'can_accept_tos'                  => false,
+					'should_display_after_cxn_banner' => false,
+				)
+			)
+		);
+	}
+
+	/**
+	 * The new flag only speaks for the not-connected branch and must not divert a real
+	 * connection, in offline mode or otherwise.
+	 */
+	public function test_site_only_flag_does_not_affect_connected_states() {
+		$this->assertEquals(
+			'tos_only_banner',
+			WC_Connect_Nux::get_banner_type_to_display(
+				array(
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_CONNECTED,
+					'tos_accepted'                    => false,
+					'can_accept_tos'                  => true,
+					'should_display_after_cxn_banner' => false,
+					'is_site_only_connection'         => true,
+				)
+			)
+		);
+
+		$this->assertEquals(
+			'after_jetpack_connection',
+			WC_Connect_Nux::get_banner_type_to_display(
+				array(
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_OFFLINE_MODE,
+					'tos_accepted'                    => false,
+					'can_accept_tos'                  => true,
+					'should_display_after_cxn_banner' => true,
+					'is_site_only_connection'         => true,
+				)
+			)
+		);
+
+		$this->assertFalse(
+			WC_Connect_Nux::get_banner_type_to_display(
+				array(
+					'jetpack_connection_status'       => WC_Connect_Nux::JETPACK_CONNECTED,
+					'tos_accepted'                    => true,
+					'can_accept_tos'                  => true,
+					'should_display_after_cxn_banner' => false,
+					'is_site_only_connection'         => true,
+				)
+			)
+		);
+	}
+
 	public function test_get_banner_type_to_display_with_jp_cxn_without_tos_acceptance_non_owner() {
 		// Jetpack is already connected, TOS was not yet accepted, user is not the connection owner
 		$this->assertEquals(
