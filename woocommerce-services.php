@@ -1298,14 +1298,50 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * Delete this when the "v3" REST API is included in all the WC versions we support.
 		 */
 		public function wc_api_dev_init() {
+			/*
+			 * Ask whether WooCommerce *provides* the endpoint, not whether it happens to be in the
+			 * route table for this request.
+			 *
+			 * Since WooCommerce 9.2 the wc/v3 namespace is registered lazily: Server::get_rest_namespaces()
+			 * consults wc_rest_should_load_namespace(), which returns false whenever the current request
+			 * targets a different known namespace (wc/store, wc-analytics, wc-admin, ...). On all of those
+			 * requests /wc/v3/data/continents is legitimately absent even though core supplies it, so
+			 * registering our bundled copy there is dead work: the request cannot dispatch to the route,
+			 * and route registrations do not outlive the request that made them.
+			 */
+			if ( $this->core_provides_continents_controller() ) {
+				return;
+			}
+
 			$rest_server     = rest_get_server();
 			$existing_routes = $rest_server->get_routes();
 			if ( ! isset( $existing_routes['/wc/v3/data/continents'] ) ) {
+				// The controller below constructs WC_Connect_Continents; keep the fallback self-contained
+				// rather than relying on load_dependencies() having already required it.
+				require_once __DIR__ . '/classes/class-wc-connect-continents.php';
 				require_once __DIR__ . '/classes/wc-api-dev/class-wc-rest-dev-data-controller.php';
 				require_once __DIR__ . '/classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php';
 				$continents = new WC_REST_Dev_Data_Continents_Controller();
 				$continents->register_routes();
 			}
+		}
+
+		/**
+		 * Whether WooCommerce core supplies the /wc/v3/data/continents controller.
+		 *
+		 * Answered with class_exists(), which resolves through WooCommerce's autoloader — its
+		 * wc_rest_ branch searches includes/rest-api/Controllers/Version{1,2,3}/ — so the answer
+		 * does not depend on what the current request has loaded so far. Core has shipped this
+		 * controller since WC 3.5.
+		 *
+		 * Kept as its own method so the fallback branch of wc_api_dev_init() is reachable from a
+		 * test: on any supported WooCommerce the class does exist, and class_exists() cannot be
+		 * made to answer otherwise within a process.
+		 *
+		 * @return bool
+		 */
+		protected function core_provides_continents_controller() {
+			return class_exists( 'WC_REST_Data_Continents_Controller' );
 		}
 
 		/**
