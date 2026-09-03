@@ -45,14 +45,14 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	public function setUp(): void {
 		parent::setUp();
 
-		// The plugin does not register its own routes under test, so the controller
-		// registered below is the only handler the REST server dispatches to.
-		$this->assertArrayNotHasKey( self::ROUTE, $this->server->get_routes(), 'The route must not be registered before the test controller registers it' );
-
 		// The base controller sends a no-cache header on every dispatch, which PHPUnit
 		// would report as "headers already sent". Core's spy server records headers instead.
 		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
 		$this->server              = $GLOBALS['wp_rest_server'];
+
+		// The plugin does not register its own routes under test, so the controller
+		// registered below is the only handler this REST server dispatches to.
+		$this->assertArrayNotHasKey( self::ROUTE, $this->server->get_routes(), 'The route must not be registered before the test controller registers it' );
 
 		// Creating a mock class and override protected request method so that we can mock the API response.
 		$this->api_client_mock = $this->getMockBuilder( WC_Connect_API_Client_Live::class )
@@ -82,7 +82,7 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	}
 
 	/**
-	 * Test that an anonymous request is rejected with 401 regardless of the address type it claims.
+	 * @testdox An anonymous request is rejected with 401 whatever address type it claims.
 	 *
 	 * @dataProvider anonymous_type_provider
 	 *
@@ -102,8 +102,9 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	}
 
 	/**
-	 * Test that an anonymous request with a body that is not JSON is rejected and nothing is proxied.
 	 * WordPress rejects invalid JSON before the permission callback runs, so the status is 400 here.
+	 *
+	 * @testdox An anonymous request with a body that is not JSON is rejected and nothing is proxied.
 	 */
 	public function test_anonymous_request_with_non_json_body_is_rejected() {
 		// Given.
@@ -119,7 +120,7 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	}
 
 	/**
-	 * Test that a logged-in user without the labels capability is rejected with 403 for both address types.
+	 * @testdox A logged-in user without the labels capability gets 403 for both address types.
 	 */
 	public function test_user_without_labels_capability_is_rejected() {
 		// Given.
@@ -156,8 +157,7 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	}
 
 	/**
-	 * Test that a shop manager can still normalize both the origin and the destination address,
-	 * that the phone is stripped from the proxied payload, and that it is echoed back on the result.
+	 * @testdox A shop manager normalizes both address types, with the phone kept out of the proxied payload and echoed back on the result.
 	 *
 	 * @dataProvider authenticated_type_provider
 	 *
@@ -199,7 +199,7 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	}
 
 	/**
-	 * Test that a user holding only the wcship_manage_labels capability can normalize an address.
+	 * @testdox A user holding only the wcship_manage_labels capability can normalize an address.
 	 */
 	public function test_user_with_only_labels_capability_normalizes_address() {
 		// Given.
@@ -221,8 +221,10 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	}
 
 	/**
-	 * Test that the wcship_user_can_manage_labels filter still decides access, so existing
-	 * integrations that grant the permission to other roles through the filter keep working.
+	 * Existing integrations grant the permission to other roles through this filter,
+	 * so the tightened capability check must not close that door.
+	 *
+	 * @testdox The wcship_user_can_manage_labels filter still decides access.
 	 */
 	public function test_manage_labels_filter_grants_access() {
 		// Given.
@@ -271,15 +273,17 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 			),
 			'missing address' => array( array( 'type' => 'destination' ) ),
 			'empty body'      => array( array() ),
+			'scalar body'     => array( '1 Main St' ),
+			'json array body' => array( array( 'destination' ) ),
 		);
 	}
 
 	/**
-	 * Test that an authenticated request without a usable address gets a 400 and nothing is proxied.
+	 * @testdox A body without a usable address returns 400 and is not proxied.
 	 *
 	 * @dataProvider malformed_body_provider
 	 *
-	 * @param array $body The request body.
+	 * @param mixed $body The request body, which is not always an object.
 	 */
 	public function test_malformed_body_returns_400_without_proxying( $body ) {
 		// Given.
@@ -295,7 +299,7 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	}
 
 	/**
-	 * Test that an authenticated request with a body that is not JSON gets a 400 and nothing is proxied.
+	 * @testdox An authenticated request with a body that is not JSON returns 400 and is not proxied.
 	 */
 	public function test_non_json_body_returns_400_without_proxying() {
 		// Given.
@@ -310,7 +314,7 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	}
 
 	/**
-	 * Test that an address without a phone is normalized and comes back with an empty phone.
+	 * @testdox An address without a phone is normalized and comes back with an empty phone.
 	 */
 	public function test_address_without_phone_is_normalized() {
 		// Given.
@@ -339,7 +343,50 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	}
 
 	/**
-	 * Test that field errors reported by the Connect server are passed back to the caller.
+	 * Phones that cannot be echoed back as a string.
+	 */
+	public function non_scalar_phone_provider() {
+		return array(
+			'object phone' => array( array( 'x' => 1 ) ),
+			'array phone'  => array( array( '2125550123' ) ),
+		);
+	}
+
+	/**
+	 * @testdox A non-scalar phone is dropped rather than echoed back on the response.
+	 *
+	 * @dataProvider non_scalar_phone_provider
+	 *
+	 * @param mixed $phone The phone value sent in the address.
+	 */
+	public function test_non_scalar_phone_is_dropped( $phone ) {
+		// Given.
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'shop_manager' ) ) );
+		$address          = $this->sample_address();
+		$address['phone'] = $phone;
+		$proxied_address  = $this->sample_address();
+		unset( $proxied_address['phone'] );
+
+		$this->api_client_mock->expects( $this->once() )
+			->method( 'request' )
+			->with( 'POST', '/shipping/address/normalize', array( 'destination' => $proxied_address ) )
+			->willReturn( (object) array( 'normalized' => (object) $proxied_address ) );
+
+		// When.
+		$response = $this->dispatch_json(
+			array(
+				'address' => $address,
+				'type'    => 'destination',
+			)
+		);
+
+		// Then.
+		$this->assertEquals( 200, $response->get_status() );
+		$this->assertSame( '', $response->get_data()['normalized']->phone );
+	}
+
+	/**
+	 * @testdox Field errors reported by the Connect server are passed back to the caller.
 	 */
 	public function test_field_errors_are_returned() {
 		// Given.
@@ -363,7 +410,7 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	}
 
 	/**
-	 * Test that a Connect server error is returned as an error response.
+	 * @testdox A Connect server error is returned as an error response.
 	 */
 	public function test_api_error_is_returned() {
 		// Given.
@@ -411,7 +458,7 @@ class WP_Test_WC_REST_Connect_Address_Normalization_Controller extends WC_REST_U
 	/**
 	 * Dispatch a JSON body to the route.
 	 *
-	 * @param array $body The body to encode.
+	 * @param mixed $body The body to encode.
 	 * @return WP_REST_Response
 	 */
 	private function dispatch_json( $body ) {

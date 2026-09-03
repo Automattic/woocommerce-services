@@ -39,7 +39,8 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 		}
 
 		$address = $data['address'];
-		$phone   = isset( $address['phone'] ) ? $address['phone'] : '';
+		// The phone is echoed back on the response untouched, so only a scalar is carried through.
+		$phone = isset( $address['phone'] ) && is_scalar( $address['phone'] ) ? (string) $address['phone'] : '';
 
 		unset( $address['phone'] );
 
@@ -85,6 +86,10 @@ class WC_REST_Connect_Address_Normalization_Controller extends WC_REST_Connect_B
 	 *
 	 * Both the origin and the destination address are only normalized from the
 	 * shipping label form in wp-admin, so every request needs the labels capability.
+	 *
+	 * This is deliberately kept even though it currently matches the base class:
+	 * the requirement belongs to this route, not to whatever default the base
+	 * controller happens to carry, and third-party subclasses override it here.
 	 *
 	 * @param WP_REST_Request $request The request.
 	 * @return bool
