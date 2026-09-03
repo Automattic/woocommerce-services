@@ -76,6 +76,25 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 	class WC_Connect_Loader {
 
 		/**
+		 * Nonce action prefix guarding the "dismiss this notice" links on server-supplied notices.
+		 *
+		 * The notice id is appended, so a nonce only dismisses the notice it was issued for.
+		 *
+		 * @var string
+		 */
+		const DISMISS_SERVER_NOTICE_NONCE_ACTION = 'wc_connect_dismiss_server_notice';
+
+		/**
+		 * Query argument carrying the server-notice dismissal nonce.
+		 *
+		 * A dedicated name (rather than `_wpnonce`) so the dismiss link cannot overwrite a
+		 * nonce the surrounding admin screen already put on the current URL.
+		 *
+		 * @var string
+		 */
+		const DISMISS_SERVER_NOTICE_NONCE_NAME = '_wc_connect_notice_nonce';
+
+		/**
 		 * @var WC_Connect_Logger
 		 */
 		protected $logger;
@@ -2238,8 +2257,21 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$dismissible = false;
 				// check if the notice is dismissible.
 				if ( property_exists( $notice, 'id' ) && ! empty( $notice->id ) && property_exists( $notice, 'dismissible' ) && $notice->dismissible ) {
-					// check if the notice is being dismissed right now.
-					if ( isset( $_GET['wc-connect-dismiss-server-notice'] ) && $_GET['wc-connect-dismiss-server-notice'] === $notice->id ) {
+					$dismiss_nonce_action = self::DISMISS_SERVER_NOTICE_NONCE_ACTION . '_' . $notice->id;
+					$dismiss_requested    = isset( $_GET['wc-connect-dismiss-server-notice'] )
+						? sanitize_text_field( wp_unslash( $_GET['wc-connect-dismiss-server-notice'] ) )
+						: '';
+					$dismiss_nonce        = isset( $_GET[ self::DISMISS_SERVER_NOTICE_NONCE_NAME ] )
+						? sanitize_text_field( wp_unslash( $_GET[ self::DISMISS_SERVER_NOTICE_NONCE_NAME ] ) )
+						: '';
+
+					// Check if the notice is being dismissed right now. A dismissal without a valid
+					// nonce, or from a user who cannot manage the store, is ignored so the notice stays.
+					if (
+						$dismiss_requested === $notice->id
+						&& current_user_can( 'manage_woocommerce' )
+						&& wp_verify_nonce( $dismiss_nonce, $dismiss_nonce_action )
+					) {
 						set_transient( 'wcc_notice_dismissed_' . $notice->id, true, MONTH_IN_SECONDS );
 						continue;
 					}
@@ -2249,7 +2281,11 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					}
 
 					$dismissible  = true;
-					$link_dismiss = add_query_arg( array( 'wc-connect-dismiss-server-notice' => $notice->id ) );
+					$link_dismiss = wp_nonce_url(
+						add_query_arg( array( 'wc-connect-dismiss-server-notice' => $notice->id ) ),
+						$dismiss_nonce_action,
+						self::DISMISS_SERVER_NOTICE_NONCE_NAME
+					);
 				}
 				?>
 				<div class='<?php echo esc_attr( 'notice notice-' . $notice->type ); ?>' style="position: relative;">
