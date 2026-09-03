@@ -70,9 +70,11 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.15 - 2026-xx-xx =
+* Fix   - Require a valid nonce and store management permission before an admin notice can be dismissed.
+
 = 3.6.14 - 2026-09-03 =
 * Fix   - Prevent a fatal error at checkout when a cart line's price is not numeric.
-* Fix   - Require a valid nonce and store management permission before an admin notice can be dismissed.
 * Tweak - Limit the WordPress.com connection banner to the Tax settings and Plugins pages, so it no longer appears on unrelated admin screens.
 * Tweak - Stop registering a redundant copy of the continents REST endpoint on requests that cannot reach it.
 * Tweak - WooCommerce 11.1 Compatibility.
