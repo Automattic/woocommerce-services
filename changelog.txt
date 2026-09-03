@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.6.14 - 2026-xx-xx =
+= 3.6.14 - 2026-09-03 =
 * Fix   - Prevent a fatal error at checkout when a cart line's price is not numeric.
 * Tweak - Limit the WordPress.com connection banner to the Tax settings and Plugins pages, so it no longer appears on unrelated admin screens.
 * Tweak - Stop registering a redundant copy of the continents REST endpoint on requests that cannot reach it.
