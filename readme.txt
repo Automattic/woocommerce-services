@@ -71,7 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.6.15 - 2026-xx-xx =
-* Fix   - Require the shipping label permission for every address normalization request, including the destination address.
+* Fix   - Security update.
 
 = 3.6.14 - 2026-09-03 =
 * Fix   - Prevent a fatal error at checkout when a cart line's price is not numeric.
