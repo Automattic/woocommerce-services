@@ -91,6 +91,161 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * The bundled wc-api-dev copy of /wc/v3/data/continents is a fallback for WooCommerce versions
+	 * that predate the endpoint. Core has shipped it since WC 3.5, so on any supported WooCommerce
+	 * the fallback must stay dormant.
+	 *
+	 * This is the regression guard for the lazy-namespace interaction: since WC 9.2 core skips
+	 * registering the whole wc/v3 namespace on requests aimed at another namespace, so the route
+	 * table alone cannot tell us whether core provides the endpoint.
+	 *
+	 * Asserted against the route table rather than against class-load state: whether the bundled
+	 * class has been required is process-global and outlives whichever test loaded it, so it cannot
+	 * carry this contract under an arbitrary execution order.
+	 *
+	 * @covers WC_Connect_Loader::wc_api_dev_init
+	 */
+	public function test_wc_api_dev_init_defers_to_core_continents_controller() {
+		global $wp, $wp_rest_server;
+
+		if ( ! function_exists( 'wc_rest_should_load_namespace' ) ) {
+			$this->markTestSkipped( 'This WooCommerce does not register REST namespaces lazily.' );
+		}
+
+		$this->assertTrue(
+			class_exists( 'WC_REST_Data_Continents_Controller' ),
+			'WooCommerce core is expected to provide WC_REST_Data_Continents_Controller.'
+		);
+
+		$original_server = $wp_rest_server;
+		$original_route  = isset( $wp->query_vars['rest_route'] ) ? $wp->query_vars['rest_route'] : null;
+
+		// Reproduce a Store API request: core then skips the whole wc/v3 namespace, so
+		// /wc/v3/data/continents is missing from the route table even though core provides it.
+		$wp->query_vars['rest_route'] = '/wc/store/v1/cart';
+		$wp_rest_server               = null;
+
+		try {
+			$this->assertArrayNotHasKey(
+				'/wc/v3/data/continents',
+				rest_get_server()->get_routes(),
+				'Expected WooCommerce to defer the wc/v3 namespace on a wc/store request.'
+			);
+
+			$this->mockLoader()->wc_api_dev_init();
+
+			$this->assertArrayNotHasKey(
+				'/wc/v3/data/continents',
+				rest_get_server()->get_routes(),
+				'The bundled wc-api-dev continents controller must not register a route when WooCommerce core provides its own.'
+			);
+		} finally {
+			$wp_rest_server = $original_server;
+
+			if ( null === $original_route ) {
+				unset( $wp->query_vars['rest_route'] );
+			} else {
+				$wp->query_vars['rest_route'] = $original_route;
+			}
+		}
+	}
+
+	/**
+	 * The other half of the contract: when a WooCommerce genuinely does not supply the endpoint,
+	 * the fallback must still fire and register the route.
+	 *
+	 * Every supported WooCommerce does supply WC_REST_Data_Continents_Controller, and class_exists()
+	 * cannot be made to answer otherwise within a process, so that one question is stubbed at its
+	 * seam (WC_Connect_Loader::core_provides_continents_controller) and the rest of wc_api_dev_init()
+	 * runs for real: its own require_once calls, the controller construction and register_routes().
+	 *
+	 * The branch's own require_once calls are covered too, but only as far as PHP allows: loading a
+	 * file is process-global and monotonic, so a dropped require_once is only observable while no
+	 * earlier test has already loaded that class. Run on its own
+	 * (composer test -- --filter test_wc_api_dev_init) this test fails if any of the three requires
+	 * goes away; in a whole-suite run the WC_Connect_Continents one is masked, because
+	 * tests/php/classes/test-class-wc-rest-connect-shipping-label-controller.php sorts earlier and
+	 * loads that class for its own purposes. Closing that gap would need a fresh process per test,
+	 * which this suite cannot afford: PHPUnit's process-isolation annotation re-runs the WP/WC
+	 * bootstrap in the child (~26s) and that bootstrap reinstalls the shared test database
+	 * underneath the tests that follow.
+	 *
+	 * @covers WC_Connect_Loader::wc_api_dev_init
+	 */
+	public function test_wc_api_dev_init_registers_bundled_continents_route_when_core_lacks_it() {
+		global $wp, $wp_rest_server;
+
+		$loader = $this->getMockBuilder( 'WC_Connect_Loader' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'core_provides_continents_controller' ) )
+			->getMock();
+
+		$loader->expects( $this->any() )
+			->method( 'core_provides_continents_controller' )
+			->will( $this->returnValue( false ) );
+
+		$original_server = $wp_rest_server;
+		$original_route  = isset( $wp->query_vars['rest_route'] ) ? $wp->query_vars['rest_route'] : null;
+
+		// A wc/store request keeps core's own wc/v3 registration out of the route table, so any
+		// /wc/v3/data/continents route seen below can only have come from the bundled fallback.
+		$wp->query_vars['rest_route'] = '/wc/store/v1/cart';
+		$wp_rest_server               = null;
+
+		try {
+			$this->assertArrayNotHasKey(
+				'/wc/v3/data/continents',
+				rest_get_server()->get_routes(),
+				'Expected WooCommerce to defer the wc/v3 namespace on a wc/store request.'
+			);
+
+			$loader->wc_api_dev_init();
+
+			$routes = rest_get_server()->get_routes();
+
+			$this->assertArrayHasKey(
+				'/wc/v3/data/continents',
+				$routes,
+				'The bundled wc-api-dev fallback must register the collection route when core does not provide the endpoint.'
+			);
+			$this->assertArrayHasKey(
+				'/wc/v3/data/continents/(?P<location>[\w-]+)',
+				$routes,
+				'The bundled wc-api-dev fallback must register the single-continent route as well.'
+			);
+		} finally {
+			$wp_rest_server = $original_server;
+
+			if ( null === $original_route ) {
+				unset( $wp->query_vars['rest_route'] );
+			} else {
+				$wp->query_vars['rest_route'] = $original_route;
+			}
+		}
+	}
+
+	/**
+	 * Pins the fix shipped in 2.5.1: the bundled controller used to call parent::__construct(),
+	 * but no class in its ancestry (WC_REST_Dev_Data_Controller, WC_REST_Controller,
+	 * WP_REST_Controller) declares a constructor, so that call raised
+	 * "Uncaught Error: Cannot call constructor" every time the fallback branch was reached.
+	 *
+	 * Scope is exactly that: the controller is constructible given its dependency. The requires
+	 * below are the test supplying that dependency itself, so the test stays deterministic when it
+	 * runs alone; they are not a claim about what the fallback branch loads.
+	 */
+	public function test_bundled_continents_controller_is_constructible() {
+
+		require_once __DIR__ . '/../../classes/class-wc-connect-continents.php';
+		require_once __DIR__ . '/../../classes/wc-api-dev/class-wc-rest-dev-data-controller.php';
+		require_once __DIR__ . '/../../classes/wc-api-dev/class-wc-rest-dev-data-continents-controller.php';
+
+		$controller = new WC_REST_Dev_Data_Continents_Controller();
+
+		$this->assertInstanceOf( 'WC_REST_Dev_Data_Continents_Controller', $controller );
+	}
+
+	/**
 	 * @covers WC_Connect_Loader::__construct
 	 */
 	public function test_init_hook_attached_in_constructor() {
