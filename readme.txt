@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.6.15 - 2026-xx-xx =
+* Fix   - Require a valid nonce and store management permission before an admin notice can be dismissed.
 * Fix   - Security update.
 
 = 3.6.14 - 2026-09-03 =
