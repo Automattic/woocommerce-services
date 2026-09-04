@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.6.15 - 2026-xx-xx =
 * Fix   - Write the tax rate backup file as proper CSV, so cities and tax names containing a comma, a quote or an apostrophe are saved exactly as stored and no cell can be treated as a formula when the file is opened in a spreadsheet.
+* Fix   - Security update.
 
 = 3.6.14 - 2026-09-03 =
 * Fix   - Prevent a fatal error at checkout when a cart line's price is not numeric.
