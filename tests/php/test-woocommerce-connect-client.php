@@ -670,4 +670,200 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 			$instance->setValue( $orig_instance );
 		}
 	}
+
+	/**
+	 * Hooks that `load_admin_dependencies()` attaches callbacks to. Snapshotted around the
+	 * legacy DHL note tests so wiring the admin dependencies does not leak into other tests.
+	 *
+	 * @var string[]
+	 */
+	private static $admin_dependency_hooks = array(
+		'woocommerce_debug_tools',
+		'woocommerce_admin_status_tabs',
+		'woocommerce_admin_status_content_connect',
+		'wp_ajax_wcs_download_tax_backup',
+		'admin_notices',
+		'woocommerce_get_sections_shipping',
+		'woocommerce_settings_shipping',
+	);
+
+	/**
+	 * The plugin never calls `load_dependencies()` under WC_UNIT_TESTING, so whether a class has
+	 * been required is a function of test execution order. Require everything these tests touch.
+	 */
+	private function require_admin_dependency_classes() {
+		$classes = __DIR__ . '/../../classes/';
+
+		require_once $classes . 'class-wc-connect-logger.php';
+		require_once $classes . 'class-wc-connect-api-client.php';
+		require_once $classes . 'class-wc-connect-api-client-live.php';
+		require_once $classes . 'class-wc-connect-service-schemas-store.php';
+		require_once $classes . 'class-wc-connect-service-settings-store.php';
+		require_once $classes . 'class-wc-connect-taxjar-integration.php';
+		require_once $classes . 'class-wc-connect-tracks.php';
+		require_once $classes . 'class-wc-connect-error-notice.php';
+		require_once $classes . 'class-wc-connect-help-view.php';
+		require_once $classes . 'class-wc-connect-continents.php';
+		require_once $classes . 'class-wc-connect-note-dhl-live-rates-available.php';
+	}
+
+	/**
+	 * Skip when the environment cannot exercise the legacy DHL note path at all, so a green
+	 * assertion always means the guard behaved, never that the path was inert.
+	 */
+	private function require_legacy_dhl_note_preconditions() {
+		if ( WC_Connect_Loader::is_wc_shipping_activated() ) {
+			$this->markTestSkipped( 'WooCommerce Shipping is active here, so the legacy DHL note path is inert.' );
+		}
+
+		if ( ! WC_Connect_Loader::can_add_wc_admin_notice() ) {
+			$this->markTestSkipped( 'The WooCommerce admin-note data store is unavailable in this environment.' );
+		}
+	}
+
+	/**
+	 * Build a loader wired with the dependencies `load_admin_dependencies()` dereferences, over a
+	 * schemas store that reports the legacy DHL Express live rates schema.
+	 *
+	 * @param object $schema_call_expectation PHPUnit invocation matcher for get_all_shipping_method_ids().
+	 *
+	 * @return PHPUnit\Framework\MockObject\MockObject|WC_Connect_Loader
+	 */
+	private function mock_admin_loader_for_legacy_dhl_store( $schema_call_expectation ) {
+		$store = $this->getMockBuilder( 'WC_Connect_Service_Schemas_Store' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'get_all_shipping_method_ids' ) )
+			->getMock();
+
+		$store->expects( $schema_call_expectation )
+			->method( 'get_all_shipping_method_ids' )
+			->will( $this->returnValue( array( 'wc_services_dhlexpress' ) ) );
+
+		$loader = $this->mockLoader( $store );
+
+		$loader->set_api_client(
+			$this->getMockBuilder( 'WC_Connect_API_Client_Live' )->disableOriginalConstructor()->getMock()
+		);
+		$loader->set_service_settings_store(
+			$this->getMockBuilder( 'WC_Connect_Service_Settings_Store' )->disableOriginalConstructor()->getMock()
+		);
+		$loader->set_taxjar(
+			$this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )->disableOriginalConstructor()->getMock()
+		);
+
+		return $loader;
+	}
+
+	/**
+	 * Copy the callbacks currently attached to the hooks `load_admin_dependencies()` writes to.
+	 *
+	 * @return array
+	 */
+	private function snapshot_admin_dependency_hooks() {
+		$snapshot = array();
+
+		foreach ( self::$admin_dependency_hooks as $hook ) {
+			$snapshot[ $hook ] = isset( $GLOBALS['wp_filter'][ $hook ] ) ? clone $GLOBALS['wp_filter'][ $hook ] : null;
+		}
+
+		return $snapshot;
+	}
+
+	/**
+	 * Restore the callbacks captured by snapshot_admin_dependency_hooks().
+	 *
+	 * @param array $snapshot Snapshot to restore.
+	 */
+	private function restore_admin_dependency_hooks( $snapshot ) {
+		foreach ( $snapshot as $hook => $wp_hook ) {
+			if ( null === $wp_hook ) {
+				unset( $GLOBALS['wp_filter'][ $hook ] );
+			} else {
+				$GLOBALS['wp_filter'][ $hook ] = $wp_hook;
+			}
+		}
+	}
+
+	/**
+	 * An eligible legacy DHL store must still be offered the Inbox note on an ordinary wp-admin
+	 * page load. The AJAX guard only skips the work while admin-ajax.php is being served, so this
+	 * is the non-AJAX path that keeps grandfathered stores whole.
+	 *
+	 * @testdox load_admin_dependencies() still registers the legacy DHL note outside admin AJAX.
+	 * @covers WC_Connect_Loader::load_admin_dependencies
+	 */
+	public function test_load_admin_dependencies_registers_legacy_dhl_note_outside_ajax() {
+		$this->require_admin_dependency_classes();
+		$this->require_legacy_dhl_note_preconditions();
+
+		WC_Connect_Note_DHL_Live_Rates_Available::possibly_delete_note();
+		$this->assertFalse(
+			WC_Connect_Note_DHL_Live_Rates_Available::note_exists(),
+			'The fixture must start without the note, or the assertion below proves nothing.'
+		);
+
+		$loader   = $this->mock_admin_loader_for_legacy_dhl_store( $this->once() );
+		$snapshot = $this->snapshot_admin_dependency_hooks();
+
+		add_filter( 'wc_connect_has_only_tax_functionality', '__return_false' );
+
+		try {
+			$loader->load_admin_dependencies();
+
+			$this->assertTrue(
+				WC_Connect_Note_DHL_Live_Rates_Available::note_exists(),
+				'An eligible legacy DHL store must still receive the Inbox note on a non-AJAX admin request.'
+			);
+		} finally {
+			remove_filter( 'wc_connect_has_only_tax_functionality', '__return_false' );
+			$this->restore_admin_dependency_hooks( $snapshot );
+			WC_Connect_Note_DHL_Live_Rates_Available::possibly_delete_note();
+		}
+	}
+
+	/**
+	 * `is_admin()` is also true while WordPress serves admin-ajax.php, so the legacy DHL note path
+	 * used to run a service-schema read and an Inbox note lookup on every admin AJAX request. The
+	 * guard must skip that block only - the rest of the admin dependency wiring still runs, so
+	 * subclasses that override it keep getting called.
+	 *
+	 * @testdox load_admin_dependencies() skips the legacy DHL note during admin AJAX.
+	 * @covers WC_Connect_Loader::load_admin_dependencies
+	 */
+	public function test_load_admin_dependencies_skips_legacy_dhl_note_during_ajax() {
+		$this->require_admin_dependency_classes();
+		$this->require_legacy_dhl_note_preconditions();
+
+		WC_Connect_Note_DHL_Live_Rates_Available::possibly_delete_note();
+
+		$loader   = $this->mock_admin_loader_for_legacy_dhl_store( $this->never() );
+		$snapshot = $this->snapshot_admin_dependency_hooks();
+
+		add_filter( 'wc_connect_has_only_tax_functionality', '__return_false' );
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		try {
+			$loader->load_admin_dependencies();
+
+			$this->assertFalse(
+				WC_Connect_Note_DHL_Live_Rates_Available::note_exists(),
+				'The legacy DHL Inbox note must not be evaluated or created while serving admin-ajax.php.'
+			);
+			$this->assertInstanceOf(
+				'WC_Connect_Settings_Pages',
+				$loader->get_settings_pages(),
+				'The guard must skip only the Inbox note - the rest of the admin dependencies still load during AJAX.'
+			);
+			$this->assertInstanceOf(
+				'WC_Connect_Help_View',
+				$loader->get_help_view(),
+				'The guard must skip only the Inbox note - the rest of the admin dependencies still load during AJAX.'
+			);
+		} finally {
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+			remove_filter( 'wc_connect_has_only_tax_functionality', '__return_false' );
+			$this->restore_admin_dependency_hooks( $snapshot );
+			WC_Connect_Note_DHL_Live_Rates_Available::possibly_delete_note();
+		}
+	}
 }
