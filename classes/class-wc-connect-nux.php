@@ -231,6 +231,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				1. show_banner_before_connection()
 				2. connect to JP
 				3. show_banner_after_connection(), which sets the TOS acceptance in options
+			- Case 1b: the site registered but nobody finished signing in, so there is a blog
+				token and no connection owner. Jetpack reports this as "not connected", which is
+				what gates the plugin, but the merchant needs to be told something different:
+				there is nothing left to connect, only a sign-in to finish.
+				1. show_banner_site_only_connection()
+				2. finish the WordPress.com sign-in, which lands on the same flow as Case 1
 			- Case 2: Jetpack connected, no TOS
 				1. show_tos_only_banner(), which accepts TOS on button click
 			- Case 3: Jetpack connected, and TOS accepted
@@ -238,6 +244,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			*/
 			switch ( $status['jetpack_connection_status'] ) {
 				case self::JETPACK_NOT_CONNECTED:
+					// Only callers that pass the key can get this banner, so older callers
+					// keep the behaviour they have always had.
+					if ( ! empty( $status['is_site_only_connection'] ) ) {
+						return 'site_only_connection';
+					}
+
 					return 'before_jetpack_connection';
 				case self::JETPACK_CONNECTED:
 				case self::JETPACK_OFFLINE_MODE:
@@ -379,6 +391,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
 					'can_accept_tos'                  => WC_Connect_Jetpack::is_current_user_connection_owner() || WC_Connect_Jetpack::is_offline_mode(),
 					'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
+					'is_site_only_connection'         => WC_Connect_Jetpack::is_site_only_connection(),
 				)
 			);
 
@@ -391,6 +404,15 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					);
 					wp_enqueue_style( 'wc_connect_banner' );
 					add_action( 'admin_notices', array( $this, 'show_banner_before_connection' ), 9 );
+					break;
+				case 'site_only_connection':
+					wp_enqueue_script( 'wc_connect_banner' );
+					add_action(
+						'admin_post_register_woocommerce_services_jetpack',
+						array( $this, 'register_woocommerce_services_jetpack' )
+					);
+					wp_enqueue_style( 'wc_connect_banner' );
+					add_action( 'admin_notices', array( $this, 'show_banner_site_only_connection' ), 9 );
 					break;
 				case 'tos_only_banner':
 					wp_enqueue_style( 'wc_connect_banner' );
@@ -444,6 +466,55 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			);
 
 			$this->show_nux_banner( $banner_content );
+		}
+
+		/**
+		 * Banner for a site that is registered with WordPress.com but has no connected owner.
+		 *
+		 * Without it this store sees the same "connect your site" banner as a store that never
+		 * connected, and the Automated taxes setting is simply absent from WooCommerce >
+		 * Settings > Tax with nothing naming the reason. Both symptoms come from the same
+		 * place: WC_Connect_Jetpack::is_connected() requires a connected owner, so the plugin
+		 * never boots its tax integration. The sign-in is the only missing step, and the
+		 * existing connect handler already takes the merchant straight to it - a site that is
+		 * already registered skips registration and goes to the authorization flow.
+		 */
+		public function show_banner_site_only_connection() {
+			if ( ! $this->should_display_nux_notice_for_current_store_locale() ) {
+				return;
+			}
+
+			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
+				return;
+			}
+
+			// Remove Jetpack's connect banners since we're showing our own.
+			if ( class_exists( 'Jetpack_Connection_Banner' ) ) {
+				$jetpack_banner = Jetpack_Connection_Banner::init();
+
+				remove_action( 'admin_notices', array( $jetpack_banner, 'render_banner' ) );
+				remove_action( 'admin_notices', array( $jetpack_banner, 'render_connect_prompt_full_screen' ) );
+			}
+
+			// The after-connection banner is owed to whoever finishes the sign-in from here,
+			// exactly as it is for a store connecting from scratch.
+			WC_Connect_Options::delete_option( self::SHOULD_SHOW_AFTER_CXN_BANNER );
+
+			$country      = WC()->countries->get_base_country();
+			$feature_list = $this->get_feature_list_for_country( $country );
+
+			/* translators: %s: list of features, potentially comma separated */
+			$description_base = __( 'Your site is connected to WordPress.com, but no WordPress.com account is linked to it yet. Sign in to finish connecting and unlock %s.', 'woocommerce-services' );
+
+			$this->show_nux_banner(
+				array(
+					'title'             => __( 'Finish connecting your WordPress.com account', 'woocommerce-services' ),
+					'description'       => sprintf( $description_base, $feature_list ),
+					'button_text'       => __( 'Finish connecting', 'woocommerce-services' ),
+					'image_url'         => plugins_url( 'images/wcs-notice.png', __DIR__ ),
+					'should_show_terms' => true,
+				)
+			);
 		}
 
 		public function show_banner_after_connection() {
