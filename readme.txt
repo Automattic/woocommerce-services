@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.6.15 - 2026-xx-xx =
 * Fix   - Security update.
+* Tweak - Update the bundled qs JavaScript library to a version that resolves a reported security advisory (CVE-2025-15284).
 
 = 3.6.14 - 2026-09-03 =
 * Fix   - Prevent a fatal error at checkout when a cart line's price is not numeric.
