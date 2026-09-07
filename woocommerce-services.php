@@ -925,8 +925,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$settings_pages = new WC_Connect_Settings_Pages( $this->api_client, $this->get_service_schemas_store() );
 			$this->set_settings_pages( $settings_pages );
 
-			// Add WC Admin Notices.
-			if ( ! self::is_wc_shipping_activated() && self::can_add_wc_admin_notice() ) {
+			/*
+			 * Add WC Admin Notices.
+			 *
+			 * Skipped while serving admin-ajax.php: `is_admin()` is also true there, so without
+			 * this check every admin AJAX request pays for a service-schema read and an Inbox
+			 * note lookup that nothing in an AJAX response can display. Ordinary wp-admin page
+			 * loads are unaffected, so eligible legacy stores still get the note the first time
+			 * they open the admin.
+			 */
+			if ( ! wp_doing_ajax() && ! self::is_wc_shipping_activated() && self::can_add_wc_admin_notice() ) {
 				require_once __DIR__ . '/classes/class-wc-connect-note-dhl-live-rates-available.php';
 				WC_Connect_Note_DHL_Live_Rates_Available::init( $schema );
 			}
