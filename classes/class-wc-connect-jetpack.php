@@ -120,6 +120,23 @@ if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 		}
 
 		/**
+		 * Determines whether the site holds a WordPress.com token but has no connected owner.
+		 *
+		 * This is the "half connected" state: registration completed and left a blog token
+		 * behind, but nobody finished signing in with a WordPress.com account. Everything
+		 * that needs a user token - automated taxes included - stays unavailable, while
+		 * self::is_connected() reports false exactly as it does for a site that was never
+		 * connected at all. Callers that want to tell those two apart use this method.
+		 *
+		 * @return bool Whether the connection is site-level only.
+		 */
+		public static function is_site_only_connection() {
+			$connection_manager = self::get_connection_manager();
+
+			return $connection_manager->is_connected() && ! $connection_manager->has_connected_owner();
+		}
+
+		/**
 		 * Connects the site to Jetpack.
 		 * This code performs a redirection, so anything executed after it will be ignored.
 		 *
