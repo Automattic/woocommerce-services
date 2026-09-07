@@ -49,10 +49,22 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 		}
 
 		public function render_notice() {
-			$error_notice = filter_input( INPUT_GET, 'wc-connect-error-notice', FILTER_SANITIZE_ENCODED );
+			$error_notice = isset( $_GET['wc-connect-error-notice'] )
+				? sanitize_text_field( wp_unslash( $_GET['wc-connect-error-notice'] ) )
+				: '';
+			$nonce        = isset( $_GET[ self::DISMISS_NONCE_NAME ] )
+				? sanitize_text_field( wp_unslash( $_GET[ self::DISMISS_NONCE_NAME ] ) )
+				: '';
+
 			// Only act on a dismissal that carries a valid nonce and comes from a user who may
 			// manage the store. Anything else is ignored, so the notice simply stays visible.
-			if ( 'disable' === $error_notice && $this->is_dismissal_authorized() ) {
+			// The nonce is verified inline rather than in a helper so the read of $_GET and its
+			// verification stay in one scope, which is also what render_schema_notices() does.
+			if (
+				'disable' === $error_notice
+				&& current_user_can( 'manage_woocommerce' )
+				&& wp_verify_nonce( $nonce, self::DISMISS_NONCE_ACTION )
+			) {
 				WC_Connect_Options::update_option( 'error_notice', false );
 				$url = remove_query_arg( array( 'wc-connect-error-notice', self::DISMISS_NONCE_NAME ) );
 				wp_safe_redirect( $url );
@@ -62,26 +74,6 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 			if ( $this->notice_enabled() ) {
 				$this->show_notice();
 			}
-		}
-
-		/**
-		 * Whether the current request is allowed to dismiss the error notice.
-		 *
-		 * Fails closed: a missing, stale or forged nonce, or a user without the
-		 * `manage_woocommerce` capability, leaves the stored option untouched.
-		 *
-		 * @return bool
-		 */
-		private function is_dismissal_authorized() {
-			if ( ! current_user_can( 'manage_woocommerce' ) ) {
-				return false;
-			}
-
-			$nonce = isset( $_GET[ self::DISMISS_NONCE_NAME ] )
-				? sanitize_text_field( wp_unslash( $_GET[ self::DISMISS_NONCE_NAME ] ) )
-				: '';
-
-			return (bool) wp_verify_nonce( $nonce, self::DISMISS_NONCE_ACTION );
 		}
 
 		private function notice_enabled() {
