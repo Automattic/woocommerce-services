@@ -10,6 +10,22 @@
 	<rule ref="WordPress-Extra"/>
 	<rule ref="WordPress-Docs"/>
 
+	<!--
+		The Capabilities sniff only knows WordPress core capabilities, so it reports every
+		correctly-spelled capability that WooCommerce or this plugin registers as "unknown".
+		Declaring the two we actually use keeps the sniff useful for genuine typos:
+		  - manage_woocommerce   is registered by WooCommerce core for the shop_manager role.
+		  - wcship_manage_labels is registered by this plugin for shipping label access.
+	-->
+	<rule ref="WordPress.WP.Capabilities">
+		<properties>
+			<property name="custom_capabilities" type="array">
+				<element value="manage_woocommerce"/>
+				<element value="wcship_manage_labels"/>
+			</property>
+		</properties>
+	</rule>
+
 	<rule ref="PHPCompatibility">
 		<exclude-pattern>tests/</exclude-pattern>
 	</rule>
