@@ -30,3 +30,6 @@
 - [ ] `changelog.txt` entry added
 - [ ] `readme.txt` entry added
 
+<!-- Release PRs only -->
+- [ ] `composer outdated --direct` and `npm outdated` run, and the `automattic/jetpack-*` packages are on their latest stable line
+
