@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.16 - 2026-xx-xx =
+* Tweak - Update the Jetpack Connection package to 9.1.2.
+
 = 3.6.15 - 2026-09-07 =
 * Add   - Prompt merchants to finish signing in to WordPress.com when the site is connected but no account is linked to it, so the missing step is named instead of hidden.
 * Fix   - Write the tax rate backup file as proper CSV, so cities and tax names containing a comma, a quote or an apostrophe are saved exactly as stored and no cell can be treated as a formula when the file is opened in a spreadsheet.
