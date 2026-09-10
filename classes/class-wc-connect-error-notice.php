@@ -13,6 +13,22 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 
 	class WC_Connect_Error_Notice {
 
+		/**
+		 * Nonce action guarding the "dismiss this notice" link.
+		 *
+		 * @var string
+		 */
+		const DISMISS_NONCE_ACTION = 'wc_connect_dismiss_error_notice';
+
+		/**
+		 * Query argument carrying the dismissal nonce.
+		 *
+		 * A dedicated name (rather than `_wpnonce`) so the dismiss link cannot overwrite a
+		 * nonce the surrounding admin screen already put on the current URL.
+		 *
+		 * @var string
+		 */
+		const DISMISS_NONCE_NAME = '_wc_connect_notice_nonce';
 
 		private static $inst = null;
 
@@ -33,10 +49,24 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 		}
 
 		public function render_notice() {
-			$error_notice = filter_input( INPUT_GET, 'wc-connect-error-notice', FILTER_SANITIZE_ENCODED );
-			if ( 'disable' === $error_notice ) {
+			$error_notice = isset( $_GET['wc-connect-error-notice'] )
+				? sanitize_text_field( wp_unslash( $_GET['wc-connect-error-notice'] ) )
+				: '';
+			$nonce        = isset( $_GET[ self::DISMISS_NONCE_NAME ] )
+				? sanitize_text_field( wp_unslash( $_GET[ self::DISMISS_NONCE_NAME ] ) )
+				: '';
+
+			// Only act on a dismissal that carries a valid nonce and comes from a user who may
+			// manage the store. Anything else is ignored, so the notice simply stays visible.
+			// The nonce is verified inline rather than in a helper so the read of $_GET and its
+			// verification stay in one scope, which is also what render_schema_notices() does.
+			if (
+				'disable' === $error_notice
+				&& current_user_can( 'manage_woocommerce' )
+				&& wp_verify_nonce( $nonce, self::DISMISS_NONCE_ACTION )
+			) {
 				WC_Connect_Options::update_option( 'error_notice', false );
-				$url = remove_query_arg( 'wc-connect-error-notice' );
+				$url = remove_query_arg( array( 'wc-connect-error-notice', self::DISMISS_NONCE_NAME ) );
 				wp_safe_redirect( $url );
 				exit;
 			}
@@ -52,7 +82,11 @@ if ( ! class_exists( 'WC_Connect_Error_Notice' ) ) {
 
 		private function show_notice() {
 			$link_status  = admin_url( 'admin.php?page=wc-status&tab=connect' );
-			$link_dismiss = add_query_arg( array( 'wc-connect-error-notice' => 'disable' ) );
+			$link_dismiss = wp_nonce_url(
+				add_query_arg( array( 'wc-connect-error-notice' => 'disable' ) ),
+				self::DISMISS_NONCE_ACTION,
+				self::DISMISS_NONCE_NAME
+			);
 			$error        = $this->notice_enabled();
 
 			if ( ! is_wp_error( $error ) ) {
