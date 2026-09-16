@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.6.16 - 2026-xx-xx =
+= 3.6.16 - 2026-09-16 =
 * Tweak - Update the Jetpack Connection package to 9.1.2.
 
 = 3.6.15 - 2026-09-07 =

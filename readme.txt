@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 7.1
 WC requires at least: 10.9
 WC tested up to: 11.1
-Stable tag: 3.6.15
+Stable tag: 3.6.16
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.6.16 - 2026-xx-xx =
+= 3.6.16 - 2026-09-16 =
 * Tweak - Update the Jetpack Connection package to 9.1.2.
 
 = 3.6.15 - 2026-09-07 =
