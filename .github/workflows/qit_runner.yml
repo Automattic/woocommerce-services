@@ -78,7 +78,7 @@ jobs:
         steps:
             - name: Install QIT via composer
               shell: bash
-              run: composer require "woocommerce/qit-cli:^1.3.2"
+              run: composer require woocommerce/qit-cli
 
             - name: Add Partner and Prepare Environment
               shell: bash
