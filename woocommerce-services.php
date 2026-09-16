@@ -1998,6 +1998,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'clear'        => true,
 				'validate'     => array( 'phone' ),
 				'autocomplete' => 'tel',
+				'priority'     => 80,
 			);
 
 			// Use existing settings if the field exists.
