@@ -48,7 +48,7 @@
 				"debug": "^2.6.1",
 				"deep-freeze": "0.0.1",
 				"dom-scroll-into-view": "1.2.1",
-				"dompurify": "^2.5.8",
+				"dompurify": "^3.4.15",
 				"email-validator": "2.0.4",
 				"eslint": "5.16.0",
 				"eslint-config-prettier": "3.1.0",
@@ -91,7 +91,7 @@
 				"reselect": "^2.5.4",
 				"sass": "^1.77.8",
 				"sass-loader": "^10.5.2",
-				"striptags": "2.2.1",
+				"striptags": "3.2.0",
 				"style-loader": "^1.3.0",
 				"superagent": "3.8.3",
 				"terser-webpack-plugin": "^4.2.3",
@@ -3277,6 +3277,13 @@
 			"resolved": "https://registry.npmjs.org/@types/stack-utils/-/stack-utils-1.0.1.tgz",
 			"integrity": "sha512-l42BggppR6zLmpfU6fq9HEa2oGPEI8yrSPL3GITjfRInppYFahObbIQOQK3UGxEnyQpltZLaPe75046NOZQikw==",
 			"dev": true
+		},
+		"node_modules/@types/trusted-types": {
+			"version": "2.0.7",
+			"resolved": "https://registry.npmjs.org/@types/trusted-types/-/trusted-types-2.0.7.tgz",
+			"integrity": "sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==",
+			"license": "MIT",
+			"optional": true
 		},
 		"node_modules/@types/yargs": {
 			"version": "13.0.12",
@@ -11324,10 +11331,13 @@
 			}
 		},
 		"node_modules/dompurify": {
-			"version": "2.5.9",
-			"resolved": "https://registry.npmjs.org/dompurify/-/dompurify-2.5.9.tgz",
-			"integrity": "sha512-i6mvVmWN4xo9LrhCOZrDgSs9noW6nOahbrmzjRbPF36YPyj5Ue5lgok0MHDWkG7xzpWFO2OYttXdzM7rJxHvNA==",
-			"license": "(MPL-2.0 OR Apache-2.0)"
+			"version": "3.4.15",
+			"resolved": "https://registry.npmjs.org/dompurify/-/dompurify-3.4.15.tgz",
+			"integrity": "sha512-EUBjM+B+lkDE41iE82DDSCfkoPGfXx8IxFxPMjNzm/Uk4xDet77rTN9wqlxlVg71kK7XGuUMv6wUxJUwwv+Xyw==",
+			"license": "(MPL-2.0 OR Apache-2.0)",
+			"optionalDependencies": {
+				"@types/trusted-types": "^2.0.7"
+			}
 		},
 		"node_modules/domutils": {
 			"version": "2.7.0",
@@ -24984,9 +24994,10 @@
 			}
 		},
 		"node_modules/striptags": {
-			"version": "2.2.1",
-			"resolved": "https://registry.npmjs.org/striptags/-/striptags-2.2.1.tgz",
-			"integrity": "sha512-vZTvmFP0IYu/zn8MXV6PrLb6VKbd9WGSEnlm4D5RNXS/+zYYlHrSfJgoBw1w56D6RJCr515er3BittRGQqihLA=="
+			"version": "3.2.0",
+			"resolved": "https://registry.npmjs.org/striptags/-/striptags-3.2.0.tgz",
+			"integrity": "sha512-g45ZOGzHDMe2bdYMdIvdAfCQkCTDMGBazSw1ypMowwGIee7ZQ5dU0rBJ8Jqgl+jAKIv4dbeE1jscZq9wid1Tkw==",
+			"license": "MIT"
 		},
 		"node_modules/style-loader": {
 			"version": "1.3.0",
