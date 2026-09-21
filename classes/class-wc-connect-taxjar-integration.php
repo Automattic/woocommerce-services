@@ -2237,6 +2237,33 @@ class WC_Connect_TaxJar_Integration {
 			$wc_rate = array();
 		}
 
+		/*
+		 * Never repurpose a row whose scope is broader than the jurisdiction about to
+		 * be written. Rows this method inserts always carry the address's postcode or
+		 * city, so a matched row with no location rows at all is a merchant's
+		 * catch-all (or a row written for a scopeless address). Rewriting it in place
+		 * would turn it into, say, a 0% City component that still matches the whole
+		 * state.
+		 *
+		 * Inserting beside it is stable: `WC_Tax::find_rates()` keeps one row per
+		 * priority and prefers the one with more postcode/city locations, so the next
+		 * lookup for this address lands on the scoped row and reuses it, while the
+		 * catch-all keeps covering every other address.
+		 *
+		 * VAT rows are country-wide by design and addresses without a postcode or city
+		 * write no scope, so both keep reusing the matched row. Otherwise they would
+		 * insert a new row on every calculation.
+		 */
+		if ( ! empty( $wc_rate ) && 'VAT' !== $tax_rate_name ) {
+			$wanted_locations = $address->to_rate_table_locations();
+			$wants_scope      = '' !== $wanted_locations['postcode'] || '' !== $wanted_locations['city'];
+
+			if ( $wants_scope && ! $this->tax_rate_has_locations( key( $wc_rate ) ) ) {
+				$this->_log( ':: Matched Tax Rate Is Not Location Scoped, Adding A Scoped Rate Beside It ::' );
+				$wc_rate = array();
+			}
+		}
+
 		if ( ! empty( $wc_rate ) ) {
 			$this->_log( ':: Tax Rate Found ::' );
 			$this->_log( $wc_rate );
@@ -2269,6 +2296,24 @@ class WC_Connect_TaxJar_Integration {
 		$this->_log( 'Tax Rate ID Set for ' . $rate_id );
 
 		return $rate_id;
+	}
+
+	/**
+	 * Whether a tax rate row is restricted to any postcode or city.
+	 *
+	 * @param int $rate_id Tax rate ID.
+	 *
+	 * @return bool
+	 */
+	private function tax_rate_has_locations( $rate_id ) {
+		global $wpdb;
+
+		return (bool) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT 1 FROM {$wpdb->prefix}woocommerce_tax_rate_locations WHERE tax_rate_id = %d LIMIT 1",
+				$rate_id
+			)
+		);
 	}
 
 	/**
