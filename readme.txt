@@ -72,6 +72,8 @@ This plugin relies on the following external services:
 
 = 3.6.17 - 2026-xx-xx =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
+* Fix   - Update an order's tax when its items, quantities, fees, shipping or coupons change through the REST API or the WooCommerce app, using the tax rates recorded when the order was placed. Since 3.6.8 the tax stayed at its original amount after these edits, and each change is now recorded in an order note.
+* Fix   - Stop putting tax back on an order that was made VAT exempt after it was placed.
 
 = 3.6.16 - 2026-09-16 =
 * Tweak - Update the Jetpack Connection package to 9.1.2.

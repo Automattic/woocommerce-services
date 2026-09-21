@@ -75,6 +75,15 @@ class WC_Connect_TaxJar_Integration {
 	private $pre_recalculation_tax_snapshots = array();
 
 	/**
+	 * Taxable amounts of order items as they were before an in-request save changed
+	 * them, keyed by item id. The REST API saves an edited item before it
+	 * recalculates the order, so this is the only place the old amount is visible.
+	 *
+	 * @var array
+	 */
+	private $order_item_base_before_save = array();
+
+	/**
 	 * @var bool
 	 */
 	private $is_itemized_tax_display;
@@ -237,8 +246,10 @@ class WC_Connect_TaxJar_Integration {
 
 		// Preserve recorded taxes when an existing order is recalculated outside the
 		// cart/checkout and admin flows (e.g. a REST API or programmatic order update),
-		// so a changed address does not wipe the stored tax lines to zero.
+		// so a changed address does not wipe the stored tax lines to zero. When the
+		// order's amounts change, the rates recorded on the order are re-applied.
 		add_action( 'woocommerce_order_before_calculate_taxes', array( $this, 'preserve_order_taxes_on_recalculation' ), 10, 2 );
+		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'remember_order_item_base_before_save' ), 10, 1 );
 
 		// Set customer taxable location for local pickup
 		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
@@ -2573,13 +2584,20 @@ class WC_Connect_TaxJar_Integration {
 	 * current address using WC_Tax::find_rates(). TaxJar stores its rates scoped to
 	 * the checkout address, so when a REST API or programmatic update changes the
 	 * address the lookup returns nothing and update_taxes() wipes every tax line to
-	 * zero. Once an order is placed its tax is a record of what was charged, so we
-	 * preserve it rather than recompute it: snapshot the existing taxes here (before
-	 * WC recalculates) and restore them once the totals have been recalculated.
+	 * zero. So the rate table is never consulted here: snapshot the existing taxes
+	 * (before WC recalculates) and, once the totals have been recalculated, either
+	 * restore them or re-apply the order's own rates.
+	 *
+	 * The rate is fixed when the order is placed; the amount follows the order. If no
+	 * item, fee or shipping amount changed, the recorded tax is restored exactly (so a
+	 * plain re-save moves nothing, and a hand-typed figure survives it). If some did,
+	 * the rates recorded on the order's tax lines are re-applied to the items that
+	 * changed, and the order gets a note with the old and new tax. See
+	 * restore_order_taxes_after_recalculation().
 	 *
 	 * The cart/checkout and admin-AJAX flows have their own handling and are left
-	 * untouched, and an order with no existing tax lines is left to calculate for the
-	 * first time normally.
+	 * untouched, an order with no existing tax lines is left to calculate for the
+	 * first time normally, and a VAT-exempt order keeps the zero tax WC gives it.
 	 *
 	 * Restoration happens on woocommerce_order_after_calculate_totals, the only post-
 	 * recalculation hook WC fires on this path. A caller that invokes
@@ -2620,6 +2638,20 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		// WC zeroes the taxes of an exempt order; restoring them would undo the exemption.
+		/**
+		 * Filters whether an order is VAT exempt. A WooCommerce core filter, applied here
+		 * with the same arguments WC_Abstract_Order::calculate_taxes() passes.
+		 *
+		 * @since 3.6.17 Applied by this plugin.
+		 *
+		 * @param bool     $is_vat_exempt Whether the order is VAT exempt.
+		 * @param WC_Order $order         The order being recalculated.
+		 */
+		if ( apply_filters( 'woocommerce_order_is_vat_exempt', 'yes' === $order->get_meta( 'is_vat_exempt' ), $order ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
+			return;
+		}
+
 		$snapshot = $this->snapshot_order_taxes( $order );
 
 		// Only preserve when the order already had tax lines; never turn a first-time
@@ -2627,6 +2659,10 @@ class WC_Connect_TaxJar_Integration {
 		if ( empty( $snapshot['tax_lines'] ) ) {
 			return;
 		}
+
+		// What changed has to be read now: WC saves the order (and its items) while it
+		// recalculates, which clears the pending changes this relies on.
+		$snapshot['base_changes'] = $this->find_order_tax_base_changes( $order );
 
 		// Stash the snapshot keyed by order id and register a single restore handler.
 		$this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ] = $snapshot;
@@ -2640,9 +2676,15 @@ class WC_Connect_TaxJar_Integration {
 	 * Restore a preserved tax snapshot after WC has recalculated an order's totals.
 	 *
 	 * Looks up the snapshot captured in preserve_order_taxes_on_recalculation() for the
-	 * recalculated order and, if one is present, restores it and drops it from the
+	 * recalculated order and, if one is present, applies it and drops it from the
 	 * pending set. Keyed by order id so a batch that recalculates several orders
 	 * restores each from its own snapshot.
+	 *
+	 * - Nothing taxable changed: the recorded tax is restored exactly.
+	 * - Something changed: the order's recorded rates are re-applied to the changed
+	 *   items (see reapply_order_tax_rates()).
+	 * - Something changed but the order does not record its rates (orders from before
+	 *   WC 3.7): the recorded tax is restored and a note says it was not updated.
 	 *
 	 * @internal Hooked to woocommerce_order_after_calculate_totals.
 	 *
@@ -2659,7 +2701,53 @@ class WC_Connect_TaxJar_Integration {
 		$snapshot = $this->pre_recalculation_tax_snapshots[ $order_id ];
 		unset( $this->pre_recalculation_tax_snapshots[ $order_id ] );
 
-		$this->restore_order_taxes( $order, $snapshot );
+		if ( empty( $snapshot['base_changes']['has_changes'] ) ) {
+			$this->restore_order_taxes( $order, $snapshot );
+		} elseif ( ! $this->snapshot_records_tax_rates( $snapshot ) ) {
+			$this->restore_order_taxes( $order, $snapshot );
+			$order->add_order_note( __( 'Tax was not updated after this order changed, because the order does not record the tax rates it was placed with. Check the tax on this order.', 'woocommerce-services' ) );
+		} else {
+			$this->reapply_order_tax_rates( $order, $snapshot );
+		}
+
+		// The old amounts have been used; a later recalculation of the same order in
+		// this request must compare against what is saved now.
+		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
+			unset( $this->order_item_base_before_save[ $item_id ] );
+		}
+	}
+
+	/**
+	 * Remember an order item's taxable amount before a save changes it.
+	 *
+	 * The REST API saves an edited item before it recalculates the order, so by the
+	 * time preserve_order_taxes_on_recalculation() runs, the item no longer shows what
+	 * it was. Only the first save in a request is kept: that is the amount the order's
+	 * recorded tax was based on.
+	 *
+	 * @internal Hooked to woocommerce_before_order_item_object_save.
+	 *
+	 * @param WC_Order_Item $item The item about to be saved.
+	 */
+	public function remember_order_item_base_before_save( $item ) {
+		if ( ! $item instanceof WC_Order_Item || ! in_array( $item->get_type(), array( 'line_item', 'fee', 'shipping' ), true ) ) {
+			return;
+		}
+
+		$item_id = (int) $item->get_id();
+
+		if ( ! $item_id || isset( $this->order_item_base_before_save[ $item_id ] ) ) {
+			return;
+		}
+
+		$changes = $item->get_changes();
+
+		if ( ! array_key_exists( 'total', $changes ) && ! array_key_exists( 'subtotal', $changes ) ) {
+			return;
+		}
+
+		// get_data() still holds the saved values until the save applies the changes.
+		$this->order_item_base_before_save[ $item_id ] = self::get_order_item_tax_base( $item->get_data() );
 	}
 
 	/**
@@ -2771,5 +2859,287 @@ class WC_Connect_TaxJar_Integration {
 		$order->set_total( round( $non_tax_total + (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'], wc_get_price_decimals() ) );
 
 		$order->save();
+	}
+
+	/**
+	 * Work out which of an order's taxable amounts changed since it was last saved.
+	 *
+	 * Covers the three ways an edit reaches a recalculation: an existing item whose
+	 * total changed (saved already, or still pending), an item added (no id yet), and
+	 * an item removed (still saved, but no longer on the order).
+	 *
+	 * @param WC_Order $order The order about to be recalculated.
+	 * @return array {
+	 *   @type int[] $known_ids      Saved items still on the order.
+	 *   @type int[] $changed_ids    Saved items whose taxable amount changed.
+	 *   @type array $new_item_taxes Taxes of new items that arrived already taxed, keyed by spl_object_id().
+	 *   @type bool  $has_changes    Whether anything taxable changed, including additions and removals.
+	 * }
+	 */
+	private function find_order_tax_base_changes( $order ) {
+		$types          = array( 'line_item', 'fee', 'shipping' );
+		$known_ids      = array();
+		$changed_ids    = array();
+		$new_item_taxes = array();
+		$added          = false;
+
+		foreach ( $order->get_items( $types ) as $item ) {
+			$item_id = (int) $item->get_id();
+
+			if ( ! $item_id ) {
+				$added = true;
+
+				// Its tax was set by whoever added it (the Store API copies the cart's),
+				// so it was taxed at its own sale. Keyed by object: it has no id yet.
+				$taxes = $item->get_taxes();
+				if ( ! empty( $taxes['total'] ) ) {
+					$new_item_taxes[ spl_object_id( $item ) ] = $taxes;
+				}
+				continue;
+			}
+
+			$known_ids[] = $item_id;
+
+			if ( $this->order_item_base_moved( $item ) ) {
+				$changed_ids[] = $item_id;
+			}
+		}
+
+		$saved_ids = array();
+		foreach ( $types as $type ) {
+			$saved_ids = array_merge( $saved_ids, array_map( 'intval', array_keys( (array) $order->get_data_store()->read_items( $order, $type ) ) ) );
+		}
+		$removed = array_diff( $saved_ids, $known_ids );
+
+		return array(
+			'known_ids'      => $known_ids,
+			'changed_ids'    => $changed_ids,
+			'new_item_taxes' => $new_item_taxes,
+			'has_changes'    => $added || ! empty( $removed ) || ! empty( $changed_ids ),
+		);
+	}
+
+	/**
+	 * Whether a saved order item's taxable amount differs from what it was taxed on.
+	 *
+	 * Compared as numbers: a caller that re-sends "10.00" for a stored "10" has not
+	 * changed anything.
+	 *
+	 * @param WC_Order_Item $item A saved line item, fee or shipping item.
+	 * @return bool
+	 */
+	private function order_item_base_moved( $item ) {
+		$item_id = (int) $item->get_id();
+
+		if ( isset( $this->order_item_base_before_save[ $item_id ] ) ) {
+			$before = $this->order_item_base_before_save[ $item_id ];
+		} else {
+			$changes = $item->get_changes();
+
+			if ( ! array_key_exists( 'total', $changes ) && ! array_key_exists( 'subtotal', $changes ) ) {
+				return false;
+			}
+
+			$before = self::get_order_item_tax_base( $item->get_data() );
+		}
+
+		$after = self::get_order_item_tax_base(
+			array(
+				'total'    => $item->get_total(),
+				'subtotal' => is_callable( array( $item, 'get_subtotal' ) ) ? $item->get_subtotal() : null,
+			)
+		);
+
+		foreach ( array( 'total', 'subtotal' ) as $key ) {
+			if ( abs( (float) $before[ $key ] - (float) $after[ $key ] ) > 0.000001 ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * The amounts an order item's tax is calculated on.
+	 *
+	 * @param array $data Item data (WC_Order_Item::get_data() shape).
+	 * @return array{total: float|null, subtotal: float|null}
+	 */
+	private static function get_order_item_tax_base( $data ) {
+		return array(
+			'total'    => isset( $data['total'] ) ? (float) $data['total'] : null,
+			'subtotal' => isset( $data['subtotal'] ) ? (float) $data['subtotal'] : null,
+		);
+	}
+
+	/**
+	 * Whether every tax line in a snapshot records the rate it was charged at.
+	 *
+	 * Orders from before WC 3.7 have no rate_percent, and WC reads the missing value
+	 * back as 0. A 0% line that carries tax therefore means "rate unknown", and
+	 * re-applying 0% to it would wipe real tax.
+	 *
+	 * @param array $snapshot Snapshot returned by snapshot_order_taxes().
+	 * @return bool
+	 */
+	private function snapshot_records_tax_rates( $snapshot ) {
+		foreach ( $snapshot['tax_lines'] as $tax_line ) {
+			if ( 0.0 === (float) $tax_line['rate_percent'] && ( 0.0 !== (float) $tax_line['tax_total'] || 0.0 !== (float) $tax_line['shipping_tax_total'] ) ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Re-apply an order's recorded rates to the items whose amounts changed.
+	 *
+	 * Items that did not change keep the tax they had. A changed item is taxed at the
+	 * rates it already carries; a new item or fee at the rates of an existing item in
+	 * the same tax class; a new shipping line at the rates of the existing shipping.
+	 * With no such rate on the order, a new item is left untaxed and the note says so.
+	 * A new item that arrives with its tax already set keeps it.
+	 * Percentages, labels and codes come from the order's tax lines, never from the
+	 * rate table, which may have changed since the order was placed.
+	 *
+	 * @param WC_Order $order    The recalculated order.
+	 * @param array    $snapshot Snapshot taken before the recalculation.
+	 */
+	private function reapply_order_tax_rates( $order, $snapshot ) {
+		$tax_lines_by_rate = array();
+		$rates             = array();
+		foreach ( $snapshot['tax_lines'] as $tax_line ) {
+			$rate_id                       = (int) $tax_line['rate_id'];
+			$tax_lines_by_rate[ $rate_id ] = $tax_line;
+			$rates[ $rate_id ]             = array(
+				'rate'     => (float) $tax_line['rate_percent'],
+				'label'    => $tax_line['label'],
+				'shipping' => 'yes',
+				'compound' => $tax_line['compound'] ? 'yes' : 'no',
+			);
+		}
+
+		$known_ids   = $snapshot['base_changes']['known_ids'];
+		$changed_ids = $snapshot['base_changes']['changed_ids'];
+
+		// Rates already on the order, per tax class and for shipping, for new items.
+		$rate_ids_by_class = array();
+		$shipping_rate_ids = array();
+		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
+			$key = 'shipping' === $item->get_type() ? 'shipping_' . $item_id : $item_id;
+			if ( ! in_array( (int) $item_id, $known_ids, true ) || empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
+				continue;
+			}
+
+			$item_rate_ids = array_keys( $snapshot['item_taxes'][ $key ]['total'] );
+			if ( 'shipping' === $item->get_type() ) {
+				$shipping_rate_ids = array_unique( array_merge( $shipping_rate_ids, $item_rate_ids ) );
+			} else {
+				$tax_class                       = $item->get_tax_class();
+				$rate_ids_by_class[ $tax_class ] = array_unique( array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), $item_rate_ids ) );
+			}
+		}
+
+		$untaxed = array();
+		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
+			$is_shipping = 'shipping' === $item->get_type();
+			$key         = $is_shipping ? 'shipping_' . $item_id : $item_id;
+			$is_known    = in_array( (int) $item_id, $known_ids, true );
+
+			if ( $is_known && ! in_array( (int) $item_id, $changed_ids, true ) ) {
+				if ( isset( $snapshot['item_taxes'][ $key ] ) ) {
+					$item->set_taxes( $snapshot['item_taxes'][ $key ] );
+				}
+				continue;
+			}
+
+			if ( ! $is_known && isset( $snapshot['base_changes']['new_item_taxes'][ spl_object_id( $item ) ] ) ) {
+				$item->set_taxes( $snapshot['base_changes']['new_item_taxes'][ spl_object_id( $item ) ] );
+				continue;
+			}
+
+			if ( $is_known ) {
+				$item_rate_ids = empty( $snapshot['item_taxes'][ $key ]['total'] ) ? array() : array_keys( $snapshot['item_taxes'][ $key ]['total'] );
+			} elseif ( 'taxable' !== $item->get_tax_status() ) {
+				$item_rate_ids = array();
+			} elseif ( $is_shipping ) {
+				$item_rate_ids = $shipping_rate_ids;
+			} else {
+				$item_rate_ids = $rate_ids_by_class[ $item->get_tax_class() ] ?? array();
+			}
+
+			$item_rates = array_intersect_key( $rates, array_flip( array_map( 'intval', $item_rate_ids ) ) );
+
+			if ( empty( $item_rates ) ) {
+				if ( ! $is_known && 'taxable' === $item->get_tax_status() ) {
+					$untaxed[] = $item->get_name();
+				}
+				$item->set_taxes( false );
+				continue;
+			}
+
+			$taxes = array( 'total' => WC_Tax::calc_tax( $item->get_total(), $item_rates, false ) );
+			if ( is_callable( array( $item, 'get_subtotal' ) ) ) {
+				$taxes['subtotal'] = WC_Tax::calc_tax( $item->get_subtotal(), $item_rates, false );
+			}
+			$item->set_taxes( $taxes );
+		}
+
+		// WC has already recomputed the non-tax amounts; keep them and swap the tax.
+		$non_tax_total = (float) $order->get_total() - (float) $order->get_cart_tax() - (float) $order->get_shipping_tax();
+
+		// Rebuild the tax lines from the item taxes, then put back what the order
+		// recorded about each rate: update_taxes() reads it from the rate table.
+		$order->update_taxes();
+		foreach ( $order->get_taxes() as $tax_item ) {
+			$rate_id = (int) $tax_item->get_rate_id();
+			if ( ! isset( $tax_lines_by_rate[ $rate_id ] ) ) {
+				continue;
+			}
+			$tax_item->set_rate_code( $tax_lines_by_rate[ $rate_id ]['rate_code'] );
+			$tax_item->set_label( $tax_lines_by_rate[ $rate_id ]['label'] );
+			$tax_item->set_rate_percent( $tax_lines_by_rate[ $rate_id ]['rate_percent'] );
+			$tax_item->set_compound( $tax_lines_by_rate[ $rate_id ]['compound'] );
+		}
+
+		// Same sum WC_Abstract_Order::calculate_totals() uses for the discount tax.
+		$subtotal_tax = 0.0;
+		$total_tax    = 0.0;
+		foreach ( $order->get_items() as $item ) {
+			$taxes         = $item->get_taxes();
+			$total_tax    += array_sum( array_map( 'floatval', $taxes['total'] ) );
+			$subtotal_tax += array_sum( array_map( 'floatval', $taxes['subtotal'] ) );
+		}
+		$order->set_discount_tax( wc_round_tax_total( $subtotal_tax - $total_tax ) );
+		$order->set_total( round( $non_tax_total + (float) $order->get_cart_tax() + (float) $order->get_shipping_tax(), wc_get_price_decimals() ) );
+		$order->save();
+
+		$old_tax = (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'];
+		$new_tax = (float) $order->get_cart_tax() + (float) $order->get_shipping_tax();
+		$notes   = array();
+
+		if ( abs( $old_tax - $new_tax ) > 0.000001 ) {
+			$notes[] = sprintf(
+				/* translators: 1: tax before the order changed, 2: tax after. */
+				__( 'Tax updated because the order changed: %1$s → %2$s. The tax rates recorded when the order was placed were used.', 'woocommerce-services' ),
+				wc_price( $old_tax, array( 'currency' => $order->get_currency() ) ),
+				wc_price( $new_tax, array( 'currency' => $order->get_currency() ) )
+			);
+		}
+
+		if ( $untaxed ) {
+			$notes[] = sprintf(
+				/* translators: %s: comma-separated names of order items. */
+				__( 'No tax was added for %s, because the order has no recorded tax rate for it. Check the tax on this order.', 'woocommerce-services' ),
+				implode( ', ', array_map( 'wp_strip_all_tags', $untaxed ) )
+			);
+		}
+
+		// A checkout draft is still being built from the cart; a note there would
+		// outlive the checkout and describe changes the merchant never made.
+		if ( $notes && 'checkout-draft' !== $order->get_status() ) {
+			$order->add_order_note( implode( ' ', $notes ) );
+		}
 	}
 }
