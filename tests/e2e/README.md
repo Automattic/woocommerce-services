@@ -18,14 +18,24 @@ Automated end-to-end tests for WooCommerce Tax.
 
 ### Install NodeJS
 
+The e2e stack runs on **Node 10.18.1**, not the `.nvmrc` version the rest of the
+repository uses. `@woocommerce/e2e-environment` depends on
+`@automattic/puppeteer-utils` from a pinned GitHub commit whose `postinstall`
+builds itself with unpinned babel; that build fails on Node 12 and later. Until
+that stack is replaced, install and run the e2e suite on the old runtime.
+
 ```bash
-brew install node #MacOS
+source ~/.nvm/nvm.sh && nvm install 10.18.1 && nvm use 10.18.1
 ```
 
 ### Install dependencies
 
+These dependencies live in `tests/e2e/package.json`, separate from the root
+package, so they cannot block a plain `npm install` at the repository root.
+Install the root dependencies first (on the `.nvmrc` runtime), then these:
+
 ```bash
-npm install
+npm run test:e2e-install     # == npm --prefix tests/e2e install
 ```
 
 ### Configuration

@@ -1,5 +1,6 @@
 /nbproject/private/
 /node_modules/
+/tests/e2e/node_modules/
 project.xml
 project.properties
 .DS_Store

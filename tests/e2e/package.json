@@ -1,0 +1,14 @@
+{
+	"name": "woocommerce-services-e2e",
+	"version": "1.0.0",
+	"private": true,
+	"description": "End-to-end test dependencies for WooCommerce Shipping & Tax. Installed separately from the root package so the e2e stack cannot block a plain `npm install` - see tests/e2e/README.md.",
+	"license": "GPL-2.0",
+	"devDependencies": {
+		"@slack/web-api": "^5.15.0",
+		"@woocommerce/e2e-environment": "^0.2.2",
+		"@woocommerce/woocommerce-rest-api": "^1.0.1",
+		"jest-puppeteer": "^4.4.0",
+		"puppeteer": "^13.7.0"
+	}
+}
