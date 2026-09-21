@@ -37,6 +37,7 @@
 namespace Automattic\WCServices\Tax;
 
 use WC_Customer;
+use WC_Order;
 use WP_Error;
 
 defined( 'ABSPATH' ) || exit;
@@ -262,6 +263,33 @@ final class Address {
 			(string) $customer->get_shipping_postcode(),
 			(string) $customer->get_shipping_city(),
 			(string) $customer->get_shipping_address()
+		);
+	}
+
+	/**
+	 * Build from an order's saved billing or shipping address.
+	 *
+	 * @param WC_Order $order Order to read.
+	 * @param string   $type  'billing' or 'shipping'. Anything else reads billing.
+	 * @return self
+	 */
+	public static function from_order( WC_Order $order, string $type ): self {
+		if ( 'shipping' === $type ) {
+			return new self(
+				(string) $order->get_shipping_country(),
+				(string) $order->get_shipping_state(),
+				(string) $order->get_shipping_postcode(),
+				(string) $order->get_shipping_city(),
+				(string) $order->get_shipping_address_1()
+			);
+		}
+
+		return new self(
+			(string) $order->get_billing_country(),
+			(string) $order->get_billing_state(),
+			(string) $order->get_billing_postcode(),
+			(string) $order->get_billing_city(),
+			(string) $order->get_billing_address_1()
 		);
 	}
 

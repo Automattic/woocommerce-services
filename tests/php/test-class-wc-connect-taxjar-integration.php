@@ -2485,6 +2485,153 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertSame( "123 O'Malley Way", $address['to_street'], 'Backend street retained the WordPress-added slash.' );
 	}
 
+	/**
+	 * Run calculate_backend_totals() the way the Recalculate button does and return
+	 * the street it handed to calculate_tax().
+	 *
+	 * @param WC_Order $order         Saved order.
+	 * @param array    $post          Request body, unslashed.
+	 * @param string   $tax_based_on  The `woocommerce_tax_based_on` setting.
+	 * @return string|false
+	 */
+	private function backend_street_sent_for( $order, $post, $tax_based_on ) {
+		$captured    = null;
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'calculate_tax', '_log' ) )
+			->getMock();
+		$integration->method( 'calculate_tax' )->willReturnCallback(
+			function ( $options ) use ( &$captured ) {
+				$captured = $options;
+				return array( 'rate_ids' => array() );
+			}
+		);
+
+		$original_post  = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Test fixture; saved and restored.
+		$original_based = get_option( 'woocommerce_tax_based_on' );
+		$_POST          = wp_slash( $post );
+		update_option( 'woocommerce_tax_based_on', $tax_based_on );
+
+		try {
+			$integration->calculate_backend_totals( $order->get_id() );
+		} finally {
+			$_POST = $original_post;
+			update_option( 'woocommerce_tax_based_on', $original_based );
+		}
+
+		$this->assertNotNull( $captured, 'calculate_backend_totals() did not call calculate_tax().' );
+
+		return $captured['to_street'];
+	}
+
+	/**
+	 * An order saved with a shipping and a billing address in the same ZIP, on
+	 * different streets, so the test can tell which side a street came from.
+	 *
+	 * @param bool $with_shipping Whether the order has a shipping address.
+	 * @return WC_Order
+	 */
+	private function create_order_for_backend_street( $with_shipping = true ) {
+		$order = new WC_Order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '81323' );
+		$order->set_billing_city( 'Dolores' );
+		$order->set_billing_address_1( '400 Central Ave' );
+		if ( $with_shipping ) {
+			$order->set_shipping_country( 'US' );
+			$order->set_shipping_state( 'CO' );
+			$order->set_shipping_postcode( '81323' );
+			$order->set_shipping_city( 'Dolores' );
+			$order->set_shipping_address_1( '18680 Highway 145' );
+		}
+		$order->save();
+
+		return $order;
+	}
+
+	/**
+	 * Core's Recalculate request without our script: the four fields, no `street` key.
+	 *
+	 * @return array
+	 */
+	private function recalculate_post_without_street() {
+		return array(
+			'country'  => 'US',
+			'state'    => 'CO',
+			'postcode' => '81323',
+			'city'     => 'Dolores',
+		);
+	}
+
+	/**
+	 * When the order-screen script did not add `street`, the saved street of the
+	 * address core posted is sent, so TaxJar does not rate the ZIP alone.
+	 */
+	public function test_backend_totals_uses_saved_shipping_street_when_script_did_not_send_one() {
+		$order = $this->create_order_for_backend_street();
+
+		$this->assertSame( '18680 Highway 145', $this->backend_street_sent_for( $order, $this->recalculate_post_without_street(), 'shipping' ) );
+	}
+
+	/**
+	 * With no shipping country, core posts the billing fields, so the billing street
+	 * is the one that belongs to them.
+	 */
+	public function test_backend_totals_uses_saved_billing_street_when_order_has_no_shipping_address() {
+		$order = $this->create_order_for_backend_street( false );
+
+		$this->assertSame( '400 Central Ave', $this->backend_street_sent_for( $order, $this->recalculate_post_without_street(), 'shipping' ) );
+	}
+
+	/**
+	 * Only the side core read from counts. Taxes based on billing, the billing
+	 * address was edited without saving, and the posted fields happen to equal the
+	 * saved shipping address: the shipping street does not belong to this request.
+	 */
+	public function test_backend_totals_does_not_borrow_the_street_from_the_other_side() {
+		$order = $this->create_order_for_backend_street();
+		$order->set_billing_postcode( '80120' );
+		$order->save();
+
+		$this->assertFalse( $this->backend_street_sent_for( $order, $this->recalculate_post_without_street(), 'billing' ) );
+	}
+
+	/**
+	 * The merchant changed the ZIP without saving the order. The saved street is from
+	 * the old address, and a new ZIP with an old street is worse than no street.
+	 */
+	public function test_backend_totals_sends_no_street_when_the_address_was_edited_without_saving() {
+		$order            = $this->create_order_for_backend_street();
+		$post             = $this->recalculate_post_without_street();
+		$post['postcode'] = '81321';
+
+		$this->assertFalse( $this->backend_street_sent_for( $order, $post, 'shipping' ) );
+	}
+
+	/**
+	 * A street the form posted empty is what the merchant has on screen. It is not
+	 * replaced by the saved one.
+	 */
+	public function test_backend_totals_keeps_a_street_posted_empty() {
+		$order          = $this->create_order_for_backend_street();
+		$post           = $this->recalculate_post_without_street();
+		$post['street'] = '';
+
+		$this->assertFalse( $this->backend_street_sent_for( $order, $post, 'shipping' ) );
+	}
+
+	/**
+	 * A posted street always wins over the saved one.
+	 */
+	public function test_backend_totals_keeps_a_posted_street() {
+		$order          = $this->create_order_for_backend_street();
+		$post           = $this->recalculate_post_without_street();
+		$post['street'] = '1 Edited St';
+
+		$this->assertSame( '1 Edited St', $this->backend_street_sent_for( $order, $post, 'shipping' ) );
+	}
+
 	// -------------------------------------------------------------------------
 	// Request seam — the address that gets validated must be the address that
 	// gets sent.

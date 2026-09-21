@@ -2,6 +2,7 @@
 
 = 3.6.17 - 2026-xx-xx =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
+* Fix   - Send the street with the address when you click Recalculate on an order that has no shipping address, so tax is not calculated from the ZIP code alone. Recalculate also no longer freezes when the city contains a double quote.
 
 = 3.6.16 - 2026-09-16 =
 * Tweak - Update the Jetpack Connection package to 9.1.2.

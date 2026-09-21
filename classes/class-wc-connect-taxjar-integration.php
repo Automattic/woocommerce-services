@@ -659,7 +659,7 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public function calculate_backend_totals( $order_id ) {
 		$order      = wc_get_order( $order_id );
-		$address    = $this->get_backend_address();
+		$address    = $this->fill_missing_backend_street( $this->get_backend_address(), $order );
 		$line_items = $this->get_backend_line_items( $order );
 		if ( method_exists( $order, 'get_shipping_total' ) ) {
 			$shipping = $order->get_shipping_total(); // Woo 3.0+
@@ -965,6 +965,55 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	protected function get_backend_address() {
 		return Address::from_post_request()->to_legacy_options();
+	}
+
+	/**
+	 * Fill in the street when the Recalculate request arrived without one.
+	 *
+	 * Core's Recalculate button posts country, state, postcode and city, and the
+	 * order-screen script (`client/new-order-taxjar.js`) adds `street`. When that script
+	 * did not run (not loaded, stopped by another script's error, or another handler
+	 * replaced the request data), the key is missing and TaxJar would get no street.
+	 *
+	 * The order's saved street is used only when the posted address matches the saved
+	 * address on the side core read it from. Otherwise the merchant edited the address
+	 * without saving the order, and pairing the new ZIP with the old street would be
+	 * worse than sending no street. A street posted empty is the merchant's input and is
+	 * left alone.
+	 *
+	 * @param array|mixed   $address Backend address in the `to_*` shape from `get_backend_address()`.
+	 * @param WC_Order|bool $order   Order being recalculated.
+	 * @return array|mixed The address, with `to_street` filled when it was safe to.
+	 */
+	private function fill_missing_backend_street( $address, $order ) {
+		// Core verified the nonce and capability before woocommerce_before_save_order_items.
+		if ( isset( $_POST['street'] ) || ! is_array( $address ) || ! empty( $address['to_street'] ) || ! $order instanceof WC_Order ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			return $address;
+		}
+
+		$posted = Address::from_options( $address );
+		if ( '' === $posted->country() ) {
+			return $address;
+		}
+
+		// The same rule core's get_taxable_address() uses to pick the side it posts.
+		$type  = ( 'shipping' === get_option( 'woocommerce_tax_based_on' ) && '' !== (string) $order->get_shipping_country() ) ? 'shipping' : 'billing';
+		$saved = Address::from_order( $order, $type );
+
+		if ( '' === $saved->street()
+			|| $saved->country() !== $posted->country()
+			|| $saved->state() !== $posted->state()
+			|| $saved->postcode() !== $posted->postcode()
+			|| $saved->city() !== $posted->city()
+		) {
+			$this->_log( 'Recalculate request had no street and the posted address does not match the saved ' . $type . ' address; calculating without a street.' );
+			return $address;
+		}
+
+		$this->_log( 'Recalculate request had no street; using the saved ' . $type . ' street.' );
+		$address['to_street'] = $saved->street();
+
+		return $address;
 	}
 
 	/**
