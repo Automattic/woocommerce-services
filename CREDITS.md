@@ -3,6 +3,25 @@ Credits
 
 This project makes use of Open Source components. Below is a list of these components included in this project's source code, and their license information. This project also uses js packages released by NPM, see [package.json](/package.json). Source code and license information for each of these packages is available at https://npmjs.org. Many thanks to all of the original authors!
 
+### https://github.com/Automattic/wp-calypso
+
+Portions of `client/calypso/` and `assets/stylesheets/{shared,_main.scss}` are verbatim
+copies of WordPress.com Calypso sources, taken at commit `79b83cb` (2019-04-17), together
+with one rule from `@wordpress/components@7.0.8` vendored into
+`assets/stylesheets/vendor/`. See `client/calypso/README.md`.
+
+```text
+Copyright (c) Automattic Inc.
+
+This program is free software; you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details.
+```
+
 ### https://github.com/facebook/react
 
 ```text

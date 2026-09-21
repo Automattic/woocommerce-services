@@ -1,3 +1,7 @@
 # woocommerce app is an artifact of move over from Calypso repo.
 # Let's ignore it for now, and delete it later.
 client/extensions/woocommerce/*
+
+# Vendored wp-calypso client modules (frozen copies of upstream sources).
+# Not ours to lint or restyle - keep byte-identical to the submodule snapshot.
+client/calypso/*
