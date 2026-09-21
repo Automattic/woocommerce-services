@@ -35,6 +35,14 @@ const cssLoaders = [
 			// dart-sass; node-sass has no build for modern Node ABIs or for arm64
 			implementation: require( 'sass' ),
 			sassOptions: {
+				// @automattic/calypso-color-schemes 1.x calls the deprecated global red()/
+				// green()/blue() builtins. It is pinned at 1.x because 2.0 dropped the files
+				// this plugin imports, so the warnings are not ours to fix - silence anything
+				// raised inside node_modules rather than let 170+ lines bury real output.
+				quietDeps: true,
+				// sass-loader 10 drives dart-sass through its legacy JS API; that is the
+				// loader's choice, not something this config can change.
+				silenceDeprecations: [ 'legacy-js-api' ],
 				includePaths: [
 					path.resolve( __dirname, 'client' ),
 					path.resolve( __dirname, 'client', 'extensions' ),
