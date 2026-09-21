@@ -20,7 +20,7 @@
 
 ## Runtime Compatibility
 - CRITICAL: Always run `source ~/.nvm/nvm.sh && nvm use` before any command that invokes Node (e.g., `npm install`, `npm run`, `git push` — the pre-push hook runs `npm test`). Without this, tests will fail with Node version incompatibilities.
-- The pinned runtime is `.nvmrc` (`18.20.8`). Node 18 is itself EOL; nothing in the toolchain is specific to it, so moving the pin further is a one-line change plus a verification run.
+- The pinned runtime is `.nvmrc` (`24.21.0`). Verified on 24: `npm ci`, eslint, the production build and the full jest suite, with output byte-identical to Node 18.
 - CRITICAL: The e2e stack installs separately, from `tests/e2e/package.json`, and runs on Node 10.18.1 — not the `.nvmrc` runtime. `@woocommerce/e2e-environment` pulls `@automattic/puppeteer-utils` from a pinned GitHub commit whose postinstall builds itself with unpinned babel and fails on Node 12+, and `jest-puppeteer` 4 requires puppeteer <3 against puppeteer 13. Keeping those out of the root package is what lets a plain `npm install` succeed; do not move them back. Install with `npm run test:e2e-install` on Node 10 — see `tests/e2e/README.md`.
 - The `wp-calypso` submodule no longer feeds the build, the unit tests or eslint. The ~90 modules that were actually reachable are vendored under `client/calypso/`, `assets/stylesheets/shared/`, `tasks/babel/` and `tasks/eslint/`; see `client/calypso/README.md`. Do not reintroduce imports that resolve into the submodule.
 - MUST NOT perform incidental Node/toolchain upgrades while making feature or bugfix changes.
@@ -55,7 +55,7 @@ composer check-all     # PHPCS (see Linting below)
   also wipes the DB volume run `bash tests/bin/install-wc-tests.sh --force`.
 - WP/WC are installed under the system temp dir (honors `TMPDIR`). The WC clone builds
   with its own modern Node via the WC checkout's `.nvmrc`; this is independent of the
-  plugin's own pinned Node (`.nvmrc` = 18.20.8) and PHPUnit needs no Node at all.
+  plugin's own pinned Node (`.nvmrc` = 24.21.0) and PHPUnit needs no Node at all.
 - By default the installer clones the **latest** WooCommerce release, whereas CI tests
   the 3 latest WC minors — so a local `composer test` can run against a different WC than
   the merge gate. To reproduce a specific version, pin it on a forced (re)install:
