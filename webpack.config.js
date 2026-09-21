@@ -287,7 +287,12 @@ module.exports = {
 		new webpack.IgnorePlugin( /^props$/ ),
 		new webpack.IgnorePlugin( /^\.\/locale$/, /moment$/ ),
 		new MomentTimezoneDataPlugin( {
+			// Without an endYear the plugin bundles every future transition moment-timezone
+			// ships, so a data refresh silently grows the bundle - going from 0.5.33 to
+			// 0.5.48 added ~315 KB. Labels and tax records are near-term, and zones past the
+			// cap fall back to their last known rule.
 			startYear: 2000,
+			endYear: 2040,
 		} ),
 		process.env.ANALYZE && new BundleAnalyzerPlugin(),
 	].filter(Boolean),
