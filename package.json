@@ -83,7 +83,8 @@
 		"yarnhook": "^0.5.1"
 	},
 	"overrides": {
-		"@automattic/puppeteer-utils": "file:tests/e2e/vendor/puppeteer-utils"
+		"@automattic/puppeteer-utils": "file:tests/e2e/vendor/puppeteer-utils",
+		"react-addons-create-fragment": "15.6.2"
 	},
 	"dependencies": {
 		"@automattic/calypso-color-schemes": "^1.0.0",
