@@ -10,7 +10,6 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const MomentTimezoneDataPlugin = require( 'moment-timezone-data-webpack-plugin' );
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const safePostCssParser = require('postcss-safe-parser');
-const { webpackAlias: coreE2EAlias } = require( '@woocommerce/e2e-environment' );
 
 const isProd = 'production' === process.env.NODE_ENV;
 const isI18n = 'i18n' === process.env.NODE_ENV;
@@ -33,12 +32,16 @@ const cssLoaders = [
 	{
 		loader: 'sass-loader',
 		options: {
-			includePaths: [
-				path.resolve( __dirname, 'client' ),
-				path.resolve( __dirname, 'client', 'extensions' ),
-				path.resolve( __dirname, 'assets', 'stylesheets' ),
-				path.resolve( __dirname, 'client', 'calypso' ),
-			],
+			// dart-sass; node-sass has no build for modern Node ABIs or for arm64
+			implementation: require( 'sass' ),
+			sassOptions: {
+				includePaths: [
+					path.resolve( __dirname, 'client' ),
+					path.resolve( __dirname, 'client', 'extensions' ),
+					path.resolve( __dirname, 'assets', 'stylesheets' ),
+					path.resolve( __dirname, 'client', 'calypso' ),
+				],
+			},
 		},
 	},
 ];
@@ -67,6 +70,8 @@ module.exports = {
 			{},
 			{
 			path: path.join( __dirname, 'dist' ),
+			// webpack 4 defaults to md4, which OpenSSL 3 no longer provides
+			hashFunction: 'sha256',
 			filename: '[name]-' + process.env.npm_package_version + '.js',
 			chunkFilename: 'chunks/[chunkhash].min.js',
 			devtoolModuleFilenameTemplate: 'app:///[resource-path]',
@@ -81,6 +86,9 @@ module.exports = {
 			new TerserPlugin( {
 				cache: true,
 				parallel: true,
+				// terser-webpack-plugin 4 extracts /*! */ comments into .LICENSE.txt sidecars by
+				// default; the previous config stripped comments outright, so keep dist/ as it was.
+				extractComments: false,
 				terserOptions: {
 					parse: {
 		              // We want terser to parse ecma 8 code. However, we don't want it
@@ -246,7 +254,6 @@ module.exports = {
 		],
 		symlinks: false,
 		alias: {
-			...coreE2EAlias,
 			'react-dom': '@hot-loader/react-dom',
 			'wcs-client': path.resolve( __dirname, 'client' ),
 		},
