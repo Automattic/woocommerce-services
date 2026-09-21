@@ -2,6 +2,9 @@
 
 require_once __DIR__ . '/class-wcservices-throwing-store-api-extend-schema.php';
 
+// plugin_deactivation() requires this enum itself, but the tests below name its constants before calling it.
+require_once __DIR__ . '/../../classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
+
 class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 
 	const SERVICE_SCRIPT_HANDLE = 'wc_connect_admin';
@@ -865,5 +868,110 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 			$this->restore_admin_dependency_hooks( $snapshot );
 			WC_Connect_Note_DHL_Live_Rates_Available::possibly_delete_note();
 		}
+	}
+
+	/**
+	 * Counts reads of the grouped wc_connect_options option, which within plugin_deactivation()
+	 * happens only when WC_Connect_Logger is constructed inside the migration-event block.
+	 *
+	 * @var int
+	 */
+	private $wc_connect_options_reads = 0;
+
+	/**
+	 * Filter callback that counts a read of wc_connect_options without short-circuiting it.
+	 *
+	 * @param mixed $pre The pre_option value passed by WordPress.
+	 * @return mixed The value, unchanged.
+	 */
+	public function count_wc_connect_options_read( $pre ) {
+		++$this->wc_connect_options_reads;
+
+		return $pre;
+	}
+
+	/**
+	 * Runs plugin_deactivation() with the given migration state and reports whether the
+	 * migration Tracks event was built.
+	 *
+	 * @param int $migration_state A WC_Connect_WCST_To_WCShipping_Migration_State_Enum value.
+	 * @return bool Whether the guarded migration-event block ran.
+	 */
+	private function run_plugin_deactivation_with_migration_state( $migration_state ) {
+		update_option( 'wcshipping_migration_state', $migration_state );
+		$this->wc_connect_options_reads = 0;
+
+		add_filter( 'pre_option_wc_connect_options', array( $this, 'count_wc_connect_options_read' ) );
+
+		try {
+			WC_Connect_Loader::plugin_deactivation();
+		} finally {
+			remove_filter( 'pre_option_wc_connect_options', array( $this, 'count_wc_connect_options_read' ) );
+			delete_option( 'wcshipping_migration_state' );
+		}
+
+		return $this->wc_connect_options_reads > 0;
+	}
+
+	/**
+	 * plugin_deactivation() records a Tracks event once the WCS&T -> WooCommerce Shipping
+	 * migration is marked completed. Building that event needs WooCommerce - WC_Logger here and
+	 * wc_clean() inside WC_Connect_Tracks::record_user_event() - so the block is guarded on
+	 * WC_Logger being present (WOOTAX-351). This pins the guard open on a normal store, where
+	 * the event must still be recorded.
+	 *
+	 * The complementary case - WooCommerce absent, where the guard prevents the fatal - is not
+	 * expressible here: WooCommerce is a hard dependency of the PHPUnit bootstrap, and
+	 * class_exists() consults its autoloader, so WC_Logger cannot be made absent in-process.
+	 *
+	 * @testdox plugin_deactivation() records the migration event when the migration is completed.
+	 * @covers WC_Connect_Loader::plugin_deactivation
+	 */
+	public function test_plugin_deactivation_records_migration_event_when_migration_completed() {
+		$this->assertTrue(
+			class_exists( 'WC_Logger' ),
+			'WooCommerce is expected to be loaded, so the migration-event guard is open.'
+		);
+
+		$this->assertTrue(
+			$this->run_plugin_deactivation_with_migration_state( WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ),
+			'A completed migration must still record the migration_flag_state_update event.'
+		);
+	}
+
+	/**
+	 * The migration event belongs to a completed migration only; any other state leaves it alone.
+	 *
+	 * @testdox plugin_deactivation() records no migration event for an incomplete migration.
+	 * @covers WC_Connect_Loader::plugin_deactivation
+	 */
+	public function test_plugin_deactivation_records_no_migration_event_for_incomplete_migration() {
+		$this->assertFalse(
+			$this->run_plugin_deactivation_with_migration_state( WC_Connect_WCST_To_WCShipping_Migration_State_Enum::DB_MIGRATION ),
+			'An unfinished migration must not record the migration_flag_state_update event.'
+		);
+	}
+
+	/**
+	 * Clearing the service schemas cron job is the part of deactivation that must happen for every
+	 * store, whatever the migration state - it used to be stranded whenever the event below it
+	 * fataled.
+	 *
+	 * @testdox plugin_deactivation() clears the service schemas cron job.
+	 * @covers WC_Connect_Loader::plugin_deactivation
+	 */
+	public function test_plugin_deactivation_clears_service_schemas_cron_job() {
+		wp_schedule_event( time() + HOUR_IN_SECONDS, 'daily', 'wc_connect_fetch_service_schemas' );
+		$this->assertNotFalse(
+			wp_next_scheduled( 'wc_connect_fetch_service_schemas' ),
+			'The service schemas cron job is expected to be scheduled before deactivation.'
+		);
+
+		$this->run_plugin_deactivation_with_migration_state( WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED );
+
+		$this->assertFalse(
+			wp_next_scheduled( 'wc_connect_fetch_service_schemas' ),
+			'Deactivation must clear the service schemas cron job.'
+		);
 	}
 }

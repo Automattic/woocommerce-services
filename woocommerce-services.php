@@ -313,8 +313,16 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			require_once __DIR__ . '/classes/class-wc-connect-tracks.php';
 			require_once __DIR__ . '/classes/class-wc-connect-wcst-to-wcshipping-migration-state-enum.php';
 
+			/*
+			 * Deactivation can run while WooCommerce is inactive - for example through the
+			 * WordPress.com plugin management API - and recording the event needs WooCommerce:
+			 * WC_Logger here, and wc_clean() inside WC_Connect_Tracks::record_user_event().
+			 * Skip the event rather than fatal inside the deactivate_ hook, which WordPress runs
+			 * before it saves the new active-plugins list - a fatal there leaves the plugin
+			 * impossible to turn off.
+			 */
 			$migration_state = intval( get_option( 'wcshipping_migration_state' ) );
-			if ( $migration_state === WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED ) {
+			if ( WC_Connect_WCST_To_WCShipping_Migration_State_Enum::COMPLETED === $migration_state && class_exists( 'WC_Logger' ) ) {
 				$core_logger = new WC_Logger();
 				$logger      = new WC_Connect_Logger( $core_logger );
 				$tracks      = new WC_Connect_Tracks( $logger, __FILE__ );
