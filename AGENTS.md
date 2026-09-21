@@ -15,13 +15,13 @@
 - Tests: `tests/`
 
 ## Package Managers
-- Node/npm: `npm install --ignore-scripts --legacy-peer-deps` (see Runtime Compatibility), `npm run dist`, `npm run test-client`, `npm run eslint`
+- Node/npm: `npm install`, `npm run dist`, `npm run test-client`, `npm run eslint`
 - Composer: `composer install`, `composer test`, `composer check-all` (PHPCS — see Linting)
 
 ## Runtime Compatibility
 - CRITICAL: Always run `source ~/.nvm/nvm.sh && nvm use` before any command that invokes Node (e.g., `npm install`, `npm run`, `git push` — the pre-push hook runs `npm test`). Without this, tests will fail with Node version incompatibilities.
 - The pinned runtime is `.nvmrc` (`18.20.8`). Node 18 is itself EOL; nothing in the toolchain is specific to it, so moving the pin further is a one-line change plus a verification run.
-- CRITICAL: `npm install` currently needs `--ignore-scripts --legacy-peer-deps`. Both are the e2e stack, not the build: `@woocommerce/e2e-environment` pulls `@automattic/puppeteer-utils` from a pinned GitHub commit whose postinstall builds itself with unpinned babel and fails on modern Node, and `jest-puppeteer` 4 requires puppeteer <3 against the puppeteer 13 in devDependencies. The e2e suite does not run on Node 18 for the same reason.
+- CRITICAL: The e2e stack installs separately, from `tests/e2e/package.json`, and runs on Node 10.18.1 — not the `.nvmrc` runtime. `@woocommerce/e2e-environment` pulls `@automattic/puppeteer-utils` from a pinned GitHub commit whose postinstall builds itself with unpinned babel and fails on Node 12+, and `jest-puppeteer` 4 requires puppeteer <3 against puppeteer 13. Keeping those out of the root package is what lets a plain `npm install` succeed; do not move them back. Install with `npm run test:e2e-install` on Node 10 — see `tests/e2e/README.md`.
 - The `wp-calypso` submodule no longer feeds the build, the unit tests or eslint. The ~90 modules that were actually reachable are vendored under `client/calypso/`, `assets/stylesheets/shared/`, `tasks/babel/` and `tasks/eslint/`; see `client/calypso/README.md`. Do not reintroduce imports that resolve into the submodule.
 - MUST NOT perform incidental Node/toolchain upgrades while making feature or bugfix changes.
 - Styles compile with dart-sass. The webpack scripts set `NODE_OPTIONS=--openssl-legacy-provider` because webpack 4 hardcodes an md4 hash that OpenSSL 3 removed; dropping that flag requires webpack 5.
