@@ -5,10 +5,21 @@ This project makes use of Open Source components. Below is a list of these compo
 
 ### https://github.com/Automattic/wp-calypso
 
-Portions of `client/calypso/` and `assets/stylesheets/{shared,_main.scss}` are verbatim
-copies of WordPress.com Calypso sources, taken at commit `79b83cb` (2019-04-17), together
-with one rule from `@wordpress/components@7.0.8` vendored into
-`assets/stylesheets/vendor/`. See `client/calypso/README.md`.
+The following are copies of WordPress.com Calypso sources, taken at commit `79b83cb`
+(2019-04-17). See `client/calypso/README.md`.
+
+- `client/calypso/` - client modules, verbatim
+- `assets/stylesheets/shared/` and `assets/stylesheets/_main.scss` - stylesheets, verbatim
+- `tasks/babel/inline-imports.js`, `tasks/babel/lodash-es.js` and
+  `tasks/babel/transform-wpcalypso-async.js` - babel transforms, verbatim
+- `tasks/eslint/calypso.eslintrc.js` - eslint base config, with one line changed (noted in
+  the file)
+- `images/vendor/checkmark-primary.svg` - verbatim
+- `babel.config.js` - flattened from Calypso's `babel.config.js` and the
+  `@automattic/calypso-build` config it extended
+
+One rule from `@wordpress/components@7.0.8` (GPL-2.0-or-later) is vendored into
+`assets/stylesheets/vendor/`.
 
 ```text
 Copyright (c) Automattic Inc.
@@ -21,6 +32,12 @@ This program is distributed in the hope that it will be useful, but WITHOUT ANY 
 without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 See the GNU General Public License for more details.
 ```
+
+### https://github.com/Automattic/puppeteer-utils
+
+`tests/e2e/vendor/puppeteer-utils/` is a compiled copy of Automattic/puppeteer-utils at
+commit `0f3ec50`, used only by the end-to-end test suite and not included in the released
+plugin. Upstream declares no license; see the README in that directory.
 
 ### https://github.com/facebook/react
 

@@ -25,6 +25,14 @@ compiled code needs an old runtime.
 declared babel, eslint, jest, prettier and puppeteer as runtime dependencies; those were
 build tooling and are left out.
 
+## License
+
+Upstream declares no license: there is no LICENSE file and no `license` field in its
+`package.json`. It is a public Automattic repository, and this plugin has always installed
+and run this exact commit as a git dependency of `@woocommerce/e2e-environment`. It is used
+only by the end-to-end tests and is not part of the released plugin (`tasks/release.js`
+does not copy `tests/`).
+
 ## Rebuilding
 
     curl -sSL https://codeload.github.com/Automattic/puppeteer-utils/tar.gz/0f3ec50fc22d7bd2a4bd69fc172e8a66d958ef2d | tar xz
