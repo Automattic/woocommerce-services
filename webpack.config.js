@@ -37,8 +37,7 @@ const cssLoaders = [
 				path.resolve( __dirname, 'client' ),
 				path.resolve( __dirname, 'client', 'extensions' ),
 				path.resolve( __dirname, 'assets', 'stylesheets' ),
-				path.resolve( __dirname, 'wp-calypso', 'client' ),
-				path.resolve( __dirname, 'wp-calypso', 'assets', 'stylesheets' ),
+				path.resolve( __dirname, 'client', 'calypso' ),
 			],
 		},
 	},
@@ -177,7 +176,6 @@ module.exports = {
 				test: /\.scss$/,
 				include: [
 					path.resolve( __dirname, 'client' ),
-					path.resolve( __dirname, 'wp-calypso', 'client' ),
 				],
 				use: cssLoaders.concat( [
 					{
@@ -221,7 +219,6 @@ module.exports = {
 				],
 				include: [
 					path.resolve( __dirname, 'client' ),
-					path.resolve( __dirname, 'wp-calypso', 'client' ),
 				],
 			},
 			{
@@ -245,8 +242,7 @@ module.exports = {
 			path.resolve( __dirname, 'client', 'calypso-stubs', 'extensions' ),
 			path.resolve( __dirname, 'node_modules' ),
 			path.resolve( __dirname, 'client', 'extensions' ),
-			path.resolve( __dirname, 'wp-calypso', 'client' ),
-			path.resolve( __dirname, 'wp-calypso', 'node_modules' ),
+			path.resolve( __dirname, 'client', 'calypso' ),
 		],
 		symlinks: false,
 		alias: {
