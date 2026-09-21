@@ -1,6 +1,7 @@
 *** WooCommerce Tax Changelog ***
 
 = 3.6.17 - 2026-xx-xx =
+* Add   - Check a US store address when it changes, and show a notice in WooCommerce admin when its state or ZIP code looks wrong or is missing, since either can make automated taxes charge the wrong tax or none.
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
 
 = 3.6.16 - 2026-09-16 =
