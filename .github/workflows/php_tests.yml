@@ -76,7 +76,7 @@ jobs:
           version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
       - uses: actions/setup-node@v3
         with:
-          node-version: 'v16'
+          node-version-file: '.nvmrc'
 
       - name: Build WooCommerce essentials for running tests
         run: |
