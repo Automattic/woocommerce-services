@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.6.17 - 2026-xx-xx =
+* Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
+
 = 3.6.16 - 2026-09-16 =
 * Tweak - Update the Jetpack Connection package to 9.1.2.
 
