@@ -16,8 +16,6 @@ jobs:
         run: git config --global url.https://github.com/.insteadOf git://github.com/
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-            submodules: recursive
       - uses: actions/setup-node@v2
         with:
           node-version-file: '.nvmrc'
