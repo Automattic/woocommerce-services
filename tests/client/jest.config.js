@@ -2,7 +2,7 @@
 
 module.exports = {
 	moduleNameMapper: {
-		'^config$': '<rootDir>/wp-calypso/server/config/index.js',
+		'^config$': '<rootDir>/client/calypso-stubs/config.js',
 		"^wcs-client/(.*)$": "<rootDir>/client/$1"
 	},
 	transform: {
@@ -12,9 +12,10 @@ module.exports = {
 	modulePaths: [
 		'<rootDir>/tests/',
 		'<rootDir>/client/',
+		'<rootDir>/client/calypso-stubs/',
+		'<rootDir>/client/calypso-stubs/extensions/',
 		'<rootDir>/client/extensions/',
-		'<rootDir>/wp-calypso/client',
-		'<rootDir>/wp-calypso/node_modules'
+		'<rootDir>/client/calypso'
 	],
 	rootDir: './../../',
 	roots: [ '<rootDir>/client/' ],
@@ -24,7 +25,10 @@ module.exports = {
 	],
 	testMatch: [ '<rootDir>/client/**/test/*.js?(x)', '!**/.eslintrc.*' ],
 	testURL: 'https://example.com',
-	setupFiles: [ 'regenerator-runtime/runtime' ], // some NPM-published packages depend on the global
+	setupFiles: [
+		'regenerator-runtime/runtime', // some NPM-published packages depend on the global
+		'whatwg-fetch', // webpack supplies `fetch` via ProvidePlugin; jsdom does not
+	],
 	setupFilesAfterEnv: [ '<rootDir>/tests/client/setup-test-framework.js' ],
 	verbose: false,
 	globals: {
