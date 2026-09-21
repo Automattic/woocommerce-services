@@ -10,8 +10,6 @@ jobs:
       - name: Set Git to use HTTPS instead of SSH
         run: git config --global url.https://github.com/.insteadOf git://github.com/
       - uses: actions/checkout@v3
-        with:
-          submodules: recursive
       - uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
           php-version: 8.2
@@ -43,16 +41,6 @@ jobs:
             composer install
             npm ci
             npm run dist
-      # The e2e stack cannot install on a modern runtime: @woocommerce/e2e-environment
-      # pulls @automattic/puppeteer-utils from a pinned git commit whose postinstall
-      # builds itself with unpinned babel, which fails on Node 12+. It lives in
-      # tests/e2e/package.json so it cannot block the root install, and it is installed
-      # and run here on the old runtime until that stack is replaced.
-      - uses: actions/setup-node@v3
-        with:
-          node-version: '10.18.1'
-      - name: Install E2E dependencies
-        run: npm run test:e2e-install
       - name: Install docker-compose
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose

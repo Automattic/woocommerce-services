@@ -10,3 +10,6 @@ client/calypso/*
 tasks/babel/inline-imports.js
 tasks/babel/lodash-es.js
 tasks/babel/transform-wpcalypso-async.js
+
+# Prebuilt @automattic/puppeteer-utils - compiled babel output, regenerated rather than edited.
+tests/e2e/vendor/*
