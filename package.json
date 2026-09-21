@@ -79,8 +79,8 @@
 		"yarnhook": "^0.5.1"
 	},
 	"dependencies": {
-		"@automattic/calypso-color-schemes": "^1.0.0-alpha.1",
-		"@automattic/color-studio": "^2.4.0",
+		"@automattic/calypso-color-schemes": "^1.0.0",
+		"@automattic/color-studio": "^4.1.0",
 		"@automattic/format-currency": "^1.0.1",
 		"@babel/cli": "7.1.2",
 		"@babel/core": "^7.4.0",
