@@ -35,14 +35,20 @@ const cssLoaders = [
 			// dart-sass; node-sass has no build for modern Node ABIs or for arm64
 			implementation: require( 'sass' ),
 			sassOptions: {
-				// @automattic/calypso-color-schemes 1.x calls the deprecated global red()/
-				// green()/blue() builtins. It is pinned at 1.x because 2.0 dropped the files
-				// this plugin imports, so the warnings are not ours to fix - silence anything
-				// raised inside node_modules rather than let 170+ lines bury real output.
-				quietDeps: true,
-				// sass-loader 10 drives dart-sass through its legacy JS API; that is the
-				// loader's choice, not something this config can change.
-				silenceDeprecations: [ 'legacy-js-api' ],
+				// These deprecations are all scheduled for Dart Sass 3.0, and `sass` is pinned to
+				// 1.x in package.json, so none of them can break this build without a deliberate
+				// major bump. They are silenced by name rather than with `quietDeps`, which would
+				// also hide every other deprecation in any stylesheet reached through includePaths
+				// - including this repo's own - so a new kind of deprecation still shows up.
+				//
+				// - import: not mechanically migratable here. The styles are scoped by nesting
+				//   `@import` inside `.wp-core-ui.wp-admin .wcc-root { ... }` (style.scss, and the
+				//   wrap-loader prelude below), and `@use` cannot be nested or share globals.
+				// - global-builtin, color-functions: @automattic/calypso-color-schemes 1.x and the
+				//   vendored Calypso partials call red()/green()/blue() and friends. The package is
+				//   held at 1.x because 2.0 dropped the files this plugin imports.
+				// - legacy-js-api: sass-loader 10 drives dart-sass through it; not configurable.
+				silenceDeprecations: [ 'import', 'global-builtin', 'color-functions', 'legacy-js-api' ],
 				includePaths: [
 					path.resolve( __dirname, 'client' ),
 					path.resolve( __dirname, 'client', 'extensions' ),
