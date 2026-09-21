@@ -1,13 +1,14 @@
 # Vendored wp-calypso client modules
 
-These files are verbatim copies of `wp-calypso/client/**` taken from the commit this
-repository's `wp-calypso` submodule was pinned to:
+These files are verbatim copies of `client/**` from
+[Automattic/wp-calypso](https://github.com/Automattic/wp-calypso), taken from the commit
+this repository's `wp-calypso` submodule was pinned to before it was removed:
 
     79b83cb343521370813bc052b2789d3245cd9698  (2019-04-17, Automattic/wp-calypso)
 
 They are **frozen**, not maintained. Upstream Calypso deleted or moved every module here
 years ago, so there is nothing to upgrade to — the pin was always the strategy, and this
-directory is that pin without the 423 MB submodule behind it.
+directory is that pin without a 489 MB submodule behind it.
 
 ## Why these files and no others
 
