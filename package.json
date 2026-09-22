@@ -87,7 +87,6 @@
 		"react-addons-create-fragment": "15.6.2"
 	},
 	"dependencies": {
-		"@automattic/calypso-color-schemes": "^1.0.0",
 		"@automattic/color-studio": "^4.1.0",
 		"@automattic/format-currency": "^1.0.1",
 		"@babel/core": "^7.4.0",

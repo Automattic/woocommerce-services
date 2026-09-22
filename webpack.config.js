@@ -44,9 +44,9 @@ const cssLoaders = [
 				// - import: not mechanically migratable here. The styles are scoped by nesting
 				//   `@import` inside `.wp-core-ui.wp-admin .wcc-root { ... }` (style.scss, and the
 				//   wrap-loader prelude below), and `@use` cannot be nested or share globals.
-				// - global-builtin, color-functions: @automattic/calypso-color-schemes 1.x and the
-				//   vendored Calypso partials call red()/green()/blue() and friends. The package is
-				//   held at 1.x because 2.0 dropped the files this plugin imports.
+				// - global-builtin, color-functions: the vendored Calypso partials, including the
+				//   copy of calypso-color-schemes under assets/stylesheets/vendor, call
+				//   red()/green()/blue() and friends.
 				// - legacy-js-api: sass-loader 10 drives dart-sass through it; not configurable.
 				silenceDeprecations: [ 'import', 'global-builtin', 'color-functions', 'legacy-js-api' ],
 				includePaths: [
@@ -206,7 +206,7 @@ module.exports = {
 							before: [
 								"@import 'shared/utils';\n" +
 								"@import 'colors';\n" +
-								"@import '~@automattic/calypso-color-schemes/src/shared/color-schemes';\n" +
+								"@import 'vendor/calypso-color-schemes/shared/color-schemes';\n" +
 								"@import '~@automattic/color-studio/dist/color-variables';\n",
 								'.wp-core-ui.wp-admin .wcc-root {',
 							],

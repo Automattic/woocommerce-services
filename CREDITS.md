@@ -18,8 +18,12 @@ The following are copies of WordPress.com Calypso sources, taken at commit `79b8
 - `babel.config.js` - flattened from Calypso's `babel.config.js` and the
   `@automattic/calypso-build` config it extended
 
-One rule from `@wordpress/components@7.0.8` (GPL-2.0-or-later) is vendored into
-`assets/stylesheets/vendor/`.
+Also under `assets/stylesheets/vendor/`:
+
+- `calypso-color-schemes/` - four files from `@automattic/calypso-color-schemes@1.0.0`
+  (GPL-2.0-or-later, from the same Calypso repository), verbatim
+- `_wordpress-components-external-link.scss` - one rule from `@wordpress/components@7.0.8`
+  (GPL-2.0-or-later)
 
 ```text
 Copyright (c) Automattic Inc.
