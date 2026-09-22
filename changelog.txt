@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.6.17 - 2026-xx-xx =
+= 3.7.0 - 2026-xx-xx =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
 * Tweak - Update the bundled JavaScript libraries.
 * Tweak - Build the plugin's JavaScript on Node.js 24 and drop the wp-calypso submodule, keeping vendored copies of the modules it provided.
