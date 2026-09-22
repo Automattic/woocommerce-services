@@ -7,6 +7,13 @@ const nock = require( 'nock' );
 // Disables all network requests for all tests.
 nock.disableNetConnect();
 
+// `client/api/request` is initialised from the page at runtime (see `client/main.js`).
+// Tests never boot an entry point, so seed it here - otherwise any code path that reaches
+// the REST client throws on an undefined base URL. Network access stays blocked by nock.
+const { setBaseURL, setNonce } = require( '../../client/api/request' );
+setBaseURL( 'https://example.com/wp-json/' );
+setNonce( 'test-nonce' );
+
 beforeAll( () => {
 	// reactivate nock on test start
 	if ( ! nock.isActive() ) {

@@ -19,10 +19,12 @@
 - Composer: `composer install`, `composer test`, `composer check-all` (PHPCS — see Linting)
 
 ## Runtime Compatibility
-- CRITICAL: This repo is tied to an old Node runtime; use `.nvmrc` (`10.18.1`) for local work unless a migration is explicitly planned.
-- CRITICAL: The old Node requirement is intentional because this project depends on a forked legacy Calypso package in the `wp-calypso` submodule (package name: `wp-calypso`).
 - CRITICAL: Always run `source ~/.nvm/nvm.sh && nvm use` before any command that invokes Node (e.g., `npm install`, `npm run`, `git push` — the pre-push hook runs `npm test`). Without this, tests will fail with Node version incompatibilities.
+- The pinned runtime is `.nvmrc` (`24.21.0`). Verified on 24: `npm ci`, eslint, the production build and the full jest suite, with output byte-identical to Node 18.
+- The e2e stack installs with everything else and runs on the `.nvmrc` runtime. Two things make that possible, and both are easy to undo by accident: `@automattic/puppeteer-utils` is replaced through `overrides` by a prebuilt copy in `tests/e2e/vendor/puppeteer-utils/` (upstream is a git dependency whose postinstall builds itself with unpinned babel and fails on Node 12+), and `.npmrc` sets `legacy-peer-deps` because `jest-puppeteer` 4 declares puppeteer <3 while the suite runs puppeteer 13. Do not move these packages into a nested `package.json`: `@woocommerce/e2e-environment` finds the project root by splitting its own install path on `node_modules`, so `wc-e2e` only works when it is installed at the repository root.
+- The `wp-calypso` submodule has been removed. The ~90 modules that were actually reachable from it are vendored under `client/calypso/`, `assets/stylesheets/shared/`, `tasks/babel/` and `tasks/eslint/`; see `client/calypso/README.md`. Jest resolves modules in the same order webpack does (`client/calypso-stubs/` before `client/calypso/`), so tests exercise the code that ships.
 - MUST NOT perform incidental Node/toolchain upgrades while making feature or bugfix changes.
+- Styles compile with dart-sass. The webpack scripts set `NODE_OPTIONS=--openssl-legacy-provider` because webpack 4 hardcodes an md4 hash that OpenSSL 3 removed; dropping that flag requires webpack 5.
 
 ## Common Commands
 ```bash
@@ -53,7 +55,7 @@ composer check-all     # PHPCS (see Linting below)
   also wipes the DB volume run `bash tests/bin/install-wc-tests.sh --force`.
 - WP/WC are installed under the system temp dir (honors `TMPDIR`). The WC clone builds
   with its own modern Node via the WC checkout's `.nvmrc`; this is independent of the
-  plugin's own pinned Node (`.nvmrc` = 10.18.1) and PHPUnit needs no Node at all.
+  plugin's own pinned Node (`.nvmrc` = 24.21.0) and PHPUnit needs no Node at all.
 - By default the installer clones the **latest** WooCommerce release, whereas CI tests
   the 3 latest WC minors — so a local `composer test` can run against a different WC than
   the merge gate. To reproduce a specific version, pin it on a forced (re)install:

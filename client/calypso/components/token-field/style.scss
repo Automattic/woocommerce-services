@@ -1,0 +1,189 @@
+.token-field {
+	@extend %form-field;
+
+	box-sizing: border-box;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	background-color: var( --color-white );
+	border: 1px solid var( --color-neutral-100 );
+	color: var( --color-neutral-700 );
+	cursor: text;
+	transition: all 0.15s ease-in-out;
+
+	&:hover {
+		border-color: var( --color-neutral-200 );
+	}
+
+	&.is-disabled {
+		background: var( --color-neutral-0 );
+		border-color: var( --color-neutral-0 );
+	}
+
+	&.is-active {
+		border-color: var( --color-primary );
+		box-shadow: 0 0 0 2px var( --color-primary-light );
+	}
+}
+
+.token-field__input-container {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	padding: 5px 14px 5px 0;
+}
+
+// Token input
+input[type='text'].token-field__input {
+	display: inline-block;
+	width: auto;
+	max-width: 100%;
+	margin: 2px 0 2px 8px;
+	padding: 0 0 0 6px;
+	line-height: 24px;
+	background: inherit;
+	border: 0;
+	outline: none;
+	font-family: inherit;
+	font-size: 14px;
+	color: var( --color-neutral-700 );
+
+	&:focus {
+		box-shadow: none;
+	}
+}
+
+// Tokens
+.token-field__token {
+	font-size: 14px;
+	display: flex;
+	margin: 2px 0 2px 8px;
+	color: var( --color-white );
+	overflow: hidden;
+
+	&.is-success {
+		.token-field__token-text,
+		.token-field__remove-token {
+			background: var( --color-success );
+		}
+	}
+
+	&.is-error {
+		.token-field__token-text,
+		.token-field__remove-token {
+			background: var( --color-error );
+		}
+	}
+
+	&.is-validating {
+		.token-field__token-text,
+		.token-field__remove-token {
+			background: var( --color-neutral-light );
+		}
+	}
+
+	&.is-borderless {
+		position: relative;
+		padding: 0 16px 0 0;
+
+		.token-field__token-text {
+			background: transparent;
+			color: var( --color-primary );
+		}
+
+		.token-field__remove-token {
+			background: transparent;
+			color: var( --color-neutral-light );
+			position: absolute;
+			top: 1px;
+			right: 0;
+		}
+
+		&.is-success {
+			.token-field__token-text {
+				color: var( --color-success );
+			}
+		}
+
+		&.is-error {
+			.token-field__token-text {
+				color: var( --color-error );
+				border-radius: 4px 0 0 4px;
+				padding: 0 4px 0 6px;
+			}
+		}
+
+		&.is-validating {
+			.token-field__token-text {
+				color: var( --color-neutral-700 );
+			}
+		}
+	}
+
+	&.is-disabled {
+		.token-field__remove-token {
+			cursor: default;
+		}
+	}
+}
+
+.token-field__token-text,
+.token-field__remove-token {
+	display: inline-block;
+	line-height: 24px;
+	background: var( --color-neutral-500 );
+	transition: all 0.2s cubic-bezier( 0.4, 1, 0.4, 1 );
+}
+
+.token-field__token-text {
+	border-radius: 4px 0 0 4px;
+	padding: 0 4px 0 6px;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.token-field__remove-token {
+	cursor: pointer;
+	border-radius: 0 4px 4px 0;
+	color: var( --color-neutral-100 );
+
+	&:hover {
+		color: white;
+		background: var( --color-neutral-400 );
+	}
+}
+
+// Suggestion list
+.token-field__suggestions-list {
+	background: var( --color-white );
+	max-height: 0;
+	overflow-y: scroll;
+	transition: all 0.15s ease-in-out;
+	list-style: none;
+	margin: 0;
+
+	&.is-expanded {
+		background: var( --color-white );
+		border-top: 1px solid var( --color-neutral-100 );
+		max-height: 9em;
+		padding-top: 3px;
+	}
+}
+
+.token-field__suggestion {
+	color: var( --color-neutral-light );
+	display: block;
+	font-size: 13px;
+	padding: 4px 8px;
+	cursor: pointer;
+
+	&.is-selected {
+		background: var( --color-accent );
+		color: var( --color-white );
+	}
+}
+
+.token-field__suggestion-match {
+	color: var( --color-neutral-700 );
+}

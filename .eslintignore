@@ -1,3 +1,15 @@
 # woocommerce app is an artifact of move over from Calypso repo.
 # Let's ignore it for now, and delete it later.
 client/extensions/woocommerce/*
+
+# Vendored wp-calypso client modules (frozen copies of upstream sources).
+# Not ours to lint or restyle - keep byte-identical to the submodule snapshot.
+client/calypso/*
+
+# Vendored wp-calypso build transforms (frozen copies of upstream sources).
+tasks/babel/inline-imports.js
+tasks/babel/lodash-es.js
+tasks/babel/transform-wpcalypso-async.js
+
+# Prebuilt @automattic/puppeteer-utils - compiled babel output, regenerated rather than edited.
+tests/e2e/vendor/*

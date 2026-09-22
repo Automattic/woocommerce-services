@@ -10,7 +10,6 @@ const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPl
 const MomentTimezoneDataPlugin = require( 'moment-timezone-data-webpack-plugin' );
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const safePostCssParser = require('postcss-safe-parser');
-const { webpackAlias: coreE2EAlias } = require( '@woocommerce/e2e-environment' );
 
 const isProd = 'production' === process.env.NODE_ENV;
 const isI18n = 'i18n' === process.env.NODE_ENV;
@@ -33,13 +32,30 @@ const cssLoaders = [
 	{
 		loader: 'sass-loader',
 		options: {
-			includePaths: [
-				path.resolve( __dirname, 'client' ),
-				path.resolve( __dirname, 'client', 'extensions' ),
-				path.resolve( __dirname, 'assets', 'stylesheets' ),
-				path.resolve( __dirname, 'wp-calypso', 'client' ),
-				path.resolve( __dirname, 'wp-calypso', 'assets', 'stylesheets' ),
-			],
+			// dart-sass; node-sass has no build for modern Node ABIs or for arm64
+			implementation: require( 'sass' ),
+			sassOptions: {
+				// These deprecations are all scheduled for Dart Sass 3.0, and `sass` is pinned to
+				// 1.x in package.json, so none of them can break this build without a deliberate
+				// major bump. They are silenced by name rather than with `quietDeps`, which would
+				// also hide every other deprecation in any stylesheet reached through includePaths
+				// - including this repo's own - so a new kind of deprecation still shows up.
+				//
+				// - import: not mechanically migratable here. The styles are scoped by nesting
+				//   `@import` inside `.wp-core-ui.wp-admin .wcc-root { ... }` (style.scss, and the
+				//   wrap-loader prelude below), and `@use` cannot be nested or share globals.
+				// - global-builtin, color-functions: the vendored Calypso partials, including the
+				//   copy of calypso-color-schemes under assets/stylesheets/vendor, call
+				//   red()/green()/blue() and friends.
+				// - legacy-js-api: sass-loader 10 drives dart-sass through it; not configurable.
+				silenceDeprecations: [ 'import', 'global-builtin', 'color-functions', 'legacy-js-api' ],
+				includePaths: [
+					path.resolve( __dirname, 'client' ),
+					path.resolve( __dirname, 'client', 'extensions' ),
+					path.resolve( __dirname, 'assets', 'stylesheets' ),
+					path.resolve( __dirname, 'client', 'calypso' ),
+				],
+			},
 		},
 	},
 ];
@@ -68,6 +84,8 @@ module.exports = {
 			{},
 			{
 			path: path.join( __dirname, 'dist' ),
+			// webpack 4 defaults to md4, which OpenSSL 3 no longer provides
+			hashFunction: 'sha256',
 			filename: '[name]-' + process.env.npm_package_version + '.js',
 			chunkFilename: 'chunks/[chunkhash].min.js',
 			devtoolModuleFilenameTemplate: 'app:///[resource-path]',
@@ -82,6 +100,9 @@ module.exports = {
 			new TerserPlugin( {
 				cache: true,
 				parallel: true,
+				// terser-webpack-plugin 4 extracts /*! */ comments into .LICENSE.txt sidecars by
+				// default; the previous config stripped comments outright, so keep dist/ as it was.
+				extractComments: false,
 				terserOptions: {
 					parse: {
 		              // We want terser to parse ecma 8 code. However, we don't want it
@@ -177,7 +198,6 @@ module.exports = {
 				test: /\.scss$/,
 				include: [
 					path.resolve( __dirname, 'client' ),
-					path.resolve( __dirname, 'wp-calypso', 'client' ),
 				],
 				use: cssLoaders.concat( [
 					{
@@ -186,7 +206,7 @@ module.exports = {
 							before: [
 								"@import 'shared/utils';\n" +
 								"@import 'colors';\n" +
-								"@import '~@automattic/calypso-color-schemes/src/shared/color-schemes';\n" +
+								"@import 'vendor/calypso-color-schemes/shared/color-schemes';\n" +
 								"@import '~@automattic/color-studio/dist/color-variables';\n",
 								'.wp-core-ui.wp-admin .wcc-root {',
 							],
@@ -212,16 +232,15 @@ module.exports = {
 					{
 						loader: 'babel-loader',
 						options: {
-							configFile: path.resolve( __dirname, 'wp-calypso', 'babel.config.js' ),
+							configFile: path.resolve( __dirname, 'babel.config.js' ),
 							cacheDirectory: true,
-							cacheIdentifier: require( './wp-calypso/server/bundler/babel/babel-loader-cache-identifier' ),
+							cacheIdentifier: require( './tasks/babel/cache-identifier' ),
 							plugins: ["react-hot-loader/babel"]
 						},
 					}
 				],
 				include: [
 					path.resolve( __dirname, 'client' ),
-					path.resolve( __dirname, 'wp-calypso', 'client' ),
 				],
 			},
 			{
@@ -245,12 +264,10 @@ module.exports = {
 			path.resolve( __dirname, 'client', 'calypso-stubs', 'extensions' ),
 			path.resolve( __dirname, 'node_modules' ),
 			path.resolve( __dirname, 'client', 'extensions' ),
-			path.resolve( __dirname, 'wp-calypso', 'client' ),
-			path.resolve( __dirname, 'wp-calypso', 'node_modules' ),
+			path.resolve( __dirname, 'client', 'calypso' ),
 		],
 		symlinks: false,
 		alias: {
-			...coreE2EAlias,
 			'react-dom': '@hot-loader/react-dom',
 			'wcs-client': path.resolve( __dirname, 'client' ),
 		},
@@ -276,7 +293,12 @@ module.exports = {
 		new webpack.IgnorePlugin( /^props$/ ),
 		new webpack.IgnorePlugin( /^\.\/locale$/, /moment$/ ),
 		new MomentTimezoneDataPlugin( {
+			// Without an endYear the plugin bundles every future transition moment-timezone
+			// ships, so a data refresh silently grows the bundle - going from 0.5.33 to
+			// 0.5.48 added ~315 KB. Labels and tax records are near-term, and zones past the
+			// cap fall back to their last known rule.
 			startYear: 2000,
+			endYear: 2040,
 		} ),
 		process.env.ANALYZE && new BundleAnalyzerPlugin(),
 	].filter(Boolean),

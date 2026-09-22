@@ -1,6 +1,5 @@
 /* eslint-disable no-console, import/no-nodejs-modules */
 const fs      = require( 'fs' );
-const request = require( 'request' );
 const { version } = require( '../package.json' );
 
 const REQUEST_DELAY_MS = 1500; // pause between every download to stay under burst limit
@@ -10,18 +9,17 @@ const MAX_RETRIES   = 5;
 const sleep = ( ms ) => new Promise( ( resolve ) => setTimeout( resolve, ms ) );
 
 // Fetch locale -> last-updated timestamp map from the WP translations API (single request).
-const fetchTranslationMeta = () => new Promise( ( resolve, reject ) => {
+const fetchTranslationMeta = async () => {
 	const url = 'https://api.wordpress.org/translations/plugins/1.0/?slug=woocommerce-services&version=' + version;
-	request( { uri: url, json: true }, ( error, response, body ) => {
-		if ( error ) return reject( error );
-		if ( response.statusCode !== 200 ) return reject( new Error( 'Translations API returned HTTP ' + response.statusCode ) );
-		const map = {};
-		for ( const entry of ( body.translations || [] ) ) {
-			map[ entry.language ] = new Date( entry.updated );
-		}
-		resolve( map );
-	} );
-} );
+	const response = await fetch( url );
+	if ( response.status !== 200 ) throw new Error( 'Translations API returned HTTP ' + response.status );
+	const body = await response.json();
+	const map = {};
+	for ( const entry of ( body.translations || [] ) ) {
+		map[ entry.language ] = new Date( entry.updated );
+	}
+	return map;
+};
 
 const isUpToDate = ( filename, remoteUpdated ) => {
 	try {
@@ -50,18 +48,13 @@ const isValidTranslationFile = ( filename ) => {
 	}
 };
 
-const download = ( uri, filename ) => new Promise( ( resolve, reject ) => {
-	request( { uri, encoding: null }, ( error, response, body ) => {
-		if ( error ) return reject( error );
-		if ( response.statusCode !== 200 ) {
-			return reject( new Error( 'HTTP ' + response.statusCode + ' downloading ' + uri ) );
-		}
-		fs.writeFile( filename, body, ( err ) => {
-			if ( err ) return reject( err );
-			resolve();
-		} );
-	} );
-} );
+const download = async ( uri, filename ) => {
+	const response = await fetch( uri );
+	if ( response.status !== 200 ) {
+		throw new Error( 'HTTP ' + response.status + ' downloading ' + uri );
+	}
+	await fs.promises.writeFile( filename, Buffer.from( await response.arrayBuffer() ) );
+};
 
 const downloadWithRetry = async ( uri, filename ) => {
 	for ( let attempt = 0; attempt <= MAX_RETRIES; attempt++ ) {

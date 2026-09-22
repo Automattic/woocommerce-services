@@ -15,7 +15,6 @@
 	<exclude-pattern>docker/</exclude-pattern>
 	<exclude-pattern>release/</exclude-pattern>
 	<exclude-pattern>bin/</exclude-pattern>
-	<exclude-pattern>wp-calypso/</exclude-pattern>
 
 	<!-- Show progress + source codes; colors; PHP only. -->
 	<arg value="ps"/>
