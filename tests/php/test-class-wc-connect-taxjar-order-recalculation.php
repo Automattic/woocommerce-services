@@ -136,6 +136,24 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Forget which order items this PHP request created.
+	 *
+	 * Fixtures are built in the same request as the edit under test; on a store they
+	 * were placed in an earlier one.
+	 */
+	private function forget_created_in_request() {
+		$property = new ReflectionProperty( $this->integration, 'order_items_created_in_request' );
+		$property->setAccessible( true );
+		$property->setValue(
+			$this->integration,
+			array(
+				'objects' => array(),
+				'ids'     => array(),
+			)
+		);
+	}
+
+	/**
 	 * Build the placed fixture order described in the class docblock.
 	 *
 	 * @param array $overrides Optional: 'a_tax' (hand-typed tax on A), 'rate_percent'.
@@ -197,6 +215,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order->set_total( 30 + 5 + $cart_tax + 0.3 );
 		$order->set_status( 'processing' );
 		$order->save();
+		$this->forget_created_in_request();
 
 		$shipping_ids = array_keys( $order->get_shipping_methods() );
 
@@ -614,6 +633,21 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order = wc_get_order( $order->get_id() );
 		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
 		$this->assertCount( 1, $this->tax_notes( $order ), 'the no-op pass writes no second note' );
+	}
+
+	/**
+	 * @testdox A product added with add_product() (which saves it at once) is taxed at the order's rate.
+	 */
+	public function test_programmatic_add_product_is_taxed() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$item_id = $order->add_product( $this->create_product( '10' ), 1 );
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $item_id ), 0.001 );
+		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
 	}
 
 	// -------------------------------------------------------------------------

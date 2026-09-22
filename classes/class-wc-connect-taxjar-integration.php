@@ -84,6 +84,18 @@ class WC_Connect_TaxJar_Integration {
 	private $order_item_base_before_save = array();
 
 	/**
+	 * Order items being created: spl_object_id() of each item saved without an id,
+	 * then the id it was given. WC_Order::add_product() saves the item at once, so it
+	 * is already saved when the order is recalculated.
+	 *
+	 * @var array{objects: array<int, bool>, ids: array<int, bool>}
+	 */
+	private $order_items_created_in_request = array(
+		'objects' => array(),
+		'ids'     => array(),
+	);
+
+	/**
 	 * @var bool
 	 */
 	private $is_itemized_tax_display;
@@ -250,6 +262,7 @@ class WC_Connect_TaxJar_Integration {
 		// order's amounts change, the rates recorded on the order are re-applied.
 		add_action( 'woocommerce_order_before_calculate_taxes', array( $this, 'preserve_order_taxes_on_recalculation' ), 10, 2 );
 		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'remember_order_item_base_before_save' ), 10, 1 );
+		add_action( 'woocommerce_after_order_item_object_save', array( $this, 'remember_order_item_created' ), 10, 1 );
 
 		// Set customer taxable location for local pickup
 		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
@@ -2713,7 +2726,7 @@ class WC_Connect_TaxJar_Integration {
 		// The old amounts have been used; a later recalculation of the same order in
 		// this request must compare against what is saved now.
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
-			unset( $this->order_item_base_before_save[ $item_id ] );
+			unset( $this->order_item_base_before_save[ $item_id ], $this->order_items_created_in_request['ids'][ $item_id ] );
 		}
 	}
 
@@ -2736,7 +2749,12 @@ class WC_Connect_TaxJar_Integration {
 
 		$item_id = (int) $item->get_id();
 
-		if ( ! $item_id || isset( $this->order_item_base_before_save[ $item_id ] ) ) {
+		if ( ! $item_id ) {
+			$this->order_items_created_in_request['objects'][ spl_object_id( $item ) ] = true;
+			return;
+		}
+
+		if ( isset( $this->order_item_base_before_save[ $item_id ] ) ) {
 			return;
 		}
 
@@ -2748,6 +2766,26 @@ class WC_Connect_TaxJar_Integration {
 
 		// get_data() still holds the saved values until the save applies the changes.
 		$this->order_item_base_before_save[ $item_id ] = self::get_order_item_tax_base( $item->get_data() );
+	}
+
+	/**
+	 * Record the id an order item was given when it was first saved.
+	 *
+	 * @internal Hooked to woocommerce_after_order_item_object_save.
+	 *
+	 * @param WC_Order_Item $item The saved item.
+	 */
+	public function remember_order_item_created( $item ) {
+		if ( ! $item instanceof WC_Order_Item ) {
+			return;
+		}
+
+		$object_id = spl_object_id( $item );
+
+		if ( isset( $this->order_items_created_in_request['objects'][ $object_id ] ) ) {
+			unset( $this->order_items_created_in_request['objects'][ $object_id ] );
+			$this->order_items_created_in_request['ids'][ (int) $item->get_id() ] = true;
+		}
 	}
 
 	/**
@@ -2865,12 +2903,13 @@ class WC_Connect_TaxJar_Integration {
 	 * Work out which of an order's taxable amounts changed since it was last saved.
 	 *
 	 * Covers the three ways an edit reaches a recalculation: an existing item whose
-	 * total changed (saved already, or still pending), an item added (no id yet), and
-	 * an item removed (still saved, but no longer on the order).
+	 * total changed (saved already, or still pending), an item added (no id yet, or
+	 * first saved in this request), and an item removed (still saved, but no longer on
+	 * the order).
 	 *
 	 * @param WC_Order $order The order about to be recalculated.
 	 * @return array {
-	 *   @type int[] $known_ids      Saved items still on the order.
+	 *   @type int[] $known_ids      Items saved before this request, still on the order.
 	 *   @type int[] $changed_ids    Saved items whose taxable amount changed.
 	 *   @type array $new_item_taxes Taxes of new items that arrived already taxed, keyed by spl_object_id().
 	 *   @type bool  $has_changes    Whether anything taxable changed, including additions and removals.
@@ -2885,12 +2924,13 @@ class WC_Connect_TaxJar_Integration {
 
 		foreach ( $order->get_items( $types ) as $item ) {
 			$item_id = (int) $item->get_id();
+			$is_new  = ! $item_id || isset( $this->order_items_created_in_request['ids'][ $item_id ] );
 
-			if ( ! $item_id ) {
+			if ( $is_new ) {
 				$added = true;
 
 				// Its tax was set by whoever added it (the Store API copies the cart's),
-				// so it was taxed at its own sale. Keyed by object: it has no id yet.
+				// so it was taxed at its own sale. Keyed by object: it may have no id yet.
 				$taxes = $item->get_taxes();
 				if ( ! empty( $taxes['total'] ) ) {
 					$new_item_taxes[ spl_object_id( $item ) ] = $taxes;
@@ -2909,7 +2949,7 @@ class WC_Connect_TaxJar_Integration {
 		foreach ( $types as $type ) {
 			$saved_ids = array_merge( $saved_ids, array_map( 'intval', array_keys( (array) $order->get_data_store()->read_items( $order, $type ) ) ) );
 		}
-		$removed = array_diff( $saved_ids, $known_ids );
+		$removed = array_diff( $saved_ids, $known_ids, array_keys( $this->order_items_created_in_request['ids'] ) );
 
 		return array(
 			'known_ids'      => $known_ids,
