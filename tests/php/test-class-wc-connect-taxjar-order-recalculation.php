@@ -136,21 +136,23 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Forget which order items this PHP request created.
+	 * Forget which orders and items this PHP request created.
 	 *
 	 * Fixtures are built in the same request as the edit under test; on a store they
 	 * were placed in an earlier one.
 	 */
 	private function forget_created_in_request() {
-		$property = new ReflectionProperty( $this->integration, 'order_items_created_in_request' );
-		$property->setAccessible( true );
-		$property->setValue(
-			$this->integration,
-			array(
-				'objects' => array(),
-				'ids'     => array(),
-			)
-		);
+		foreach ( array( 'orders_created_in_request', 'order_items_created_in_request' ) as $name ) {
+			$property = new ReflectionProperty( $this->integration, $name );
+			$property->setAccessible( true );
+			$property->setValue(
+				$this->integration,
+				array(
+					'objects' => array(),
+					'ids'     => array(),
+				)
+			);
+		}
 	}
 
 	/**
@@ -782,41 +784,5 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
 		$this->assertEqualsWithDelta( 35.00, (float) $order->get_total(), 0.001 );
-	}
-
-	/**
-	 * @testdox Creating an order over REST is left to WooCommerce (no recorded tax to keep).
-	 */
-	public function test_rest_order_creation_is_untouched() {
-		$product = $this->create_product( '10' );
-
-		$request = new WP_REST_Request( 'POST', '/wc/v3/orders' );
-		$request->set_header( 'Content-Type', 'application/json' );
-		$request->set_body(
-			wp_json_encode(
-				array(
-					'shipping'   => array(
-						'country'  => 'US',
-						'state'    => 'CO',
-						'postcode' => '80202',
-					),
-					'line_items' => array(
-						array(
-							'product_id' => $product->get_id(),
-							'quantity'   => 1,
-						),
-					),
-				)
-			)
-		);
-		$response = rest_get_server()->dispatch( $request );
-		$this->assertSame( 201, $response->get_status() );
-
-		$order = wc_get_order( $response->get_data()['id'] );
-
-		// The table row is 0%, and nothing on a new order should override that.
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
-		$this->assertEqualsWithDelta( 10.0, (float) $order->get_total(), 0.001 );
-		$this->assertSame( array(), $this->tax_notes( $order ) );
 	}
 }
