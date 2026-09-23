@@ -8,7 +8,7 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
- * Version: 3.6.16
+ * Version: 3.7.0
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 7.0

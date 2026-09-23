@@ -16,8 +16,6 @@ jobs:
         run: git config --global url.https://github.com/.insteadOf git://github.com/
       - name: Checkout code
         uses: actions/checkout@v3
-        with:
-            submodules: recursive
       - uses: actions/setup-node@v2
         with:
           node-version-file: '.nvmrc'
@@ -26,11 +24,6 @@ jobs:
       - name: Build plugin zip
         run: npm run build
 
-      # Switch to a modern Node for QIT CLI internals (CTRF merge requires Node 12+).
-      # The npm build above already completed on Node 10 from .nvmrc.
-      - uses: actions/setup-node@v2
-        with:
-          node-version: '20'
 
       - name: Unzip woocommerce-services.zip
         run: unzip woocommerce-services.zip -d woocommerce-services
