@@ -9,8 +9,6 @@ jobs:
     steps:
       - name: Checkout latest WCS
         uses: actions/checkout@v2
-        with:
-          submodules: recursive
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
@@ -63,8 +61,6 @@ jobs:
           fi
       - name: Checkout WCS&T
         uses: actions/checkout@v2
-        with:
-          submodules: recursive
       - name: Checkout WooCommerce
         run: git clone --depth=1 --branch=${{ matrix.wc-version }} https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
       - name: Setup PHP
@@ -80,7 +76,7 @@ jobs:
           version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
       - uses: actions/setup-node@v3
         with:
-          node-version: 'v16'
+          node-version-file: '.nvmrc'
 
       - name: Build WooCommerce essentials for running tests
         run: |

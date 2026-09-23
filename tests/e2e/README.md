@@ -18,8 +18,10 @@ Automated end-to-end tests for WooCommerce Tax.
 
 ### Install NodeJS
 
+Use the version in `.nvmrc`:
+
 ```bash
-brew install node #MacOS
+source ~/.nvm/nvm.sh && nvm use
 ```
 
 ### Install dependencies
@@ -27,6 +29,12 @@ brew install node #MacOS
 ```bash
 npm install
 ```
+
+The e2e dependencies install with everything else. One of them,
+`@automattic/puppeteer-utils`, is replaced by a prebuilt copy in
+[`vendor/puppeteer-utils/`](vendor/puppeteer-utils/README.md) - upstream builds itself in a
+`postinstall` that fails on any modern Node, and that one step used to pin this whole suite
+to Node 10.
 
 ### Configuration
 

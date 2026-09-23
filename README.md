@@ -27,9 +27,8 @@ If you'd just like to check out the latest release and not contribute code back,
 
 If you'd just like to check out the latest code and/or wish to contribute code, then perform the following:
 
-* Ensure you have `git`, `node`, and `npm` installed on the target machine/server. For maximum compatibility we recommend `node` version `10.16.0` and `npm` version 6+
+* Ensure you have `git`, `node`, and `npm` installed on the target machine/server. Use the `node` version in [`.nvmrc`](.nvmrc) (`nvm use` will pick it up) and the `npm` that ships with it.
 * Clone this repository into the `plugins` folder of the WordPress installation.
-* This project uses [Git submodules](https://git-scm.com/book/en/v2/Git-Tools-Submodules). You'll need to run `git submodule update --init`, or enable `submodule.recurse` ([#](https://git-scm.com/docs/git-config#Documentation/git-config.txt-submodulerecurse)) like this: `git config --global submodule.recurse true`
 * Run `npm install && composer install` to set up all the dependencies
 * You now have two choices:
     * For Development: run `npm run up`, let the process finish, connect your site to Jetpack using Jurassic Tube or ngrok.

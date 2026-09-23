@@ -15,8 +15,6 @@ jobs:
       - name: Set Git to use HTTPS instead of SSH
         run: git config --global url.https://github.com/.insteadOf git://github.com/
       - uses: actions/checkout@v4
-        with:
-          submodules: recursive
       - uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
           php-version: ${{ inputs.php_version }}

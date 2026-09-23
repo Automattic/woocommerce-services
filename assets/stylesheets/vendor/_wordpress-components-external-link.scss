@@ -1,0 +1,14 @@
+// Vendored from @wordpress/components@7.0.8 (src/external-link/style.scss).
+//
+// This rule used to be pulled in via `~@wordpress/components/src/external-link/style.scss`,
+// which silently resolved through the wp-calypso submodule's node_modules (7.0.8) rather
+// than this plugin's own @wordpress/components (^11.1.5). 11.x no longer ships per-component
+// `src/*/style.scss`, so the import only ever worked by way of the submodule.
+// Copied verbatim to keep the emitted CSS identical.
+
+.components-external-link__icon {
+	width: 1.4em;
+	height: 1.4em;
+	margin: -0.2em 0.1em 0;
+	vertical-align: middle;
+}
