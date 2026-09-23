@@ -1,7 +1,10 @@
-const calypsoLintConfig = require( './wp-calypso/.eslintrc' );
-const { useE2EEsLintConfig } = require( '@woocommerce/e2e-environment' );
+const calypsoLintConfig = require( './tasks/eslint/calypso.eslintrc.js' );
 
 calypsoLintConfig.env.jest = true;
+// Previously contributed by @woocommerce/e2e-environment's useE2EEsLintConfig wrapper.
+// The rest of what that wrapper merged in - plugin:jest/recommended, the jest plugin and
+// the puppeteer globals - is already present below or in the Calypso base config.
+calypsoLintConfig.env[ 'jest/globals' ] = true;
 Object.assign( calypsoLintConfig.globals, {
     page: true,
     browser: true,
@@ -48,4 +51,4 @@ calypsoLintConfig.overrides = [
     },
 ];
 
-module.exports = useE2EEsLintConfig( calypsoLintConfig );
+module.exports = calypsoLintConfig;
