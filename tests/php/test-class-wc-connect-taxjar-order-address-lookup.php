@@ -925,7 +925,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 			array(
 				'tax_rate_country'  => 'US',
 				'tax_rate_state'    => 'CO',
-				'tax_rate'          => '6.0000',
+				'tax_rate'          => '5.0000',
 				'tax_rate_name'     => 'CO Tax',
 				'tax_rate_priority' => 1,
 				'tax_rate_compound' => 0,
@@ -939,9 +939,9 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 
 		$fees = $order->get_fees();
 		$fee  = reset( $fees );
-		// The product at TaxJar's 6%, the fee at the stored standard 6%.
-		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fee->get_id() ), 0.001, 'fee' );
-		$this->assert_order_tax( $order, 1.20, 0.0, 21.20 );
+		// The product at TaxJar's 6%, the fee at the stored standard 5%, a rate TaxJar never returned.
+		$this->assertEqualsWithDelta( 0.50, $this->item_tax( $order, $fee->get_id() ), 0.001, 'fee' );
+		$this->assert_order_tax( $order, 1.10, 0.0, 21.10 );
 		$this->assertSame( array(), $this->tax_notes( $order ) );
 	}
 
