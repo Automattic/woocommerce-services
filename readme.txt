@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 7.1
 WC requires at least: 10.9
 WC tested up to: 11.1
-Stable tag: 3.6.16
+Stable tag: 3.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,9 +70,13 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.6.17 - 2026-xx-xx =
-* Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
+= 3.7.1 - 2026-xx-xx =
 * Fix   - Stop automated tax lookups from overwriting a tax rate you set up for a whole state, which could leave in-person and mobile app orders with no tax.
+
+= 3.7.0 - 2026-09-22 =
+* Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
+* Tweak - Update the bundled JavaScript libraries.
+* Tweak - Build the plugin's JavaScript on Node.js 24 and drop the wp-calypso submodule, keeping vendored copies of the modules it provided.
 
 = 3.6.16 - 2026-09-16 =
 * Tweak - Update the Jetpack Connection package to 9.1.2.
