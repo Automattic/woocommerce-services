@@ -3265,6 +3265,8 @@ class WC_Connect_TaxJar_Integration {
 	 * @internal Hooked to woocommerce_before_order_object_save.
 	 *
 	 * @param WC_Order $order The order about to be saved.
+	 *
+	 * @since 3.7.1
 	 */
 	public function remember_order_before_save( $order ) {
 		if ( ! $order instanceof WC_Order ) {
@@ -3304,6 +3306,8 @@ class WC_Connect_TaxJar_Integration {
 	 * @internal Hooked to woocommerce_after_order_object_save.
 	 *
 	 * @param WC_Order $order The saved order.
+	 *
+	 * @since 3.7.1
 	 */
 	public function remember_order_created( $order ) {
 		if ( ! $order instanceof WC_Order ) {
@@ -3391,7 +3395,7 @@ class WC_Connect_TaxJar_Integration {
 		 * Filters whether to apply base tax for local pickup. A WooCommerce core filter,
 		 * applied here as WC_Abstract_Order::get_tax_location() applies it.
 		 *
-		 * @since 3.6.17 Applied by this plugin.
+		 * @since 3.7.1 Applied by this plugin.
 		 *
 		 * @param bool $apply_base_tax Whether to apply base tax for local pickup.
 		 */
@@ -3399,7 +3403,7 @@ class WC_Connect_TaxJar_Integration {
 			/**
 			 * Filters the local pickup shipping method ids. A WooCommerce core filter.
 			 *
-			 * @since 3.6.17 Applied by this plugin.
+			 * @since 3.7.1 Applied by this plugin.
 			 *
 			 * @param string[] $local_pickup_methods Local pickup shipping method ids.
 			 */
