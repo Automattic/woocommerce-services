@@ -2656,7 +2656,7 @@ class WC_Connect_TaxJar_Integration {
 		 * Filters whether an order is VAT exempt. A WooCommerce core filter, applied here
 		 * with the same arguments WC_Abstract_Order::calculate_taxes() passes.
 		 *
-		 * @since 3.6.17 Applied by this plugin.
+		 * @since 3.7.1 Applied by this plugin.
 		 *
 		 * @param bool     $is_vat_exempt Whether the order is VAT exempt.
 		 * @param WC_Order $order         The order being recalculated.
@@ -2741,6 +2741,8 @@ class WC_Connect_TaxJar_Integration {
 	 * @internal Hooked to woocommerce_before_order_item_object_save.
 	 *
 	 * @param WC_Order_Item $item The item about to be saved.
+	 *
+	 * @since 3.7.1
 	 */
 	public function remember_order_item_base_before_save( $item ) {
 		if ( ! $item instanceof WC_Order_Item || ! in_array( $item->get_type(), array( 'line_item', 'fee', 'shipping' ), true ) ) {
@@ -2774,6 +2776,8 @@ class WC_Connect_TaxJar_Integration {
 	 * @internal Hooked to woocommerce_after_order_item_object_save.
 	 *
 	 * @param WC_Order_Item $item The saved item.
+	 *
+	 * @since 3.7.1
 	 */
 	public function remember_order_item_created( $item ) {
 		if ( ! $item instanceof WC_Order_Item ) {
