@@ -25,14 +25,8 @@ class WC_Connect_TaxJar_Integration {
 	private $expected_options = array(
 		// Users can set either billing or shipping address for tax rates but not shop
 		'woocommerce_tax_based_on'       => 'shipping',
-		// Rate calculations assume tax not included
-		'woocommerce_prices_include_tax' => 'no',
 		// Use no special handling on shipping taxes, our API handles that
 		'woocommerce_shipping_tax_class' => '',
-		// Rates are calculated in the cart assuming tax not included
-		'woocommerce_tax_display_shop'   => 'excl',
-		// TaxJar returns one total amount, not line item amounts
-		'woocommerce_tax_display_cart'   => 'excl',
 	);
 
 	/**
@@ -421,6 +415,12 @@ class WC_Connect_TaxJar_Integration {
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/82bf7c58/includes/class-wc-taxjar-integration.php#L66-L91
 	 */
 	public function configure_tax_settings() {
+		// If "include taxes" is enabled, Charge the same price regardless of location and taxes.
+		// Note that this is still broken in admin/mobile app order creation. Fix for this is unknown.
+		if ( get_option ( 'woocommerce_prices_include_tax' ) == 'yes' ) {
+			add_filter( 'woocommerce_adjust_non_base_location_prices', '__return_false' );
+		}
+
 		foreach ( $this->expected_options as $option => $value ) {
 			// first check the option value - with default memory caching this should help to avoid unnecessary DB operations
 			if ( get_option( $option ) !== $value ) {
