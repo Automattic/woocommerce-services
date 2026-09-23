@@ -37,7 +37,7 @@ services:
         ports:
             - "8051:8080"
     node:
-        image: "node:10.16.0"
+        image: "node:24.21.0"
         user: "node"
         working_dir: /home/node/app
         deploy:

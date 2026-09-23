@@ -89,29 +89,32 @@ function createGetStateFn( newProps = { origin: {}, destination: {}, packages: {
 	};
 }
 
-const mockNormalizationRequest = ( valid = true, persist = false ) => {
-	const status = valid ? 200 : 500;
+// The address normalization request goes to the store's own REST route through
+// `client/api/request`, which is what the plugin ships. It used to be mocked as a
+// WordPress.com proxy call (`public-api.wordpress.com/rest/v1.1/jetpack-blogs/...`), a
+// Calypso transport this plugin never loads - jest resolved the real Calypso module where
+// webpack resolves a stub, so the suite exercised a request path that does not exist in
+// the built bundle. The base URL matches the one seeded in tests/client/setup-test-framework.js.
+const mockNormalizationRequest = ( valid = true ) => {
+	// Several describe bodies call openPrintingFlow() directly, so requests are in flight
+	// while later tests register their own interceptors. Replace whatever is registered and
+	// keep the interceptor alive, so the outcome does not depend on which request lands first.
+	nock.cleanAll();
 
-	let request = nock( 'https://public-api.wordpress.com:443' );
-
-	if ( persist ) {
-		request = request.persist();
-	}
-
-	return request.post( `/rest/v1.1/jetpack-blogs/${ siteId }/rest-api/` ).reply( status, {
-		data: {
-			status,
-			body: {
-				normalized: valid,
-				is_trivial_normalization: valid,
-			},
-		},
-	} );
+	return nock( 'https://example.com' )
+		.persist()
+		.post( '/wp-json/wc/v1/connect/normalize-address' )
+		.reply(
+			200,
+			valid
+				? { success: true, normalized: true, is_trivial_normalization: true }
+				: { success: false, message: 'Invalid address' }
+		);
 };
 
 describe( 'Shipping label Actions', () => {
 	describe( '#openPrintingFlow', () => {
-		mockNormalizationRequest( true, true );
+		mockNormalizationRequest( true );
 
 		describe( 'origin validation ignored', () => {
 			const dispatchSpy = sinon.spy();
