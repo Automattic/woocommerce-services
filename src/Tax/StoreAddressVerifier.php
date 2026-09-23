@@ -379,12 +379,19 @@ final class StoreAddressVerifier {
 		// Suggest only the state and 5-digit ZIP. They are all that changes the tax, and the rest of
 		// the store address (which also appears on invoices and emails) stays as the merchant wrote it.
 		$candidate = $candidates[0];
+		$state     = self::candidate_state( $candidate );
+		$postcode  = self::zip5( self::candidate_zip( $candidate ) );
+
+		// The apply button writes these straight into the store settings, so only offer a real US state and ZIP.
+		if ( ! array_key_exists( $state, (array) WC()->countries->get_states( 'US' ) ) || 5 !== strlen( $postcode ) ) {
+			return $error;
+		}
 
 		return array(
 			'status'     => self::STATUS_SUGGESTION,
 			'suggestion' => array(
-				'state'    => self::candidate_state( $candidate ),
-				'postcode' => self::zip5( self::candidate_zip( $candidate ) ),
+				'state'    => $state,
+				'postcode' => $postcode,
 			),
 		);
 	}

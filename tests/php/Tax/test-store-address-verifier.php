@@ -256,35 +256,53 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 	 */
 	public function provide_failed_responses() {
 		return array(
-			'transport error' => array( new WP_Error( 'http_request_failed', 'timed out' ) ),
-			'server error'    => array(
+			'transport error'        => array( new WP_Error( 'http_request_failed', 'timed out' ) ),
+			'server error'           => array(
 				array(
 					'response' => array( 'code' => 500 ),
 					'body'     => '',
 				),
 			),
-			'unauthorized'    => array(
+			'unauthorized'           => array(
 				array(
 					'response' => array( 'code' => 401 ),
 					'body'     => '{}',
 				),
 			),
-			'rate limited'    => array(
+			'rate limited'           => array(
 				array(
 					'response' => array( 'code' => 429 ),
 					'body'     => '{}',
 				),
 			),
-			'not JSON'        => array(
+			'not JSON'               => array(
 				array(
 					'response' => array( 'code' => 200 ),
 					'body'     => '<html>',
 				),
 			),
-			'no address list' => array(
+			'no address list'        => array(
 				array(
 					'response' => array( 'code' => 200 ),
 					'body'     => '{"foo":1}',
+				),
+			),
+			'state name, not a code' => array(
+				array(
+					'response' => array( 'code' => 200 ),
+					'body'     => '{"addresses":[{"country":"US","state":"COLORADO","zip":"81321"}]}',
+				),
+			),
+			'unknown state code'     => array(
+				array(
+					'response' => array( 'code' => 200 ),
+					'body'     => '{"addresses":[{"country":"US","state":"XX","zip":"81321"}]}',
+				),
+			),
+			'short ZIP'              => array(
+				array(
+					'response' => array( 'code' => 200 ),
+					'body'     => '{"addresses":[{"country":"US","state":"CO","zip":"813"}]}',
 				),
 			),
 		);
