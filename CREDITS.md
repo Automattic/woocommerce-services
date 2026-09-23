@@ -3,6 +3,46 @@ Credits
 
 This project makes use of Open Source components. Below is a list of these components included in this project's source code, and their license information. This project also uses js packages released by NPM, see [package.json](/package.json). Source code and license information for each of these packages is available at https://npmjs.org. Many thanks to all of the original authors!
 
+### https://github.com/Automattic/wp-calypso
+
+The following are copies of WordPress.com Calypso sources, taken at commit `79b83cb`
+(2019-04-17). See `client/calypso/README.md`.
+
+- `client/calypso/` - client modules, verbatim
+- `assets/stylesheets/shared/` and `assets/stylesheets/_main.scss` - stylesheets, verbatim
+- `tasks/babel/inline-imports.js`, `tasks/babel/lodash-es.js` and
+  `tasks/babel/transform-wpcalypso-async.js` - babel transforms, verbatim
+- `tasks/eslint/calypso.eslintrc.js` - eslint base config, with one line changed (noted in
+  the file)
+- `images/vendor/checkmark-primary.svg` - verbatim
+- `babel.config.js` - flattened from Calypso's `babel.config.js` and the
+  `@automattic/calypso-build` config it extended
+
+Also under `assets/stylesheets/vendor/`:
+
+- `calypso-color-schemes/` - four files from `@automattic/calypso-color-schemes@1.0.0`
+  (GPL-2.0-or-later, from the same Calypso repository), verbatim
+- `_wordpress-components-external-link.scss` - one rule from `@wordpress/components@7.0.8`
+  (GPL-2.0-or-later)
+
+```text
+Copyright (c) Automattic Inc.
+
+This program is free software; you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation; either
+version 2 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+See the GNU General Public License for more details.
+```
+
+### https://github.com/Automattic/puppeteer-utils
+
+`tests/e2e/vendor/puppeteer-utils/` is a compiled copy of Automattic/puppeteer-utils at
+commit `0f3ec50`, used only by the end-to-end test suite and not included in the released
+plugin. Upstream declares no license; see the README in that directory.
+
 ### https://github.com/facebook/react
 
 ```text
