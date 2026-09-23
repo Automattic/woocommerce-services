@@ -488,6 +488,45 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A fee changed to not taxable loses its tax.
+	 */
+	public function test_fee_changed_to_not_taxable_loses_tax() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'name'       => 'Service',
+						'total'      => '10.00',
+						'tax_status' => 'taxable',
+					),
+				),
+			)
+		);
+
+		$fees   = $order->get_fees();
+		$fee_id = reset( $fees )->get_id();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'         => $fee_id,
+						'total'      => '12.00',
+						'tax_status' => 'none',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fee_id ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 49.10 );
+	}
+
+	/**
 	 * @testdox A new product with no rate on the order for its tax class is left untaxed, with a note.
 	 */
 	public function test_new_item_without_matching_rate_is_untaxed_with_note() {

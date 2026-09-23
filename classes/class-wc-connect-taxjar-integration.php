@@ -3099,10 +3099,10 @@ class WC_Connect_TaxJar_Integration {
 				continue;
 			}
 
-			if ( $is_known ) {
-				$item_rate_ids = empty( $snapshot['item_taxes'][ $key ]['total'] ) ? array() : array_keys( $snapshot['item_taxes'][ $key ]['total'] );
-			} elseif ( 'taxable' !== $item->get_tax_status() ) {
+			if ( 'taxable' !== $item->get_tax_status() ) {
 				$item_rate_ids = array();
+			} elseif ( $is_known ) {
+				$item_rate_ids = empty( $snapshot['item_taxes'][ $key ]['total'] ) ? array() : array_keys( $snapshot['item_taxes'][ $key ]['total'] );
 			} elseif ( $is_shipping ) {
 				$item_rate_ids = $shipping_rate_ids;
 			} else {
