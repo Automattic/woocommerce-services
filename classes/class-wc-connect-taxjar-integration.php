@@ -3520,7 +3520,8 @@ class WC_Connect_TaxJar_Integration {
 	 * Tax an order at the rates TaxJar just returned for it.
 	 *
 	 * Every line is re-taxed: the old rates belonged to the old address, or there were
-	 * none. A fee is taxed at the rates of a product in its tax class. The address and
+	 * none. A fee is taxed at the rates of a product in its tax class, or keeps the tax
+	 * WC gave it when no such product was looked up. The address and
 	 * the change are recorded in a note when the address changed or the tax moved.
 	 *
 	 * @param WC_Order $order    The recalculated order.
@@ -3545,6 +3546,7 @@ class WC_Connect_TaxJar_Integration {
 		$shipping_rates = empty( $lookup['rate_ids']['shipping'] ) ? array() : $this->get_looked_up_rates( $lookup['rate_ids']['shipping'] );
 
 		$percents = array();
+		$untaxed  = array();
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_key => $item ) {
 			if ( 'taxable' !== $item->get_tax_status() ) {
 				$item->set_taxes( false );
@@ -3555,6 +3557,16 @@ class WC_Connect_TaxJar_Integration {
 				$rates = $shipping_rates;
 			} elseif ( 'fee' === $item->get_type() ) {
 				$rates = $rates_by_class[ $item->get_tax_class() ] ?? array();
+
+				// No product in the fee's tax class was looked up: keep the tax WC gave it
+				// from the rate table, as checkout and the admin Recalculate do for fees.
+				if ( ! $rates ) {
+					$fee_taxes = $item->get_taxes();
+					if ( empty( $fee_taxes['total'] ) || ! array_filter( $fee_taxes['total'] ) ) {
+						$untaxed[] = $item->get_name();
+					}
+					continue;
+				}
 			} else {
 				$rates = $line_rates[ $item_key ] ?? array();
 			}
@@ -3578,6 +3590,17 @@ class WC_Connect_TaxJar_Integration {
 		// The rate table holds one row per rate and tax class, so two products taxed at
 		// different rates share a row; the tax line shows the rate TaxJar returned.
 		$this->rebuild_order_tax_totals( $order, $percents );
+
+		if ( $untaxed ) {
+			$this->add_order_tax_note(
+				$order,
+				sprintf(
+					/* translators: %s: comma-separated names of order items. */
+					__( 'No tax was added for %s, because the order has no recorded tax rate for it. Check the tax on this order.', 'woocommerce-services' ),
+					implode( ', ', array_map( 'wp_strip_all_tags', $untaxed ) )
+				)
+			);
+		}
 
 		$old_tax = (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'];
 		$new_tax = (float) $order->get_cart_tax() + (float) $order->get_shipping_tax();

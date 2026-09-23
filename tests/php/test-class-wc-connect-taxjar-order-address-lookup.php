@@ -885,6 +885,82 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A new REST order with a reduced-rate product and a standard-class taxable fee.
+	 *
+	 * @return WC_Order
+	 */
+	private function rest_create_with_unmatched_fee() {
+		$product = $this->create_product( '10' );
+		$product->set_tax_class( 'reduced-rate' );
+		$product->save();
+
+		return $this->rest_create(
+			array(
+				'billing'        => self::address(),
+				'shipping'       => self::address(),
+				'line_items'     => array(
+					array(
+						'product_id' => $product->get_id(),
+						'quantity'   => 1,
+					),
+				),
+				'fee_lines'      => array(
+					array(
+						'name'       => 'Custom amount',
+						'total'      => '10.00',
+						'tax_status' => 'taxable',
+						'tax_class'  => '',
+					),
+				),
+				'shipping_lines' => array(),
+			)
+		);
+	}
+
+	/**
+	 * @testdox A taxable fee with no product in its tax class keeps the tax WooCommerce gave it.
+	 */
+	public function test_fee_without_matching_product_keeps_woocommerce_tax() {
+		WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '6.0000',
+				'tax_rate_name'     => 'CO Tax',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+
+		$order = $this->rest_create_with_unmatched_fee();
+
+		$fees = $order->get_fees();
+		$fee  = reset( $fees );
+		// The product at TaxJar's 6%, the fee at the stored standard 6%.
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fee->get_id() ), 0.001, 'fee' );
+		$this->assert_order_tax( $order, 1.20, 0.0, 21.20 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox A taxable fee with no product in its tax class and no stored rate is noted as untaxed.
+	 */
+	public function test_untaxed_fee_without_matching_product_is_noted() {
+		$order = $this->rest_create_with_unmatched_fee();
+
+		$fees = $order->get_fees();
+		$fee  = reset( $fees );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fee->get_id() ), 0.001, 'fee' );
+		$this->assert_order_tax( $order, 0.60, 0.0, 20.60 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'No tax was added for Custom amount', $notes[0] );
+	}
+
+	/**
 	 * @testdox If TaxJar does not answer for a new order, WooCommerce's own result stands and a note says so.
 	 */
 	public function test_failed_lookup_on_new_order_notes_it() {
