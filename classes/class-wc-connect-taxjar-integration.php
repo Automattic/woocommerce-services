@@ -2591,6 +2591,59 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Whether an out-of-cart recalculation of this order should have its taxes preserved.
+	 *
+	 * Both halves of the preserve/restore pair consult this, because they hang off hooks
+	 * with different firing conditions: preserve_order_taxes_on_recalculation() runs from
+	 * calculate_taxes(), while restore_order_taxes_after_recalculation() runs from
+	 * calculate_totals() whether or not taxes were recalculated. A snapshot can therefore
+	 * reach the restore half without this having been evaluated on the way in.
+	 *
+	 * The gates are exclusionary: preservation runs for ANY out-of-cart recalculation of
+	 * an existing order — the REST/address-change path this fix targets, but also WP-CLI,
+	 * cron, and Action Scheduler runs. That breadth is intentional: once an order is
+	 * placed its tax is a record of what was charged, so we preserve it on every
+	 * programmatic recalculation, not only the REST path that prompted this fix.
+	 *
+	 * @since 3.7.1
+	 *
+	 * @param WC_Order $order The order being recalculated.
+	 * @return bool
+	 */
+	private function should_preserve_order_taxes( $order ) {
+		// The cart/checkout flow populates response_rate_ids and manages its own taxes.
+		if ( ! empty( $this->response_rate_ids ) ) {
+			return false;
+		}
+
+		// Admin order edits recalculate over AJAX and are handled by calculate_backend_totals().
+		if ( wp_doing_ajax() ) {
+			return false;
+		}
+
+		// A new order that does not exist yet has no recorded taxes to preserve.
+		if ( ! $order->get_id() ) {
+			return false;
+		}
+
+		// WC zeroes the taxes of an exempt order; restoring them would undo the exemption.
+		/**
+		 * Filters whether an order is VAT exempt. A WooCommerce core filter, applied here
+		 * with the same arguments WC_Abstract_Order::calculate_taxes() passes.
+		 *
+		 * @since 3.7.1 Applied by this plugin.
+		 *
+		 * @param bool     $is_vat_exempt Whether the order is VAT exempt.
+		 * @param WC_Order $order         The order being recalculated.
+		 */
+		if ( apply_filters( 'woocommerce_order_is_vat_exempt', 'yes' === $order->get_meta( 'is_vat_exempt' ), $order ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Preserve an order's recorded taxes when it is recalculated outside the cart.
 	 *
 	 * WC_Abstract_Order::calculate_taxes() recomputes item taxes against the order's
@@ -2629,39 +2682,12 @@ class WC_Connect_TaxJar_Integration {
 	 * @since 3.6.8
 	 */
 	public function preserve_order_taxes_on_recalculation( $args, $order ) {
-		// The gates below are exclusionary: preservation runs for ANY out-of-cart
-		// recalculation of an existing, already-taxed order — the REST/address-change
-		// path this fix targets, but also WP-CLI, cron, and Action Scheduler runs.
-		// That breadth is intentional: once an order is placed its tax is a record of
-		// what was charged, so we preserve it on every programmatic recalculation, not
-		// only the REST path that prompted this fix.
+		// A snapshot from a recalculation that never reached calculate_totals() must not
+		// outlive it, or a later one would restore amounts read before it. Cleared ahead
+		// of the gates, so a snapshot cannot survive a rejected one either.
+		unset( $this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ] );
 
-		// The cart/checkout flow populates response_rate_ids and manages its own taxes.
-		if ( ! empty( $this->response_rate_ids ) ) {
-			return;
-		}
-
-		// Admin order edits recalculate over AJAX and are handled by calculate_backend_totals().
-		if ( wp_doing_ajax() ) {
-			return;
-		}
-
-		// A new order that does not exist yet has no recorded taxes to preserve.
-		if ( ! $order->get_id() ) {
-			return;
-		}
-
-		// WC zeroes the taxes of an exempt order; restoring them would undo the exemption.
-		/**
-		 * Filters whether an order is VAT exempt. A WooCommerce core filter, applied here
-		 * with the same arguments WC_Abstract_Order::calculate_taxes() passes.
-		 *
-		 * @since 3.7.1 Applied by this plugin.
-		 *
-		 * @param bool     $is_vat_exempt Whether the order is VAT exempt.
-		 * @param WC_Order $order         The order being recalculated.
-		 */
-		if ( apply_filters( 'woocommerce_order_is_vat_exempt', 'yes' === $order->get_meta( 'is_vat_exempt' ), $order ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
+		if ( ! $this->should_preserve_order_taxes( $order ) ) {
 			return;
 		}
 
@@ -2713,6 +2739,13 @@ class WC_Connect_TaxJar_Integration {
 
 		$snapshot = $this->pre_recalculation_tax_snapshots[ $order_id ];
 		unset( $this->pre_recalculation_tax_snapshots[ $order_id ] );
+
+		// This hook fires from calculate_totals() whether or not taxes were recalculated,
+		// so a snapshot can arrive here without the gates having run. Re-check them: an
+		// order made VAT exempt since the snapshot was taken must not get its tax back.
+		if ( ! $this->should_preserve_order_taxes( $order ) ) {
+			return;
+		}
 
 		if ( empty( $snapshot['base_changes']['has_changes'] ) ) {
 			$this->restore_order_taxes( $order, $snapshot );
@@ -2913,10 +2946,12 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @param WC_Order $order The order about to be recalculated.
 	 * @return array {
-	 *   @type int[] $known_ids      Items saved before this request, still on the order.
-	 *   @type int[] $changed_ids    Saved items whose taxable amount changed.
-	 *   @type array $new_item_taxes Taxes of new items that arrived already taxed, keyed by spl_object_id().
-	 *   @type bool  $has_changes    Whether anything taxable changed, including additions and removals.
+	 *   @type int[] $known_ids        Items saved before this request, still on the order.
+	 *   @type int[] $changed_ids      Saved items whose taxable amount changed.
+	 *   @type array $new_item_taxes   Taxes of new items that arrived already taxed, keyed by spl_object_id().
+	 *   @type array $removed_rate_ids Rate ids of removed items: 'classes' keyed by tax class, and 'shipping';
+	 *                                 'untaxed_shipping' is true when a removed shipping line carried no tax.
+	 *   @type bool  $has_changes      Whether anything taxable changed, including additions and removals.
 	 * }
 	 */
 	private function find_order_tax_base_changes( $order ) {
@@ -2949,17 +2984,43 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		$saved_ids = array();
+		$saved_items = array();
 		foreach ( $types as $type ) {
-			$saved_ids = array_merge( $saved_ids, array_map( 'intval', array_keys( (array) $order->get_data_store()->read_items( $order, $type ) ) ) );
+			$saved_items += (array) $order->get_data_store()->read_items( $order, $type );
 		}
-		$removed = array_diff( $saved_ids, $known_ids, array_keys( $this->order_items_created_in_request['ids'] ) );
+		$removed = array_diff( array_map( 'intval', array_keys( $saved_items ) ), $known_ids, array_keys( $this->order_items_created_in_request['ids'] ) );
+
+		// The rates removed items were taxed at, for a new item that replaces the last
+		// one of its tax class. They have to be read now: the recalculation deletes them.
+		$removed_rate_ids = array(
+			'classes'          => array(),
+			'shipping'         => array(),
+			'untaxed_shipping' => false,
+		);
+		foreach ( $removed as $item_id ) {
+			// read_items() gives false for an item whose class cannot be loaded.
+			if ( ! $saved_items[ $item_id ] instanceof WC_Order_Item ) {
+				continue;
+			}
+
+			$taxes    = $saved_items[ $item_id ]->get_taxes();
+			$rate_ids = empty( $taxes['total'] ) ? array() : array_keys( $taxes['total'] );
+
+			if ( 'shipping' === $saved_items[ $item_id ]->get_type() ) {
+				$removed_rate_ids['shipping']         = array_unique( array_merge( $removed_rate_ids['shipping'], $rate_ids ) );
+				$removed_rate_ids['untaxed_shipping'] = $removed_rate_ids['untaxed_shipping'] || ! $rate_ids;
+			} elseif ( $rate_ids ) {
+				$tax_class                                 = $saved_items[ $item_id ]->get_tax_class();
+				$removed_rate_ids['classes'][ $tax_class ] = array_unique( array_merge( $removed_rate_ids['classes'][ $tax_class ] ?? array(), $rate_ids ) );
+			}
+		}
 
 		return array(
-			'known_ids'      => $known_ids,
-			'changed_ids'    => $changed_ids,
-			'new_item_taxes' => $new_item_taxes,
-			'has_changes'    => $added || ! empty( $removed ) || ! empty( $changed_ids ),
+			'known_ids'        => $known_ids,
+			'changed_ids'      => $changed_ids,
+			'new_item_taxes'   => $new_item_taxes,
+			'removed_rate_ids' => $removed_rate_ids,
+			'has_changes'      => $added || ! empty( $removed ) || ! empty( $changed_ids ),
 		);
 	}
 
@@ -3042,7 +3103,10 @@ class WC_Connect_TaxJar_Integration {
 	 * Items that did not change keep the tax they had. A changed item is taxed at the
 	 * rates it already carries; a new item or fee at the rates of an existing item in
 	 * the same tax class; a new shipping line at the rates of the existing shipping.
-	 * With no such rate on the order, a new item is left untaxed and the note says so.
+	 * If the edit removed the last item of that class (or all the shipping), the rates
+	 * the removed items were taxed at are used. With no such rate on the order, a new
+	 * item is left untaxed and the note says so, unless it is shipping on an order
+	 * whose shipping was not taxed either.
 	 * A new item that arrives with its tax already set keeps it.
 	 * Percentages, labels and codes come from the order's tax lines, never from the
 	 * rate table, which may have changed since the order was placed.
@@ -3070,9 +3134,16 @@ class WC_Connect_TaxJar_Integration {
 		// Rates already on the order, per tax class and for shipping, for new items.
 		$rate_ids_by_class = array();
 		$shipping_rate_ids = array();
+		$untaxed_shipping  = $snapshot['base_changes']['removed_rate_ids']['untaxed_shipping'];
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
 			$key = 'shipping' === $item->get_type() ? 'shipping_' . $item_id : $item_id;
-			if ( ! in_array( (int) $item_id, $known_ids, true ) || empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
+			if ( ! in_array( (int) $item_id, $known_ids, true ) ) {
+				continue;
+			}
+
+			if ( empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
+				// Shipping the order did not tax: a new shipping line at no tax is expected.
+				$untaxed_shipping = $untaxed_shipping || 'shipping' === $item->get_type();
 				continue;
 			}
 
@@ -3083,6 +3154,13 @@ class WC_Connect_TaxJar_Integration {
 				$tax_class                       = $item->get_tax_class();
 				$rate_ids_by_class[ $tax_class ] = array_unique( array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), $item_rate_ids ) );
 			}
+		}
+
+		// When the edit removed the last item of a class (or all the shipping), a new one
+		// takes the rates the removed ones were taxed at.
+		$rate_ids_by_class += $snapshot['base_changes']['removed_rate_ids']['classes'];
+		if ( empty( $shipping_rate_ids ) ) {
+			$shipping_rate_ids = $snapshot['base_changes']['removed_rate_ids']['shipping'];
 		}
 
 		$untaxed = array();
@@ -3116,7 +3194,7 @@ class WC_Connect_TaxJar_Integration {
 			$item_rates = array_intersect_key( $rates, array_flip( array_map( 'intval', $item_rate_ids ) ) );
 
 			if ( empty( $item_rates ) ) {
-				if ( ! $is_known && 'taxable' === $item->get_tax_status() ) {
+				if ( ! $is_known && 'taxable' === $item->get_tax_status() && ! ( $is_shipping && $untaxed_shipping ) ) {
 					$untaxed[] = $item->get_name();
 				}
 				$item->set_taxes( false );
