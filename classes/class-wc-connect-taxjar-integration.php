@@ -2946,10 +2946,11 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @param WC_Order $order The order about to be recalculated.
 	 * @return array {
-	 *   @type int[] $known_ids      Items saved before this request, still on the order.
-	 *   @type int[] $changed_ids    Saved items whose taxable amount changed.
-	 *   @type array $new_item_taxes Taxes of new items that arrived already taxed, keyed by spl_object_id().
-	 *   @type bool  $has_changes    Whether anything taxable changed, including additions and removals.
+	 *   @type int[] $known_ids        Items saved before this request, still on the order.
+	 *   @type int[] $changed_ids      Saved items whose taxable amount changed.
+	 *   @type array $new_item_taxes   Taxes of new items that arrived already taxed, keyed by spl_object_id().
+	 *   @type array $removed_rate_ids Rate ids of removed items: 'classes' keyed by tax class, and 'shipping'.
+	 *   @type bool  $has_changes      Whether anything taxable changed, including additions and removals.
 	 * }
 	 */
 	private function find_order_tax_base_changes( $order ) {
@@ -2982,17 +2983,38 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		$saved_ids = array();
+		$saved_items = array();
 		foreach ( $types as $type ) {
-			$saved_ids = array_merge( $saved_ids, array_map( 'intval', array_keys( (array) $order->get_data_store()->read_items( $order, $type ) ) ) );
+			$saved_items += (array) $order->get_data_store()->read_items( $order, $type );
 		}
-		$removed = array_diff( $saved_ids, $known_ids, array_keys( $this->order_items_created_in_request['ids'] ) );
+		$removed = array_diff( array_map( 'intval', array_keys( $saved_items ) ), $known_ids, array_keys( $this->order_items_created_in_request['ids'] ) );
+
+		// The rates removed items were taxed at, for a new item that replaces the last
+		// one of its tax class. They have to be read now: the recalculation deletes them.
+		$removed_rate_ids = array(
+			'classes'  => array(),
+			'shipping' => array(),
+		);
+		foreach ( $removed as $item_id ) {
+			$taxes = $saved_items[ $item_id ]->get_taxes();
+			if ( empty( $taxes['total'] ) ) {
+				continue;
+			}
+
+			if ( 'shipping' === $saved_items[ $item_id ]->get_type() ) {
+				$removed_rate_ids['shipping'] = array_unique( array_merge( $removed_rate_ids['shipping'], array_keys( $taxes['total'] ) ) );
+			} else {
+				$tax_class                                 = $saved_items[ $item_id ]->get_tax_class();
+				$removed_rate_ids['classes'][ $tax_class ] = array_unique( array_merge( $removed_rate_ids['classes'][ $tax_class ] ?? array(), array_keys( $taxes['total'] ) ) );
+			}
+		}
 
 		return array(
-			'known_ids'      => $known_ids,
-			'changed_ids'    => $changed_ids,
-			'new_item_taxes' => $new_item_taxes,
-			'has_changes'    => $added || ! empty( $removed ) || ! empty( $changed_ids ),
+			'known_ids'        => $known_ids,
+			'changed_ids'      => $changed_ids,
+			'new_item_taxes'   => $new_item_taxes,
+			'removed_rate_ids' => $removed_rate_ids,
+			'has_changes'      => $added || ! empty( $removed ) || ! empty( $changed_ids ),
 		);
 	}
 
@@ -3075,7 +3097,9 @@ class WC_Connect_TaxJar_Integration {
 	 * Items that did not change keep the tax they had. A changed item is taxed at the
 	 * rates it already carries; a new item or fee at the rates of an existing item in
 	 * the same tax class; a new shipping line at the rates of the existing shipping.
-	 * With no such rate on the order, a new item is left untaxed and the note says so.
+	 * If the edit removed the last item of that class (or all the shipping), the rates
+	 * the removed items were taxed at are used. With no such rate on the order, a new
+	 * item is left untaxed and the note says so.
 	 * A new item that arrives with its tax already set keeps it.
 	 * Percentages, labels and codes come from the order's tax lines, never from the
 	 * rate table, which may have changed since the order was placed.
@@ -3116,6 +3140,13 @@ class WC_Connect_TaxJar_Integration {
 				$tax_class                       = $item->get_tax_class();
 				$rate_ids_by_class[ $tax_class ] = array_unique( array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), $item_rate_ids ) );
 			}
+		}
+
+		// When the edit removed the last item of a class (or all the shipping), a new one
+		// takes the rates the removed ones were taxed at.
+		$rate_ids_by_class += $snapshot['base_changes']['removed_rate_ids']['classes'];
+		if ( empty( $shipping_rate_ids ) ) {
+			$shipping_rate_ids = $snapshot['base_changes']['removed_rate_ids']['shipping'];
 		}
 
 		$untaxed = array();

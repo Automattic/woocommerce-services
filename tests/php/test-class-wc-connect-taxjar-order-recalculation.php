@@ -551,6 +551,97 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A new product that replaces the last items of its tax class in one edit takes their rate.
+	 */
+	public function test_replacing_last_items_of_class_keeps_their_rate() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 0,
+					),
+					array(
+						'id'       => $fixture['b'],
+						'quantity' => 0,
+					),
+					array(
+						'product_id' => $this->create_product( '30' )->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $order->get_items() );
+		$items = $order->get_items();
+		$this->assertEqualsWithDelta( 1.80, $this->item_tax( $order, key( $items ) ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'no note: the tax did not change and nothing was left untaxed' );
+	}
+
+	/**
+	 * @testdox A new shipping line that replaces the order's only shipping takes its rate.
+	 */
+	public function test_replacing_only_shipping_keeps_its_rate() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'id'        => $fixture['shipping'],
+						'method_id' => null,
+					),
+					array(
+						'method_id'    => 'flat_rate',
+						'method_title' => 'Express',
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $order->get_shipping_methods() );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+	}
+
+	/**
+	 * @testdox Replacing the last items of a class with a product of another class leaves it untaxed, with a note.
+	 */
+	public function test_replacing_last_items_with_other_class_is_untaxed_with_note() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 0,
+					),
+					array(
+						'id'       => $fixture['b'],
+						'quantity' => 0,
+					),
+					array(
+						'product_id' => $this->create_product( '30', 'reduced-rate' )->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 0.30, (float) $order->get_shipping_tax(), 0.001 );
+		$this->assertNotEmpty( $this->tax_notes( $order ), 'a note explains the untaxed item' );
+	}
+
+	/**
 	 * @testdox Applying a coupon over REST moves the tax and the discount tax.
 	 */
 	public function test_coupon_moves_tax() {
