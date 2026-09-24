@@ -2591,6 +2591,59 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Whether an out-of-cart recalculation of this order should have its taxes preserved.
+	 *
+	 * Both halves of the preserve/restore pair consult this, because they hang off hooks
+	 * with different firing conditions: preserve_order_taxes_on_recalculation() runs from
+	 * calculate_taxes(), while restore_order_taxes_after_recalculation() runs from
+	 * calculate_totals() whether or not taxes were recalculated. A snapshot can therefore
+	 * reach the restore half without this having been evaluated on the way in.
+	 *
+	 * The gates are exclusionary: preservation runs for ANY out-of-cart recalculation of
+	 * an existing order — the REST/address-change path this fix targets, but also WP-CLI,
+	 * cron, and Action Scheduler runs. That breadth is intentional: once an order is
+	 * placed its tax is a record of what was charged, so we preserve it on every
+	 * programmatic recalculation, not only the REST path that prompted this fix.
+	 *
+	 * @since 3.7.1
+	 *
+	 * @param WC_Order $order The order being recalculated.
+	 * @return bool
+	 */
+	private function should_preserve_order_taxes( $order ) {
+		// The cart/checkout flow populates response_rate_ids and manages its own taxes.
+		if ( ! empty( $this->response_rate_ids ) ) {
+			return false;
+		}
+
+		// Admin order edits recalculate over AJAX and are handled by calculate_backend_totals().
+		if ( wp_doing_ajax() ) {
+			return false;
+		}
+
+		// A new order that does not exist yet has no recorded taxes to preserve.
+		if ( ! $order->get_id() ) {
+			return false;
+		}
+
+		// WC zeroes the taxes of an exempt order; restoring them would undo the exemption.
+		/**
+		 * Filters whether an order is VAT exempt. A WooCommerce core filter, applied here
+		 * with the same arguments WC_Abstract_Order::calculate_taxes() passes.
+		 *
+		 * @since 3.7.1 Applied by this plugin.
+		 *
+		 * @param bool     $is_vat_exempt Whether the order is VAT exempt.
+		 * @param WC_Order $order         The order being recalculated.
+		 */
+		if ( apply_filters( 'woocommerce_order_is_vat_exempt', 'yes' === $order->get_meta( 'is_vat_exempt' ), $order ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
+			return false;
+		}
+
+		return true;
+	}
+
+	/**
 	 * Preserve an order's recorded taxes when it is recalculated outside the cart.
 	 *
 	 * WC_Abstract_Order::calculate_taxes() recomputes item taxes against the order's
@@ -2629,39 +2682,12 @@ class WC_Connect_TaxJar_Integration {
 	 * @since 3.6.8
 	 */
 	public function preserve_order_taxes_on_recalculation( $args, $order ) {
-		// The gates below are exclusionary: preservation runs for ANY out-of-cart
-		// recalculation of an existing, already-taxed order — the REST/address-change
-		// path this fix targets, but also WP-CLI, cron, and Action Scheduler runs.
-		// That breadth is intentional: once an order is placed its tax is a record of
-		// what was charged, so we preserve it on every programmatic recalculation, not
-		// only the REST path that prompted this fix.
+		// A snapshot from a recalculation that never reached calculate_totals() must not
+		// outlive it, or a later one would restore amounts read before it. Cleared ahead
+		// of the gates, so a snapshot cannot survive a rejected one either.
+		unset( $this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ] );
 
-		// The cart/checkout flow populates response_rate_ids and manages its own taxes.
-		if ( ! empty( $this->response_rate_ids ) ) {
-			return;
-		}
-
-		// Admin order edits recalculate over AJAX and are handled by calculate_backend_totals().
-		if ( wp_doing_ajax() ) {
-			return;
-		}
-
-		// A new order that does not exist yet has no recorded taxes to preserve.
-		if ( ! $order->get_id() ) {
-			return;
-		}
-
-		// WC zeroes the taxes of an exempt order; restoring them would undo the exemption.
-		/**
-		 * Filters whether an order is VAT exempt. A WooCommerce core filter, applied here
-		 * with the same arguments WC_Abstract_Order::calculate_taxes() passes.
-		 *
-		 * @since 3.7.1 Applied by this plugin.
-		 *
-		 * @param bool     $is_vat_exempt Whether the order is VAT exempt.
-		 * @param WC_Order $order         The order being recalculated.
-		 */
-		if ( apply_filters( 'woocommerce_order_is_vat_exempt', 'yes' === $order->get_meta( 'is_vat_exempt' ), $order ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
+		if ( ! $this->should_preserve_order_taxes( $order ) ) {
 			return;
 		}
 
@@ -2713,6 +2739,13 @@ class WC_Connect_TaxJar_Integration {
 
 		$snapshot = $this->pre_recalculation_tax_snapshots[ $order_id ];
 		unset( $this->pre_recalculation_tax_snapshots[ $order_id ] );
+
+		// This hook fires from calculate_totals() whether or not taxes were recalculated,
+		// so a snapshot can arrive here without the gates having run. Re-check them: an
+		// order made VAT exempt since the snapshot was taken must not get its tax back.
+		if ( ! $this->should_preserve_order_taxes( $order ) ) {
+			return;
+		}
 
 		if ( empty( $snapshot['base_changes']['has_changes'] ) ) {
 			$this->restore_order_taxes( $order, $snapshot );

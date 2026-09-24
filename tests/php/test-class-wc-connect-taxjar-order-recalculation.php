@@ -784,6 +784,149 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 35.00, (float) $order->get_total(), 0.001 );
 	}
 
+	// -------------------------------------------------------------------------
+	// calculate_taxes() and calculate_totals() called apart.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Change A's quantity to 2 on the order object and run calculate_taxes() alone,
+	 * which leaves a snapshot that no calculate_totals() has consumed yet.
+	 *
+	 * @param WC_Order $order   Order.
+	 * @param int      $item_id Item id of A.
+	 */
+	private function bare_calculate_taxes_after_quantity_change( WC_Order $order, $item_id ) {
+		$item = $order->get_item( $item_id, false );
+		$item->set_quantity( 2 );
+		$item->set_subtotal( '20' );
+		$item->set_total( '20' );
+		$order->calculate_taxes();
+	}
+
+	/**
+	 * @testdox A snapshot left by a bare calculate_taxes() does not give a VAT exempt order its tax back in calculate_totals( true ).
+	 */
+	public function test_leftover_snapshot_does_not_undo_vat_exemption() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$this->bare_calculate_taxes_after_quantity_change( $order, $fixture['a'] );
+		add_filter( 'woocommerce_order_is_vat_exempt', '__return_true' );
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 45.00, (float) $order->get_total(), 0.001 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox A snapshot left by a bare calculate_taxes() does not give a VAT exempt order its tax back in calculate_totals( false ).
+	 */
+	public function test_leftover_snapshot_does_not_undo_vat_exemption_without_taxes() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$this->bare_calculate_taxes_after_quantity_change( $order, $fixture['a'] );
+		add_filter( 'woocommerce_order_is_vat_exempt', '__return_true' );
+		$order->calculate_totals( false );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 45.00, (float) $order->get_total(), 0.001 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox A calculate_taxes() rejected by a gate drops the snapshot an earlier one left.
+	 */
+	public function test_rejected_recalculation_drops_leftover_snapshot() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$this->bare_calculate_taxes_after_quantity_change( $order, $fixture['a'] );
+		add_filter( 'woocommerce_order_is_vat_exempt', '__return_true' );
+		$order->calculate_taxes();
+
+		$property = new ReflectionProperty( $this->integration, 'pre_recalculation_tax_snapshots' );
+		$property->setAccessible( true );
+		$this->assertSame( array(), $property->getValue( $this->integration ) );
+	}
+
+	/**
+	 * @testdox calculate_totals( false ) on its own leaves the item taxes alone.
+	 */
+	public function test_totals_without_taxes_alone_keeps_item_taxes() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$item = $order->get_item( $fixture['a'], false );
+		$item->set_quantity( 2 );
+		$item->set_subtotal( '20' );
+		$item->set_total( '20' );
+		$item->save();
+		$order->calculate_totals( false );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 47.10 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox calculate_taxes() then calculate_totals( false ) still keeps the recorded tax.
+	 */
+	public function test_taxes_then_totals_without_taxes_keeps_recorded_tax() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$order->calculate_taxes();
+		$order->calculate_totals( false );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+	}
+
+	/**
+	 * @testdox calculate_taxes() then calculate_totals( false ) moves the tax of a changed item.
+	 */
+	public function test_taxes_then_totals_without_taxes_moves_tax() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$this->bare_calculate_taxes_after_quantity_change( $order, $fixture['a'] );
+		$order->calculate_totals( false );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+	}
+
+	/**
+	 * @testdox TaxesController::calc_line_taxes() called outside AJAX keeps the recorded tax.
+	 */
+	public function test_calc_line_taxes_keeps_recorded_tax() {
+		$fixture = $this->create_placed_order();
+
+		$order = wc_get_container()->get( Automattic\WooCommerce\Internal\Orders\TaxesController::class )->calc_line_taxes(
+			array(
+				'order_id' => $fixture['order']->get_id(),
+				'items'    => '',
+				'country'  => 'US',
+				'state'    => 'CO',
+				'postcode' => '80202',
+				'city'     => 'Denver',
+			)
+		);
+
+		// Amounts only: wc_save_order_items() runs update_taxes(), which reloads the
+		// tax line's label and rate from the table.
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 1.80, (float) $order->get_cart_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 0.30, (float) $order->get_shipping_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 37.10, (float) $order->get_total(), 0.001 );
+	}
+
 	/**
 	 * @testdox Creating an order over REST is left to WooCommerce (no recorded tax to keep).
 	 */
