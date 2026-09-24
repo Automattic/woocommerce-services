@@ -108,6 +108,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->products = array();
 
 		remove_all_filters( 'woocommerce_order_is_vat_exempt' );
+		remove_all_filters( 'woocommerce_get_order_item_classname' );
 		delete_option( WC_Connect_TaxJar_Integration::OPTION_NAME );
 		delete_option( 'woocommerce_calc_taxes' );
 
@@ -639,6 +640,44 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001 );
 		$this->assertEqualsWithDelta( 0.30, (float) $order->get_shipping_tax(), 0.001 );
 		$this->assertNotEmpty( $this->tax_notes( $order ), 'a note explains the untaxed item' );
+	}
+
+	/**
+	 * @testdox A saved item that cannot be loaded does not break the edit.
+	 */
+	public function test_unloadable_saved_item_is_skipped() {
+		$fixture = $this->create_placed_order();
+		$a_id    = $fixture['a'];
+
+		// WC_Order_Factory::get_order_item() returns false for an item whose class does not exist.
+		add_filter(
+			'woocommerce_get_order_item_classname',
+			function ( $classname, $item_type, $id ) use ( $a_id ) {
+				return (int) $id === $a_id ? 'WC_Order_Item_Missing_Class' : $classname;
+			},
+			10,
+			3
+		);
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['b'],
+						'quantity' => 0,
+					),
+					array(
+						'product_id' => $this->create_product( '20' )->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$items = $order->get_items();
+		$this->assertCount( 1, $items );
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, key( $items ) ), 0.001, 'the new item takes the rate of the item it replaced' );
 	}
 
 	/**

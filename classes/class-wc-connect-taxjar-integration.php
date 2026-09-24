@@ -2996,6 +2996,11 @@ class WC_Connect_TaxJar_Integration {
 			'shipping' => array(),
 		);
 		foreach ( $removed as $item_id ) {
+			// read_items() gives false for an item whose class cannot be loaded.
+			if ( ! $saved_items[ $item_id ] instanceof WC_Order_Item ) {
+				continue;
+			}
+
 			$taxes = $saved_items[ $item_id ]->get_taxes();
 			if ( empty( $taxes['total'] ) ) {
 				continue;
