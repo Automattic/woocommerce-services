@@ -3611,6 +3611,184 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Insert a merchant-authored catch-all row: US / MI, no postcode or city, 6%.
+	 *
+	 * @return int Tax rate id.
+	 */
+	private function insert_michigan_catch_all_rate() {
+		return (int) WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'MI',
+				'tax_rate_name'     => 'Tax',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate'          => '6.0000',
+				'tax_rate_class'    => '',
+			)
+		);
+	}
+
+	/**
+	 * Write the four components `get_itemized_tax_rates()` produces for a Michigan
+	 * destination: City, County and Special District at 0%, State at 6%.
+	 *
+	 * @param string $zip          Destination postcode.
+	 * @param string $city         Destination city.
+	 * @param string $jurisdiction Name prefix, e.g. 'MARQUETTE GWINN'.
+	 * @return int[] Rate ids keyed by component name.
+	 */
+	private function write_michigan_components( $zip, $city, $jurisdiction ) {
+		$location = array(
+			'from_country' => 'US',
+			'from_state'   => 'MI',
+			'to_country'   => 'US',
+			'to_state'     => 'MI',
+			'to_zip'       => $zip,
+			'to_city'      => $city,
+		);
+
+		$components = array(
+			array( 1, 0.0, 'City Tax' ),
+			array( 2, 0.0, 'County Tax' ),
+			array( 3, 0.0, 'Special District Tax' ),
+			array( 4, 6.0, 'State Sales Tax' ),
+		);
+
+		$ids = array();
+		foreach ( $components as $component ) {
+			list( $priority, $rate, $name ) = $component;
+
+			$ids[ $name ] = (int) $this->integration->create_or_update_tax_rate( $location, $rate, '', 1, $priority, $jurisdiction . ' : ' . $name );
+		}
+
+		return $ids;
+	}
+
+	/**
+	 * What an order with no TaxJar correction step (REST, POS) is taxed at: the sum
+	 * of the rates `WC_Tax::find_rates()` returns from the local table.
+	 *
+	 * @param string $zip  Postcode.
+	 * @param string $city City.
+	 * @return array{ids: int[], percent: float}
+	 */
+	private function michigan_rates_from_table( $zip, $city ) {
+		$rates = WC_Tax::find_rates(
+			array(
+				'country'   => 'US',
+				'state'     => 'MI',
+				'postcode'  => $zip,
+				'city'      => $city,
+				'tax_class' => '',
+			)
+		);
+
+		return array(
+			'ids'     => array_map( 'intval', array_keys( $rates ) ),
+			'percent' => (float) array_sum( wp_list_pluck( $rates, 'rate' ) ),
+		);
+	}
+
+	/**
+	 * A lookup must not rewrite a merchant's catch-all row into one of its components.
+	 *
+	 * The City component is priority 1, and matching is by ordinal position, so it used
+	 * to land on the merchant's unscoped row and overwrite it to 0% without narrowing
+	 * its scope. Every address in the state then matched only that row and was taxed
+	 * at 0%, including in-person orders at the store's own address.
+	 */
+	public function test_create_or_update_tax_rate_leaves_merchant_catch_all_row_untouched() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		$catch_all    = $this->tax_rate_snapshot( $catch_all_id );
+
+		$gwinn_ids = $this->write_michigan_components( '49841', 'Gwinn', 'MARQUETTE GWINN' );
+
+		$this->assertNotContains( $catch_all_id, $gwinn_ids, 'A component was written into the merchant row.' );
+		$this->assertSame( $catch_all, $this->tax_rate_snapshot( $catch_all_id ), 'The merchant row changed.' );
+		$this->assertSame( 5, $this->count_tax_rate_rows(), 'Expected the catch-all plus four scoped components.' );
+
+		foreach ( $gwinn_ids as $name => $rate_id ) {
+			$snapshot = $this->tax_rate_snapshot( $rate_id );
+			$this->assertSame( array( '49841' ), $snapshot['postcodes'], "$name postcode scope" );
+			$this->assertSame( array( 'GWINN' ), $snapshot['cities'], "$name city scope" );
+		}
+
+		// In-person order at the store (Marquette), and a destination nobody has looked up.
+		$unlooked_up = array(
+			'49855' => 'Marquette',
+			'48226' => 'Detroit',
+		);
+
+		foreach ( $unlooked_up as $zip => $city ) {
+			$rates = $this->michigan_rates_from_table( (string) $zip, $city );
+			$this->assertSame( array( $catch_all_id ), $rates['ids'], "$city should fall back to the merchant row." );
+			$this->assertEqualsWithDelta( 6.0, $rates['percent'], 0.0001, "$city tax rate" );
+		}
+
+		// The looked-up destination uses its own components, never the catch-all.
+		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
+		$this->assertSame( array_values( $gwinn_ids ), $gwinn['ids'], 'Gwinn should match its four components in priority order.' );
+		$this->assertEqualsWithDelta( 6.0, $gwinn['percent'], 0.0001, 'Gwinn tax rate' );
+	}
+
+	/**
+	 * Inserting beside the catch-all must settle after the first lookup.
+	 *
+	 * The scoped row outranks the catch-all at its priority, so the next lookup for
+	 * the same address lands on it and reuses it. A second destination adds its own
+	 * four rows and still leaves the catch-all alone.
+	 */
+	public function test_create_or_update_tax_rate_beside_catch_all_is_stable_across_lookups() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		$catch_all    = $this->tax_rate_snapshot( $catch_all_id );
+
+		$gwinn_ids = $this->write_michigan_components( '49841', 'Gwinn', 'MARQUETTE GWINN' );
+		$this->assertSame( $gwinn_ids, $this->write_michigan_components( '49841', 'Gwinn', 'MARQUETTE GWINN' ), 'A repeat lookup must reuse the same four rows.' );
+		$this->assertSame( 5, $this->count_tax_rate_rows() );
+
+		$detroit_ids = $this->write_michigan_components( '48226', 'Detroit', 'WAYNE DETROIT' );
+		$this->assertEmpty( array_intersect( $gwinn_ids, $detroit_ids ), 'Detroit reused a Gwinn row.' );
+		$this->assertSame( $detroit_ids, $this->write_michigan_components( '48226', 'Detroit', 'WAYNE DETROIT' ), 'A repeat lookup must reuse the same four rows.' );
+		$this->assertSame( 9, $this->count_tax_rate_rows() );
+
+		$this->assertSame( $catch_all, $this->tax_rate_snapshot( $catch_all_id ), 'The merchant row changed.' );
+		$this->assertEqualsWithDelta( 6.0, $this->michigan_rates_from_table( '49855', 'Marquette' )['percent'], 0.0001, 'Store address tax rate' );
+	}
+
+	/**
+	 * An address with no postcode and no city writes no scope, so the new row would
+	 * be exactly as broad as the one it matched and would never outrank it. Inserting
+	 * it anyway would add a row on every calculation; it must keep reusing the matched
+	 * row instead.
+	 */
+	public function test_create_or_update_tax_rate_scopeless_address_does_not_grow_the_table() {
+		$this->reset_tax_rate_tables();
+
+		$this->insert_michigan_catch_all_rate();
+
+		$location = array(
+			'from_country' => 'US',
+			'from_state'   => 'MI',
+			'to_country'   => 'US',
+			'to_state'     => 'MI',
+			'to_zip'       => '',
+			'to_city'      => '',
+		);
+
+		$first_id  = $this->integration->create_or_update_tax_rate( $location, 6.0, '', 1, 1, 'Tax' );
+		$second_id = $this->integration->create_or_update_tax_rate( $location, 6.0, '', 1, 1, 'Tax' );
+
+		$this->assertSame( (int) $first_id, (int) $second_id );
+		$this->assertSame( 1, $this->count_tax_rate_rows() );
+	}
+
+	/**
 	 * The write and the read are two different methods, and they have to agree.
 	 *
 	 * `create_or_update_tax_rate()` persists the row; `allow_street_address_for_matched_rates()`
