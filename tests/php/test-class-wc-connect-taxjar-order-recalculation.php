@@ -681,6 +681,80 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Make the fixture's shipping untaxed, as in a state that does not tax shipping.
+	 *
+	 * @param array $fixture Fixture from create_placed_order().
+	 * @return WC_Order
+	 */
+	private function untax_fixture_shipping( array $fixture ) {
+		$order = $fixture['order'];
+		$order->get_item( $fixture['shipping'], false )->set_taxes( false );
+		$taxes = $order->get_taxes();
+		reset( $taxes )->set_shipping_tax_total( 0 );
+		$order->set_shipping_tax( 0 );
+		$order->set_total( 36.80 );
+		$order->save();
+		$this->forget_created_in_request();
+
+		return $order;
+	}
+
+	/**
+	 * @testdox A new shipping line on an order that does not tax shipping gets no tax and no note.
+	 */
+	public function test_new_shipping_line_on_untaxed_shipping_order_has_no_note() {
+		$order = $this->untax_fixture_shipping( $this->create_placed_order() );
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'method_id'    => 'flat_rate',
+						'method_title' => 'Express',
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 2, $order->get_shipping_methods() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 46.80, (float) $order->get_total(), 0.001 );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'no note: the order never taxed shipping' );
+	}
+
+	/**
+	 * @testdox Replacing the only shipping line on an order that does not tax shipping adds no note.
+	 */
+	public function test_replacing_untaxed_shipping_has_no_note() {
+		$fixture = $this->create_placed_order();
+		$order   = $this->untax_fixture_shipping( $fixture );
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'id'        => $fixture['shipping'],
+						'method_id' => null,
+					),
+					array(
+						'method_id'    => 'flat_rate',
+						'method_title' => 'Express',
+						'total'        => '5.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $order->get_shipping_methods() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 36.80, (float) $order->get_total(), 0.001 );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'no note: the order never taxed shipping' );
+	}
+
+	/**
 	 * @testdox Applying a coupon over REST moves the tax and the discount tax.
 	 */
 	public function test_coupon_moves_tax() {

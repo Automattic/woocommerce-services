@@ -2949,7 +2949,8 @@ class WC_Connect_TaxJar_Integration {
 	 *   @type int[] $known_ids        Items saved before this request, still on the order.
 	 *   @type int[] $changed_ids      Saved items whose taxable amount changed.
 	 *   @type array $new_item_taxes   Taxes of new items that arrived already taxed, keyed by spl_object_id().
-	 *   @type array $removed_rate_ids Rate ids of removed items: 'classes' keyed by tax class, and 'shipping'.
+	 *   @type array $removed_rate_ids Rate ids of removed items: 'classes' keyed by tax class, and 'shipping';
+	 *                                 'untaxed_shipping' is true when a removed shipping line carried no tax.
 	 *   @type bool  $has_changes      Whether anything taxable changed, including additions and removals.
 	 * }
 	 */
@@ -2992,8 +2993,9 @@ class WC_Connect_TaxJar_Integration {
 		// The rates removed items were taxed at, for a new item that replaces the last
 		// one of its tax class. They have to be read now: the recalculation deletes them.
 		$removed_rate_ids = array(
-			'classes'  => array(),
-			'shipping' => array(),
+			'classes'          => array(),
+			'shipping'         => array(),
+			'untaxed_shipping' => false,
 		);
 		foreach ( $removed as $item_id ) {
 			// read_items() gives false for an item whose class cannot be loaded.
@@ -3001,16 +3003,15 @@ class WC_Connect_TaxJar_Integration {
 				continue;
 			}
 
-			$taxes = $saved_items[ $item_id ]->get_taxes();
-			if ( empty( $taxes['total'] ) ) {
-				continue;
-			}
+			$taxes    = $saved_items[ $item_id ]->get_taxes();
+			$rate_ids = empty( $taxes['total'] ) ? array() : array_keys( $taxes['total'] );
 
 			if ( 'shipping' === $saved_items[ $item_id ]->get_type() ) {
-				$removed_rate_ids['shipping'] = array_unique( array_merge( $removed_rate_ids['shipping'], array_keys( $taxes['total'] ) ) );
-			} else {
+				$removed_rate_ids['shipping']         = array_unique( array_merge( $removed_rate_ids['shipping'], $rate_ids ) );
+				$removed_rate_ids['untaxed_shipping'] = $removed_rate_ids['untaxed_shipping'] || ! $rate_ids;
+			} elseif ( $rate_ids ) {
 				$tax_class                                 = $saved_items[ $item_id ]->get_tax_class();
-				$removed_rate_ids['classes'][ $tax_class ] = array_unique( array_merge( $removed_rate_ids['classes'][ $tax_class ] ?? array(), array_keys( $taxes['total'] ) ) );
+				$removed_rate_ids['classes'][ $tax_class ] = array_unique( array_merge( $removed_rate_ids['classes'][ $tax_class ] ?? array(), $rate_ids ) );
 			}
 		}
 
@@ -3104,7 +3105,8 @@ class WC_Connect_TaxJar_Integration {
 	 * the same tax class; a new shipping line at the rates of the existing shipping.
 	 * If the edit removed the last item of that class (or all the shipping), the rates
 	 * the removed items were taxed at are used. With no such rate on the order, a new
-	 * item is left untaxed and the note says so.
+	 * item is left untaxed and the note says so, unless it is shipping on an order
+	 * whose shipping was not taxed either.
 	 * A new item that arrives with its tax already set keeps it.
 	 * Percentages, labels and codes come from the order's tax lines, never from the
 	 * rate table, which may have changed since the order was placed.
@@ -3132,9 +3134,16 @@ class WC_Connect_TaxJar_Integration {
 		// Rates already on the order, per tax class and for shipping, for new items.
 		$rate_ids_by_class = array();
 		$shipping_rate_ids = array();
+		$untaxed_shipping  = $snapshot['base_changes']['removed_rate_ids']['untaxed_shipping'];
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
 			$key = 'shipping' === $item->get_type() ? 'shipping_' . $item_id : $item_id;
-			if ( ! in_array( (int) $item_id, $known_ids, true ) || empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
+			if ( ! in_array( (int) $item_id, $known_ids, true ) ) {
+				continue;
+			}
+
+			if ( empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
+				// Shipping the order did not tax: a new shipping line at no tax is expected.
+				$untaxed_shipping = $untaxed_shipping || 'shipping' === $item->get_type();
 				continue;
 			}
 
@@ -3185,7 +3194,7 @@ class WC_Connect_TaxJar_Integration {
 			$item_rates = array_intersect_key( $rates, array_flip( array_map( 'intval', $item_rate_ids ) ) );
 
 			if ( empty( $item_rates ) ) {
-				if ( ! $is_known && 'taxable' === $item->get_tax_status() ) {
+				if ( ! $is_known && 'taxable' === $item->get_tax_status() && ! ( $is_shipping && $untaxed_shipping ) ) {
 					$untaxed[] = $item->get_name();
 				}
 				$item->set_taxes( false );
