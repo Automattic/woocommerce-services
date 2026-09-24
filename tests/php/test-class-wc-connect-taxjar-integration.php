@@ -4641,4 +4641,86 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertEquals( $api_response, get_transient( 'tj_tax_' . hash( 'md5', $signature ) ) );
 		$this->assertFalse( get_transient( 'tj_tax_90210_ca' ) );
 	}
+
+	/**
+	 * Tax classes whose slug carries a TaxJar product tax code, and the code each
+	 * builder must extract.
+	 *
+	 * The convention is "append the numeric code as the final segment of the class
+	 * name". Expected codes come from that convention, not from either builder. The
+	 * three multi-word rows are the ones the order path used to drop, including two
+	 * that extend WooCommerce's own built-in class names.
+	 *
+	 * @return array[] Tax class name, expected slug, expected product_tax_code.
+	 */
+	public function provide_tax_class_product_tax_codes() {
+		return array(
+			'standard class'                  => array( '', '', '' ),
+			'built-in Reduced rate, no code'  => array( 'Reduced rate', 'reduced-rate', '' ),
+			'two segments with code'          => array( 'Standard 12345', 'standard-12345', '12345' ),
+			'one-word custom class with code' => array( 'Clothing 40030', 'clothing-40030', '40030' ),
+			'built-in Reduced rate with code' => array( 'Reduced rate 12345', 'reduced-rate-12345', '12345' ),
+			'built-in Zero rate with code'    => array( 'Zero rate 99999', 'zero-rate-99999', '99999' ),
+			'two-word custom class with code' => array( 'Digital Goods 31000', 'digital-goods-31000', '31000' ),
+			// Pinned, not endorsed: a trailing number in a plain class name is read as a
+			// code. Both paths already did this; changing it is a separate decision.
+			'class name ending in a number'   => array( 'Rate 2', 'rate-2', '2' ),
+		);
+	}
+
+	/**
+	 * Cart and order must send TaxJar the same product_tax_code for the same tax class.
+	 *
+	 * Checkout prices through get_line_items() and an admin recalculation through
+	 * get_backend_line_items(). If the two read the code differently, saving an order
+	 * in wp-admin re-prices it at a different rate than the customer paid.
+	 *
+	 * @dataProvider provide_tax_class_product_tax_codes
+	 *
+	 * @param string $class_name    Tax class display name ('' for Standard).
+	 * @param string $expected_slug Slug WooCommerce derives from the name.
+	 * @param string $expected_code product_tax_code both paths must send.
+	 */
+	public function test_cart_and_order_paths_extract_the_same_product_tax_code( $class_name, $expected_slug, $expected_code ) {
+		// is_taxable() is false with taxes off, which would route the cart through its
+		// exempt branch and send 99999 regardless of the class.
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		$created_class = false;
+		if ( '' !== $class_name && ! in_array( $expected_slug, WC_Tax::get_tax_class_slugs(), true ) ) {
+			$created = WC_Tax::create_tax_class( $class_name );
+			$this->assertIsArray( $created, 'Could not create the tax class under test.' );
+			$created_class = true;
+		}
+
+		$this->product = WC_Helper_Product::create_simple_product();
+		$this->product->set_tax_status( 'taxable' );
+		$this->product->set_tax_class( $expected_slug );
+		$this->product->save();
+
+		// WC_Product::set_tax_class() silently falls back to Standard for an unknown
+		// slug, which would make the empty-code rows pass for the wrong reason.
+		$this->assertSame( $expected_slug, $this->product->get_tax_class() );
+
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$cart_items = $this->invoke_protected_method( 'get_line_items', array( WC()->cart ) );
+
+		$order = wc_create_order();
+		$order->add_product( $this->product, 1 );
+		$order->save();
+		$order_items = $this->invoke_protected_method( 'get_backend_line_items', array( $order ) );
+
+		$this->assertCount( 1, $cart_items );
+		$this->assertCount( 1, $order_items );
+		$cart_item  = reset( $cart_items );
+		$order_item = reset( $order_items );
+
+		$this->assertSame( $expected_code, $cart_item['product_tax_code'], 'Cart path extracted the wrong product_tax_code.' );
+		$this->assertSame( $expected_code, $order_item['product_tax_code'], 'Order path extracted the wrong product_tax_code.' );
+
+		$order->delete( true );
+		if ( $created_class ) {
+			WC_Tax::delete_tax_class_by( 'slug', $expected_slug );
+		}
+	}
 }

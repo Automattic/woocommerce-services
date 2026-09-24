@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.7.1 - 2026-xx-xx =
+* Fix   - Keep the TaxJar product tax code when recalculating an order in the admin for tax classes whose name has more than one word, such as "Reduced rate 12345", so the order is taxed the same as at checkout.
+
 = 3.7.0 - 2026-09-22 =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
 * Tweak - Update the bundled JavaScript libraries.
