@@ -2,6 +2,8 @@
 
 use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
 use Automattic\WCServices\Tax\Address;
+use Automattic\WCServices\Tax\StoreAddressNotice;
+use Automattic\WCServices\Tax\StoreAddressVerifier;
 
 class WC_Connect_TaxJar_Integration {
 
@@ -224,6 +226,11 @@ class WC_Connect_TaxJar_Integration {
 		add_action( 'admin_enqueue_scripts', array( $this, 'load_taxjar_admin_new_order_assets' ) );
 
 		$this->configure_tax_settings();
+
+		// Check the store address with TaxJar when it changes, and tell the merchant when it looks wrong.
+		$store_address_verifier = new StoreAddressVerifier( $this->api_client, $this );
+		$store_address_verifier->init();
+		( new StoreAddressNotice( $store_address_verifier ) )->init();
 
 		// Calculate Taxes at Cart / Checkout
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+

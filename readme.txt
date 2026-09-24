@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.7.1 - 2026-xx-xx =
+* Add   - Check a US store address when it changes, and show a notice in WooCommerce admin when its state or ZIP code looks wrong or is missing, since either can make automated taxes charge the wrong tax or none.
+
 = 3.7.0 - 2026-09-22 =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
 * Tweak - Update the bundled JavaScript libraries.
