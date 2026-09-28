@@ -330,7 +330,8 @@ jobs:
               run: |
                   set -euo pipefail
                   TEST_ID="$(grep -oE 'Test ID: [0-9]+' "${{ github.workspace }}/qit-results/qit-plugin-check-results.txt" | head -n 1 | grep -oE '[0-9]+')"
-                  ./vendor/bin/qit get "$TEST_ID" --json -n > "$RUNNER_TEMP/qit-plugin-check-results.json"
+                  # `qit get` exits with the test status (1 failed, 3 warning), not with its own result.
+                  ./vendor/bin/qit get "$TEST_ID" --json -n > "$RUNNER_TEMP/qit-plugin-check-results.json" || true
                   bash plugin-check-config/.github/scripts/plugin-check-warnings.sh \
                     "$RUNNER_TEMP/qit-plugin-check-results.json" \
                     plugin-check-config/.github/plugin-check-allowed-warnings.txt
