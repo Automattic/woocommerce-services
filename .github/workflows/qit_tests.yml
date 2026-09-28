@@ -1,0 +1,33 @@
+name: QIT Tests
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - trunk
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build project
+    # QIT needs the partner secrets, which forks and Dependabot do not receive.
+    if: ${{ github.event_name == 'workflow_dispatch' || ( github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]' ) }}
+    uses: ./.github/workflows/build.yml
+    with:
+      plugin_name: woocommerce-services
+
+  qit-tests:
+    name: QIT Tests
+    needs: build
+    uses: ./.github/workflows/qit_runner.yml
+    secrets: inherit
+    with:
+      extension: ${{ needs.build.outputs.plugin_name }}
+      artifact: ${{ needs.build.outputs.plugin_name }}
+      test-plugin-check: 'true'
