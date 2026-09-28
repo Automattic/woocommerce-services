@@ -8,6 +8,10 @@
 
 use Automattic\WCServices\Utils;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 
 	class WC_Connect_Migration_Survey {

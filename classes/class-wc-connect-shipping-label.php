@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 
 	class WC_Connect_Shipping_Label {

@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 
 	class WC_Connect_Payment_Methods_Store {
@@ -19,13 +23,15 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 		 */
 		protected $logger;
 
-		public function __construct( WC_Connect_Service_Settings_Store $service_settings_store,
-			WC_Connect_API_Client $api_client, WC_Connect_Logger $logger ) {
+		public function __construct(
+			WC_Connect_Service_Settings_Store $service_settings_store,
+			WC_Connect_API_Client $api_client,
+			WC_Connect_Logger $logger
+		) {
 
 			$this->service_settings_store = $service_settings_store;
 			$this->api_client             = $api_client;
 			$this->logger                 = $logger;
-
 		}
 
 		/**
