@@ -40,9 +40,10 @@ confirm( chalk.cyan( 'Howdy! This script is going to create a release folder wit
 	mkdir( releaseFolder );
 	mkdir( targetFolder );
 
-	// copy the main php file and readme.txt
+	// copy the main php file, readme.txt and the composer.json that vendor/ was built from
 	cp( 'woocommerce-services.php', targetFolder );
 	cp( 'readme.txt', targetFolder );
+	cp( 'composer.json', targetFolder );
 
 	// copy the directories to the release folder
 	cp( '-Rf', dirsToCopy, targetFolder );

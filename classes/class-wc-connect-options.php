@@ -141,7 +141,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 			$result = true;
 			$names  = (array) $names;
 			if ( ! self::is_valid( $names ) ) {
-				wp_trigger_error( 'WC_Connect_Options::delete_option', esc_html( sprintf( 'Invalid WooCommerce Tax option names: %s', print_r( $names, 1 ) ) ), E_USER_WARNING );
+				wp_trigger_error( 'WC_Connect_Options::delete_option', esc_html( sprintf( 'Invalid WooCommerce Tax option names: %s', wp_json_encode( $names ) ) ), E_USER_WARNING );
 				return false;
 			}
 			foreach ( array_intersect( $names, self::get_option_names( 'non_compact' ) ) as $name ) {

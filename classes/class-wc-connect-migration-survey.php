@@ -113,7 +113,8 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 			}
 
 			// Get survey data
-			$survey_data = json_decode( stripslashes( $_POST['survey_data'] ), true );
+			// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- JSON payload; each value is sanitized below before use.
+			$survey_data = isset( $_POST['survey_data'] ) ? json_decode( wp_unslash( $_POST['survey_data'] ), true ) : null;
 
 			if ( ! $survey_data ) {
 				wp_send_json_error( 'Invalid survey data' );
