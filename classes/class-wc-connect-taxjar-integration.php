@@ -1736,7 +1736,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( ! is_array( $address ) ) {
-			$this->logger->error( 'Nexus Address ERRORS: Nexus addresses has invalid format' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
+			$this->logger->error( 'Nexus Address ERRORS: Nexus addresses has invalid format' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . wp_json_encode( $address, JSON_PARTIAL_OUTPUT_ON_ERROR ), 'WCS Tax' );
 
 			return false;
 		}
@@ -1758,10 +1758,9 @@ class WC_Connect_TaxJar_Integration {
 			$value = $address[ $field ];
 
 			if ( null !== $value && ( ! is_scalar( $value ) || is_bool( $value ) ) ) {
-				// wp_json_encode() returns false for unencodable payloads, which is
-				// what this branch catches; fall back so the log keeps the address.
-				$encoded = wp_json_encode( $address );
-				$this->logger->error( 'Nexus Address ERRORS: [' . $field . '] field must be a string' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . ( false === $encoded ? print_r( $address, true ) : $encoded ), 'WCS Tax' );
+				// This branch catches payloads wp_json_encode() cannot fully encode, so ask
+				// for partial output to keep the rest of the address in the log.
+				$this->logger->error( 'Nexus Address ERRORS: [' . $field . '] field must be a string' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . wp_json_encode( $address, JSON_PARTIAL_OUTPUT_ON_ERROR ), 'WCS Tax' );
 
 				return false;
 			}
@@ -1797,7 +1796,7 @@ class WC_Connect_TaxJar_Integration {
 			// the key the filter author actually used.
 			$errors = str_replace( '[postcode]', '[zip]', $errors );
 
-			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
+			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . wp_json_encode( $address, JSON_PARTIAL_OUTPUT_ON_ERROR ), 'WCS Tax' );
 
 			return false;
 		}

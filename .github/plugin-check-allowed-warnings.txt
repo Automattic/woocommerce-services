@@ -7,7 +7,7 @@
 trademarked_term readme.txt
 trademarked_term woocommerce-services.php
 
-# Legacy public names. Classes, hooks and globals keep their names because other code depends on them.
+# Legacy public names. Classes and hooks keep their names because other code depends on them.
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound classes/class-wc-connect-compatibility-wc30.php
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound classes/class-wc-connect-compatibility-wc69.php
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound classes/class-wc-connect-debug-tools.php
@@ -54,18 +54,22 @@ WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound classes/cl
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound classes/class-wc-rest-connect-shipping-carrier-controller.php
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound classes/class-wc-rest-connect-shipping-carrier-delete-controller.php
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound woocommerce-services.php
-WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound classes/class-wc-connect-settings-pages.php
-WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound classes/class-wc-connect-shipping-method.php
 
 # DONOTCACHEPAGE is the constant caching plugins look for. It has no prefix by design.
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound classes/class-wc-rest-connect-base-controller.php
 
-# Not reviewed yet. These fired before the check existed and are listed so that the
-# check can start. Review them and fix or justify each one.
-
+# The plugin ships its own translation files in i18n/languages, so it still loads them itself.
 PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound woocommerce-services.php
 
+# The IN list is built with esc_sql() because prepare() cannot take a list.
 PluginCheck.Security.DirectDB.UnescapedDBParameter classes/class-wc-connect-service-settings-store.php
+
+# $hide_save_button is a WooCommerce core global that hides the settings save button.
+WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound classes/class-wc-connect-settings-pages.php
+WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound classes/class-wc-connect-shipping-method.php
+
+# Not reviewed yet. These fired before the check existed and are listed so that the
+# check can start. Review them and fix or justify each one.
 
 WordPress.DB.DirectDatabaseQuery.DirectQuery classes/class-wc-connect-debug-tools.php
 WordPress.DB.DirectDatabaseQuery.DirectQuery classes/class-wc-connect-functions.php
@@ -85,11 +89,6 @@ WordPress.DB.DirectDatabaseQuery.NoCaching classes/class-wc-connect-service-sche
 WordPress.DB.DirectDatabaseQuery.NoCaching classes/class-wc-connect-service-settings-store.php
 WordPress.DB.DirectDatabaseQuery.NoCaching woocommerce-services.php
 
-WordPress.PHP.DevelopmentFunctions.error_log_error_log classes/class-wc-connect-logger.php
-
-WordPress.PHP.DevelopmentFunctions.error_log_print_r classes/class-wc-connect-options.php
-WordPress.PHP.DevelopmentFunctions.error_log_print_r classes/class-wc-connect-taxjar-integration.php
-
 WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-functions.php
 WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-label-reports.php
 WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-migration-survey.php
@@ -99,17 +98,3 @@ WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-settin
 WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-taxjar-integration.php
 WordPress.Security.NonceVerification.Recommended src/Utils.php
 WordPress.Security.NonceVerification.Recommended woocommerce-services.php
-
-WordPress.Security.ValidatedSanitizedInput.InputNotSanitized classes/class-wc-connect-migration-survey.php
-WordPress.Security.ValidatedSanitizedInput.InputNotSanitized classes/class-wc-connect-tracks.php
-
-WordPress.Security.ValidatedSanitizedInput.InputNotValidated classes/class-wc-connect-migration-survey.php
-
-WordPress.Security.ValidatedSanitizedInput.MissingUnslash classes/class-wc-connect-label-reports.php
-WordPress.Security.ValidatedSanitizedInput.MissingUnslash classes/class-wc-connect-migration-survey.php
-WordPress.Security.ValidatedSanitizedInput.MissingUnslash classes/class-wc-connect-paypal-ec.php
-WordPress.Security.ValidatedSanitizedInput.MissingUnslash classes/class-wc-connect-settings-pages.php
-
-mismatched_plugin_name readme.txt
-
-missing_composer_json_file composer.json

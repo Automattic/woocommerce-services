@@ -1,4 +1,4 @@
-=== WooCommerce Tax (formerly WooCommerce Shipping & Tax) ===
+=== WooCommerce Tax ===
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: tax, vat, gst, woocommerce, payment
 Requires PHP: 7.4
@@ -72,6 +72,8 @@ This plugin relies on the following external services:
 
 = 3.7.1 - 2026-xx-xx =
 * Fix   - Keep the TaxJar product tax code when recalculating an order in the admin for tax classes whose name has more than one word, such as "Reduced rate 12345", so the order is taxed the same as at checkout. Products in the built-in "Zero rate" class also stay tax-free when the order is recalculated.
+* Fix   - Unslash and sanitize request values in the label reports, settings, migration survey and tracking code, and stop using print_r in log messages.
+* Tweak - Include composer.json in the plugin package and use the same plugin name in readme.txt as in the plugin header.
 
 = 3.7.0 - 2026-09-22 =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
