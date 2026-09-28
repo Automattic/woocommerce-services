@@ -96,6 +96,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						return new WP_Error(
 							'product_missing_weight',
 							sprintf(
+								/* translators: %d: product ID */
 								__( 'Product ( ID: %d ) did not include a weight. Shipping rates cannot be calculated.', 'woocommerce-services' ),
 								$product->get_id()
 							),
@@ -111,6 +112,7 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 						return new WP_Error(
 							'product_missing_dimension',
 							sprintf(
+								/* translators: %d: product ID */
 								__( 'Product ( ID: %d ) is missing a dimension value. Shipping rates cannot be calculated.', 'woocommerce-services' ),
 								$product->get_id()
 							),

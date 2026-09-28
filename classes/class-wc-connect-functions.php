@@ -173,16 +173,16 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			$rows = array(
 				array(
-					__( 'Country Code', 'woocommerce' ),
-					__( 'State Code', 'woocommerce' ),
-					__( 'ZIP/Postcode', 'woocommerce' ),
-					__( 'City', 'woocommerce' ),
-					__( 'Rate %', 'woocommerce' ),
-					__( 'Tax Name', 'woocommerce' ),
-					__( 'Priority', 'woocommerce' ),
-					__( 'Compound', 'woocommerce' ),
-					__( 'Shipping', 'woocommerce' ),
-					__( 'Tax Class', 'woocommerce' ),
+					__( 'Country Code', 'woocommerce-services' ),
+					__( 'State Code', 'woocommerce-services' ),
+					__( 'ZIP/Postcode', 'woocommerce-services' ),
+					__( 'City', 'woocommerce-services' ),
+					__( 'Rate %', 'woocommerce-services' ),
+					__( 'Tax Name', 'woocommerce-services' ),
+					__( 'Priority', 'woocommerce-services' ),
+					__( 'Compound', 'woocommerce-services' ),
+					__( 'Shipping', 'woocommerce-services' ),
+					__( 'Tax Class', 'woocommerce-services' ),
 				),
 			);
 

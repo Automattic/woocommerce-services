@@ -62,6 +62,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = array(
 					'state'   => 'error',
 					'message' => sprintf(
+						/* translators: %1$s: minimum required WooCommerce version, %2$s: installed WooCommerce version */
 						__( 'WooCommerce %1$s or higher is required (You are running %2$s)', 'woocommerce-services' ),
 						WOOCOMMERCE_CONNECT_MINIMUM_WOOCOMMERCE_VERSION,
 						WC()->version
@@ -76,6 +77,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				$health_item = array(
 					'state'   => 'success',
 					'message' => sprintf(
+						/* translators: %s: installed WooCommerce version */
 						__( 'WooCommerce %s is configured correctly', 'woocommerce-services' ),
 						WC()->version
 					),
@@ -169,6 +171,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				}
 
 				$subtitle = sprintf(
+					/* translators: %s: shipping zone name */
 					__( '%s Shipping Zone', 'woocommerce-services' ),
 					$enabled_service->zone_name
 				);
@@ -332,6 +335,7 @@ if ( ! class_exists( 'WC_Connect_Help_View' ) ) {
 				return array(
 					'state'              => 'error',
 					'settings_link_type' => '',
+					/* translators: %s: store country code */
 					'message'            => sprintf( __( 'Your store\'s country (%s) is not supported. Automated taxes functionality is disabled', 'woocommerce-services' ), $store_country ),
 				);
 			}

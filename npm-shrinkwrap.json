@@ -1,12 +1,12 @@
 {
 	"name": "woocommerce-services",
-	"version": "3.6.16",
+	"version": "3.7.0",
 	"lockfileVersion": 3,
 	"requires": true,
 	"packages": {
 		"": {
 			"name": "woocommerce-services",
-			"version": "3.6.16",
+			"version": "3.7.0",
 			"license": "GPL-2.0",
 			"dependencies": {
 				"@automattic/color-studio": "^4.1.0",
