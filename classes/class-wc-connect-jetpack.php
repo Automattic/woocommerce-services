@@ -5,6 +5,10 @@ use Automattic\Jetpack\Connection\Package_Version;
 use Automattic\Jetpack\Status;
 use Automattic\Jetpack\Status\Host;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Jetpack' ) ) {
 	class WC_Connect_Jetpack {
 		const JETPACK_PLUGIN_SLUG = 'woocommerce-services';
