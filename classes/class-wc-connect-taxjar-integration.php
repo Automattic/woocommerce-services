@@ -67,6 +67,16 @@ class WC_Connect_TaxJar_Integration {
 	private $response_line_items;
 
 	/**
+	 * Rate ids TaxJar returned for an admin recalculation, keyed by order id, then by
+	 * order item id. Kept apart from $response_rate_ids, which other code reads as
+	 * "this request is the cart flow". Each entry is used once, see
+	 * take_admin_recalculation_rate_ids().
+	 *
+	 * @var array<int, array<int, int[]>>
+	 */
+	private $admin_recalculation_rate_ids = array();
+
+	/**
 	 * Tax snapshots captured before an out-of-cart recalculation, keyed by order id,
 	 * so they can be restored after WC recalculates the order totals.
 	 *
@@ -677,6 +687,25 @@ class WC_Connect_TaxJar_Integration {
 				'line_items'      => $line_items,
 			)
 		);
+
+		/*
+		 * WooCommerce recalculates the order after this hook by reading the rate table
+		 * for the address. That can return more than TaxJar did: a merchant's row at a
+		 * priority none of the returned components uses stacks on top of them. Keep the
+		 * rate ids TaxJar returned per order item so override_order_item_taxes() can
+		 * apply exactly those, as checkout does. Without an answer, WooCommerce's
+		 * result stands, as before.
+		 */
+		$this->admin_recalculation_rate_ids[ (int) $order_id ] = array();
+		if ( is_array( $taxes ) && ! empty( $taxes['rate_ids'] ) ) {
+			foreach ( $line_items as $item_key => $line_item ) {
+				$rate_ids = $taxes['rate_ids'][ $line_item['id'] ?? '' ] ?? null;
+				if ( is_array( $rate_ids ) && $rate_ids ) {
+					$this->admin_recalculation_rate_ids[ (int) $order_id ][ (int) $item_key ] = $rate_ids;
+				}
+			}
+		}
+
 		if ( class_exists( 'WC_Order_Item_Tax' ) ) { // Add tax rates manually for Woo 3.0+
 			/**
 			 * @var WC_Order_Item_Product $item Product Order Item.
@@ -1462,6 +1491,13 @@ class WC_Connect_TaxJar_Integration {
 	 * @param array         $calculate_tax_for Tax calculation arguments.
 	 */
 	public function override_order_item_taxes( $item, $calculate_tax_for ) {
+		// An admin recalculation looked this item up in calculate_backend_totals().
+		$admin_rate_ids = $this->take_admin_recalculation_rate_ids( $item );
+		if ( null !== $admin_rate_ids ) {
+			$this->set_order_item_taxes_from_rate_ids( $item, $admin_rate_ids );
+			return;
+		}
+
 		// Only act if we have TaxJar-calculated rate IDs from this request.
 		if ( empty( $this->response_rate_ids ) || ! is_array( $this->response_rate_ids ) ) {
 			return;
@@ -1493,9 +1529,46 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		$this->set_order_item_taxes_from_rate_ids( $item, $matching_rate_ids );
+	}
+
+	/**
+	 * Take the rate ids an admin recalculation looked up for an order item.
+	 *
+	 * Each entry is removed as it is read, so it applies to the recalculation it was
+	 * looked up for and not to a later one in the same request.
+	 *
+	 * @param WC_Order_Item $item The order item being taxed.
+	 * @return int[]|null Rate ids, or null when the item was not looked up.
+	 */
+	private function take_admin_recalculation_rate_ids( $item ) {
+		if ( ! ( $item instanceof \WC_Order_Item_Product ) ) {
+			return null;
+		}
+
+		$order_id = (int) $item->get_order_id();
+		$item_id  = (int) $item->get_id();
+
+		if ( ! isset( $this->admin_recalculation_rate_ids[ $order_id ][ $item_id ] ) ) {
+			return null;
+		}
+
+		$rate_ids = $this->admin_recalculation_rate_ids[ $order_id ][ $item_id ];
+		unset( $this->admin_recalculation_rate_ids[ $order_id ][ $item_id ] );
+
+		return $rate_ids;
+	}
+
+	/**
+	 * Tax an order item at the given rate rows, replacing what WooCommerce found.
+	 *
+	 * @param WC_Order_Item_Product $item     The order item.
+	 * @param array                 $rate_ids Tax rate ids.
+	 */
+	private function set_order_item_taxes_from_rate_ids( $item, array $rate_ids ) {
 		// Build tax rates array from the stored rate IDs.
 		$tax_rates = array();
-		foreach ( $matching_rate_ids as $rate_id ) {
+		foreach ( $rate_ids as $rate_id ) {
 			$rate_id = absint( $rate_id );
 			if ( ! $rate_id ) {
 				continue;
