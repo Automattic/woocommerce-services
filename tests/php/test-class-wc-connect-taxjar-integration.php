@@ -3793,12 +3793,14 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * 0% for the other three components, for a store in Marquette, MI.
 	 *
 	 * The components come back in the order the other Michigan tests write them in,
-	 * so City is priority 1 and State priority 4.
+	 * so City is priority 1 and State priority 4. With `$freight_taxable`, shipping is
+	 * taxed at the same components and the answer carries their shipping breakdown.
 	 *
-	 * @param bool $answers False to have the request fail.
+	 * @param bool $answers         False to have the request fail.
+	 * @param bool $freight_taxable Whether TaxJar taxes shipping.
 	 * @return WC_Connect_TaxJar_Integration
 	 */
-	private function michigan_integration( $answers = true ) {
+	private function michigan_integration( $answers = true, $freight_taxable = false ) {
 		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
 			->disableOriginalConstructor()
 			->onlyMethods( array( 'smartcalcs_cache_request', 'get_store_settings', '_log' ) )
@@ -3815,22 +3817,28 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		);
 
 		$integration->method( 'smartcalcs_cache_request' )->willReturnCallback(
-			function ( $json ) use ( $answers ) {
+			function ( $json ) use ( $answers, $freight_taxable ) {
 				if ( ! $answers ) {
 					return false;
 				}
 
+				$components = array(
+					'combined_tax_rate'    => 0.06,
+					'city_tax_rate'        => 0.0,
+					'county_tax_rate'      => 0.0,
+					'special_tax_rate'     => 0.0,
+					'state_sales_tax_rate' => 0.06,
+				);
+
 				$body  = json_decode( $json, true );
 				$lines = array();
-				foreach ( $body['line_items'] as $line_item ) {
-					$lines[] = array(
-						'id'                   => $line_item['id'],
-						'combined_tax_rate'    => 0.06,
-						'city_tax_rate'        => 0.0,
-						'county_tax_rate'      => 0.0,
-						'special_tax_rate'     => 0.0,
-						'state_sales_tax_rate' => 0.06,
-					);
+				foreach ( $body['line_items'] ?? array() as $line_item ) {
+					$lines[] = array_merge( array( 'id' => $line_item['id'] ), $components );
+				}
+
+				$breakdown = array( 'line_items' => $lines );
+				if ( $freight_taxable && ! empty( $body['shipping'] ) ) {
+					$breakdown['shipping'] = $components;
 				}
 
 				return array(
@@ -3838,13 +3846,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 						array(
 							'tax' => array(
 								'rate'            => 0.06,
-								'freight_taxable' => false,
+								'freight_taxable' => $freight_taxable,
 								'has_nexus'       => true,
 								'jurisdictions'   => array(
 									'county' => 'MARQUETTE',
-									'city'   => 'GWINN',
+									'city'   => strtoupper( (string) ( $body['to_city'] ?? '' ) ),
 								),
-								'breakdown'       => array( 'line_items' => $lines ),
+								'breakdown'       => $breakdown,
 							),
 						)
 					),
@@ -3981,6 +3989,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * so the rate table matches it as well as the four scoped rows. Recalculate must
 	 * apply the rate ids TaxJar returned, as checkout does, and not the table's answer.
 	 *
+	 * The lookup also adds a 0% row that stops a state-wide row from stacking in the
+	 * table (see shadow_unscoped_rates_above_components()), so here Recalculate and the
+	 * table agree. The next test covers a row the lookup leaves alone.
+	 *
 	 * @dataProvider catch_all_priorities
 	 *
 	 * @param int $priority Catch-all priority.
@@ -4007,21 +4019,46 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * The priority-5 case really does stack in the table, so the test above exercises
-	 * the override and not a table that happens to be right. This is what an order
-	 * with no TaxJar lookup (REST, POS) is taxed at.
+	 * A merchant's own row for a town that has been looked up, at a priority none of
+	 * the components uses, is left alone by the lookup, so the table still stacks it
+	 * on top of the components. Recalculate must charge what TaxJar returned anyway,
+	 * as checkout does.
 	 */
-	public function test_catch_all_above_the_components_stacks_in_the_rate_table() {
+	public function test_admin_recalculate_charges_the_looked_up_rate_beside_a_local_merchant_rate() {
+		$this->require_taxes_controller();
 		$this->reset_tax_rate_tables();
 
-		$catch_all_id = $this->insert_michigan_catch_all_rate();
-		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+		// Gwinn has been looked up before; the merchant then adds a rate for its ZIP.
+		$this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' );
 
-		$gwinn_ids = $this->write_michigan_components( '49841', 'Gwinn', 'MARQUETTE GWINN' );
-		$gwinn     = $this->michigan_rates_from_table( '49841', 'Gwinn' );
+		$local_id = (int) WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'MI',
+				'tax_rate_name'     => 'Local',
+				'tax_rate_priority' => 5,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate'          => '6.0000',
+				'tax_rate_class'    => '',
+			)
+		);
+		WC_Tax::_update_tax_rate_postcodes( $local_id, '49841' );
+		$local = $this->tax_rate_snapshot( $local_id );
 
-		$this->assertSame( array_merge( array_values( $gwinn_ids ), array( $catch_all_id ) ), $gwinn['ids'] );
-		$this->assertEqualsWithDelta( 12.0, $gwinn['percent'], 0.0001 );
+		$this->assertEqualsWithDelta( 12.0, $this->michigan_rates_from_table( '49841', 'Gwinn' )['percent'], 0.0001, 'The table should stack the local row.' );
+
+		$this->expect_backend_tax_line_notice();
+
+		$this->integration = $this->michigan_integration();
+		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
+
+		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001, 'Cart tax' );
+		$this->assertNotContains( $local_id, $this->order_tax_rate_ids( $order ), 'The local row was charged on top of the looked-up rates.' );
+
+		// The lookup left the merchant's local row alone and added nothing beside it.
+		$this->assertSame( $local, $this->tax_rate_snapshot( $local_id ), 'The local row changed.' );
+		$this->assertSame( array( $local_id ), $this->tax_rate_ids_at_priority( 5 ) );
 	}
 
 	/**
@@ -4073,6 +4110,404 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// Nobody looked Detroit up: the catch-all is the only row that matches it.
 		$this->assertSame( array( $catch_all_id ), $this->order_tax_rate_ids( $order ) );
+	}
+
+	/**
+	 * Ask the Michigan integration for a $100 item shipped to a Michigan address, the
+	 * way checkout and Recalculate do. Writes the components to the rate table.
+	 *
+	 * @param WC_Connect_TaxJar_Integration $integration Integration under test.
+	 * @param string                        $zip         Postcode.
+	 * @param string                        $city        City.
+	 * @param float                         $shipping    Shipping amount.
+	 * @return array calculate_tax() result.
+	 */
+	private function lookup_michigan_taxes( $integration, $zip, $city, $shipping = 0 ) {
+		if ( ! $this->product ) {
+			$this->product = WC_Helper_Product::create_simple_product();
+		}
+
+		WC()->customer->set_is_vat_exempt( false );
+
+		$taxes = $integration->calculate_tax(
+			array(
+				'to_country'      => 'US',
+				'to_state'        => 'MI',
+				'to_zip'          => $zip,
+				'to_city'         => $city,
+				'to_street'       => '1 Test St',
+				'shipping_amount' => $shipping,
+				'line_items'      => array(
+					array(
+						'id'               => $this->product->get_id() . '-abcdefabcdef-0',
+						'quantity'         => 1,
+						'product_tax_code' => '',
+						'unit_price'       => 100,
+						'discount'         => 0,
+					),
+				),
+			)
+		);
+
+		$this->assertIsArray( $taxes, 'The lookup did not complete.' );
+
+		return $taxes;
+	}
+
+	/**
+	 * The rate ids a lookup returned for its one line item, which checkout applies.
+	 *
+	 * @param array $taxes calculate_tax() result.
+	 * @return int[]
+	 */
+	private function looked_up_rate_ids( $taxes ) {
+		$line_rate_ids = $taxes['rate_ids'][ $this->product->get_id() . '-abcdefabcdef-0' ] ?? array();
+
+		return array_map( 'intval', $line_rate_ids );
+	}
+
+	/**
+	 * Ids of the rows at a priority, oldest first.
+	 *
+	 * @param int $priority Priority.
+	 * @return int[]
+	 */
+	private function tax_rate_ids_at_priority( $priority ) {
+		global $wpdb;
+
+		return array_map(
+			'intval',
+			$wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				$wpdb->prepare( "SELECT tax_rate_id FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_priority = %d ORDER BY tax_rate_id", $priority ) // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			)
+		);
+	}
+
+	/**
+	 * Merchant state-wide row priorities no component uses.
+	 *
+	 * @return array
+	 */
+	public function state_wide_priorities_above_the_components() {
+		return array(
+			'first priority no component uses' => array( 5 ),
+			'far above the components'         => array( 9 ),
+		);
+	}
+
+	/**
+	 * A state-wide row at a priority none of the components uses would stack on top of
+	 * them, so the lookup adds a 0% row for the looked-up town at that priority. The
+	 * table then gives the town what TaxJar returned, every other address still gets
+	 * the merchant's row, and the merchant's row is not changed.
+	 *
+	 * @dataProvider state_wide_priorities_above_the_components
+	 *
+	 * @param int $priority Merchant row priority.
+	 */
+	public function test_lookup_shadows_a_state_wide_rate_above_the_components( $priority ) {
+		global $wpdb;
+
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => $priority ) );
+		$catch_all = $this->tax_rate_snapshot( $catch_all_id );
+
+		$taxes = $this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' );
+
+		$this->assertSame( 6, $this->count_tax_rate_rows(), 'Expected the merchant row, four components and one 0% row.' );
+		$this->assertSame( $catch_all, $this->tax_rate_snapshot( $catch_all_id ), 'The merchant row changed.' );
+
+		$at_priority = array_values( array_diff( $this->tax_rate_ids_at_priority( $priority ), array( $catch_all_id ) ) );
+		$this->assertCount( 1, $at_priority, 'Expected one row beside the merchant row at its priority.' );
+		$shadow_id = $at_priority[0];
+
+		$this->assertSame(
+			array(
+				'country'   => 'US',
+				'state'     => 'MI',
+				'name'      => 'MARQUETTE GWINN : No Other Tax',
+				'priority'  => $priority,
+				'rate'      => '0.0000',
+				'postcodes' => array( '49841' ),
+				'cities'    => array( 'GWINN' ),
+			),
+			$this->tax_rate_snapshot( $shadow_id )
+		);
+		$this->assertSame( '1', (string) $wpdb->get_var( $wpdb->prepare( "SELECT tax_rate_shipping FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_id = %d", $shadow_id ) ), 'The 0% row should apply to shipping too.' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+
+		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
+		$this->assertSame( array_merge( $this->looked_up_rate_ids( $taxes ), array( $shadow_id ) ), $gwinn['ids'] );
+		$this->assertEqualsWithDelta( 6.0, $gwinn['percent'], 0.0001, 'Gwinn tax rate' );
+
+		$unlooked_up = array(
+			'49855' => 'Marquette',
+			'48226' => 'Detroit',
+		);
+
+		foreach ( $unlooked_up as $zip => $city ) {
+			$rates = $this->michigan_rates_from_table( (string) $zip, $city );
+			$this->assertSame( array( $catch_all_id ), $rates['ids'], "$city should fall back to the merchant row." );
+			$this->assertEqualsWithDelta( 6.0, $rates['percent'], 0.0001, "$city tax rate" );
+		}
+	}
+
+	/**
+	 * Where the components already take the merchant row's priority they outrank it,
+	 * so nothing is added.
+	 *
+	 * @testWith [1]
+	 *           [4]
+	 *
+	 * @param int $priority Merchant row priority.
+	 */
+	public function test_lookup_adds_no_rate_beside_a_state_wide_rate_the_components_outrank( $priority ) {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => $priority ) );
+
+		$taxes = $this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' );
+
+		$this->assertSame( 5, $this->count_tax_rate_rows() );
+		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
+		$this->assertSame( $this->looked_up_rate_ids( $taxes ), $gwinn['ids'] );
+		$this->assertEqualsWithDelta( 6.0, $gwinn['percent'], 0.0001 );
+	}
+
+	/**
+	 * The next lookup for the same town finds the 0% row at the merchant's priority,
+	 * not the merchant row, so it adds nothing. Another town gets its own.
+	 */
+	public function test_lookup_beside_a_state_wide_rate_is_stable_across_lookups() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+		$catch_all = $this->tax_rate_snapshot( $catch_all_id );
+
+		$integration = $this->michigan_integration();
+
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
+		$this->assertSame( 6, $this->count_tax_rate_rows() );
+
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$this->assertSame( 6, $this->count_tax_rate_rows(), 'A repeat lookup added rows.' );
+		$this->assertSame( $gwinn, $this->michigan_rates_from_table( '49841', 'Gwinn' ) );
+
+		$this->lookup_michigan_taxes( $integration, '48226', 'Detroit' );
+		$this->assertSame( 11, $this->count_tax_rate_rows() );
+		$this->lookup_michigan_taxes( $integration, '48226', 'Detroit' );
+		$this->assertSame( 11, $this->count_tax_rate_rows(), 'A repeat lookup added rows.' );
+
+		$this->assertSame( $catch_all, $this->tax_rate_snapshot( $catch_all_id ), 'The merchant row changed.' );
+		$this->assertEqualsWithDelta( 6.0, $this->michigan_rates_from_table( '48226', 'Detroit' )['percent'], 0.0001 );
+		$this->assertEqualsWithDelta( 6.0, $this->michigan_rates_from_table( '49855', 'Marquette' )['percent'], 0.0001 );
+	}
+
+	/**
+	 * Shipping read from the table gets what TaxJar returned for shipping: the state
+	 * rate when TaxJar taxes shipping, nothing when it does not. The merchant row
+	 * taxes shipping, so without the 0% row it would add 6% either way.
+	 *
+	 * @testWith [5, true, 6.0]
+	 *           [5, false, 0.0]
+	 *           [9, true, 6.0]
+	 *           [9, false, 0.0]
+	 *
+	 * @param int   $priority        Merchant row priority.
+	 * @param bool  $freight_taxable Whether TaxJar taxes shipping.
+	 * @param float $expected        Expected shipping tax percentage.
+	 */
+	public function test_lookup_beside_a_state_wide_rate_gives_shipping_the_looked_up_rate( $priority, $freight_taxable, $expected ) {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => $priority ) );
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, $freight_taxable ), '49841', 'Gwinn', 10 );
+
+		$rates = WC_Tax::find_shipping_rates(
+			array(
+				'country'   => 'US',
+				'state'     => 'MI',
+				'postcode'  => '49841',
+				'city'      => 'GWINN',
+				'tax_class' => '',
+			)
+		);
+
+		$this->assertEqualsWithDelta( $expected, (float) array_sum( wp_list_pluck( $rates, 'rate' ) ), 0.0001 );
+		$this->assertArrayNotHasKey( $catch_all_id, $rates );
+	}
+
+	/**
+	 * An order taxed from the table alone, as REST and POS orders are, gets the rate
+	 * TaxJar returned for a town that has been looked up.
+	 */
+	public function test_table_only_order_is_taxed_at_the_looked_up_rate_beside_a_state_wide_rate() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' );
+
+		// No plugin hook is registered here, so WooCommerce reads the rate table.
+		$order = $this->create_michigan_order( '49841', 'Gwinn' );
+		$order->calculate_totals();
+
+		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001 );
+		$this->assertNotContains( $catch_all_id, $this->order_tax_rate_ids( $order ) );
+	}
+
+	/**
+	 * Checkout applies only the rate ids TaxJar returned, so the 0% row is never
+	 * among them: it exists only to stop the table from stacking.
+	 */
+	public function test_checkout_rates_leave_out_the_rate_added_beside_a_state_wide_rate() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$this->integration = $this->michigan_integration();
+		$taxes             = $this->lookup_michigan_taxes( $this->integration, '49841', 'Gwinn' );
+
+		$shadow_ids = array_values( array_diff( $this->tax_rate_ids_at_priority( 5 ), array( $catch_all_id ) ) );
+		$this->assertCount( 1, $shadow_ids );
+		$this->assertNotContains( $shadow_ids[0], $this->looked_up_rate_ids( $taxes ) );
+
+		$this->set_private_property( 'response_rate_ids', $taxes['rate_ids'] );
+		$table_rates = WC_Tax::find_rates(
+			array(
+				'country'   => 'US',
+				'state'     => 'MI',
+				'postcode'  => '49841',
+				'city'      => 'GWINN',
+				'tax_class' => '',
+			)
+		);
+		$item        = (object) array( 'product' => $this->product );
+		$applied     = $this->integration->override_cart_item_tax_rates( $table_rates, $item, WC()->cart );
+
+		$this->assertSame( $this->looked_up_rate_ids( $taxes ), array_keys( $applied ) );
+		$this->assertEqualsWithDelta( 6.0, (float) array_sum( wp_list_pluck( $applied, 'rate' ) ), 0.0001 );
+	}
+
+	/**
+	 * VAT rows are country-wide, so nothing is added beside a merchant row for a VAT
+	 * lookup. The merchant's first row takes the VAT component, as before; the one at
+	 * priority 5 must be left with no row beside it.
+	 */
+	public function test_vat_lookup_adds_no_rate_beside_a_country_wide_rate() {
+		$this->reset_tax_rate_tables();
+
+		foreach ( array( 1, 5 ) as $priority ) {
+			WC_Tax::_insert_tax_rate(
+				array(
+					'tax_rate_country'  => 'DE',
+					'tax_rate_state'    => '',
+					'tax_rate_name'     => 'MwSt',
+					'tax_rate_priority' => $priority,
+					'tax_rate_compound' => 0,
+					'tax_rate_shipping' => 1,
+					'tax_rate'          => '19.0000',
+					'tax_rate_class'    => '',
+				)
+			);
+		}
+		$merchant_p5 = $this->tax_rate_ids_at_priority( 5 );
+
+		$this->product = WC_Helper_Product::create_simple_product();
+		$line_id       = $this->product->get_id() . '-abcdefabcdef-0';
+
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'smartcalcs_cache_request', 'get_store_settings', '_log' ) )
+			->getMock();
+		$integration->method( 'get_store_settings' )->willReturn(
+			array(
+				'country'  => 'US',
+				'state'    => 'MI',
+				'postcode' => '49855',
+				'city'     => 'Marquette',
+				'street'   => '1 Main St',
+			)
+		);
+		$integration->method( 'smartcalcs_cache_request' )->willReturn(
+			array(
+				'body' => wp_json_encode(
+					array(
+						'tax' => array(
+							'rate'            => 0.19,
+							'freight_taxable' => true,
+							'has_nexus'       => true,
+							'breakdown'       => array(
+								'line_items' => array(
+									array(
+										'id'               => $line_id,
+										'combined_tax_rate' => 0.19,
+										'country_tax_rate' => 0.19,
+									),
+								),
+							),
+						),
+					)
+				),
+			)
+		);
+
+		WC()->customer->set_is_vat_exempt( false );
+		$taxes = $integration->calculate_tax(
+			array(
+				'to_country'      => 'DE',
+				'to_state'        => '',
+				'to_zip'          => '10115',
+				'to_city'         => 'Berlin',
+				'shipping_amount' => 0,
+				'line_items'      => array(
+					array(
+						'id'               => $line_id,
+						'quantity'         => 1,
+						'product_tax_code' => '',
+						'unit_price'       => 100,
+						'discount'         => 0,
+					),
+				),
+			)
+		);
+
+		$this->assertIsArray( $taxes, 'The lookup did not complete.' );
+		$this->assertSame( 'VAT', WC_Tax::_get_tax_rate( $taxes['rate_ids'][ $line_id ][0] )['tax_rate_name'], 'Expected the VAT path.' );
+		$this->assertSame( $merchant_p5, $this->tax_rate_ids_at_priority( 5 ), 'A row was added beside the merchant row.' );
+		$this->assertSame( 2, $this->count_tax_rate_rows() );
+	}
+
+	/**
+	 * An address with no postcode or city could only get a row as broad as the one it
+	 * is meant to outrank, so nothing is added.
+	 */
+	public function test_shadowing_a_state_wide_rate_needs_a_postcode_or_city() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$location = array(
+			'to_country' => 'US',
+			'to_state'   => 'MI',
+			'to_zip'     => '',
+			'to_city'    => '',
+		);
+
+		$this->invoke_protected_method( 'shadow_unscoped_rates_above_components', array( $location, '', array( 1, 2, 3, 4 ), array() ) );
+
+		$this->assertSame( array( $catch_all_id ), $this->tax_rate_ids_at_priority( 5 ) );
+		$this->assertSame( 1, $this->count_tax_rate_rows() );
 	}
 
 	/**
