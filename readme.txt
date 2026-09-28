@@ -75,6 +75,7 @@ This plugin relies on the following external services:
 * Fix   - Stop putting tax back on an order that was made VAT exempt after it was placed.
 * Fix   - Look up the tax for the new address when an order's address changes through the REST API or the WooCommerce app. If the tax service cannot answer, the order keeps its tax and a note says so.
 * Fix   - Calculate tax with WooCommerce Tax for orders created through the REST API, the WooCommerce app or point of sale, instead of using whatever tax rates happened to be stored for that area.
+* Fix   - Keep the TaxJar product tax code when recalculating an order in the admin for tax classes whose name has more than one word, such as "Reduced rate 12345", so the order is taxed the same as at checkout. Products in the built-in "Zero rate" class also stay tax-free when the order is recalculated.
 
 = 3.7.0 - 2026-09-22 =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
