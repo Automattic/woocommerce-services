@@ -7,6 +7,9 @@
 trademarked_term readme.txt
 trademarked_term woocommerce-services.php
 
+# The readme title keeps "(formerly WooCommerce Shipping & Tax)". The plugin name must not change.
+mismatched_plugin_name readme.txt
+
 # Legacy public names. Classes and hooks keep their names because other code depends on them.
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound classes/class-wc-connect-compatibility-wc30.php
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound classes/class-wc-connect-compatibility-wc69.php
