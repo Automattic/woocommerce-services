@@ -64,7 +64,7 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 		// Handle new custom packages. The custom packages are structured as an array of packages as dictionaries.
 		if ( ! empty( $custom_packages ) ) {
 			// Validate that the new custom packages have unique names.
-			$map_package_name            = function( $package ) {
+			$map_package_name            = function ( $package ) {
 				return $package['name'];
 			};
 			$custom_package_names        = array_map( $map_package_name, $custom_packages );
@@ -74,7 +74,7 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 				$duplicate_package_names = array_diff_assoc( $custom_package_names, $unique_custom_package_names );
 				$error                   = array(
 					'code'    => 'duplicate_custom_package_names',
-					'message' => __( 'The new custom package names are not unique.' ),
+					'message' => __( 'The new custom package names are not unique.', 'woocommerce-services' ),
 					'data'    => array( 'package_names' => array_values( $duplicate_package_names ) ),
 				);
 				return new WP_REST_Response( $error, 400 );
@@ -88,7 +88,7 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 			if ( ! empty( $duplicate_package_names ) ) {
 				$error = array(
 					'code'    => 'duplicate_custom_package_names_of_existing_packages',
-					'message' => __( 'At least one of the new custom packages has the same name as existing packages.' ),
+					'message' => __( 'At least one of the new custom packages has the same name as existing packages.', 'woocommerce-services' ),
 					'data'    => array( 'package_names' => array_values( $duplicate_package_names ) ),
 				);
 				return new WP_REST_Response( $error, 400 );
@@ -115,7 +115,7 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 			if ( ! empty( $duplicate_package_names_by_carrier ) ) {
 				$error = array(
 					'code'    => 'duplicate_predefined_package_names',
-					'message' => __( 'The new predefined package names are not unique.' ),
+					'message' => __( 'The new predefined package names are not unique.', 'woocommerce-services' ),
 					'data'    => array( 'package_names_by_carrier' => $duplicate_package_names_by_carrier ),
 				);
 				return new WP_REST_Response( $error, 400 );
@@ -136,7 +136,7 @@ class WC_REST_Connect_Packages_Controller extends WC_REST_Connect_Base_Controlle
 			if ( ! empty( $duplicate_package_names_by_carrier ) ) {
 				$error = array(
 					'code'    => 'duplicate_predefined_package_names_of_existing_packages',
-					'message' => __( 'At least one of the new predefined packages has the same name as existing packages.' ),
+					'message' => __( 'At least one of the new predefined packages has the same name as existing packages.', 'woocommerce-services' ),
 					'data'    => array( 'package_names_by_carrier' => $duplicate_package_names_by_carrier ),
 				);
 				return new WP_REST_Response( $error, 400 );

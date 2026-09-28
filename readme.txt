@@ -77,6 +77,7 @@ This plugin relies on the following external services:
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
 * Tweak - Update the bundled JavaScript libraries.
 * Tweak - Build the plugin's JavaScript on Node.js 24 and drop the wp-calypso submodule, keeping vendored copies of the modules it provided.
+* Tweak - Load every translatable string from the plugin's own text domain and add translator notes to strings with placeholders.
 
 = 3.6.16 - 2026-09-16 =
 * Tweak - Update the Jetpack Connection package to 9.1.2.
