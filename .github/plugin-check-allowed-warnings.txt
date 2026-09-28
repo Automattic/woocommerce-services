@@ -64,12 +64,6 @@ WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound classes/cl
 # The plugin ships its own translation files in i18n/languages, so it still loads them itself.
 PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound woocommerce-services.php
 
-# get_enabled_services_by_ids() binds every service id through prepare(). The only thing
-# still interpolated into the query is $placeholders, a run of "%s" generated from
-# count( $service_ids ), which the sniff cannot tell apart from data. Drop this line if the
-# run reports it as stale.
-PluginCheck.Security.DirectDB.UnescapedDBParameter classes/class-wc-connect-service-settings-store.php
-
 # $hide_save_button is a WooCommerce core global that hides the settings save button.
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound classes/class-wc-connect-settings-pages.php
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound classes/class-wc-connect-shipping-method.php
