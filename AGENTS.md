@@ -84,6 +84,7 @@ The test-env scripts (`tests/bin/*.sh`) and hook helpers (`bin/*.sh`) run on Lin
 - Keep shipping logic gated by eligibility; preserve grandfathered behavior.
 - Keep changes in source files; do not hand-edit generated build outputs in `dist/`.
 - Follow existing WordPress/WooCommerce coding standards and linting rules in this repository.
+- Plugin Check warnings fail CI unless listed in `.github/plugin-check-allowed-warnings.txt`. Fix a new warning, or add it there with a reason.
 
 ## Backward Compatibility
 
