@@ -1166,6 +1166,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 10.0, (float) $order->get_total(), 0.001 );
 		$this->assertSame( array(), $this->tax_notes( $order ) );
 	}
+
 	/**
 	 * @testdox calculate_taxes() then calculate_totals( true ) after an address change keeps the recorded tax.
 	 */
@@ -1190,6 +1191,46 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order = wc_get_order( $order->get_id() );
 		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
 		$this->assertCount( 1, $order->get_taxes(), 'the tax line survives' );
+	}
+
+	/**
+	 * @testdox A paid shipping line added to an order whose only shipping was free gets the untaxed-item note.
+	 */
+	public function test_new_shipping_after_free_shipping_has_note() {
+		$fixture = $this->create_placed_order();
+		$order   = $fixture['order'];
+
+		// Checkout stores a $0 shipping line with no taxes: WC_Shipping_Method::add_rate()
+		// only calculates tax when the cost is above 0. That says nothing about whether
+		// the order's shipping is taxable.
+		$shipping = $order->get_item( $fixture['shipping'], false );
+		$shipping->set_method_id( 'free_shipping' );
+		$shipping->set_method_title( 'Free shipping' );
+		$shipping->set_total( '0' );
+		$shipping->set_taxes( false );
+		$taxes = $order->get_taxes();
+		reset( $taxes )->set_shipping_tax_total( 0 );
+		$order->set_shipping_total( 0 );
+		$order->set_shipping_tax( 0 );
+		$order->set_total( 31.80 );
+		$order->save();
+		$this->forget_created_in_request();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'method_id'    => 'flat_rate',
+						'method_title' => 'Express',
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001 );
+		$this->assertNotEmpty( $this->tax_notes( $order ), 'a note explains the untaxed shipping' );
 	}
 
 	/**
@@ -1219,5 +1260,95 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order = wc_get_order( $order->get_id() );
 		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
 	}
+	/**
+	 * @testdox Swapping a free shipping line for a paid one gets the untaxed-item note.
+	 */
+	public function test_free_shipping_swapped_for_paid_has_note() {
+		$fixture = $this->create_placed_order();
+		$order   = $fixture['order'];
 
+		$shipping = $order->get_item( $fixture['shipping'], false );
+		$shipping->set_method_id( 'free_shipping' );
+		$shipping->set_method_title( 'Free shipping' );
+		$shipping->set_total( '0' );
+		$shipping->set_taxes( false );
+		$taxes = $order->get_taxes();
+		reset( $taxes )->set_shipping_tax_total( 0 );
+		$order->set_shipping_total( 0 );
+		$order->set_shipping_tax( 0 );
+		$order->set_total( 31.80 );
+		$order->save();
+		$this->forget_created_in_request();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'id'        => $fixture['shipping'],
+						'method_id' => null,
+					),
+					array(
+						'method_id'    => 'flat_rate',
+						'method_title' => 'Express',
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $order->get_shipping_methods(), 'the free line was replaced' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001 );
+		$this->assertNotEmpty( $this->tax_notes( $order ), 'a note explains the untaxed shipping' );
+	}
+
+	/**
+	 * @testdox Swapping a non-taxable shipping method for a paid taxable one gets the untaxed-item note.
+	 */
+	public function test_non_taxable_shipping_swapped_for_taxable_has_note() {
+		$fixture = $this->create_placed_order();
+		$order   = $fixture['order'];
+
+		$zone = new WC_Shipping_Zone();
+		$zone->save();
+		$instance_id = $zone->add_shipping_method( 'flat_rate' );
+		update_option(
+			'woocommerce_flat_rate_' . $instance_id . '_settings',
+			array(
+				'tax_status' => 'none',
+				'cost'       => '5',
+			)
+		);
+
+		// A line whose method is not taxable is stored with no tax, whatever the address.
+		$shipping = $order->get_item( $fixture['shipping'], false );
+		$shipping->set_instance_id( $instance_id );
+		$shipping->set_taxes( false );
+		$taxes = $order->get_taxes();
+		reset( $taxes )->set_shipping_tax_total( 0 );
+		$order->set_shipping_tax( 0 );
+		$order->set_total( 36.80 );
+		$order->save();
+		$this->forget_created_in_request();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'id'        => $fixture['shipping'],
+						'method_id' => null,
+					),
+					array(
+						'method_id'    => 'flat_rate',
+						'method_title' => 'Express',
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001 );
+		$this->assertNotEmpty( $this->tax_notes( $order ), 'a note explains the untaxed shipping' );
+	}
 }

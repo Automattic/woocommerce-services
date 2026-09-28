@@ -2644,6 +2644,19 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Whether a shipping line with no tax shows that the order's shipping is not taxed.
+	 *
+	 * A free line or one whose method is not taxable carries no tax on any order, so it
+	 * says nothing about whether the address taxes shipping.
+	 *
+	 * @param WC_Order_Item_Shipping $item A shipping line.
+	 * @return bool
+	 */
+	private function shipping_line_could_carry_tax( $item ) {
+		return 'taxable' === $item->get_tax_status() && 0.0 !== (float) $item->get_total();
+	}
+
+	/**
 	 * Preserve an order's recorded taxes when it is recalculated outside the cart.
 	 *
 	 * WC_Abstract_Order::calculate_taxes() recomputes item taxes against the order's
@@ -3007,7 +3020,7 @@ class WC_Connect_TaxJar_Integration {
 
 			if ( 'shipping' === $saved_items[ $item_id ]->get_type() ) {
 				$removed_rate_ids['shipping']         = array_unique( array_merge( $removed_rate_ids['shipping'], $rate_ids ) );
-				$removed_rate_ids['untaxed_shipping'] = $removed_rate_ids['untaxed_shipping'] || ! $rate_ids;
+				$removed_rate_ids['untaxed_shipping'] = $removed_rate_ids['untaxed_shipping'] || ( ! $rate_ids && $this->shipping_line_could_carry_tax( $saved_items[ $item_id ] ) );
 			} elseif ( $rate_ids ) {
 				$tax_class                                 = $saved_items[ $item_id ]->get_tax_class();
 				$removed_rate_ids['classes'][ $tax_class ] = array_unique( array_merge( $removed_rate_ids['classes'][ $tax_class ] ?? array(), $rate_ids ) );
@@ -3142,7 +3155,7 @@ class WC_Connect_TaxJar_Integration {
 
 			if ( empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
 				// Shipping the order did not tax: a new shipping line at no tax is expected.
-				$untaxed_shipping = $untaxed_shipping || 'shipping' === $item->get_type();
+				$untaxed_shipping = $untaxed_shipping || ( 'shipping' === $item->get_type() && $this->shipping_line_could_carry_tax( $item ) );
 				continue;
 			}
 
