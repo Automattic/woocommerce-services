@@ -2,6 +2,7 @@
 
 = 3.7.1 - 2026-xx-xx =
 * Fix   - Send the street with the address when you click Recalculate on an order that has no shipping address, so tax is not calculated from the ZIP code alone. Stores that calculate tax based on the shop base address now also send the order's billing street, to match the billing ZIP code and city Recalculate already sends. Recalculate also no longer freezes when the city contains a double quote.
+* Fix   - Keep the TaxJar product tax code when recalculating an order in the admin for tax classes whose name has more than one word, such as "Reduced rate 12345", so the order is taxed the same as at checkout. Products in the built-in "Zero rate" class also stay tax-free when the order is recalculated.
 
 = 3.7.0 - 2026-09-22 =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
