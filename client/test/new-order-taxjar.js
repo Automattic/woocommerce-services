@@ -90,6 +90,14 @@ describe( 'new-order-taxjar recalculate street', () => {
 		} );
 	} );
 
+	it( 'does not throw when the event is triggered without data', () => {
+		loadScript( 'shipping' );
+
+		expect( jQuery( '#woocommerce-order-items' ).triggerHandler(
+			'woocommerce_order_meta_box_recalculate_ajax_data'
+		) ).toEqual( { street: '24500 Highway 145' } );
+	} );
+
 	it( 'keeps data with quotes intact', () => {
 		document.getElementById( '_shipping_address_1' ).value = 'Unit "B", 24500 Highway 145';
 

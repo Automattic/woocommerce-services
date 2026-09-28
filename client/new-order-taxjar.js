@@ -39,6 +39,9 @@ export const getTaxableStreet = ( taxBasedOn ) => {
  * @return {Object} The same data, with `street` set.
  */
 export const addStreetToRecalculateData = ( event, data ) => {
+	// Core always passes an object, but anyone can trigger the event.
+	data = data || {};
+
 	const taxBasedOn = 'undefined' !== typeof woocommerce_admin_meta_boxes ? woocommerce_admin_meta_boxes.tax_based_on : '';
 
 	data.street = getTaxableStreet( taxBasedOn );
