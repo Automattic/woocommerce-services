@@ -283,11 +283,14 @@ class WC_Connect_TaxJar_Integration {
 		$enabled                = $this->is_enabled();
 		$backedup_tax_rates_url = admin_url( '/admin.php?page=wc-status&tab=connect#tax-rate-backups' );
 
+		/* translators: %1$s: opening link tag, %2$s: closing link tag */
 		$powered_by_wct_notice = '<p>' . sprintf( __( 'Automated taxes take over from the WooCommerce core tax settings. This means that "Display prices" will be set to Excluding tax and tax will be Calculated using Customer shipping address. %1$sLearn more about Automated taxes here.%2$s', 'woocommerce-services' ), '<a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#setup-and-configuration">', '</a>' ) . '</p>';
 
+		/* translators: %1$s: opening link tag, %2$s: closing link tag */
 		$backup_notice = ( ! empty( WC_Connect_Functions::get_backed_up_tax_rate_files() ) ) ? '<p>' . sprintf( __( 'Your previous tax rates were backed up and can be downloaded %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>' : '';
 
 		$desctructive_action_notice = '<p>' . __( 'Enabling this option overrides any tax rates you have manually added.', 'woocommerce-services' ) . '</p>';
+		/* translators: %1$s: opening link tag, %2$s: closing link tag */
 		$desctructive_backup_notice = '<p>' . sprintf( __( 'Your existing tax rates will be backed-up to a CSV that you can download %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>';
 
 		$tax_nexus_notice = '<p>' . $this->get_tax_tooltip() . '</p>';
@@ -520,10 +523,13 @@ class WC_Connect_TaxJar_Integration {
 			}
 
 			if ( $state_zip_mismatch ) {
+				/* translators: %s: ZIP/Postal code checkout field label */
 				$message = sprintf( _x( '%s does not match the selected state.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			} elseif ( $malformed_postcode ) {
+				/* translators: %s: ZIP/Postal code checkout field label */
 				$message = sprintf( _x( '%s is not formatted correctly.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			} else {
+				/* translators: %s: ZIP/Postal code checkout field label */
 				$message = sprintf( _x( 'Invalid %s entered.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			}
 
