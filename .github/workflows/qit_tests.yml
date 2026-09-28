@@ -30,4 +30,6 @@ jobs:
     with:
       extension: ${{ needs.build.outputs.plugin_name }}
       artifact: ${{ needs.build.outputs.plugin_name }}
+      test-activation: 'true'
+      test-security: 'true'
       test-plugin-check: 'true'
