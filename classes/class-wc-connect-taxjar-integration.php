@@ -2682,12 +2682,11 @@ class WC_Connect_TaxJar_Integration {
 	 * @since 3.6.8
 	 */
 	public function preserve_order_taxes_on_recalculation( $args, $order ) {
-		// A snapshot from a recalculation that never reached calculate_totals() must not
-		// outlive it, or a later one would restore amounts read before it. Cleared ahead
-		// of the gates, so a snapshot cannot survive a rejected one either.
-		unset( $this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ] );
-
+		// A snapshot left by an earlier calculate_taxes() must not survive a rejected one.
+		// Kept otherwise: when WC's own lookup has already wiped the tax lines, the next
+		// snapshot is empty and the earlier one is the only record of what was charged.
 		if ( ! $this->should_preserve_order_taxes( $order ) ) {
+			unset( $this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ] );
 			return;
 		}
 

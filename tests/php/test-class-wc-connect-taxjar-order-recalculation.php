@@ -1166,4 +1166,58 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 10.0, (float) $order->get_total(), 0.001 );
 		$this->assertSame( array(), $this->tax_notes( $order ) );
 	}
+	/**
+	 * @testdox calculate_taxes() then calculate_totals( true ) after an address change keeps the recorded tax.
+	 */
+	public function test_taxes_then_totals_after_address_change_keeps_recorded_tax() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		// No rate row matches NY, so WC's own recalculation wipes the tax lines.
+		$order->set_shipping_state( 'NY' );
+		$order->set_shipping_postcode( '10001' );
+		$order->set_shipping_city( 'New York' );
+		$order->set_billing_state( 'NY' );
+		$order->set_billing_postcode( '10001' );
+		$order->set_billing_city( 'New York' );
+		$order->save();
+
+		// The first call snapshots the recorded tax; the second finds the lines already
+		// wiped and must not throw that snapshot away.
+		$order->calculate_taxes();
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertCount( 1, $order->get_taxes(), 'the tax line survives' );
+	}
+
+	/**
+	 * @testdox calculate_taxes() then calculate_totals( true ) after a quantity change and an address move re-taxes at the recorded rate.
+	 */
+	public function test_taxes_then_totals_after_change_and_address_move_reapplies_recorded_rate() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$item = $order->get_item( $fixture['a'], false );
+		$item->set_quantity( 2 );
+		$item->set_subtotal( '20' );
+		$item->set_total( '20' );
+		$item->save();
+
+		$order->set_shipping_state( 'MI' );
+		$order->set_shipping_postcode( '49841' );
+		$order->set_shipping_city( 'Gwinn' );
+		$order->set_billing_state( 'MI' );
+		$order->set_billing_postcode( '49841' );
+		$order->set_billing_city( 'Gwinn' );
+		$order->save();
+
+		$order->calculate_taxes();
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+	}
+
 }
