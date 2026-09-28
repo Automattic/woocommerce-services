@@ -974,6 +974,25 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Read the TaxJar product tax code encoded in a tax class slug.
+	 *
+	 * Stores map a class to a TaxJar category by ending its name with the numeric
+	 * code, so "Digital Goods 31000" slugs to `digital-goods-31000`. The code is the
+	 * last segment, whatever the class name's word count. Both line item builders go
+	 * through here so checkout and an admin order recalculation price the same code.
+	 *
+	 * @param string $tax_class Tax class slug ('' for Standard).
+	 *
+	 * @return string The code, or '' if the slug does not end in a number.
+	 */
+	private static function get_product_tax_code_from_tax_class( $tax_class ) {
+		$segments = explode( '-', (string) $tax_class );
+		$code     = end( $segments );
+
+		return is_numeric( $code ) ? $code : '';
+	}
+
+	/**
 	 * Get line items at checkout
 	 *
 	 * Based on the TaxJar plugin, with canonical line item IDs added.
@@ -996,12 +1015,7 @@ class WC_Connect_TaxJar_Integration {
 			$unit_price    = wc_format_decimal( $product->get_price() );
 			$line_subtotal = wc_format_decimal( $cart_item['line_subtotal'] );
 			$discount      = wc_format_decimal( $cart_item['line_subtotal'] - $cart_item['line_total'] );
-			$tax_class     = explode( '-', $product->get_tax_class() );
-			$tax_code      = '';
-
-			if ( isset( $tax_class ) && is_numeric( end( $tax_class ) ) ) {
-				$tax_code = end( $tax_class );
-			}
+			$tax_code      = self::get_product_tax_code_from_tax_class( $product->get_tax_class() );
 
 			if ( 'shipping' !== $product->get_tax_status() && ( ! $product->is_taxable() || 'zero-rate' == sanitize_title( $product->get_tax_class() ) ) ) {
 				$tax_code = '99999';
@@ -1119,11 +1133,7 @@ class WC_Connect_TaxJar_Integration {
 				$tax_status     = $product ? $product->get_tax_status() : 'taxable';
 			}
 			$this->backend_tax_classes[ $id ] = $tax_class_name;
-			$tax_class                        = explode( '-', $tax_class_name );
-			$tax_code                         = '';
-			if ( isset( $tax_class[1] ) && is_numeric( $tax_class[1] ) ) {
-				$tax_code = $tax_class[1];
-			}
+			$tax_code                         = self::get_product_tax_code_from_tax_class( $tax_class_name );
 			if ( 'taxable' !== $tax_status ) {
 				$tax_code = '99999';
 
@@ -1131,6 +1141,10 @@ class WC_Connect_TaxJar_Integration {
 				// so the order path records exactly what it emitted as exempt. See the
 				// matching note in get_line_items() for why this is recorded, not derived.
 				$this->non_taxable_line_items[ $id . '-' . $item_key ] = true;
+			} elseif ( 'zero-rate' === sanitize_title( $tax_class_name ) ) {
+				// Checkout sends the built-in Zero rate class as exempt too, and does not
+				// record it: the 0% TaxJar returns belongs in that class's rate row.
+				$tax_code = '99999';
 			}
 
 			/** This filter is documented in get_line_items() */
