@@ -364,33 +364,31 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		}
 
 		public function get_enabled_services_by_ids( $service_ids ) {
-			if ( empty( $service_ids ) ) {
+			if ( empty( $service_ids ) || ! is_array( $service_ids ) ) {
 				return array();
 			}
 
 			$enabled_services = array();
 
-			// Note: We use esc_sql here instead of prepare because we are using WHERE IN
-			// https://codex.wordpress.org/Function_Reference/esc_sql.
-
-			$escaped_list = '';
-			foreach ( $service_ids as $shipping_service ) {
-				if ( ! empty( $escaped_list ) ) {
-					$escaped_list .= ',';
-				}
-				$escaped_list .= "'" . esc_sql( $shipping_service ) . "'";
-			}
+			// prepare() cannot take a list, but it can take a generated run of placeholders:
+			// one %s per service id, with the ids passed through as the arguments.
+			$service_ids  = array_values( $service_ids );
+			$placeholders = implode( ', ', array_fill( 0, count( $service_ids ), '%s' ) );
 
 			global $wpdb;
-			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared --- Need to use interpolated for the `IN()` condition
+			// phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare -- The only interpolations are $wpdb->prefix and $placeholders, a generated run of %s built above from count( $service_ids ); the ids themselves are bound by prepare().
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Joins WooCommerce's shipping zone tables, which have no core reader that returns raw rows; WC_Shipping_Zones would instantiate every shipping method. Not cached because zone methods are edited from WooCommerce's own screens, which fire no hook this store could invalidate on.
 			$methods = $wpdb->get_results(
-				"SELECT * FROM {$wpdb->prefix}woocommerce_shipping_zone_methods " .
-				"LEFT JOIN {$wpdb->prefix}woocommerce_shipping_zones " .
-				"ON {$wpdb->prefix}woocommerce_shipping_zone_methods.zone_id = {$wpdb->prefix}woocommerce_shipping_zones.zone_id " .
-				"WHERE method_id IN ({$escaped_list}) " .
-				'ORDER BY zone_order, instance_id;'
+				$wpdb->prepare(
+					"SELECT * FROM {$wpdb->prefix}woocommerce_shipping_zone_methods " .
+					"LEFT JOIN {$wpdb->prefix}woocommerce_shipping_zones " .
+					"ON {$wpdb->prefix}woocommerce_shipping_zone_methods.zone_id = {$wpdb->prefix}woocommerce_shipping_zones.zone_id " .
+					"WHERE method_id IN ({$placeholders}) " .
+					'ORDER BY zone_order, instance_id;',
+					$service_ids
+				)
 			);
-			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			// phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
 
 			if ( empty( $methods ) ) {
 				return $enabled_services;
@@ -448,6 +446,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 				$new_method_id = $service_schema->method_id;
 
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Rewrites the stored method_id of a zone method row; core exposes no API for renaming a shipping method in place. One-shot migration guarded by the shipping_methods_migrated option, and a write has nothing to cache.
 				$wpdb->update(
 					"{$wpdb->prefix}woocommerce_shipping_zone_methods",
 					array( 'method_id' => $new_method_id ),
