@@ -617,8 +617,8 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			$request_url = WC_Helper_API::url( $endpoint );
 
 			$data = array(
-				'host'        => parse_url( $request_url, PHP_URL_HOST ), // host URL.
-				'request_uri' => parse_url( $request_url, PHP_URL_PATH ), // endpoint URL.
+				'host'        => wp_parse_url( $request_url, PHP_URL_HOST ), // host URL.
+				'request_uri' => wp_parse_url( $request_url, PHP_URL_PATH ), // endpoint URL.
 				'method'      => $method,
 			);
 
@@ -671,14 +671,14 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 			return strtolower(
 				sprintf(
 					'%04X%04X-%04X-%04X-%04X-%04X%04X%04X',
-					mt_rand( 0, 65535 ),
-					mt_rand( 0, 65535 ),
-					mt_rand( 0, 65535 ),
-					mt_rand( 16384, 20479 ),
-					mt_rand( 32768, 49151 ),
-					mt_rand( 0, 65535 ),
-					mt_rand( 0, 65535 ),
-					mt_rand( 0, 65535 )
+					wp_rand( 0, 65535 ),
+					wp_rand( 0, 65535 ),
+					wp_rand( 0, 65535 ),
+					wp_rand( 16384, 20479 ),
+					wp_rand( 32768, 49151 ),
+					wp_rand( 0, 65535 ),
+					wp_rand( 0, 65535 ),
+					wp_rand( 0, 65535 )
 				)
 			);
 		}
