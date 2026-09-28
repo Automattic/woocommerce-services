@@ -1135,6 +1135,10 @@ class WC_Connect_TaxJar_Integration {
 				// so the order path records exactly what it emitted as exempt. See the
 				// matching note in get_line_items() for why this is recorded, not derived.
 				$this->non_taxable_line_items[ $id . '-' . $item_key ] = true;
+			} elseif ( 'zero-rate' === sanitize_title( $tax_class_name ) ) {
+				// Checkout sends the built-in Zero rate class as exempt too, and does not
+				// record it: the 0% TaxJar returns belongs in that class's rate row.
+				$tax_code = '99999';
 			}
 
 			/** This filter is documented in get_line_items() */

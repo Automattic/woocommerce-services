@@ -4661,6 +4661,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			'one-word custom class with code' => array( 'Clothing 40030', 'clothing-40030', '40030' ),
 			'built-in Reduced rate with code' => array( 'Reduced rate 12345', 'reduced-rate-12345', '12345' ),
 			'built-in Zero rate with code'    => array( 'Zero rate 99999', 'zero-rate-99999', '99999' ),
+			// The built-in Zero rate class is sent as exempt, whatever its tax status says.
+			'built-in Zero rate, no code'     => array( 'Zero rate', 'zero-rate', '99999' ),
 			'two-word custom class with code' => array( 'Digital Goods 31000', 'digital-goods-31000', '31000' ),
 			// Pinned, not endorsed: a trailing number in a plain class name is read as a
 			// code. Both paths already did this; changing it is a separate decision.
