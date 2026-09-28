@@ -564,4 +564,21 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 
 		$this->assertSame( StoreAddressVerifier::STATUS_VERIFIED, $this->sut->get_current_result()['status'] );
 	}
+
+	/**
+	 * @testdox A background check still pending after the settings screen checked the address sends no second request.
+	 */
+	public function test_pending_background_check_skips_an_address_already_checked() {
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		$this->api_client->expects( $this->once() )
+			->method( 'proxy_request' )
+			->willReturn( $this->response( 200, array( 'addresses' => array( $this->candidate( 'CO', '81323', 'Dolores', '123 Main St' ) ) ) ) );
+		$this->sut->init();
+
+		$this->sut->maybe_schedule_check();
+		$this->sut->verify_after_settings_save();
+		$this->assertNotFalse( wp_next_scheduled( StoreAddressVerifier::CRON_HOOK ), 'Precondition: the background check is still pending.' );
+
+		do_action( StoreAddressVerifier::CRON_HOOK );
+	}
 }

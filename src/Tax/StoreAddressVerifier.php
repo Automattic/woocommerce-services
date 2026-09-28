@@ -98,7 +98,7 @@ final class StoreAddressVerifier {
 	 * Register hooks.
 	 */
 	public function init() {
-		add_action( self::CRON_HOOK, array( $this, 'verify' ) );
+		add_action( self::CRON_HOOK, array( $this, 'run_scheduled_check' ) );
 		add_action( 'admin_init', array( $this, 'maybe_schedule_check' ) );
 		add_action( 'woocommerce_update_options_general', array( $this, 'verify_after_settings_save' ) );
 	}
@@ -251,6 +251,21 @@ final class StoreAddressVerifier {
 		}
 
 		$this->verify( self::SAVE_TIMEOUT );
+	}
+
+	/**
+	 * Run the background check, unless it is no longer needed.
+	 *
+	 * An event can still be pending after the settings screen or the Apply button has
+	 * already stored a result for the current address. Checking again would send the
+	 * same address to TaxJar a second time.
+	 */
+	public function run_scheduled_check() {
+		if ( ! $this->is_check_due() ) {
+			return;
+		}
+
+		$this->verify();
 	}
 
 	/**
