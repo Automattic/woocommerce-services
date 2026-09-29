@@ -73,6 +73,7 @@ This plugin relies on the following external services:
 = 3.7.1 - 2026-xx-xx =
 * Fix   - Keep the TaxJar product tax code when recalculating an order in the admin for tax classes whose name has more than one word, such as "Reduced rate 12345", so the order is taxed the same as at checkout. Products in the built-in "Zero rate" class also stay tax-free when the order is recalculated.
 * Fix   - Unslash and sanitize request values in the label reports, settings, migration survey and tracking code, and stop using print_r in log messages.
+* Fix   - Stop the shipping label purchase from failing silently when the last used shipping service is not offered for the order being shipped, such as a domestic service on an international shipment. The service is no longer preselected in that case, so a rate can be chosen and the label bought.
 * Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
 * Tweak - Include composer.json in the plugin package.
 

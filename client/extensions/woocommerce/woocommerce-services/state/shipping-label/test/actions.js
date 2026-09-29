@@ -16,6 +16,7 @@ import {
 	submitAddressForNormalization,
 	confirmAddressSuggestion,
 	getDefaultBoxSelection,
+	getDefaultServiceSelection,
 } from '../actions';
 import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_TOGGLE_STEP,
@@ -35,6 +36,12 @@ const defaultAddress = {
 };
 
 function createGetStateFn( newProps = { origin: {}, destination: {}, packages: {} } ) {
+	const defaultUserMeta = {
+		last_box_id: 'test_last_box',
+	};
+	const defaultRates = {
+		values: {},
+	};
 	const defaultProps = {
 		ignoreValidation: false,
 		selectNormalized: false,
@@ -54,6 +61,8 @@ function createGetStateFn( newProps = { origin: {}, destination: {}, packages: {
 	const origin = Object.assign( {}, defaultProps, newProps.origin );
 	const destination = Object.assign( {}, defaultProps, newProps.destination );
 	const packages = Object.assign( {}, defaultPackages, newProps.packages );
+	const rates = Object.assign( {}, defaultRates, newProps.rates );
+	const userMeta = Object.assign( {}, defaultUserMeta, newProps.userMeta );
 
 	return function() {
 		return {
@@ -67,18 +76,14 @@ function createGetStateFn( newProps = { origin: {}, destination: {}, packages: {
 										origin,
 										destination,
 										packages,
-										rates: {
-											values: {},
-										},
+										rates,
 									},
 									openedPackageId: 'default_box',
 								},
 							},
 							labelSettings: {
 								meta: {
-									user: {
-										last_box_id: 'test_last_box',
-									},
+									user: userMeta,
 								},
 							},
 						},
@@ -440,6 +445,83 @@ describe( 'Shipping label Actions', () => {
 			expect(
 				boxId
 			).to.equal( undefined );
+		} );
+	} );
+
+	describe( 'getDefaultServiceSelection', () => {
+		const lastUsedService = {
+			last_service_id: 'Priority',
+			last_carrier_id: 'usps',
+		};
+
+		// The rates a domestic shipment comes back with, which carry the service the user
+		// bought last time.
+		const domesticRates = {
+			available: {
+				default_box: {
+					default: {
+						rates: [
+							{ service_id: 'Priority', carrier_id: 'usps', rate_id: 'rate_a', shipment_id: 'shp_1' },
+							{ service_id: 'Express', carrier_id: 'usps', rate_id: 'rate_b', shipment_id: 'shp_1' },
+						],
+					},
+				},
+			},
+			values: { default_box: '' },
+		};
+
+		// An international shipment is offered a different set of services, none of which
+		// is the one the user bought last time.
+		const internationalRates = {
+			available: {
+				default_box: {
+					default: {
+						rates: [
+							{ service_id: 'PriorityMailInternational', carrier_id: 'usps', rate_id: 'rate_c', shipment_id: 'shp_2' },
+							{ service_id: 'PriorityMailExpressInternational', carrier_id: 'usps', rate_id: 'rate_d', shipment_id: 'shp_2' },
+						],
+					},
+				},
+			},
+			values: { default_box: '' },
+		};
+
+		it( 'defaults to the last used service when the retrieved rates carry it', () => {
+			const { packageId, serviceId, carrierId } = getDefaultServiceSelection( orderId, siteId, createGetStateFn( {
+				userMeta: lastUsedService,
+				rates: domesticRates,
+			} ) ) || {};
+
+			expect( packageId ).to.equal( 'default_box' );
+			expect( serviceId ).to.equal( 'Priority' );
+			expect( carrierId ).to.equal( 'usps' );
+		} );
+
+		it( 'no default when the retrieved rates do not carry the last used service', () => {
+			const { packageId, serviceId, carrierId } = getDefaultServiceSelection( orderId, siteId, createGetStateFn( {
+				userMeta: lastUsedService,
+				rates: internationalRates,
+			} ) ) || {};
+
+			expect( packageId ).to.equal( undefined );
+			expect( serviceId ).to.equal( undefined );
+			expect( carrierId ).to.equal( undefined );
+		} );
+
+		it( 'no default when no rates have been retrieved yet', () => {
+			const { serviceId } = getDefaultServiceSelection( orderId, siteId, createGetStateFn( {
+				userMeta: lastUsedService,
+			} ) ) || {};
+
+			expect( serviceId ).to.equal( undefined );
+		} );
+
+		it( 'no default when the user has not bought a label before', () => {
+			const { serviceId } = getDefaultServiceSelection( orderId, siteId, createGetStateFn( {
+				rates: domesticRates,
+			} ) ) || {};
+
+			expect( serviceId ).to.equal( undefined );
 		} );
 	} );
 } );

@@ -231,6 +231,24 @@ describe( '#getRatesErrors', () => {
 				} );
 			} );
 		} );
+
+		describe( 'selected rate is no longer among the available rates', () => {
+			// The rates were replaced after the selection was made - an international
+			// shipment is not offered the domestic service that is still selected.
+			const rates = {
+				values: {
+					box_1: { serviceId: 'PriorityMailInternational', signatureRequired: false }
+				},
+				available: firstBoxRatesWithNoServerErrors,
+			};
+			const result = getRatesErrors( rates );
+
+			it( 'should return an error', () => {
+				expect( result ).to.eql( {
+					box_1: [ 'Please choose a rate' ],
+				} );
+			} );
+		} );
 	} );
 
 	describe( 'two boxes: box 1 with server errors, box 2 without', () => {
