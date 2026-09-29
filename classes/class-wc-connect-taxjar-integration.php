@@ -2468,6 +2468,12 @@ class WC_Connect_TaxJar_Integration {
 	 * address what TaxJar returned, and every other address still gets the merchant's
 	 * row. The merchant's row is not changed.
 	 *
+	 * The row is not marked for shipping, and it still keeps the merchant's row off
+	 * shipping: `WC_Tax::find_shipping_rates()` picks one row per priority first and
+	 * only then drops the rows not marked for shipping. Marked for shipping, it would
+	 * put a $0 tax line on every order that ships to the address, since checkout,
+	 * order creation and Recalculate all tax shipping from the table.
+	 *
 	 * Only rows with no postcode or city are covered; a merchant's own local rows are
 	 * left as they are. Nothing is added for VAT rows, which are country-wide, or for
 	 * an address with no postcode or city, since the new row could not outrank anything.
@@ -2508,7 +2514,7 @@ class WC_Connect_TaxJar_Integration {
 					'tax_rate_name'     => self::generate_itemized_tax_rate_name( 'no_other_tax_rate', $address->country(), $jurisdictions ),
 					'tax_rate_priority' => (int) $row['tax_rate_priority'],
 					'tax_rate_compound' => false,
-					'tax_rate_shipping' => 1,
+					'tax_rate_shipping' => 0,
 					'tax_rate'          => 0,
 					'tax_rate_class'    => $tax_class,
 				)

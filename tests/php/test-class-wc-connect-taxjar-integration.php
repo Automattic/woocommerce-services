@@ -4235,7 +4235,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			),
 			$this->tax_rate_snapshot( $shadow_id )
 		);
-		$this->assertSame( '1', (string) $wpdb->get_var( $wpdb->prepare( "SELECT tax_rate_shipping FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_id = %d", $shadow_id ) ), 'The 0% row should apply to shipping too.' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		$this->assertSame( '0', (string) $wpdb->get_var( $wpdb->prepare( "SELECT tax_rate_shipping FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_id = %d", $shadow_id ) ), 'The 0% row must not be marked for shipping, or orders get a $0 tax line for it.' ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 
 		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
 		$this->assertSame( array_merge( $this->looked_up_rate_ids( $taxes ), array( $shadow_id ) ), $gwinn['ids'] );
