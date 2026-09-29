@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 
 	class WC_Connect_Service_Schemas_Store {

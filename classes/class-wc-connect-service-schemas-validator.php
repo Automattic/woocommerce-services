@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 
 	class WC_Connect_Service_Schemas_Validator {
@@ -44,7 +48,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 					return $result;
 				}
 
-				$service_counter ++;
+				++$service_counter;
 			}
 
 			if ( ! isset( $service_schemas->boxes ) || ! is_object( $service_schemas->boxes ) ) {
@@ -189,7 +193,6 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Validator' ) ) {
 
 			return true;
 		}
-
 	}
 
 }

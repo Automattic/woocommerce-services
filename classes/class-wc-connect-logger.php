@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 
 	class WC_Connect_Logger {
@@ -104,13 +108,13 @@ if ( ! class_exists( 'WC_Connect_Logger' ) ) {
 		 * Logs messages to file and error_log if WP_DEBUG
 		 *
 		 * @param WP_Error|string $message Message to log
-		 * @param string $context Optional context (e.g. a class or function name)
+		 * @param string          $context Optional context (e.g. a class or function name)
 		 */
 		public function log( $message, $context = '', $force = false ) {
 			$log_message = $this->format_message( $message, $context );
 
 			if ( defined( 'WP_DEBUG' ) && WP_DEBUG ) {
-				// phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound -- Intended debug logging when WP_DEBUG is enabled.
+				// phpcs:ignore QITStandard.PHP.DebugCode.DebugFunctionFound, WordPress.PHP.DevelopmentFunctions.error_log_error_log -- Intended debug logging when WP_DEBUG is enabled.
 				error_log( $log_message );
 			}
 
