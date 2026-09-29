@@ -2,6 +2,10 @@
 
 use Automattic\WooCommerce\Utilities\OrderUtil;
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 	include_once WC()->plugin_path() . '/includes/admin/reports/class-wc-admin-report.php';
 
@@ -18,7 +22,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 		}
 
 		public function get_export_button() {
-			$current_range = ! empty( $_GET['range'] ) ? sanitize_text_field( $_GET['range'] ) : '7day';
+			$current_range = ! empty( $_GET['range'] ) ? sanitize_text_field( wp_unslash( $_GET['range'] ) ) : '7day';
 			?>
 			<a
 				href="#"
@@ -128,7 +132,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 				'7day'       => __( 'Last 7 days', 'woocommerce-services' ),
 			);
 
-			$current_range = ! empty( $_GET['range'] ) ? sanitize_text_field( $_GET['range'] ) : '7day';
+			$current_range = ! empty( $_GET['range'] ) ? sanitize_text_field( wp_unslash( $_GET['range'] ) ) : '7day';
 
 			if ( ! in_array( $current_range, array( 'custom', 'year', 'last_month', 'month', '7day' ) ) ) {
 				$current_range = '7day';
@@ -197,7 +201,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 						<?php foreach ( $labels as $label ) : ?>
 							<tr>
 								<th scope="row">
-									<?php echo esc_html( get_date_from_gmt( date( 'Y-m-d H:i:s', intval( $label['created'] / 1000 ) ) ) ); ?>
+									<?php echo esc_html( get_date_from_gmt( gmdate( 'Y-m-d H:i:s', intval( $label['created'] / 1000 ) ) ) ); ?>
 								</th>
 								<td>
 									<?php
