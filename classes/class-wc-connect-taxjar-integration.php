@@ -2429,6 +2429,9 @@ class WC_Connect_TaxJar_Integration {
 	private function tax_rate_has_locations( $rate_id ) {
 		global $wpdb;
 
+		// WooCommerce has no API for one rate's locations: get_rates_for_tax_class() loads every
+		// row in the class. Not cached: the row's locations change within the request that asks.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
 		return (bool) $wpdb->get_var(
 			$wpdb->prepare(
 				"SELECT 1 FROM {$wpdb->prefix}woocommerce_tax_rate_locations WHERE tax_rate_id = %d LIMIT 1",
