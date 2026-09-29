@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 	class WC_Connect_Functions {
 		/**
@@ -169,16 +173,16 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			$rows = array(
 				array(
-					__( 'Country Code', 'woocommerce' ),
-					__( 'State Code', 'woocommerce' ),
-					__( 'ZIP/Postcode', 'woocommerce' ),
-					__( 'City', 'woocommerce' ),
-					__( 'Rate %', 'woocommerce' ),
-					__( 'Tax Name', 'woocommerce' ),
-					__( 'Priority', 'woocommerce' ),
-					__( 'Compound', 'woocommerce' ),
-					__( 'Shipping', 'woocommerce' ),
-					__( 'Tax Class', 'woocommerce' ),
+					__( 'Country Code', 'woocommerce-services' ),
+					__( 'State Code', 'woocommerce-services' ),
+					__( 'ZIP/Postcode', 'woocommerce-services' ),
+					__( 'City', 'woocommerce-services' ),
+					__( 'Rate %', 'woocommerce-services' ),
+					__( 'Tax Name', 'woocommerce-services' ),
+					__( 'Priority', 'woocommerce-services' ),
+					__( 'Compound', 'woocommerce-services' ),
+					__( 'Shipping', 'woocommerce-services' ),
+					__( 'Tax Class', 'woocommerce-services' ),
 				),
 			);
 
@@ -337,10 +341,10 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 
 			foreach ( $files as $file ) {
 				if ( ! file_exists( trailingslashit( $file['base'] ) . $file['file'] ) ) {
-					$file_handle = @fopen( trailingslashit( $file['base'] ) . $file['file'], 'wb' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_read_fopen
+					$file_handle = @fopen( trailingslashit( $file['base'] ) . $file['file'], 'wb' ); // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged, WordPress.WP.AlternativeFunctions.file_system_operations_fopen
 					if ( $file_handle ) {
-						fwrite( $file_handle, $file['content'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fwrite
-						fclose( $file_handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_read_fclose
+						fwrite( $file_handle, $file['content'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite
+						fclose( $file_handle ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fclose
 					}
 				}
 			}

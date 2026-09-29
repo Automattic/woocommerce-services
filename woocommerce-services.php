@@ -8,6 +8,8 @@
  * Author URI: https://woocommerce.com/
  * Text Domain: woocommerce-services
  * Domain Path: /i18n/languages/
+ * License: GPLv2 or later
+ * License URI: https://www.gnu.org/licenses/gpl-2.0.html
  * Version: 3.7.0
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
@@ -2251,9 +2253,12 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$encoded_arguments = wp_json_encode( $extra_args );
 			?>
-				<div class="wcc-root woocommerce <?php echo esc_attr( $root_view ); ?>" data-args="<?php echo wc_esc_json( $encoded_arguments ); ?>">
+				<div class="wcc-root woocommerce <?php echo esc_attr( $root_view ); ?>" data-args="<?php echo wc_esc_json( $encoded_arguments ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- wc_esc_json() escapes JSON for use in an HTML attribute. ?>">
 					<span class="form-troubles" style="opacity: 0">
-						<?php printf( esc_html__( 'Section not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), esc_url( $debug_page_uri ) ); ?>
+						<?php
+						/* translators: %s: URL of the status page */
+						printf( esc_html__( 'Section not loading? Visit the <a href="%s">status page</a> for troubleshooting steps.', 'woocommerce-services' ), esc_url( $debug_page_uri ) );
+						?>
 					</span>
 				</div>
 			<?php
@@ -2388,7 +2393,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				) .
 				sprintf(
 					/* translators: %s: documentation URL */
-					__( $banner->message, 'woocommerce-services' ),
+					__( $banner->message, 'woocommerce-services' ), // phpcs:ignore WordPress.WP.I18n.NonSingularStringLiteralText -- The message is supplied by the WooCommerce Tax server.
 					'https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-shipping/#how-do-i-migrate-from-wcst'
 				) .
 				sprintf(

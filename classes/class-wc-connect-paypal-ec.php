@@ -134,6 +134,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 						__( 'Link a PayPal account', 'woocommerce-services' ),
 						sprintf(
 							wp_kses(
+								/* translators: %s: PayPal signup URL */
 								__( 'To issue refunds via PayPal Checkout, you will need to <a href="%s">link a PayPal account</a> with the email address that received this payment.', 'woocommerce-services' ),
 								array( 'a' => array( 'href' => array() ) )
 							),
@@ -266,17 +267,19 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				$form_fields = $this->adjust_api_subject_form_field( $form_fields );
 
 				// Prevent user from changing Payment Action away from "Sale", the only option for which payments will work
-				$form_fields['paymentaction']['disabled']    = true;
+				$form_fields['paymentaction']['disabled'] = true;
+				/* translators: %s: existing description of the payment action setting */
 				$form_fields['paymentaction']['description'] = sprintf( __( '%s (Note that "authorizing payment only" requires linking a PayPal account.)', 'woocommerce-services' ), $form_fields['paymentaction']['description'] );
 
 				// Communicate WCS proxying and provide option to disable
-				$reset_link         = add_query_arg(
+				$reset_link = add_query_arg(
 					array(
 						'reroute_requests' => 'no',
 						'nonce'            => wp_create_nonce( 'reroute_requests' ),
 					),
 					wc_gateway_ppec()->get_admin_setting_link()
 				);
+				/* translators: %s: URL that resets the PayPal API credentials */
 				$api_creds_template = __( 'Payments will be authenticated by WooCommerce Tax and directed to the following email address. To disable this feature and link a PayPal account, <a href="%s">click here</a>.', 'woocommerce-services' );
 				if ( empty( $settings->api_username ) ) {
 					$api_creds_text                                = sprintf( $api_creds_template, esc_url( add_query_arg( 'environment', 'live', $reset_link ) ) );
@@ -290,13 +293,14 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				}
 			} else {
 				// Provide option to enable request proxying
-				$reset_link         = add_query_arg(
+				$reset_link = add_query_arg(
 					array(
 						'reroute_requests' => 'yes',
 						'nonce'            => wp_create_nonce( 'reroute_requests' ),
 					),
 					wc_gateway_ppec()->get_admin_setting_link()
 				);
+				/* translators: %s: URL that resets the PayPal API credentials */
 				$api_creds_template = __( 'To authenticate payments with WooCommerce Tax, <a href="%s">click here</a>.', 'woocommerce-services' );
 				if ( empty( $settings->api_username ) ) {
 					$api_creds_text                                 = sprintf( $api_creds_template, esc_url( add_query_arg( 'environment', 'live', $reset_link ) ) );
@@ -338,7 +342,7 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 				! isset( $_GET['page'] ) || 'wc-settings' !== $_GET['page'] ||
 				empty( $_GET['reroute_requests'] ) ||
 				empty( $_GET['nonce'] ) ||
-				! wp_verify_nonce( $_GET['nonce'], 'reroute_requests' ) // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+				! wp_verify_nonce( sanitize_text_field( wp_unslash( $_GET['nonce'] ) ), 'reroute_requests' )
 			) {
 				return;
 			}

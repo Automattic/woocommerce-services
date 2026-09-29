@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 
 	class WC_Connect_Service_Settings_Store {
@@ -290,7 +294,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 		 * Adds new labels to the order
 		 *
 		 * @param $order_id
-		 * @param array    $new_labels - labels to be added
+		 * @param array $new_labels - labels to be added
 		 */
 		public function add_labels_to_order( $order_id, $new_labels ) {
 			$labels_data = $this->get_label_order_meta_data( $order_id );
