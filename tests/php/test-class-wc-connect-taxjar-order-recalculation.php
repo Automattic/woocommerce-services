@@ -69,10 +69,15 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		update_option( WC_Connect_TaxJar_Integration::OPTION_NAME, 'yes' );
 
 		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
-		$logger     = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
-		$tracks     = $this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock();
+		// Nothing here is about TaxJar's answer: a lookup that does run finds it unreachable.
+		$api_client->method( 'proxy_request' )->willReturn( new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' ) );
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
+		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock();
 
-		$this->integration = new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks );
+		// Real notifier, as the plugin passes one: a lookup clears its notices first.
+		$notifier = new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false );
+
+		$this->integration = new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks, $notifier );
 		$this->integration->init();
 
 		// The row the order was taxed with, since overwritten (0%, new name) in the table.
@@ -1134,11 +1139,40 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Give the store nexus in the destination state, so an address change is looked up.
+	 *
+	 * With the store's nexus only in Colorado, a move out of state is answered without
+	 * asking TaxJar (no tax applies). A nexus address in the destination state makes the
+	 * lookup run, and the mocked API client lets it fail.
+	 *
+	 * @param string $state    State.
+	 * @param string $postcode ZIP.
+	 * @param string $city     City.
+	 * @return callable The filter callback, to remove afterwards.
+	 */
+	private function add_nexus_in( $state, $postcode, $city ) {
+		$callback = static function () use ( $state, $postcode, $city ) {
+			return array(
+				'id'      => 'nexus-' . strtolower( $state ),
+				'country' => 'US',
+				'state'   => $state,
+				'zip'     => $postcode,
+				'city'    => $city,
+				'street'  => '1 Nexus St',
+			);
+		};
+		add_filter( 'woocommerce_taxjar_nexus_address', $callback );
+
+		return $callback;
+	}
+
+	/**
 	 * @testdox calculate_taxes() then calculate_totals( true ) after an address change keeps the recorded tax.
 	 */
 	public function test_taxes_then_totals_after_address_change_keeps_recorded_tax() {
 		$fixture = $this->create_placed_order();
 		$order   = wc_get_order( $fixture['order']->get_id() );
+		$nexus   = $this->add_nexus_in( 'NY', '10001', 'New York' );
 
 		// No rate row matches NY, so WC's own recalculation wipes the tax lines.
 		$order->set_shipping_state( 'NY' );
@@ -1151,8 +1185,12 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		// The first call snapshots the recorded tax; the second finds the lines already
 		// wiped and must not throw that snapshot away.
-		$order->calculate_taxes();
-		$order->calculate_totals( true );
+		try {
+			$order->calculate_taxes();
+			$order->calculate_totals( true );
+		} finally {
+			remove_filter( 'woocommerce_taxjar_nexus_address', $nexus );
+		}
 
 		$order = wc_get_order( $order->get_id() );
 		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
@@ -1220,12 +1258,18 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order->set_billing_city( 'Gwinn' );
 		$order->save();
 
-		$order->calculate_taxes();
-		$order->calculate_totals( true );
+		$nexus = $this->add_nexus_in( 'MI', '49841', 'Gwinn' );
+		try {
+			$order->calculate_taxes();
+			$order->calculate_totals( true );
+		} finally {
+			remove_filter( 'woocommerce_taxjar_nexus_address', $nexus );
+		}
 
 		$order = wc_get_order( $order->get_id() );
 		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
 	}
+
 	/**
 	 * @testdox Swapping a free shipping line for a paid one gets the untaxed-item note.
 	 */

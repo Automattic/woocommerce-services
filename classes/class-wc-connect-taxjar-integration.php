@@ -2754,6 +2754,13 @@ class WC_Connect_TaxJar_Integration {
 
 		$snapshot = $this->snapshot_order_taxes( $order );
 
+		// WC's own lookup in an earlier calculate_taxes() may have wiped the tax lines.
+		// The earlier snapshot then still holds what was charged, and its own decision
+		// about asking TaxJar; an empty one must not replace it.
+		if ( empty( $snapshot['tax_lines'] ) && ! empty( $this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ]['tax_lines'] ) ) {
+			return;
+		}
+
 		// What changed has to be read now: WC saves the order (and its items) while it
 		// recalculates, which clears the pending changes this relies on.
 		$snapshot['base_changes']   = $this->find_order_tax_base_changes( $order );
