@@ -70,6 +70,7 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 					return new WP_Error(
 						'wcc_server_error',
 						sprintf(
+							/* translators: %d: HTTP response code */
 							__( 'Error: The WooCommerce Tax server returned HTTP code: %d', 'woocommerce-services' ),
 							$response_code
 						),
@@ -91,6 +92,7 @@ if ( ! class_exists( 'WC_Connect_API_Client_Live' ) ) {
 					return new WP_Error(
 						'wcc_server_empty_response',
 						sprintf(
+							/* translators: %d: HTTP response code */
 							__( 'Error: The WooCommerce Tax server returned ( %d ) and an empty response body.', 'woocommerce-services' ),
 							$response_code
 						),

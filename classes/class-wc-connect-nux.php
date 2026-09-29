@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 	class WC_Connect_Nux {
@@ -174,6 +178,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					'content'  => sprintf(
 						'<h3>%s</h3><p>%s</p>',
 						__( 'Discounted Shipping Labels', 'woocommerce-services' ),
+						/* translators: %s: list of supported carriers */
 						sprintf( __( "When you're ready, purchase and print discounted labels from %s right here.", 'woocommerce-services' ), implode( ' or ', $supported_carriers ) )
 					),
 					'position' => array(
@@ -652,9 +657,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 					<?php if ( isset( $content['should_show_terms'] ) && $content['should_show_terms'] ) : ?>
 						<p class="wcs-nux__notice-content-tos">
 							<?php
-							/* translators: %1$s example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >" */
 							printf(
 								wp_kses(
+									/* translators: %1$s: button text, example values include "Install Jetpack and CONNECT >", "Activate Jetpack and CONNECT >", "CONNECT >", %2$s: Terms of Service URL, %3$s: Privacy Policy URL */
 									__( 'By clicking "%1$s", you agree to our <a href="%2$s">Terms of Service</a> and have read our <a href="%3$s">Privacy Policy</a>.', 'woocommerce-services' ),
 									array(
 										'a' => array(
