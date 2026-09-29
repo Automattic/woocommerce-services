@@ -31,6 +31,7 @@ jobs:
       test-security: true
       test-phpcompatibility: true
       test-validation: true
+      test-plugin-check: true
       test-phpstan: false # TODO: Enable this once the PHPStan tests are fixed
 
   handle-success:

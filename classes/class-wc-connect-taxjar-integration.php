@@ -283,11 +283,14 @@ class WC_Connect_TaxJar_Integration {
 		$enabled                = $this->is_enabled();
 		$backedup_tax_rates_url = admin_url( '/admin.php?page=wc-status&tab=connect#tax-rate-backups' );
 
+		/* translators: %1$s: opening link tag, %2$s: closing link tag */
 		$powered_by_wct_notice = '<p>' . sprintf( __( 'Automated taxes take over from the WooCommerce core tax settings. This means that "Display prices" will be set to Excluding tax and tax will be Calculated using Customer shipping address. %1$sLearn more about Automated taxes here.%2$s', 'woocommerce-services' ), '<a href="https://woocommerce.com/document/woocommerce-shipping-and-tax/woocommerce-tax/#setup-and-configuration">', '</a>' ) . '</p>';
 
+		/* translators: %1$s: opening link tag, %2$s: closing link tag */
 		$backup_notice = ( ! empty( WC_Connect_Functions::get_backed_up_tax_rate_files() ) ) ? '<p>' . sprintf( __( 'Your previous tax rates were backed up and can be downloaded %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>' : '';
 
 		$desctructive_action_notice = '<p>' . __( 'Enabling this option overrides any tax rates you have manually added.', 'woocommerce-services' ) . '</p>';
+		/* translators: %1$s: opening link tag, %2$s: closing link tag */
 		$desctructive_backup_notice = '<p>' . sprintf( __( 'Your existing tax rates will be backed-up to a CSV that you can download %1$shere%2$s.', 'woocommerce-services' ), '<a href="' . esc_url( $backedup_tax_rates_url ) . '">', '</a>' ) . '</p>';
 
 		$tax_nexus_notice = '<p>' . $this->get_tax_tooltip() . '</p>';
@@ -520,10 +523,13 @@ class WC_Connect_TaxJar_Integration {
 			}
 
 			if ( $state_zip_mismatch ) {
+				/* translators: %s: ZIP/Postal code checkout field label */
 				$message = sprintf( _x( '%s does not match the selected state.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			} elseif ( $malformed_postcode ) {
+				/* translators: %s: ZIP/Postal code checkout field label */
 				$message = sprintf( _x( '%s is not formatted correctly.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			} else {
+				/* translators: %s: ZIP/Postal code checkout field label */
 				$message = sprintf( _x( 'Invalid %s entered.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			}
 
@@ -1785,7 +1791,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( ! is_array( $address ) ) {
-			$this->logger->error( 'Nexus Address ERRORS: Nexus addresses has invalid format' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
+			$this->logger->error( 'Nexus Address ERRORS: Nexus addresses has invalid format' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . wp_json_encode( $address, JSON_PARTIAL_OUTPUT_ON_ERROR ), 'WCS Tax' );
 
 			return false;
 		}
@@ -1807,10 +1813,9 @@ class WC_Connect_TaxJar_Integration {
 			$value = $address[ $field ];
 
 			if ( null !== $value && ( ! is_scalar( $value ) || is_bool( $value ) ) ) {
-				// wp_json_encode() returns false for unencodable payloads, which is
-				// what this branch catches; fall back so the log keeps the address.
-				$encoded = wp_json_encode( $address );
-				$this->logger->error( 'Nexus Address ERRORS: [' . $field . '] field must be a string' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . ( false === $encoded ? print_r( $address, true ) : $encoded ), 'WCS Tax' );
+				// This branch catches payloads wp_json_encode() cannot fully encode, so ask
+				// for partial output to keep the rest of the address in the log.
+				$this->logger->error( 'Nexus Address ERRORS: [' . $field . '] field must be a string' . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . wp_json_encode( $address, JSON_PARTIAL_OUTPUT_ON_ERROR ), 'WCS Tax' );
 
 				return false;
 			}
@@ -1846,7 +1851,7 @@ class WC_Connect_TaxJar_Integration {
 			// the key the filter author actually used.
 			$errors = str_replace( '[postcode]', '[zip]', $errors );
 
-			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . print_r( $address, true ), 'WCS Tax' );
+			$this->logger->error( 'Nexus Address ERRORS: ' . implode( ', ', $errors ) . PHP_EOL . 'Nexus address removed from request body.' . PHP_EOL . wp_json_encode( $address, JSON_PARTIAL_OUTPUT_ON_ERROR ), 'WCS Tax' );
 
 			return false;
 		}
@@ -2625,7 +2630,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( 'not set' === $to_state || 'not set' === $to_country || null === $has_nexus ) {
-			throw new Exception( sprintf( 'One or more values are not set : to_state=>%1$s, to_country=>%2$s, has_nexus=>%3$s', $to_state, $to_country, json_encode( $has_nexus ) ) );
+			throw new Exception( sprintf( 'One or more values are not set : to_state=>%1$s, to_country=>%2$s, has_nexus=>%3$s', esc_html( $to_state ), esc_html( $to_country ), esc_html( wp_json_encode( $has_nexus ) ) ) );
 		}
 	}
 
