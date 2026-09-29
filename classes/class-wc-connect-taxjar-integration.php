@@ -557,11 +557,13 @@ class WC_Connect_TaxJar_Integration {
 	public function _error( $message ) {
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
-		// ignore error messages caused by customer input
+		// Show errors caused by customer input to the customer instead of logging them.
+		// Only where there is a customer to show them to: REST, cron and WP-CLI requests
+		// have no WC session, so those errors are logged.
 		$state_zip_mismatch = false !== strpos( $formatted_message, 'to_zip' ) && false !== strpos( $formatted_message, 'is not used within to_state' );
 		$invalid_postcode   = false !== strpos( $formatted_message, 'isn\'t a valid postal code for' );
 		$malformed_postcode = false !== strpos( $formatted_message, 'zip code has incorrect format' );
-		if ( ! is_admin() && ( $state_zip_mismatch || $invalid_postcode || $malformed_postcode ) ) {
+		if ( ! is_admin() && StoreNoticesNotifier::wc_session_exists() && ( $state_zip_mismatch || $invalid_postcode || $malformed_postcode ) ) {
 			$fields              = WC()->countries->get_address_fields();
 			$postcode_field_name = __( 'ZIP/Postal code', 'woocommerce-services' );
 			if ( isset( $fields['billing_postcode'] ) && isset( $fields['billing_postcode']['label'] ) ) {

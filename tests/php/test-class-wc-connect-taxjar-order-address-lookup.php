@@ -55,6 +55,13 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	private $taxjar_down = false;
 
 	/**
+	 * Whether the fake TaxJar rejects the request as a ZIP that is not in the state.
+	 *
+	 * @var bool
+	 */
+	private $zip_not_in_state = false;
+
+	/**
 	 * When true the fake TaxJar exempts lines of $20 or more from the state rate, the
 	 * way thresholds (such as clothing in some states) make two lines differ.
 	 *
@@ -103,9 +110,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		update_option( 'woocommerce_store_postcode', '80202' );
 		update_option( WC_Connect_TaxJar_Integration::OPTION_NAME, 'yes' );
 
-		$this->requests        = array();
-		$this->taxjar_down     = false;
-		$this->state_threshold = false;
+		$this->requests         = array();
+		$this->taxjar_down      = false;
+		$this->zip_not_in_state = false;
+		$this->state_threshold  = false;
 
 		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
 		$api_client->method( 'proxy_request' )->willReturnCallback( array( $this, 'fake_taxjar' ) );
@@ -157,6 +165,19 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 
 		if ( $this->taxjar_down ) {
 			return new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' );
+		}
+
+		if ( $this->zip_not_in_state ) {
+			return array(
+				'response' => array( 'code' => 400 ),
+				'body'     => wp_json_encode(
+					array(
+						'status' => 400,
+						'error'  => 'Bad Request',
+						'detail' => 'to_zip ' . $body['to_zip'] . ' is not used within to_state ' . $body['to_state'],
+					)
+				),
+			);
 		}
 
 		$rates = array( 'state_tax_rate' => 0.029 );
@@ -993,5 +1014,93 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 
 		$this->assertCount( 1, $this->requests );
 		$this->assert_order_tax( wc_get_order( $order->get_id() ), 0.80, 0.0, 10.80 );
+	}
+
+	/**
+	 * Run a callback without a WooCommerce session, as REST, cron and WP-CLI requests do.
+	 *
+	 * @param callable $callback Callback.
+	 * @return mixed The callback's return value.
+	 */
+	private function without_wc_session( callable $callback ) {
+		$session      = WC()->session;
+		WC()->session = null;
+
+		try {
+			return $callback();
+		} finally {
+			WC()->session = $session;
+		}
+	}
+
+	/**
+	 * Replace the integration's logger with a mock that expects the error to be logged.
+	 *
+	 * @param string $contains Text the logged error must contain.
+	 */
+	private function expect_logged_error( $contains ) {
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
+		$logger->expects( $this->atLeastOnce() )->method( 'error' )->with( $this->stringContains( $contains ) );
+		$this->integration->logger = $logger;
+	}
+
+	/**
+	 * @testdox A REST edit whose ZIP is not in the state keeps the tax, notes it and logs the error, without a session.
+	 */
+	public function test_zip_not_in_state_without_session_keeps_tax() {
+		$fixture                = $this->create_placed_order();
+		$this->zip_not_in_state = true;
+		$this->expect_logged_error( 'is not used within to_state' );
+
+		$order = $this->without_wc_session(
+			function () use ( $fixture ) {
+				return $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '43215', 'Boulder' ) ) );
+			}
+		);
+
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+		$this->assertCount( 1, $this->requests );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'could not be updated', $notes[0] );
+	}
+
+	/**
+	 * @testdox A REST order created with a malformed ZIP is saved with a note and the error is logged, without a session.
+	 */
+	public function test_malformed_zip_on_create_without_session_does_not_fatal() {
+		$this->expect_logged_error( 'zip code has incorrect format' );
+
+		$order = $this->without_wc_session(
+			function () {
+				return $this->rest_create(
+					array(
+						'billing'  => self::address( '8030A', 'Boulder' ),
+						'shipping' => self::address( '8030A', 'Boulder' ),
+					)
+				);
+			}
+		);
+
+		$this->assertInstanceOf( WC_Order::class, $order );
+		$this->assertCount( 0, $this->requests, 'A malformed ZIP is rejected before any request is sent.' );
+		$this->assertCount( 1, $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox The store notifier reports no notice and adds none when there is no session.
+	 */
+	public function test_notifier_without_session_does_not_fatal() {
+		$notifier = new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false );
+
+		$has_notice = $this->without_wc_session(
+			function () use ( $notifier ) {
+				$notifier->error( 'ZIP/Postal code does not match the selected state.', array(), 'taxjar' );
+
+				return $notifier->has_notice( 'ZIP/Postal code does not match the selected state.', 'error', array(), 'taxjar' );
+			}
+		);
+
+		$this->assertFalse( $has_notice );
 	}
 }
