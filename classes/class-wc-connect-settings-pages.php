@@ -1,5 +1,9 @@
 <?php
 
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 
 	class WC_Connect_Settings_Pages {
@@ -115,13 +119,13 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 			}
 
 			if ( isset( $_GET['from_order'] ) ) {
-				$from_order               = sanitize_text_field( $_GET['from_order'] );
+				$from_order               = sanitize_text_field( wp_unslash( $_GET['from_order'] ) );
 				$extra_args['order_id']   = $from_order;
 				$extra_args['order_href'] = get_edit_post_link( $from_order );
 			}
 
 			if ( ! empty( $_GET['carrier'] ) ) {
-				$carrier                  = sanitize_text_field( $_GET['carrier'] );
+				$carrier                  = sanitize_text_field( wp_unslash( $_GET['carrier'] ) );
 				$extra_args['carrier']    = $carrier;
 				$extra_args['continents'] = $this->continents->get();
 

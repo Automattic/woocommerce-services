@@ -57,6 +57,7 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 			$error = new WP_Error(
 				'save_failed',
 				sprintf(
+					/* translators: %s: error message */
 					__( 'Unable to update settings. %s', 'woocommerce-services' ),
 					$result->get_error_message()
 				),
