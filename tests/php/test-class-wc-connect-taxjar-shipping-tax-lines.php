@@ -444,7 +444,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Ids of rows named "... : No Other Tax", the 0% rows a lookup adds beside a
+	 * Ids of rows named "... : Manual Rate Nullified (Automated Taxes)", the 0% rows a lookup adds beside a
 	 * state-wide rate.
 	 *
 	 * @return int[]
@@ -452,11 +452,11 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	private function no_other_tax_rate_ids() {
 		global $wpdb;
 
-		return array_map( 'intval', $wpdb->get_col( "SELECT tax_rate_id FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_name LIKE '%No Other Tax'" ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		return array_map( 'intval', $wpdb->get_col( "SELECT tax_rate_id FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_name LIKE '%Manual Rate Nullified (Automated Taxes)'" ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
 	}
 
 	/**
-	 * Assert an order carries no tax item or shipping tax for the 0% "No Other Tax"
+	 * Assert an order carries no tax item or shipping tax for the 0% "Manual Rate Nullified"
 	 * rows and none for the merchant's row.
 	 *
 	 * @param WC_Order $order    Order.
@@ -466,8 +466,8 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	private function assert_no_extra_tax_items( $order, $merchant, $when ) {
 		$shadow = $this->no_other_tax_rate_ids();
 
-		$this->assertEmpty( array_intersect( $shadow, $this->tax_item_rate_ids( $order ) ), "$when: a No Other Tax tax item is on the order." );
-		$this->assertEmpty( array_intersect( $shadow, $this->shipping_line_rate_ids( $order ) ), "$when: the shipping line references a No Other Tax row." );
+		$this->assertEmpty( array_intersect( $shadow, $this->tax_item_rate_ids( $order ) ), "$when: a Manual Rate Nullified tax item is on the order." );
+		$this->assertEmpty( array_intersect( $shadow, $this->shipping_line_rate_ids( $order ) ), "$when: the shipping line references a Manual Rate Nullified row." );
 		$this->assertNotContains( $merchant, $this->tax_item_rate_ids( $order ), "$when: the merchant's state-wide row was charged." );
 	}
 

@@ -4227,7 +4227,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			array(
 				'country'   => 'US',
 				'state'     => 'MI',
-				'name'      => 'MARQUETTE GWINN : No Other Tax',
+				'name'      => 'MARQUETTE GWINN : Manual Rate Nullified (Automated Taxes)',
 				'priority'  => $priority,
 				'rate'      => '0.0000',
 				'postcodes' => array( '49841' ),
@@ -5624,5 +5624,39 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		if ( $created_class ) {
 			WC_Tax::delete_tax_class_by( 'slug', $expected_slug );
 		}
+	}
+
+	/**
+	 * @testdox The 0% row beside a state-wide rate is named for why the merchant's rate does not apply.
+	 */
+	public function test_nullified_rate_name_explains_the_row() {
+		$method = new ReflectionMethod( WC_Connect_TaxJar_Integration::class, 'generate_nullified_rate_name' );
+		$method->setAccessible( true );
+
+		$this->assertSame(
+			'MARQUETTE GWINN : Manual Rate Nullified (Automated Taxes)',
+			$method->invoke(
+				null,
+				'US',
+				array(
+					'county' => 'MARQUETTE',
+					'city'   => 'GWINN',
+				)
+			),
+			'A US row carries the county and city prefix.'
+		);
+		$this->assertSame( 'Manual Rate Nullified (Automated Taxes)', $method->invoke( null, 'US', array() ), 'Without jurisdictions there is no prefix.' );
+		$this->assertSame(
+			'Manual Rate Nullified (Automated Taxes)',
+			$method->invoke(
+				null,
+				'CA',
+				array(
+					'county' => 'X',
+					'city'   => 'Y',
+				)
+			),
+			'Outside the US the label is used as is, not upper-cased.'
+		);
 	}
 }

@@ -191,6 +191,33 @@ class WC_Connect_TaxJar_Integration {
 		return ( '' !== $jurisdiction ? $jurisdiction . ' : ' : '' ) . $rate_name;
 	}
 
+	/**
+	 * Name of the 0% row that keeps a merchant's state-wide rate from applying to a looked-up town.
+	 *
+	 * The name is stored with the row and copied to any order it taxes, so it has to say
+	 * why the merchant's own rate does not apply there. US rows carry the same county and
+	 * city prefix as the rows TaxJar's rates are stored in.
+	 *
+	 * @param string $to_country    The destination country.
+	 * @param array  $jurisdictions Tax jurisdictions.
+	 *
+	 * @return string
+	 */
+	private static function generate_nullified_rate_name( string $to_country, array $jurisdictions ) {
+		/* translators: Name of a 0% tax rate added when automated taxes replace a store's manual rate for one town. */
+		$label = __( 'Manual Rate Nullified (Automated Taxes)', 'woocommerce-services' );
+
+		if ( 'US' !== $to_country ) {
+			return $label;
+		}
+
+		$county       = isset( $jurisdictions['county'] ) ? trim( (string) $jurisdictions['county'] ) : '';
+		$city         = isset( $jurisdictions['city'] ) ? trim( (string) $jurisdictions['city'] ) : '';
+		$jurisdiction = trim( $county . ' ' . $city );
+
+		return ( '' !== $jurisdiction ? $jurisdiction . ' : ' : '' ) . $label;
+	}
+
 	public function init() {
 		// Only enable WCS TaxJar integration if the official TaxJar plugin isn't active.
 		if ( class_exists( 'WC_Taxjar' ) ) {
@@ -2511,7 +2538,7 @@ class WC_Connect_TaxJar_Integration {
 				array(
 					'tax_rate_country'  => $address->country(),
 					'tax_rate_state'    => $address->state_compact(),
-					'tax_rate_name'     => self::generate_itemized_tax_rate_name( 'no_other_tax_rate', $address->country(), $jurisdictions ),
+					'tax_rate_name'     => self::generate_nullified_rate_name( $address->country(), $jurisdictions ),
 					'tax_rate_priority' => (int) $row['tax_rate_priority'],
 					'tax_rate_compound' => false,
 					'tax_rate_shipping' => 0,
