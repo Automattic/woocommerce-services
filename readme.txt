@@ -6,7 +6,7 @@ Requires at least: 7.0
 Requires Plugins: woocommerce
 Tested up to: 7.1
 WC requires at least: 10.9
-WC tested up to: 11.1
+WC tested up to: 11.2
 Stable tag: 3.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.1 - 2026-xx-xx =
+* Tweak - WooCommerce 11.2 Compatibility.
 * Fix   - Keep the TaxJar product tax code when recalculating an order in the admin for tax classes whose name has more than one word, such as "Reduced rate 12345", so the order is taxed the same as at checkout. Products in the built-in "Zero rate" class also stay tax-free when the order is recalculated.
 * Fix   - Unslash and sanitize request values in the label reports, settings, migration survey and tracking code, and stop using print_r in log messages.
 * Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
