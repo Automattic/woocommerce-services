@@ -1,7 +1,9 @@
-# Plugin Check warnings that fired when this check was introduced.
+# Plugin Check warnings that are reviewed and accepted.
 #
-# CI fails on any warning that is not listed here. One "<code> <path>" pair per
-# line. Add an entry only with a reason, and remove it once the warning is gone.
+# Errors always fail. A warning fails unless it is listed here, as one
+# "<code> <path>" pair per line, so a code accepted in one file is still
+# reported in another. Add an entry only with a reason, and remove it once the
+# warning is gone - the check prints entries that no longer fire.
 
 # The plugin name and slug contain "WooCommerce". They cannot change.
 trademarked_term readme.txt

@@ -1,0 +1,62 @@
+name: Plugin Check
+
+# Runs the WordPress.org Plugin Check against the built package, not the
+# repository, so what is scanned is what merchants install. Scanning the
+# repository instead reports dev-only files - dotfiles, shell scripts, AGENTS.md
+# - as errors, and cannot see anything the build generates, such as languages/.
+
+on:
+    workflow_call:
+        inputs:
+            extension:
+                description: 'Plugin slug, which is also the folder name inside the zip.'
+                required: true
+                type: string
+            artifact:
+                description: 'Name of the artifact holding the built zip.'
+                required: true
+                type: string
+
+jobs:
+    plugin-check:
+        name: Run Plugin Check
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        steps:
+            - name: Checkout the allow-list
+              uses: actions/checkout@v4
+              with:
+                  sparse-checkout: |
+                      .github/plugin-check-allowed-warnings.txt
+                      .github/scripts/plugin-check-warnings.sh
+                  sparse-checkout-cone-mode: false
+                  path: plugin-check-config
+
+            - name: Download the built plugin
+              uses: actions/download-artifact@v4
+              with:
+                  name: ${{ inputs.artifact }}
+                  path: ${{ runner.temp }}/package
+
+            - name: Unpack the built plugin
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  unzip -q "${{ runner.temp }}/package/${{ inputs.extension }}.zip" -d "${{ runner.temp }}/plugin"
+                  # Fail here rather than letting Plugin Check scan an empty directory.
+                  test -f "${{ runner.temp }}/plugin/${{ inputs.extension }}/${{ inputs.extension }}.php"
+
+            - name: Run Plugin Check
+              # The action exits non-zero on any finding. The allow-list step below
+              # decides what actually fails, so the result is read there instead.
+              continue-on-error: true
+              uses: WordPress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1.1.9
+              with:
+                  build-dir: ${{ runner.temp }}/plugin/${{ inputs.extension }}
+
+            - name: Check the findings against the allow-list
+              shell: bash
+              run: |
+                  bash plugin-check-config/.github/scripts/plugin-check-warnings.sh \
+                    "${{ runner.temp }}/plugin-check-results.txt" \
+                    plugin-check-config/.github/plugin-check-allowed-warnings.txt
