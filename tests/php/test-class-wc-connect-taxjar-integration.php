@@ -2585,6 +2585,20 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * The posted fields are cleaned before the compare, so the saved ones must be too.
+	 * A saved postcode with a double space still matches itself coming back from the form.
+	 */
+	public function test_backend_totals_matches_a_saved_address_that_cleaning_changes() {
+		$order = $this->create_order_for_backend_street( false );
+		$order->set_billing_postcode( '81323  1234' );
+		$order->save();
+		$post             = $this->recalculate_post_without_street();
+		$post['postcode'] = '81323  1234';
+
+		$this->assertSame( '400 Central Ave', $this->backend_street_sent_for( $order, $post, 'shipping' ) );
+	}
+
+	/**
 	 * Only the side core read from counts. Taxes based on billing, the billing
 	 * address was edited without saving, and the posted fields happen to equal the
 	 * saved shipping address: the shipping street does not belong to this request.

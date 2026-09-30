@@ -1031,12 +1031,14 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Fill in the street when the Recalculate request arrived without one.
+	 * Fill in the street when an order-items request arrived without one.
 	 *
 	 * Core's Recalculate button posts country, state, postcode and city, and the
 	 * order-screen script (`client/new-order-taxjar.js`) adds `street`. When that script
 	 * did not run (not loaded, stopped by another script's error, or another handler
 	 * replaced the request data), the key is missing and TaxJar would get no street.
+	 * Core also posts the address, without a street, when a line item is deleted, so
+	 * this runs for those requests too.
 	 *
 	 * The order's saved street is used only when the posted address matches the saved
 	 * address on the side core read it from. Otherwise the merchant edited the address
@@ -1059,7 +1061,11 @@ class WC_Connect_TaxJar_Integration {
 			return $address;
 		}
 
-		// The same rule core's get_taxable_address() uses to pick the side it posts.
+		// Core's order screen posts the shipping side when taxes are based on shipping and
+		// the shipping country field is filled, else billing. PHP only has the saved order,
+		// so it applies that rule to the saved shipping country. The two differ only when
+		// the merchant changed the shipping country without saving. The comparison below
+		// then drops the street, unless both sides share country, state, postcode and city.
 		$type  = ( 'shipping' === get_option( 'woocommerce_tax_based_on' ) && '' !== (string) $order->get_shipping_country() ) ? 'shipping' : 'billing';
 		$saved = Address::from_order( $order, $type );
 
@@ -1069,11 +1075,11 @@ class WC_Connect_TaxJar_Integration {
 			|| $saved->postcode() !== $posted->postcode()
 			|| $saved->city() !== $posted->city()
 		) {
-			$this->_log( 'Recalculate request had no street and the posted address does not match the saved ' . $type . ' address; calculating without a street.' );
+			$this->_log( 'Order items were saved without a street and the posted address does not match the saved ' . $type . ' address; calculating without a street.' );
 			return $address;
 		}
 
-		$this->_log( 'Recalculate request had no street; using the saved ' . $type . ' street.' );
+		$this->_log( 'Order items were saved without a street; using the saved ' . $type . ' street.' );
 		$address['to_street'] = $saved->street();
 
 		return $address;

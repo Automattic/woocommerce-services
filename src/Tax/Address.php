@@ -274,22 +274,24 @@ final class Address {
 	 * @return self
 	 */
 	public static function from_order( WC_Order $order, string $type ): self {
+		// Clean the same way from_post_request() does, so a saved address compares
+		// equal to the same address arriving through the request.
 		if ( 'shipping' === $type ) {
 			return new self(
-				(string) $order->get_shipping_country(),
-				(string) $order->get_shipping_state(),
-				(string) $order->get_shipping_postcode(),
-				(string) $order->get_shipping_city(),
-				(string) $order->get_shipping_address_1()
+				(string) wc_clean( $order->get_shipping_country() ),
+				(string) wc_clean( $order->get_shipping_state() ),
+				(string) wc_clean( $order->get_shipping_postcode() ),
+				(string) wc_clean( $order->get_shipping_city() ),
+				(string) wc_clean( $order->get_shipping_address_1() )
 			);
 		}
 
 		return new self(
-			(string) $order->get_billing_country(),
-			(string) $order->get_billing_state(),
-			(string) $order->get_billing_postcode(),
-			(string) $order->get_billing_city(),
-			(string) $order->get_billing_address_1()
+			(string) wc_clean( $order->get_billing_country() ),
+			(string) wc_clean( $order->get_billing_state() ),
+			(string) wc_clean( $order->get_billing_postcode() ),
+			(string) wc_clean( $order->get_billing_city() ),
+			(string) wc_clean( $order->get_billing_address_1() )
 		);
 	}
 
