@@ -335,6 +335,7 @@ if ( ! class_exists( 'WC_Connect_Options' ) ) {
 		 */
 		private static function delete_all_shipping_methods_options() {
 			global $wpdb;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Needs the raw method_id/instance_id rows of every shipping zone method; WC_Shipping_Zones would instantiate each method object, which is exactly what must not happen while the plugin's options are being torn down. Runs once, on uninstall (WC_Connect_Loader::plugin_uninstall()), so there is nothing to cache.
 			$methods = $wpdb->get_results( "SELECT * FROM {$wpdb->prefix}woocommerce_shipping_zone_methods " );
 
 			foreach ( (array) $methods as $method ) {

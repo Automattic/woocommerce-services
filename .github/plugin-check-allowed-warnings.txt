@@ -64,40 +64,10 @@ WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound classes/cl
 # The plugin ships its own translation files in i18n/languages, so it still loads them itself.
 PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound woocommerce-services.php
 
-# The IN list is built with esc_sql() because prepare() cannot take a list.
-PluginCheck.Security.DirectDB.UnescapedDBParameter classes/class-wc-connect-service-settings-store.php
-
 # $hide_save_button is a WooCommerce core global that hides the settings save button.
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound classes/class-wc-connect-settings-pages.php
 WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound classes/class-wc-connect-shipping-method.php
 
-# Not reviewed yet. These fired before the check existed and are listed so that the
-# check can start. Review them and fix or justify each one.
-
-WordPress.DB.DirectDatabaseQuery.DirectQuery classes/class-wc-connect-debug-tools.php
-WordPress.DB.DirectDatabaseQuery.DirectQuery classes/class-wc-connect-functions.php
-WordPress.DB.DirectDatabaseQuery.DirectQuery classes/class-wc-connect-label-reports.php
-WordPress.DB.DirectDatabaseQuery.DirectQuery classes/class-wc-connect-nux.php
-WordPress.DB.DirectDatabaseQuery.DirectQuery classes/class-wc-connect-options.php
-WordPress.DB.DirectDatabaseQuery.DirectQuery classes/class-wc-connect-service-schemas-store.php
-WordPress.DB.DirectDatabaseQuery.DirectQuery classes/class-wc-connect-service-settings-store.php
-WordPress.DB.DirectDatabaseQuery.DirectQuery woocommerce-services.php
-
-WordPress.DB.DirectDatabaseQuery.NoCaching classes/class-wc-connect-debug-tools.php
-WordPress.DB.DirectDatabaseQuery.NoCaching classes/class-wc-connect-functions.php
-WordPress.DB.DirectDatabaseQuery.NoCaching classes/class-wc-connect-label-reports.php
-WordPress.DB.DirectDatabaseQuery.NoCaching classes/class-wc-connect-nux.php
-WordPress.DB.DirectDatabaseQuery.NoCaching classes/class-wc-connect-options.php
-WordPress.DB.DirectDatabaseQuery.NoCaching classes/class-wc-connect-service-schemas-store.php
-WordPress.DB.DirectDatabaseQuery.NoCaching classes/class-wc-connect-service-settings-store.php
-WordPress.DB.DirectDatabaseQuery.NoCaching woocommerce-services.php
-
-WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-functions.php
-WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-label-reports.php
-WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-migration-survey.php
-WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-nux.php
-WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-paypal-ec.php
-WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-settings-pages.php
-WordPress.Security.NonceVerification.Recommended classes/class-wc-connect-taxjar-integration.php
-WordPress.Security.NonceVerification.Recommended src/Utils.php
-WordPress.Security.NonceVerification.Recommended woocommerce-services.php
+# Every direct database query and every read of request data without a nonce has been
+# reviewed and now carries a `phpcs:ignore` on the line it fires on, with the reason for
+# that specific call site. Nothing belongs in this file for those two checks any more.

@@ -67,6 +67,7 @@ class Utils {
 	 * @return string The sanitized data as a string.
 	 */
 	public static function get_sanitized_request_data( string $key, string $default = '' ): string {
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- This accessor is how the nonce itself is read: every caller is a wp_verify_nonce() call in WC_Connect_Migration_Survey. Verifying a nonce here would be circular; the callers are responsible for it.
 		return sanitize_text_field( wp_unslash( $_REQUEST[ $key ] ?? $default ) );
 	}
 }
