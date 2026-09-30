@@ -1,9 +1,243 @@
 <?php
 
+require_once __DIR__ . '/class-wcs-test-nux-redirect.php';
+
 class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
+
+	/**
+	 * Request URI the banner links are assumed to have been clicked from.
+	 *
+	 * @var string
+	 */
+	const REQUEST_URI = '/wp-admin/plugins.php';
+
+	/**
+	 * The request URI to put back after each test.
+	 *
+	 * @var string|null
+	 */
+	private $original_request_uri;
+
+	/**
+	 * The store country to put back after each test.
+	 *
+	 * @var mixed
+	 */
+	private $original_default_country;
 
 	public static function set_up_before_class() {
 		require_once __DIR__ . '/../../classes/class-wc-connect-nux.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-tracks.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-options.php';
+		require_once ABSPATH . 'wp-admin/includes/plugin.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
+		require_once ABSPATH . 'wp-admin/includes/screen.php';
+	}
+
+	/**
+	 * Give the banner handlers a request to build their links and redirects from, and
+	 * turn the redirect that ends a verified action into an exception.
+	 *
+	 * The handlers call exit immediately after redirecting. Left alone that ends the
+	 * PHPUnit process with status 0, so an action that got through the nonce check
+	 * would end the run green instead of failing it. Throwing from the wp_redirect
+	 * filter unwinds before the exit is reached, which both keeps the rejection tests
+	 * honest and makes the success path assertable.
+	 */
+	public function set_up() {
+		parent::set_up();
+
+		$this->original_request_uri = isset( $_SERVER['REQUEST_URI'] )
+			? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) )
+			: null;
+		$_SERVER['REQUEST_URI']     = self::REQUEST_URI;
+
+		$this->original_default_country = get_option( 'woocommerce_default_country' );
+
+		add_filter( 'wp_redirect', array( $this, 'throw_on_redirect' ) );
+	}
+
+	/**
+	 * Stand in for the redirect that ends a verified banner action.
+	 *
+	 * @param string $location Redirect target.
+	 *
+	 * @throws WCS_Test_Nux_Redirect Always.
+	 */
+	public function throw_on_redirect( $location ) {
+		throw new WCS_Test_Nux_Redirect( esc_html( $location ) );
+	}
+
+	/**
+	 * Put an admin on the Plugins page of a US store, where the banners render.
+	 *
+	 * @return WC_Connect_Nux
+	 */
+	private function arm_banner() {
+		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+		update_option( 'woocommerce_default_country', 'US:CA' );
+		set_current_screen( 'plugins' );
+
+		$nux = $this->get_nux();
+
+		// The verified paths record a Tracks event; keep that from reaching the network.
+		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'opted_in' ) )
+			->getMock();
+
+		$property = new ReflectionProperty( 'WC_Connect_Nux', 'tracks' );
+		$property->setAccessible( true );
+		$property->setValue( $nux, $tracks );
+
+		return $nux;
+	}
+
+	/**
+	 * Run a banner handler, swallowing the banner markup it prints when it does not redirect.
+	 *
+	 * @param WC_Connect_Nux $nux    Instance under test.
+	 * @param string         $method Handler to call.
+	 * @return array{ output: string, redirect: string|null }
+	 */
+	private function run_banner( $nux, $method ) {
+		$redirect = null;
+
+		ob_start();
+		try {
+			$nux->$method();
+		} catch ( WCS_Test_Nux_Redirect $e ) {
+			$redirect = $e->getMessage();
+		}
+		$output = ob_get_clean();
+
+		return array(
+			'output'   => $output,
+			'redirect' => $redirect,
+		);
+	}
+
+	/**
+	 * The rendered "Connect" link carries a nonce for the accept action.
+	 */
+	public function test_tos_banner_link_carries_a_nonce() {
+		$nux    = $this->arm_banner();
+		$result = $this->run_banner( $nux, 'show_tos_banner' );
+
+		$this->assertNull( $result['redirect'], 'Rendering the banner must not redirect.' );
+		$this->assertStringContainsString( 'wcs-nux-tos=accept', $result['output'] );
+		$this->assertMatchesRegularExpression( '/_wpnonce=[0-9a-f]{10}/', $result['output'] );
+	}
+
+	/**
+	 * Loading the accept URL without a nonce must not accept the Terms of Service.
+	 */
+	public function test_tos_acceptance_without_nonce_is_ignored() {
+		$nux = $this->arm_banner();
+
+		$_GET['wcs-nux-tos'] = 'accept';
+
+		$result = $this->run_banner( $nux, 'show_tos_banner' );
+
+		$this->assertNull( $result['redirect'] );
+		$this->assertFalse( WC_Connect_Options::get_option( 'tos_accepted', false ) );
+		$this->assertStringContainsString( 'wcs-nux__notice', $result['output'], 'The banner should render again.' );
+	}
+
+	/**
+	 * A forged nonce must not accept the Terms of Service either.
+	 */
+	public function test_tos_acceptance_with_invalid_nonce_is_ignored() {
+		$nux = $this->arm_banner();
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = 'not-a-valid-nonce';
+
+		$result = $this->run_banner( $nux, 'show_tos_banner' );
+
+		$this->assertNull( $result['redirect'] );
+		$this->assertFalse( WC_Connect_Options::get_option( 'tos_accepted', false ) );
+	}
+
+	/**
+	 * A nonce minted for the other banner action must not be accepted here.
+	 */
+	public function test_tos_acceptance_with_nonce_for_another_action_is_ignored() {
+		$nux = $this->arm_banner();
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = wp_create_nonce( WC_Connect_Nux::DISMISS_AFTER_CXN_BANNER_NONCE_ACTION );
+
+		$result = $this->run_banner( $nux, 'show_tos_banner' );
+
+		$this->assertNull( $result['redirect'] );
+		$this->assertFalse( WC_Connect_Options::get_option( 'tos_accepted', false ) );
+	}
+
+	/**
+	 * With a valid nonce the Terms of Service are accepted and the admin is sent back
+	 * to a URL carrying neither the action nor the nonce.
+	 */
+	public function test_tos_acceptance_with_valid_nonce_accepts_and_redirects() {
+		$nux = $this->arm_banner();
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = wp_create_nonce( WC_Connect_Nux::ACCEPT_TOS_NONCE_ACTION );
+
+		$result = $this->run_banner( $nux, 'show_tos_banner' );
+
+		$this->assertNotNull( $result['redirect'], 'A verified acceptance should redirect.' );
+		$this->assertStringNotContainsString( 'wcs-nux-tos', $result['redirect'] );
+		$this->assertStringNotContainsString( '_wpnonce', $result['redirect'] );
+		$this->assertTrue( WC_Connect_Options::get_option( 'tos_accepted', false ) );
+	}
+
+	/**
+	 * The rendered "Got it, thanks!" link carries a nonce for the dismiss action.
+	 */
+	public function test_after_connection_banner_link_carries_a_nonce() {
+		$nux = $this->arm_banner();
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$result = $this->run_banner( $nux, 'show_banner_after_connection' );
+
+		$this->assertNull( $result['redirect'], 'Rendering the banner must not redirect.' );
+		$this->assertStringContainsString( 'wcs-nux-notice=dismiss', $result['output'] );
+		$this->assertMatchesRegularExpression( '/_wpnonce=[0-9a-f]{10}/', $result['output'] );
+	}
+
+	/**
+	 * Loading the dismiss URL without a nonce must leave the banner armed.
+	 */
+	public function test_after_connection_banner_dismissal_without_nonce_is_ignored() {
+		$nux = $this->arm_banner();
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$_GET['wcs-nux-notice'] = 'dismiss';
+
+		$result = $this->run_banner( $nux, 'show_banner_after_connection' );
+
+		$this->assertNull( $result['redirect'] );
+		$this->assertTrue( WC_Connect_Options::get_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, false ) );
+	}
+
+	/**
+	 * With a valid nonce the banner is dismissed and the admin is sent back to a URL
+	 * carrying neither the action nor the nonce.
+	 */
+	public function test_after_connection_banner_dismissal_with_valid_nonce_dismisses_and_redirects() {
+		$nux = $this->arm_banner();
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$_GET['wcs-nux-notice'] = 'dismiss';
+		$_GET['_wpnonce']       = wp_create_nonce( WC_Connect_Nux::DISMISS_AFTER_CXN_BANNER_NONCE_ACTION );
+
+		$result = $this->run_banner( $nux, 'show_banner_after_connection' );
+
+		$this->assertNotNull( $result['redirect'], 'A verified dismissal should redirect.' );
+		$this->assertStringNotContainsString( 'wcs-nux-notice', $result['redirect'] );
+		$this->assertStringNotContainsString( '_wpnonce', $result['redirect'] );
+		$this->assertFalse( WC_Connect_Options::get_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, false ) );
 	}
 
 	public function test_get_banner_type_to_display_dev_jp() {
@@ -323,10 +557,28 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Clear the request globals the screen gate reads between tests.
+	 * Clear the request globals, options and screen the banner code reads between tests.
 	 */
 	public function tear_down() {
-		unset( $_GET['tab'], $_GET['section'] );
+		remove_filter( 'wp_redirect', array( $this, 'throw_on_redirect' ) );
+
+		if ( null === $this->original_request_uri ) {
+			unset( $_SERVER['REQUEST_URI'] );
+		} else {
+			$_SERVER['REQUEST_URI'] = $this->original_request_uri;
+		}
+
+		if ( false === $this->original_default_country ) {
+			delete_option( 'woocommerce_default_country' );
+		} else {
+			update_option( 'woocommerce_default_country', $this->original_default_country );
+		}
+
+		unset( $_GET['tab'], $_GET['section'], $_GET['wcs-nux-tos'], $_GET['wcs-nux-notice'], $_GET['_wpnonce'] );
+		WC_Connect_Options::delete_option( 'tos_accepted' );
+		WC_Connect_Options::delete_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER );
+		$GLOBALS['current_screen'] = null;
+		wp_set_current_user( 0 );
 
 		parent::tear_down();
 	}

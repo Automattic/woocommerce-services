@@ -41,11 +41,11 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 	protected $order_id;
 
 	public static function set_up_before_class() {
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-settings-store.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-api-client-live.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-service-schemas-store.php';
-		require_once dirname( __FILE__ ) . '/../../classes/class-wc-connect-logger.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-service-settings-store.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client-live.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-service-schemas-store.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-logger.php';
 	}
 
 	private function get_settings_store( $service_schemas_store = false, $api_client = false, $logger = false ) {
@@ -283,5 +283,58 @@ class WP_Test_WC_Connect_Service_Settings_Store extends WC_Unit_Test_Case {
 		);
 
 		$this->assertEquals( $expected, $actual );
+	}
+
+	/**
+	 * Add a raw shipping zone method row of the given type, bypassing the check that the
+	 * method type is registered with WooCommerce.
+	 *
+	 * @param WC_Shipping_Zone $zone      Zone to add the method to.
+	 * @param string           $method_id Method id to store.
+	 * @return int Instance id of the new row.
+	 */
+	private function add_zone_method( $zone, $method_id ) {
+		return WC_Data_Store::load( 'shipping-zone' )->add_method( $zone->get_id(), $method_id, 1 );
+	}
+
+	/**
+	 * The enabled-services query binds each id through prepare(), so ids that need
+	 * escaping match their rows and the rest of the row comes back intact.
+	 */
+	public function test_get_enabled_services_by_ids_binds_each_id() {
+		$zone = new WC_Shipping_Zone();
+		$zone->set_zone_name( "Zone o'test" );
+		$zone->save();
+
+		$quoted_id   = "wc_services_o'quoted";
+		$instance_id = $this->add_zone_method( $zone, $quoted_id );
+		$this->add_zone_method( $zone, 'wc_services_other' );
+
+		$settings_store = $this->get_settings_store();
+
+		$services = $settings_store->get_enabled_services_by_ids( array( $quoted_id, 'wc_services_missing' ) );
+
+		$this->assertCount( 1, $services );
+		$this->assertSame( $quoted_id, $services[0]->method_id );
+		$this->assertEquals( $instance_id, $services[0]->instance_id );
+		$this->assertSame( "Zone o'test", $services[0]->zone_name );
+		$this->assertSame( 'shipping', $services[0]->service_type );
+
+		$both = $settings_store->get_enabled_services_by_ids( array( $quoted_id, 'wc_services_other' ) );
+		$this->assertCount( 2, $both );
+
+		$zone->delete( true );
+	}
+
+	/**
+	 * Ids that match no zone method, and arguments that are not a list at all, return
+	 * an empty array instead of a broken query.
+	 */
+	public function test_get_enabled_services_by_ids_returns_empty_for_no_match_or_non_array() {
+		$settings_store = $this->get_settings_store();
+
+		$this->assertSame( array(), $settings_store->get_enabled_services_by_ids( array( 'wc_services_nothing_here' ) ) );
+		$this->assertSame( array(), $settings_store->get_enabled_services_by_ids( 'wc_services_nothing_here' ) );
+		$this->assertSame( array(), $settings_store->get_enabled_services_by_ids( array() ) );
 	}
 }

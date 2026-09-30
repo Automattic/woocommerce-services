@@ -76,6 +76,8 @@ This plugin relies on the following external services:
 * Fix   - Stop the shipping label purchase from failing silently when the last used shipping service is not offered for the order being shipped, such as a domestic service on an international shipment. The service is no longer preselected in that case, so a rate can be chosen and the label bought.
 * Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
 * Tweak - Include composer.json in the plugin package.
+* Fix   - Require a nonce on the setup banner's Terms of Service and dismiss links, so they cannot be triggered by loading a crafted URL.
+* Tweak - Bind the service IDs in the enabled services query with prepare() instead of escaping them by hand.
 
 = 3.7.0 - 2026-09-22 =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
