@@ -9,7 +9,7 @@ on:
     workflow_call:
         inputs:
             extension:
-                description: 'Plugin slug, which is also the folder name inside the zip.'
+                description: 'Plugin slug, used to find the zip in the artifact.'
                 required: true
                 type: string
             artifact:
@@ -39,12 +39,25 @@ jobs:
                   path: ${{ runner.temp }}/package
 
             - name: Unpack the built plugin
+              id: unpack
               shell: bash
               run: |
                   set -euo pipefail
                   unzip -q "${{ runner.temp }}/package/${{ inputs.extension }}.zip" -d "${{ runner.temp }}/plugin"
-                  # Fail here rather than letting Plugin Check scan an empty directory.
-                  test -f "${{ runner.temp }}/plugin/${{ inputs.extension }}/${{ inputs.extension }}.php"
+
+                  # Some builds wrap the plugin in a folder named after the slug and some
+                  # do not, so find the directory that actually holds the plugin header.
+                  root="$( find "${{ runner.temp }}/plugin" -maxdepth 2 -name '*.php' \
+                      -exec grep -l '^[[:space:]]*\*\?[[:space:]]*Plugin Name:' {} + \
+                      | head -n 1 | xargs dirname )"
+                  test -n "$root"
+
+                  # The QIT build adds the PHPStan config to the zip. It is not part of the
+                  # released package, and Plugin Check would report it as plugin code.
+                  rm -f "$root/phpstan-bootstrap.php" "$root/phpstan.neon"
+
+                  echo "Scanning $root"
+                  echo "root=$root" >> "$GITHUB_OUTPUT"
 
             - name: Run Plugin Check
               # The action exits non-zero on any finding. The allow-list step below
@@ -52,7 +65,7 @@ jobs:
               continue-on-error: true
               uses: WordPress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1.1.9
               with:
-                  build-dir: ${{ runner.temp }}/plugin/${{ inputs.extension }}
+                  build-dir: ${{ steps.unpack.outputs.root }}
 
             - name: Check the findings against the allow-list
               shell: bash
