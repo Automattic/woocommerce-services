@@ -118,13 +118,17 @@ if ( ! class_exists( 'WC_Connect_Settings_Pages' ) ) {
 				}
 			}
 
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only: the order id only becomes a "back to order" link in the settings screen's bootstrap. This renders a screen, it does not handle a submission, so there is no nonce to verify.
 			if ( isset( $_GET['from_order'] ) ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Same read-only screen argument as the isset() above.
 				$from_order               = sanitize_text_field( wp_unslash( $_GET['from_order'] ) );
 				$extra_args['order_id']   = $from_order;
 				$extra_args['order_href'] = get_edit_post_link( $from_order );
 			}
 
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only: picks which carrier's section of the settings screen to render. No state is changed and no form is being processed.
 			if ( ! empty( $_GET['carrier'] ) ) {
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Same read-only screen argument as the empty() check above.
 				$carrier                  = sanitize_text_field( wp_unslash( $_GET['carrier'] ) );
 				$extra_args['carrier']    = $carrier;
 				$extra_args['continents'] = $this->continents->get();
