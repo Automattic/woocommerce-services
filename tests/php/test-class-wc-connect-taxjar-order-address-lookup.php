@@ -688,6 +688,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'could not be updated', $notes[0] );
+		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
 	}
 
 	/**
@@ -994,6 +995,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
+		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
 	}
 
 	/**
@@ -1063,6 +1065,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'could not be updated', $notes[0] );
+		$this->assertStringContainsString( 'did not accept the address', $notes[0] );
 	}
 
 	/**
@@ -1084,7 +1087,9 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 
 		$this->assertInstanceOf( WC_Order::class, $order );
 		$this->assertCount( 0, $this->requests, 'A malformed ZIP is rejected before any request is sent.' );
-		$this->assertCount( 1, $this->tax_notes( $order ) );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'has a ZIP code that is not valid', $notes[0] );
 	}
 
 	/**
@@ -1102,5 +1107,92 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		);
 
 		$this->assertFalse( $has_notice );
+	}
+
+	// -------------------------------------------------------------------------
+	// The note names the address when no request could be sent.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * New orders whose address cannot be sent to TaxJar.
+	 *
+	 * @return array[]
+	 */
+	public function incomplete_address_provider() {
+		return array(
+			'shipping country and state, no ZIP' => array(
+				array(
+					'billing'  => array(),
+					'shipping' => array(
+						'country' => 'US',
+						'state'   => 'CO',
+					),
+				),
+			),
+			'shipping country only'              => array(
+				array(
+					'billing'  => array(),
+					'shipping' => array( 'country' => 'US' ),
+				),
+			),
+			'billing country and state only'     => array(
+				array(
+					'billing'  => array(
+						'country' => 'US',
+						'state'   => 'CO',
+					),
+					'shipping' => array(),
+				),
+			),
+		);
+	}
+
+	/**
+	 * @testdox A new order with an incomplete address is not sent to TaxJar, and the note says the address is incomplete.
+	 * @dataProvider incomplete_address_provider
+	 *
+	 * @param array $addresses Billing and shipping for the new order.
+	 */
+	public function test_incomplete_address_on_create_is_noted_as_address( array $addresses ) {
+		$order = $this->rest_create( $addresses );
+
+		$this->assertCount( 0, $this->requests );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'because its address is incomplete', $notes[0] );
+		$this->assertStringNotContainsString( 'tax service', $notes[0] );
+	}
+
+	/**
+	 * @testdox Moving an order to a malformed ZIP keeps its tax, sends nothing, and the note blames the ZIP code.
+	 */
+	public function test_malformed_zip_on_update_is_noted_as_address() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '8030A', 'Boulder' ) ) );
+
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+		$this->assertCount( 0, $this->requests );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'could not be updated', $notes[0] );
+		$this->assertStringContainsString( 'has a ZIP code that is not valid', $notes[0] );
+		$this->assertStringNotContainsString( 'tax service', $notes[0] );
+	}
+
+	/**
+	 * @testdox A ZIP code that is sent to TaxJar is not blamed when TaxJar does not answer.
+	 */
+	public function test_sent_zip_is_not_blamed_for_failed_request() {
+		$fixture           = $this->create_placed_order();
+		$this->taxjar_down = true;
+
+		// Four digits: not a valid US ZIP, but only 5- and 10-character ones are checked before sending.
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '8030', 'Boulder' ) ) );
+
+		$this->assertCount( 1, $this->requests );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
 	}
 }

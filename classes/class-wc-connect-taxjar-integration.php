@@ -149,6 +149,12 @@ class WC_Connect_TaxJar_Integration {
 	const SETUP_WIZARD_OPTION_NAME = 'woocommerce_setup_automated_taxes';
 
 	/**
+	 * Returned by lookup_order_taxes() when it failed because the order's address
+	 * cannot be sent to TaxJar, as opposed to TaxJar failing to answer.
+	 */
+	private const ORDER_TAX_LOOKUP_BAD_ADDRESS = 'bad_address';
+
+	/**
 	 * WCS TaxJar integration constructor.
 	 *
 	 * @param WC_Connect_API_Client     $api_client          TaxJar API client.
@@ -2820,14 +2826,18 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$lookup = $snapshot['lookup'] ? $this->lookup_order_taxes( $order ) : null;
+		$lookup      = $snapshot['lookup'] ? $this->lookup_order_taxes( $order ) : null;
+		$bad_address = self::ORDER_TAX_LOOKUP_BAD_ADDRESS === $lookup;
+		$failed      = false === $lookup || $bad_address;
 
 		if ( is_array( $lookup ) ) {
 			$this->apply_looked_up_order_taxes( $order, $lookup, $snapshot );
 		} elseif ( empty( $snapshot['tax_lines'] ) ) {
 			// Nothing to keep: what WC calculated stands, as it did before the lookup existed.
-			if ( false === $lookup ) {
-				$this->add_order_tax_note( $order, __( 'Tax could not be calculated for this order, because the tax service did not answer. Check the tax on this order.', 'woocommerce-services' ) );
+			if ( $bad_address ) {
+				$this->add_order_tax_note( $order, __( 'Tax could not be calculated for this order, because its address is incomplete or has a ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' ) );
+			} elseif ( $failed ) {
+				$this->add_order_tax_note( $order, __( 'Tax could not be calculated for this order, because the tax service did not answer or did not accept the order\'s address. Check the order\'s address and its tax.', 'woocommerce-services' ) );
 			}
 		} elseif ( empty( $snapshot['base_changes']['has_changes'] ) ) {
 			$this->restore_order_taxes( $order, $snapshot );
@@ -2838,8 +2848,10 @@ class WC_Connect_TaxJar_Integration {
 			$this->reapply_order_tax_rates( $order, $snapshot );
 		}
 
-		if ( false === $lookup && ! empty( $snapshot['tax_lines'] ) ) {
-			$this->add_order_tax_note( $order, __( 'Tax could not be updated for the new address, because the tax service did not answer. The tax this order already had was kept. Check the tax on this order.', 'woocommerce-services' ) );
+		if ( $bad_address && ! empty( $snapshot['tax_lines'] ) ) {
+			$this->add_order_tax_note( $order, __( 'Tax could not be updated for the new address, because it is incomplete or has a ZIP code that is not valid. The tax this order already had was kept. Check the order\'s address and its tax.', 'woocommerce-services' ) );
+		} elseif ( $failed && ! empty( $snapshot['tax_lines'] ) ) {
+			$this->add_order_tax_note( $order, __( 'Tax could not be updated for the new address, because the tax service did not answer or did not accept the address. The tax this order already had was kept. Check the order\'s address and its tax.', 'woocommerce-services' ) );
 		}
 
 		// The old amounts and address have been used; a later recalculation of the same
@@ -3584,8 +3596,10 @@ class WC_Connect_TaxJar_Integration {
 	 * for an hour (see smartcalcs_cache_request()).
 	 *
 	 * @param WC_Order $order The recalculated order.
-	 * @return array|false|null Lookup result; false when any request failed; null when
-	 *                          the order has nothing to ask about.
+	 * @return array|string|false|null Lookup result; ORDER_TAX_LOOKUP_BAD_ADDRESS when it
+	 *                                 failed on an address TaxJar cannot be asked about;
+	 *                                 false when any other request failed; null when
+	 *                                 the order has nothing to ask about.
 	 */
 	private function lookup_order_taxes( $order ) {
 		$default_type = $this->get_order_tax_location_type( $order );
@@ -3625,8 +3639,11 @@ class WC_Connect_TaxJar_Integration {
 				)
 			);
 
+			// calculate_tax() answers false for a failed request and for an address it
+			// refused to send alike. Tell them apart here, after the fact, so what it
+			// does with every address stays exactly as at checkout.
 			if ( false === $taxes ) {
-				return false;
+				return $this->is_sendable_order_tax_address( $address ) ? false : self::ORDER_TAX_LOOKUP_BAD_ADDRESS;
 			}
 
 			// Keys are canonical line item ids, unique across groups, plus 'shipping',
@@ -3636,6 +3653,37 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * Whether an order's tax address has what TaxJar needs to be asked about it.
+	 *
+	 * Mirrors the destination checks that calculate_tax() and validate_taxjar_request()
+	 * make before sending anything: a country, a postcode outside the VAT countries, a
+	 * state in the US and Canada, and a well-formed US ZIP code when it is 5 or 10
+	 * characters long. Kept no stricter than those, so an address that was sent is
+	 * never blamed for a request that failed.
+	 *
+	 * @param Address $address The address the order is taxed at.
+	 * @return bool
+	 */
+	private function is_sendable_order_tax_address( Address $address ) {
+		$country  = $address->country();
+		$postcode = $address->postcode();
+
+		if ( '' === $country ) {
+			return false;
+		}
+
+		if ( '' === $postcode && ! in_array( $country, WC()->countries->get_vat_countries(), true ) ) {
+			return false;
+		}
+
+		if ( in_array( $country, array( 'US', 'CA' ), true ) && '' === $address->state() ) {
+			return false;
+		}
+
+		return 'US' !== $country || ! in_array( strlen( $postcode ), array( 5, 10 ), true ) || WC_Validation::is_postcode( $postcode, 'US' );
 	}
 
 	/**
