@@ -449,7 +449,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	 *
 	 * @return int[]
 	 */
-	private function no_other_tax_rate_ids() {
+	private function nullified_rate_ids() {
 		global $wpdb;
 
 		return array_map( 'intval', $wpdb->get_col( "SELECT tax_rate_id FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_name LIKE '%Manual Rate Nullified (Automated Taxes)'" ) ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
@@ -464,7 +464,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	 * @param string   $when     Where the order came from.
 	 */
 	private function assert_no_extra_tax_items( $order, $merchant, $when ) {
-		$shadow = $this->no_other_tax_rate_ids();
+		$shadow = $this->nullified_rate_ids();
 
 		$this->assertEmpty( array_intersect( $shadow, $this->tax_item_rate_ids( $order ) ), "$when: a Manual Rate Nullified tax item is on the order." );
 		$this->assertEmpty( array_intersect( $shadow, $this->shipping_line_rate_ids( $order ) ), "$when: the shipping line references a Manual Rate Nullified row." );
@@ -484,10 +484,10 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->calculate_cart( array( $this->product() ) );
 
-		$this->assertCount( 1, $this->no_other_tax_rate_ids(), 'The lookup should add one 0% row beside the state-wide rate.' );
+		$this->assertCount( 1, $this->nullified_rate_ids(), 'The lookup should add one 0% row beside the state-wide rate.' );
 		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
 		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
-		$this->assertEmpty( array_intersect( $this->no_other_tax_rate_ids(), array_keys( WC()->cart->get_shipping_taxes() ) ), 'Cart shipping taxes include the 0% row.' );
+		$this->assertEmpty( array_intersect( $this->nullified_rate_ids(), array_keys( WC()->cart->get_shipping_taxes() ) ), 'Cart shipping taxes include the 0% row.' );
 
 		$order = $this->classic_checkout_order();
 		$this->assert_no_extra_tax_items( $order, $merchant, 'Classic checkout' );
@@ -693,7 +693,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
 		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
-		$this->assertEmpty( array_intersect( $this->no_other_tax_rate_ids(), array_keys( WC()->cart->get_shipping_taxes() ) ), 'Cart shipping taxes include the 0% row.' );
+		$this->assertEmpty( array_intersect( $this->nullified_rate_ids(), array_keys( WC()->cart->get_shipping_taxes() ) ), 'Cart shipping taxes include the 0% row.' );
 		$this->assertArrayNotHasKey( $merchant, WC()->cart->get_cart_contents_taxes() );
 	}
 
@@ -708,7 +708,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->calculate_cart( array( $this->product() ) );
 
-		$this->assertSame( array(), $this->no_other_tax_rate_ids() );
+		$this->assertSame( array(), $this->nullified_rate_ids() );
 		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001 );
 		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001 );
 
@@ -754,6 +754,6 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->assertEqualsWithDelta( 20.0, (float) WC()->cart->get_shipping_total(), 0.001, 'Two packages at $10.' );
 		$this->assertEqualsWithDelta( $expected, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
-		$this->assertEmpty( array_intersect( $this->no_other_tax_rate_ids(), array_keys( WC()->cart->get_shipping_taxes() ) ), 'Cart shipping taxes include the 0% row.' );
+		$this->assertEmpty( array_intersect( $this->nullified_rate_ids(), array_keys( WC()->cart->get_shipping_taxes() ) ), 'Cart shipping taxes include the 0% row.' );
 	}
 }

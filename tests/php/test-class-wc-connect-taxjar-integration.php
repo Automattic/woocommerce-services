@@ -4346,6 +4346,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	/**
 	 * An order taxed from the table alone, as REST and POS orders are, gets the rate
 	 * TaxJar returned for a town that has been looked up.
+	 *
+	 * WooCommerce also records the 0% row as a $0 tax item, beside the $0 items TaxJar's
+	 * own zero components already leave. The tax charged is right; the extra item is a
+	 * known leftover, pinned here so a change to it is deliberate.
 	 */
 	public function test_table_only_order_is_taxed_at_the_looked_up_rate_beside_a_state_wide_rate() {
 		update_option( 'woocommerce_calc_taxes', 'yes' );
@@ -4354,7 +4358,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
 
-		$this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' );
+		$looked_up  = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' ) );
+		$shadow_ids = array_values( array_diff( $this->tax_rate_ids_at_priority( 5 ), array( $catch_all_id ) ) );
 
 		// No plugin hook is registered here, so WooCommerce reads the rate table.
 		$order = $this->create_michigan_order( '49841', 'Gwinn' );
@@ -4362,6 +4367,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001 );
 		$this->assertNotContains( $catch_all_id, $this->order_tax_rate_ids( $order ) );
+		$this->assertEqualsCanonicalizing( array_merge( $looked_up, $shadow_ids ), $this->order_tax_rate_ids( $order ) );
+		foreach ( $order->get_taxes() as $tax ) {
+			if ( in_array( (int) $tax->get_rate_id(), $shadow_ids, true ) ) {
+				$this->assertSame( 0.0, (float) $tax->get_tax_total() + (float) $tax->get_shipping_tax_total(), 'The 0% row must not charge anything.' );
+			}
+		}
 	}
 
 	/**
