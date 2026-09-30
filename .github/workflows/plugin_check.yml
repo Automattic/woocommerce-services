@@ -23,12 +23,10 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 20
         steps:
-            - name: Checkout the allow-list
+            - name: Checkout the accepted codes
               uses: actions/checkout@v4
               with:
-                  sparse-checkout: |
-                      .github/plugin-check-allowed-warnings.txt
-                      .github/scripts/plugin-check-warnings.sh
+                  sparse-checkout: .github/plugin-check-ignored-codes.txt
                   sparse-checkout-cone-mode: false
                   path: plugin-check-config
 
@@ -59,17 +57,18 @@ jobs:
                   echo "Scanning $root"
                   echo "root=$root" >> "$GITHUB_OUTPUT"
 
+            - name: Read the accepted codes
+              id: accepted
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  file=plugin-check-config/.github/plugin-check-ignored-codes.txt
+                  codes="$( grep -vE '^[[:space:]]*(#|$)' "$file" | paste -sd, - )"
+                  echo "Accepted codes: ${codes:-none}"
+                  echo "codes=$codes" >> "$GITHUB_OUTPUT"
+
             - name: Run Plugin Check
-              # The action exits non-zero on any finding. The allow-list step below
-              # decides what actually fails, so the result is read there instead.
-              continue-on-error: true
               uses: WordPress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1.1.9
               with:
                   build-dir: ${{ steps.unpack.outputs.root }}
-
-            - name: Check the findings against the allow-list
-              shell: bash
-              run: |
-                  bash plugin-check-config/.github/scripts/plugin-check-warnings.sh \
-                    "${{ runner.temp }}/plugin-check-results.txt" \
-                    plugin-check-config/.github/plugin-check-allowed-warnings.txt
+                  ignore-codes: ${{ steps.accepted.outputs.codes }}

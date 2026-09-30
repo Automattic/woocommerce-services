@@ -1841,9 +1841,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				);
 			}
 
-			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null );
-			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.css', array(), null );
-			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js', array(), null );
+			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted. Registered in the head because the wp-pointer it drives runs before the footer.
+			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted.
+			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted. Registered in the head so the banner is styled and wired before first paint.
 
 			$i18n_json = $this->get_i18n_json();
 			// JS translations loaded from i18n/languages/woocommerce-services-{LOCALE}.json via get_i18n_json().
@@ -2172,7 +2172,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'sift-science',
 				'https://cdn.sift.com/s.js',
 				array(),
-				null,
+				null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Third-party script served from Sift's CDN, which versions it server side; a ?ver= we invent would be wrong.
 				array(
 					'strategy'  => 'defer',
 					'in_footer' => true,
@@ -2414,7 +2414,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function register_wcshipping_migration_modal() {
 			$plugin_version = self::get_wcs_version();
 			wp_register_style( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
-			wp_register_script( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array(), null );
+			wp_register_script( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted. Registered in the head alongside the stylesheet above, which carries the same note.
 			wp_localize_script(
 				'wcst_wcshipping_migration_admin_notice',
 				'wcsPluginData',
