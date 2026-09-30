@@ -2816,7 +2816,7 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 		// Load Javascript for WooCommerce new order page
-		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true );
+		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted.
 	}
 
 	/**

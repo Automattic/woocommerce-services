@@ -32,4 +32,12 @@ jobs:
       artifact: ${{ needs.build.outputs.plugin_name }}
       test-activation: 'true'
       test-security: 'true'
-      test-plugin-check: 'true'
+      test-plugin-check: 'false' # Plugin Check runs through .github/workflows/plugin_check.yml instead.
+
+  plugin-check:
+    name: Plugin Check
+    needs: build
+    uses: ./.github/workflows/plugin_check.yml
+    with:
+      extension: ${{ needs.build.outputs.plugin_name }}
+      artifact: ${{ needs.build.outputs.plugin_name }}

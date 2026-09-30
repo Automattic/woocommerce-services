@@ -31,11 +31,19 @@ jobs:
       test-woo-api: true
       test-woo-e2e: true
       test-malware: true
-      test-plugin-check: true
+      test-plugin-check: false # Plugin Check runs through .github/workflows/plugin_check.yml instead.
+
+  plugin-check:
+    name: Plugin Check
+    needs: build
+    uses: ./.github/workflows/plugin_check.yml
+    with:
+      extension: ${{ needs.build.outputs.plugin_name }}
+      artifact: ${{ needs.build.outputs.plugin_name }}
 
   handle-success:
     if: ${{ success() }}
-    needs: qit-tests
+    needs: [ qit-tests, plugin-check ]
     name: Handle success
     runs-on: ubuntu-latest
     env:
@@ -48,7 +56,7 @@ jobs:
 
   handle-error:
     if: ${{ failure() }}
-    needs: qit-tests
+    needs: [ qit-tests, plugin-check ]
     name: Handle failure
     runs-on: ubuntu-latest
     env:
