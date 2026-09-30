@@ -396,6 +396,7 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public function fix_tooltip_keepalive() {
 		global $pagenow;
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen check on WooCommerce's own page/tab/section query args; it only decides whether the tooltip's inline script is added on WooCommerce » Settings » Tax. Nothing is written.
 		if ( 'admin.php' !== $pagenow || ! isset( $_GET['page'] ) || 'wc-settings' !== $_GET['page'] || ! isset( $_GET['tab'] ) || 'tax' !== $_GET['tab'] || ! empty( $_GET['section'] ) ) {
 			return;
 		}
@@ -2799,6 +2800,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		// If HPOS is enabled, and we're on the Orders list page, return false.
+		// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only: under HPOS the Orders list and the single order screen share one screen id, and only the single order screen carries WooCommerce's action arg. This just tells the two apart before deciding whether to enqueue assets.
 		if ( 'woocommerce_page_wc-orders' === $wc_order_screen_id && ! isset( $_GET['action'] ) ) {
 			return false;
 		}

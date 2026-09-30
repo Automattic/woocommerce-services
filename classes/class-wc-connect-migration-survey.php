@@ -45,6 +45,7 @@ if ( ! class_exists( 'WC_Connect_Migration_Survey' ) ) {
 		 */
 		public function should_show_survey() {
 			// Force survey to show for testing/debugging
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only debug switch that only decides whether the survey is localized into the label script; nothing is written here and the survey's own submit/dismiss/track AJAX handlers each verify the wcs_migration_survey nonce.
 			if ( isset( $_GET['force_survey'] ) ) {
 				return true;
 			}
