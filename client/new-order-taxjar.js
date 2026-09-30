@@ -36,17 +36,23 @@ export const getTaxableStreet = ( taxBasedOn ) => {
  *
  * @param {Object} event jQuery event.
  * @param {Object} data Request data built by core.
- * @return {Object} The same data, with `street` set.
+ * @return {Object} The data an earlier handler returned, or core's data, with `street` set.
  */
 export const addStreetToRecalculateData = ( event, data ) => {
 	// Core always passes an object, but anyone can trigger the event.
 	data = data || {};
 
+	// triggerHandler() passes core's original data to every handler and keeps only the
+	// last value returned, so build on an object an earlier handler returned, or its
+	// changes are lost. A non-object return (false, a string) is not request data.
+	const previous = event && event.result;
+	const target = previous && 'object' === typeof previous ? previous : data;
+
 	const taxBasedOn = 'undefined' !== typeof woocommerce_admin_meta_boxes ? woocommerce_admin_meta_boxes.tax_based_on : '';
 
-	data.street = getTaxableStreet( taxBasedOn );
+	target.street = getTaxableStreet( taxBasedOn );
 
-	return data;
+	return target;
 };
 
 const bindRecalculateFilter = () => {

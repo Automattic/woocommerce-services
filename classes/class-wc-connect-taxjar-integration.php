@@ -1061,11 +1061,12 @@ class WC_Connect_TaxJar_Integration {
 			return $address;
 		}
 
-		// Core's order screen posts the shipping side when taxes are based on shipping and
-		// the shipping country field is filled, else billing. PHP only has the saved order,
-		// so it applies that rule to the saved shipping country. The two differ only when
-		// the merchant changed the shipping country without saving. The comparison below
-		// then drops the street, unless both sides share country, state, postcode and city.
+		// Core picks the side from the shipping country field as it stands in the form;
+		// we only have the saved one. They differ if the merchant blanks or fills in that
+		// field without saving, and when billing and shipping share a town the four posted
+		// fields can't tell us which side they came from, so we can pair a billing
+		// address with the shipping street. We still guess rather than send no street,
+		// since a missing street is the bug this fallback exists to avoid.
 		$type  = ( 'shipping' === get_option( 'woocommerce_tax_based_on' ) && '' !== (string) $order->get_shipping_country() ) ? 'shipping' : 'billing';
 		$saved = Address::from_order( $order, $type );
 

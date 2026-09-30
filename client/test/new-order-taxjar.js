@@ -98,6 +98,34 @@ describe( 'new-order-taxjar recalculate street', () => {
 		) ).toEqual( { street: '24500 Highway 145' } );
 	} );
 
+	it( 'keeps what an earlier handler returned as a new object', () => {
+		global.woocommerce_admin_meta_boxes = { tax_based_on: 'shipping' };
+		jQuery = require( 'jquery' );
+		jQuery( '#woocommerce-order-items' ).on(
+			'woocommerce_order_meta_box_recalculate_ajax_data',
+			( event, data ) => Object.assign( {}, data, { foo: 1 } )
+		);
+		require( '../new-order-taxjar' );
+
+		expect( filterRecalculateData( { country: 'US' } ) ).toEqual( {
+			country: 'US',
+			foo: 1,
+			street: '24500 Highway 145',
+		} );
+	} );
+
+	it.each( [ false, 'not request data' ] )( 'ignores an earlier handler returning %p', ( returned ) => {
+		global.woocommerce_admin_meta_boxes = { tax_based_on: 'shipping' };
+		jQuery = require( 'jquery' );
+		jQuery( '#woocommerce-order-items' ).on( 'woocommerce_order_meta_box_recalculate_ajax_data', () => returned );
+		require( '../new-order-taxjar' );
+
+		expect( filterRecalculateData( { country: 'US' } ) ).toEqual( {
+			country: 'US',
+			street: '24500 Highway 145',
+		} );
+	} );
+
 	it( 'keeps data with quotes intact', () => {
 		document.getElementById( '_shipping_address_1' ).value = 'Unit "B", 24500 Highway 145';
 
