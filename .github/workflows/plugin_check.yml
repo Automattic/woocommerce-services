@@ -72,3 +72,6 @@ jobs:
               with:
                   build-dir: ${{ steps.unpack.outputs.root }}
                   ignore-codes: ${{ steps.accepted.outputs.codes }}
+                  # Without this the action fails on errors only, and a new
+                  # warning would land without anything saying so.
+                  strict: true
