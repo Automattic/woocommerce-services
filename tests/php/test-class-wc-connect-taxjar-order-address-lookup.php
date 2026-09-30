@@ -1094,7 +1094,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertCount( 0, $this->requests, 'A malformed ZIP is rejected before any request is sent.' );
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'has a ZIP code that is not valid', $notes[0] );
+		$this->assertStringContainsString( 'has a state or ZIP code that is not valid', $notes[0] );
 	}
 
 	/**
@@ -1181,7 +1181,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'could not be updated', $notes[0] );
-		$this->assertStringContainsString( 'has a ZIP code that is not valid', $notes[0] );
+		$this->assertStringContainsString( 'has a state or ZIP code that is not valid', $notes[0] );
 		$this->assertStringNotContainsString( 'tax service', $notes[0] );
 	}
 
@@ -1302,5 +1302,119 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
+	}
+
+	// -------------------------------------------------------------------------
+	// The REST API takes a state name as well as a code.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * State names the REST API accepts for Colorado.
+	 *
+	 * @return array[]
+	 */
+	public function state_name_provider() {
+		return array(
+			'as WooCommerce lists it' => array( 'Colorado' ),
+			'in lower case'           => array( 'colorado' ),
+		);
+	}
+
+	/**
+	 * US states TaxJar cannot be asked about.
+	 *
+	 * @return array[]
+	 */
+	public function unusable_state_provider() {
+		return array(
+			'empty'   => array( '' ),
+			'unknown' => array( 'Narnia' ),
+		);
+	}
+
+	/**
+	 * @testdox Moving an order to an address with a state name asks TaxJar with the state's code and keeps the name on the order.
+	 * @dataProvider state_name_provider
+	 *
+	 * @param string $state State as the client sent it.
+	 */
+	public function test_state_name_on_update_is_looked_up_as_its_code( $state ) {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '80301', 'Boulder', '1 Main St', $state ) ) );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( 'CO', $this->requests[0]['to_state'] );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+		$this->assertSame( $state, $order->get_shipping_state(), 'the saved address is left as sent' );
+
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'CO, 80301', $notes[0], 'the note names the state that was asked about' );
+	}
+
+	/**
+	 * @testdox A new order with a state name is taxed by TaxJar at the state's code.
+	 * @dataProvider state_name_provider
+	 *
+	 * @param string $state State as the client sent it.
+	 */
+	public function test_state_name_on_create_is_looked_up_as_its_code( $state ) {
+		$order = $this->rest_create(
+			array(
+				'billing'  => self::address( '80301', 'Boulder', '1 Main St', $state ),
+				'shipping' => self::address( '80301', 'Boulder', '1 Main St', $state ),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( 'CO', $this->requests[0]['to_state'] );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+		$this->assertSame( $state, $order->get_shipping_state(), 'the saved address is left as sent' );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox Moving an order to a US address with an empty or unknown state keeps its tax, sends nothing, and the note blames the address.
+	 * @dataProvider unusable_state_provider
+	 *
+	 * @param string $state State as the client sent it.
+	 */
+	public function test_unusable_state_on_update_keeps_tax( $state ) {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '80301', 'Boulder', '1 Main St', $state ) ) );
+
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+		$this->assertCount( 0, $this->requests );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'could not be updated', $notes[0] );
+		$this->assertStringContainsString( 'state or ZIP code that is not valid', $notes[0] );
+		$this->assertStringContainsString( 'was kept', $notes[0] );
+		$this->assertStringNotContainsString( 'tax service', $notes[0] );
+	}
+
+	/**
+	 * @testdox A new US order with an empty or unknown state is not sent to TaxJar, and the note blames the address.
+	 * @dataProvider unusable_state_provider
+	 *
+	 * @param string $state State as the client sent it.
+	 */
+	public function test_unusable_state_on_create_is_noted_as_address( $state ) {
+		$order = $this->rest_create(
+			array(
+				'billing'  => self::address( '80301', 'Boulder', '1 Main St', $state ),
+				'shipping' => self::address( '80301', 'Boulder', '1 Main St', $state ),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests );
+		$this->assert_order_tax( $order, 0.0, 0.0, 40.00 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
+		$this->assertStringContainsString( 'state or ZIP code that is not valid', $notes[0] );
+		$this->assertStringNotContainsString( 'tax service', $notes[0] );
 	}
 }

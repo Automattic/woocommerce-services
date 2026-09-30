@@ -2840,7 +2840,7 @@ class WC_Connect_TaxJar_Integration {
 		} elseif ( empty( $snapshot['tax_lines'] ) ) {
 			// Nothing to keep: what WC calculated stands, as it did before the lookup existed.
 			if ( self::ORDER_TAX_LOOKUP_BAD_ADDRESS === $lookup ) {
-				$this->add_order_tax_note( $order, __( 'Tax could not be calculated for this order, because its address is incomplete or has a ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' ) );
+				$this->add_order_tax_note( $order, __( 'Tax could not be calculated for this order, because its address is incomplete or has a state or ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' ) );
 			} elseif ( self::ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS === $lookup ) {
 				$this->add_order_tax_note( $order, __( 'Tax could not be calculated for this order, because the store address has no country or has a ZIP code that is not valid. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' ) );
 			} elseif ( false === $lookup ) {
@@ -3410,8 +3410,8 @@ class WC_Connect_TaxJar_Integration {
 	private function get_failed_order_tax_update_note( $lookup, $reapplied ) {
 		if ( self::ORDER_TAX_LOOKUP_BAD_ADDRESS === $lookup ) {
 			return $reapplied
-				? __( 'Tax could not be updated for the new address, because it is incomplete or has a ZIP code that is not valid. The tax rates recorded when the order was placed were used instead. Check the order\'s address and its tax.', 'woocommerce-services' )
-				: __( 'Tax could not be updated for the new address, because it is incomplete or has a ZIP code that is not valid. The tax this order already had was kept. Check the order\'s address and its tax.', 'woocommerce-services' );
+				? __( 'Tax could not be updated for the new address, because it is incomplete or has a state or ZIP code that is not valid. The tax rates recorded when the order was placed were used instead. Check the order\'s address and its tax.', 'woocommerce-services' )
+				: __( 'Tax could not be updated for the new address, because it is incomplete or has a state or ZIP code that is not valid. The tax this order already had was kept. Check the order\'s address and its tax.', 'woocommerce-services' );
 		}
 
 		if ( self::ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS === $lookup ) {
@@ -3631,8 +3631,9 @@ class WC_Connect_TaxJar_Integration {
 	 * for an hour (see smartcalcs_cache_request()).
 	 *
 	 * @param WC_Order $order The recalculated order.
-	 * @return array|string|false|null Lookup result; ORDER_TAX_LOOKUP_BAD_ADDRESS when it
-	 *                                 failed on an order address TaxJar cannot be asked
+	 * @return array|string|false|null Lookup result; ORDER_TAX_LOOKUP_BAD_ADDRESS when the
+	 *                                 order address has a US state WooCommerce does not
+	 *                                 list, or failed as one TaxJar cannot be asked
 	 *                                 about; ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS when it
 	 *                                 failed on the store address; false when any other
 	 *                                 request failed; null when the order has nothing
@@ -3661,12 +3662,19 @@ class WC_Connect_TaxJar_Integration {
 			'line_items'     => $line_items,
 			'rate_ids'       => array(),
 			'response_lines' => array(),
-			'address'        => $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $default_type ),
+			'address'        => $this->with_state_code( $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $default_type ) ),
 		);
 
 		foreach ( $groups as $type => $items ) {
-			$address = $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $type );
-			$taxes   = $this->calculate_tax(
+			$address = $this->with_state_code( $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $type ) );
+
+			// calculate_tax() would take it for another state's address and answer "no
+			// tax" without asking. Keep the order's tax instead.
+			if ( $this->has_unknown_us_state( $address ) ) {
+				return self::ORDER_TAX_LOOKUP_BAD_ADDRESS;
+			}
+
+			$taxes = $this->calculate_tax(
 				array_merge(
 					$address->to_legacy_options(),
 					array(
@@ -3678,7 +3686,7 @@ class WC_Connect_TaxJar_Integration {
 
 			// calculate_tax() answers false for a failed request and for an address it
 			// refused to send alike. Tell them apart here, after the fact, so what it
-			// does with every address stays exactly as at checkout.
+			// does with every other address stays exactly as at checkout.
 			if ( false === $taxes ) {
 				if ( ! $this->is_sendable_order_tax_address( $address ) ) {
 					return self::ORDER_TAX_LOOKUP_BAD_ADDRESS;
@@ -3694,6 +3702,53 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $result;
+	}
+
+	/**
+	 * The address with a state name replaced by the state's code.
+	 *
+	 * The REST API accepts "ISO code or name" for the state and saves it as sent, so an
+	 * order can carry "Michigan" where checkout would send "MI". Matched case-insensitively
+	 * against WooCommerce's state names, as the Store API's ValidationUtils::format_state()
+	 * does. Only the address sent to TaxJar changes; the order keeps what it was given.
+	 *
+	 * @param Address $address The address the order is taxed at.
+	 * @return Address
+	 */
+	private function with_state_code( Address $address ) {
+		$states = WC()->countries->get_states( $address->country() );
+
+		if ( ! is_array( $states ) || '' === $address->state() || isset( $states[ $address->state() ] ) ) {
+			return $address;
+		}
+
+		$codes = array_flip( array_map( 'wc_strtoupper', $states ) );
+		$state = wc_strtoupper( $address->state() );
+
+		if ( ! isset( $codes[ $state ] ) ) {
+			return $address;
+		}
+
+		return Address::from_options( array_merge( $address->to_legacy_options(), array( 'to_state' => (string) $codes[ $state ] ) ) );
+	}
+
+	/**
+	 * Whether a US address has no state, or one WooCommerce does not list.
+	 *
+	 * Such an address would lose its tax without a request: calculate_tax() compares the
+	 * order's state with the store's and answers "no tax" for any mismatch.
+	 *
+	 * @param Address $address The address the order is taxed at, after with_state_code().
+	 * @return bool
+	 */
+	private function has_unknown_us_state( Address $address ) {
+		if ( 'US' !== $address->country() ) {
+			return false;
+		}
+
+		$states = WC()->countries->get_states( 'US' );
+
+		return is_array( $states ) && $states && ! isset( $states[ $address->state() ] );
 	}
 
 	/**
