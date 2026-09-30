@@ -715,7 +715,12 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 
 		// 6% recorded: A $20 1.20, B 1.20, shipping 0.60.
 		$this->assert_order_tax( $order, 2.40, 0.60, 53.00 );
-		$this->assertCount( 2, $this->tax_notes( $order ), 'the re-apply note and the failure note' );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 2, $notes, 'the re-apply note and the failure note' );
+		$failure_note = implode( "\n", preg_grep( '/could not be updated/', $notes ) );
+		$this->assertStringContainsString( 'the tax service did not answer', $failure_note );
+		$this->assertStringContainsString( 'recorded when the order was placed were used instead', $failure_note );
+		$this->assertStringNotContainsString( 'was kept', $failure_note, 'The tax changed, so the note must not say it was kept.' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -1189,6 +1194,109 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 
 		// Four digits: not a valid US ZIP, but only 5- and 10-character ones are checked before sending.
 		$order = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '8030', 'Boulder' ) ) );
+
+		$this->assertCount( 1, $this->requests );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
+	}
+
+	// -------------------------------------------------------------------------
+	// The note names the store address when that is what stopped the request.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Store addresses that cannot be sent to TaxJar.
+	 *
+	 * @return array[]
+	 */
+	public function bad_store_address_provider() {
+		return array(
+			'US store with a malformed ZIP' => array( 'US:CO', '4985A' ),
+			'store without a country'       => array( '', '80202' ),
+		);
+	}
+
+	/**
+	 * @testdox Moving an order when the store address cannot be sent keeps its tax, and the note points at the store address.
+	 * @dataProvider bad_store_address_provider
+	 *
+	 * @param string $country  Store country and state option.
+	 * @param string $postcode Store postcode.
+	 */
+	public function test_bad_store_address_on_update_is_noted_as_store_address( $country, $postcode ) {
+		$fixture = $this->create_placed_order();
+		update_option( 'woocommerce_default_country', $country );
+		update_option( 'woocommerce_store_postcode', $postcode );
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '80301', 'Boulder' ) ) );
+
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+		$this->assertCount( 0, $this->requests );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'the store address has no country or has a ZIP code that is not valid', $notes[0] );
+		$this->assertStringContainsString( 'WooCommerce > Settings > General', $notes[0] );
+		$this->assertStringContainsString( 'was kept', $notes[0] );
+		$this->assertStringNotContainsString( 'tax service', $notes[0] );
+		$this->assertStringNotContainsString( 'order\'s address', $notes[0] );
+	}
+
+	/**
+	 * @testdox A new order when the store address cannot be sent gets a note that points at the store address.
+	 */
+	public function test_bad_store_address_on_create_is_noted_as_store_address() {
+		update_option( 'woocommerce_store_postcode', '4985A' );
+
+		$order = $this->rest_create();
+
+		$this->assertCount( 0, $this->requests );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
+		$this->assertStringContainsString( 'the store address has no country or has a ZIP code that is not valid', $notes[0] );
+		$this->assertStringNotContainsString( 'tax service', $notes[0] );
+	}
+
+	/**
+	 * @testdox When the store address cannot be sent and the amounts changed too, the note says the recorded rates were used.
+	 */
+	public function test_bad_store_address_with_amount_change_says_recorded_rates_were_used() {
+		$fixture = $this->create_placed_order();
+		update_option( 'woocommerce_store_postcode', '4985A' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping'   => self::address( '80301', 'Boulder' ),
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+				),
+			)
+		);
+
+		$this->assert_order_tax( $order, 2.40, 0.60, 53.00 );
+		$failure_note = implode( "\n", preg_grep( '/could not be updated/', $this->tax_notes( $order ) ) );
+		$this->assertStringContainsString( 'the store address has no country', $failure_note );
+		$this->assertStringContainsString( 'recorded when the order was placed were used instead', $failure_note );
+		$this->assertStringNotContainsString( 'was kept', $failure_note );
+	}
+
+	/**
+	 * @testdox A store outside the US is not blamed for its ZIP code when TaxJar does not answer.
+	 */
+	public function test_non_us_store_is_not_blamed_for_failed_request() {
+		$fixture = $this->create_placed_order();
+		update_option( 'woocommerce_default_country', 'CA:ON' );
+		update_option( 'woocommerce_store_postcode', 'M5V 3L9' );
+		$this->taxjar_down = true;
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '80301', 'Boulder' ) ) );
 
 		$this->assertCount( 1, $this->requests );
 		$notes = $this->tax_notes( $order );
