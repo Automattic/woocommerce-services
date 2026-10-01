@@ -404,6 +404,65 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox Raising the quantity of an item taxed $0 under the order's rate keeps it at $0.
+	 */
+	public function test_quantity_increase_on_zero_taxed_item_keeps_it_untaxed() {
+		// A carries the rate id with no tax, as TaxJar's exempt lines are stored.
+		$fixture = $this->create_placed_order( array( 'a_tax' => '0' ) );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['b'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 46.50 );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'the tax did not change' );
+	}
+
+	/**
+	 * @testdox Next to an item taxed $0, a taxed item in the same class still moves with its quantity.
+	 */
+	public function test_zero_taxed_item_beside_taxed_item_both_changed() {
+		$fixture = $this->create_placed_order( array( 'a_tax' => '0' ) );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+					array(
+						'id'       => $fixture['b'],
+						'quantity' => 2,
+						'subtotal' => '40.00',
+						'total'    => '40.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assertEqualsWithDelta( 2.40, $this->item_tax( $order, $fixture['b'] ), 0.001 );
+		$this->assert_order_tax( $order, 2.40, 0.30, 67.70 );
+		$this->assertCount( 1, $this->tax_notes( $order ) );
+	}
+
+	/**
 	 * @testdox Removing an item over REST removes its tax.
 	 */
 	public function test_item_removal_moves_tax() {

@@ -3604,8 +3604,9 @@ class WC_Connect_TaxJar_Integration {
 	 * Re-apply an order's recorded rates to the items whose amounts changed.
 	 *
 	 * Items that did not change keep the tax they had. A changed item is taxed at the
-	 * rates it already carries; a new item or fee at the rates of an existing item in
-	 * the same tax class; a new shipping line at the rates of the existing shipping.
+	 * rates it was charged at (a rate it paid nothing under is left out); a new item or
+	 * fee at the rates of an existing item in the same tax class; a new shipping line at
+	 * the rates of the existing shipping.
 	 * If the edit removed the last item of that class (or all the shipping), the rates
 	 * the removed items were taxed at are used. With no such rate on the order, a new
 	 * item is left untaxed and the note says so, unless it is shipping on an order
@@ -3687,7 +3688,16 @@ class WC_Connect_TaxJar_Integration {
 			if ( 'taxable' !== $item->get_tax_status() ) {
 				$item_rate_ids = array();
 			} elseif ( $is_known ) {
-				$item_rate_ids = empty( $snapshot['item_taxes'][ $key ]['total'] ) ? array() : array_keys( $snapshot['item_taxes'][ $key ]['total'] );
+				// Only the rates it was charged at. A line taxed $0 under a rate (TaxJar's
+				// answer for an exempt product) still carries that rate id, with no tax.
+				$item_rate_ids = empty( $snapshot['item_taxes'][ $key ]['total'] ) ? array() : array_keys(
+					array_filter(
+						$snapshot['item_taxes'][ $key ]['total'],
+						static function ( $tax ) {
+							return 0.0 !== (float) $tax;
+						}
+					)
+				);
 			} elseif ( $is_shipping ) {
 				$item_rate_ids = $shipping_rate_ids;
 			} else {
