@@ -145,6 +145,9 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->products = array();
 
 		remove_all_filters( 'woocommerce_order_is_vat_exempt' );
+		remove_all_actions( 'woocommerce_order_item_shipping_after_calculate_taxes' );
+		// Leave the integration's own callback; drop only what a test added.
+		remove_action( 'woocommerce_order_item_after_calculate_taxes', array( $this, 'exempt_product_b' ), 20 );
 		foreach ( array( 'woocommerce_calc_taxes', 'woocommerce_tax_based_on', 'woocommerce_store_address', 'woocommerce_store_city', 'woocommerce_store_postcode', WC_Connect_TaxJar_Integration::OPTION_NAME ) as $option ) {
 			delete_option( $option );
 		}
@@ -841,6 +844,218 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	// -------------------------------------------------------------------------
 	// New orders ask TaxJar (WOOTAX-346).
 	// -------------------------------------------------------------------------
+
+	// -------------------------------------------------------------------------
+	// Tax another plugin sets while WooCommerce calculates is kept.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Product id the exemption snippet zeroes; see exempt_product_b().
+	 *
+	 * @var int
+	 */
+	private $exempt_product_id = 0;
+
+	/**
+	 * Stand-in for an exemption plugin: zero one product's tax as WooCommerce calculates it.
+	 *
+	 * @param WC_Order_Item $item The item WooCommerce just taxed.
+	 */
+	public function exempt_product_b( $item ) {
+		if ( is_callable( array( $item, 'get_product_id' ) ) && $this->exempt_product_id === $item->get_product_id() ) {
+			$item->set_taxes( false );
+		}
+	}
+
+	/**
+	 * Create a REST order of A ($10) and B ($20), with B exempted by another plugin.
+	 *
+	 * @return array{order: WC_Order, a: int, b: int}
+	 */
+	private function rest_create_with_exempt_b() {
+		$a                       = $this->create_product( '10' );
+		$b                       = $this->create_product( '20' );
+		$this->exempt_product_id = $b->get_id();
+		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this, 'exempt_product_b' ), 20 );
+
+		$order = $this->rest_create(
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $a->get_id(),
+						'quantity'   => 1,
+					),
+					array(
+						'product_id' => $b->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$ids = array();
+		foreach ( $order->get_items() as $item_id => $item ) {
+			$ids[ $item->get_product_id() === $b->get_id() ? 'b' : 'a' ] = $item_id;
+		}
+
+		return array_merge( array( 'order' => $order ), $ids );
+	}
+
+	/**
+	 * @testdox A new REST order keeps the $0 tax another plugin gives an item while WooCommerce calculates.
+	 */
+	public function test_rest_created_order_keeps_tax_set_by_another_plugin() {
+		$fixture = $this->rest_create_with_exempt_b();
+		$order   = $fixture['order'];
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is still asked' );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['b'] ), 0.001, 'B stays exempt' );
+		// 8%: A 0.80, shipping 0.80.
+		$this->assertEqualsWithDelta( 0.80, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 0.80, 0.80, 41.60 );
+	}
+
+	/**
+	 * @testdox A quantity change keeps the $0 tax another plugin gives the changed item.
+	 */
+	public function test_quantity_change_keeps_tax_set_by_another_plugin() {
+		$fixture        = $this->rest_create_with_exempt_b();
+		$this->requests = array();
+		$this->forget_created_in_request();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['b'],
+						'quantity' => 2,
+						'subtotal' => '40.00',
+						'total'    => '40.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['b'] ), 0.001, 'B stays exempt' );
+		$this->assert_order_tax( $order, 0.80, 0.80, 61.60 );
+	}
+
+	/**
+	 * @testdox The item hook runs again only for items whose tax was set here, not for unchanged ones.
+	 */
+	public function test_item_tax_hook_runs_again_only_for_retaxed_items() {
+		$fixture        = $this->rest_create_with_exempt_b();
+		$this->requests = array();
+		$this->forget_created_in_request();
+
+		$runs = array();
+		$spy  = static function ( $item ) use ( &$runs ) {
+			$runs[] = $item->get_id();
+		};
+		add_action( 'woocommerce_order_item_after_calculate_taxes', $spy, 30 );
+
+		try {
+			$this->rest_update(
+				$fixture['order']->get_id(),
+				array(
+					'line_items' => array(
+						array(
+							'id'       => $fixture['b'],
+							'quantity' => 2,
+							'subtotal' => '40.00',
+							'total'    => '40.00',
+						),
+					),
+				)
+			);
+		} finally {
+			remove_action( 'woocommerce_order_item_after_calculate_taxes', $spy, 30 );
+		}
+
+		$counts = array_count_values( $runs );
+		$this->assertSame( 1, $counts[ $fixture['a'] ], 'A did not change: only WooCommerce ran the hook' );
+		$this->assertSame( 2, $counts[ $fixture['b'] ], 'B was re-taxed: the hook ran again on that tax' );
+	}
+
+	/**
+	 * @testdox A changed item re-taxed at the order's recorded rate goes through the other plugin's hook too.
+	 */
+	public function test_reapplied_rate_goes_through_other_plugin() {
+		$fixture                 = $this->create_placed_order();
+		$this->exempt_product_id = $fixture['order']->get_item( $fixture['b'] )->get_product_id();
+		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this, 'exempt_product_b' ), 20 );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['b'],
+						'quantity' => 2,
+						'subtotal' => '40.00',
+						'total'    => '40.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['b'] ), 0.001, 'the plugin zeroed the re-applied tax' );
+		// A keeps 0.60 at the recorded 6%; shipping 0.60.
+		$this->assert_order_tax( $order, 0.60, 0.60, 61.20 );
+	}
+
+	/**
+	 * @testdox A non-taxable item on a new REST order goes through the item hook again too.
+	 */
+	public function test_non_taxable_item_runs_item_hook_again() {
+		$product = $this->create_product( '5' );
+		$product->set_tax_status( 'none' );
+		$product->save();
+
+		$runs = array();
+		$spy  = static function ( $item ) use ( &$runs, $product ) {
+			if ( $product->get_id() === $item->get_product_id() ) {
+				$runs[] = $item->get_id();
+			}
+		};
+		add_action( 'woocommerce_order_item_after_calculate_taxes', $spy, 30 );
+
+		try {
+			$this->rest_create(
+				array(
+					'line_items' => array(
+						array(
+							'product_id' => $product->get_id(),
+							'quantity'   => 1,
+						),
+					),
+				)
+			);
+		} finally {
+			remove_action( 'woocommerce_order_item_after_calculate_taxes', $spy, 30 );
+		}
+
+		$this->assertCount( 2, $runs, 'once from WooCommerce, once on the tax set here' );
+	}
+
+	/**
+	 * @testdox Shipping tax another plugin sets while WooCommerce calculates is kept on a new REST order.
+	 */
+	public function test_rest_created_order_keeps_shipping_tax_set_by_another_plugin() {
+		add_action(
+			'woocommerce_order_item_shipping_after_calculate_taxes',
+			static function ( $item ) {
+				$item->set_taxes( false );
+			}
+		);
+
+		$order = $this->rest_create();
+
+		// 8%: A 0.80, B 1.60; shipping left untaxed by the other plugin.
+		$this->assert_order_tax( $order, 2.40, 0.0, 42.40 );
+	}
 
 	/**
 	 * @testdox An order created through the REST API is taxed by TaxJar, not by leftover rate rows.

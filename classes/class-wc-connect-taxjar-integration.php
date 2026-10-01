@@ -103,6 +103,15 @@ class WC_Connect_TaxJar_Integration {
 	private $order_address_before_save = array();
 
 	/**
+	 * The location WooCommerce taxed each order item for in this recalculation, keyed by
+	 * spl_object_id(), as it passed it to the item's after-calculate-taxes hook. Only kept
+	 * for orders being preserved, so the hook can run again on the tax set here.
+	 *
+	 * @var array<int, array>
+	 */
+	private $order_item_tax_locations = array();
+
+	/**
 	 * Order items being created, like $orders_created_in_request. WC_Order::add_product()
 	 * saves the item at once, so it is already saved when the order is recalculated.
 	 *
@@ -169,6 +178,15 @@ class WC_Connect_TaxJar_Integration {
 	 * cannot be sent to TaxJar.
 	 */
 	private const ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS = 'bad_store_address';
+
+	/**
+	 * WooCommerce's after-calculate-taxes hook for each order item type.
+	 */
+	private const ORDER_ITEM_TAX_HOOKS = array(
+		'line_item' => 'woocommerce_order_item_after_calculate_taxes',
+		'fee'       => 'woocommerce_order_item_fee_after_calculate_taxes',
+		'shipping'  => 'woocommerce_order_item_shipping_after_calculate_taxes',
+	);
 
 	/**
 	 * WCS TaxJar integration constructor.
@@ -330,6 +348,9 @@ class WC_Connect_TaxJar_Integration {
 		// order's amounts change, the rates recorded on the order are re-applied. When
 		// its address changes, or a new order has no tax yet, TaxJar is asked for rates.
 		add_action( 'woocommerce_order_before_calculate_taxes', array( $this, 'preserve_order_taxes_on_recalculation' ), 10, 2 );
+		foreach ( self::ORDER_ITEM_TAX_HOOKS as $after_calculate_taxes ) {
+			add_action( $after_calculate_taxes, array( $this, 'remember_order_item_tax_location' ), PHP_INT_MIN, 2 );
+		}
 		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'remember_order_item_base_before_save' ), 10, 1 );
 		add_action( 'woocommerce_after_order_item_object_save', array( $this, 'remember_order_item_created' ), 10, 1 );
 		add_action( 'woocommerce_before_order_object_save', array( $this, 'remember_order_before_save' ), 10, 1 );
@@ -3190,7 +3211,7 @@ class WC_Connect_TaxJar_Integration {
 		// The old amounts and address have been used; a later recalculation of the same
 		// order in this request must compare against what is saved now.
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
-			unset( $this->order_item_base_before_save[ $item_id ], $this->order_items_created_in_request['ids'][ $item_id ] );
+			unset( $this->order_item_base_before_save[ $item_id ], $this->order_items_created_in_request['ids'][ $item_id ], $this->order_item_tax_locations[ spl_object_id( $item ) ] );
 		}
 		unset( $this->order_address_before_save[ $order_id ], $this->orders_created_in_request['ids'][ $order_id ] );
 	}
@@ -3233,6 +3254,56 @@ class WC_Connect_TaxJar_Integration {
 
 		// get_data() still holds the saved values until the save applies the changes.
 		$this->order_item_base_before_save[ $item_id ] = self::get_order_item_tax_base( $item->get_data() );
+	}
+
+	/**
+	 * Remember the location WooCommerce taxed an order item for.
+	 *
+	 * @internal Hooked to woocommerce_order_item_after_calculate_taxes and its fee and
+	 *           shipping counterparts, at the earliest priority.
+	 *
+	 * @param WC_Order_Item $item              The item WooCommerce just taxed.
+	 * @param mixed         $calculate_tax_for The location it was taxed for.
+	 *
+	 * @since 3.7.1
+	 */
+	public function remember_order_item_tax_location( $item, $calculate_tax_for = null ) {
+		if ( ! $item instanceof WC_Order_Item || ! is_array( $calculate_tax_for ) || ! isset( $this->pre_recalculation_tax_snapshots[ (int) $item->get_order_id() ] ) ) {
+			return;
+		}
+
+		$this->order_item_tax_locations[ spl_object_id( $item ) ] = $calculate_tax_for;
+	}
+
+	/**
+	 * Run an item's after-calculate-taxes hook again, on the tax set for it here.
+	 *
+	 * WooCommerce fires the hook once it has taxed an item, and other plugins adjust the
+	 * tax there (an exemption plugin zeroes it). The tax set here replaces WooCommerce's,
+	 * so the hook runs again with the same arguments, and those plugins adjust this tax
+	 * as they adjusted WooCommerce's. Nothing runs for an item WooCommerce did not tax in
+	 * this recalculation.
+	 *
+	 * @param WC_Order_Item $item An item whose tax was just set.
+	 */
+	private function run_order_item_tax_hook( $item ) {
+		$key   = spl_object_id( $item );
+		$hooks = self::ORDER_ITEM_TAX_HOOKS;
+		if ( ! isset( $this->order_item_tax_locations[ $key ], $hooks[ $item->get_type() ] ) ) {
+			return;
+		}
+
+		/**
+		 * Fires after an order item's taxes are calculated. WooCommerce core's
+		 * woocommerce_order_item_after_calculate_taxes, or its fee or shipping
+		 * counterpart, run again on the tax this plugin set.
+		 *
+		 * @since 3.7.1 Run again by this plugin.
+		 *
+		 * @param WC_Order_Item $item              The order item.
+		 * @param array         $calculate_tax_for The location the item was taxed for.
+		 */
+		do_action( $hooks[ $item->get_type() ], $item, $this->order_item_tax_locations[ $key ] ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.DynamicHooknameFound -- WooCommerce core hooks, see ORDER_ITEM_TAX_HOOKS.
 	}
 
 	/**
@@ -3630,6 +3701,7 @@ class WC_Connect_TaxJar_Integration {
 					$untaxed[] = $item->get_name();
 				}
 				$item->set_taxes( false );
+				$this->run_order_item_tax_hook( $item );
 				continue;
 			}
 
@@ -3638,6 +3710,7 @@ class WC_Connect_TaxJar_Integration {
 				$taxes['subtotal'] = WC_Tax::calc_tax( $item->get_subtotal(), $item_rates, false );
 			}
 			$item->set_taxes( $taxes );
+			$this->run_order_item_tax_hook( $item );
 		}
 
 		// Put back what the order recorded about each rate: update_taxes() reads it
@@ -4162,6 +4235,7 @@ class WC_Connect_TaxJar_Integration {
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_key => $item ) {
 			if ( 'taxable' !== $item->get_tax_status() ) {
 				$item->set_taxes( false );
+				$this->run_order_item_tax_hook( $item );
 				continue;
 			}
 
@@ -4185,6 +4259,7 @@ class WC_Connect_TaxJar_Integration {
 
 			if ( ! $rates ) {
 				$item->set_taxes( false );
+				$this->run_order_item_tax_hook( $item );
 				continue;
 			}
 
@@ -4193,6 +4268,7 @@ class WC_Connect_TaxJar_Integration {
 				$taxes['subtotal'] = WC_Tax::calc_tax( $item->get_subtotal(), $rates, false );
 			}
 			$item->set_taxes( $taxes );
+			$this->run_order_item_tax_hook( $item );
 
 			foreach ( $rates as $rate_id => $rate ) {
 				$percents[ $rate_id ] = array( 'rate_percent' => $rate['rate'] );
