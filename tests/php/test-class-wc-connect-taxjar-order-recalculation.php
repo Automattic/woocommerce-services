@@ -959,6 +959,94 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
 	}
 
+	/**
+	 * @testdox An item removed and saved before calculate_totals() (as the V4 REST route does) takes its tax with it.
+	 */
+	public function test_remove_and_save_before_recalculation_moves_tax() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$order->remove_item( $fixture['b'] );
+		$order->save();
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertCount( 1, $order->get_items(), 'B removed' );
+		$this->assert_order_tax( $order, 0.60, 0.30, 15.90 );
+		$this->assertCount( 1, $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox An item deleted with wc_delete_order_item() before a recalculation takes its tax with it.
+	 */
+	public function test_deleted_item_before_recalculation_moves_tax() {
+		$fixture = $this->create_placed_order();
+
+		wc_delete_order_item( $fixture['b'] );
+		$order = wc_get_order( $fixture['order']->get_id() );
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assert_order_tax( $order, 0.60, 0.30, 15.90 );
+	}
+
+	/**
+	 * @testdox Replacing every item of a class, saved before the recalculation, taxes the new item at the removed items' rate.
+	 */
+	public function test_replacing_items_saved_before_recalculation_keeps_their_rate() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$order->remove_item( $fixture['a'] );
+		$order->remove_item( $fixture['b'] );
+		$c = new WC_Order_Item_Product();
+		$c->set_product( $this->create_product( '30' ) );
+		$c->set_quantity( 1 );
+		$c->set_subtotal( '30' );
+		$c->set_total( '30' );
+		$order->add_item( $c );
+		$order->save();
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 1.80, $this->item_tax( $order, $c->get_id() ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+	}
+
+	/**
+	 * @testdox An item retyped off the order (Subscriptions' remove) loses its tax, and gets it back when retyped onto it (Undo).
+	 */
+	public function test_retyped_item_is_removed_and_restored() {
+		$fixture  = $this->create_placed_order();
+		$order_id = $fixture['order']->get_id();
+		// Subscriptions maps its removed-item type to a product item class.
+		$classname = static function ( $classname, $item_type ) {
+			return 'line_item_removed' === $item_type ? 'WC_Order_Item_Product' : $classname;
+		};
+		add_filter( 'woocommerce_get_order_item_classname', $classname, 10, 2 );
+
+		try {
+			// What wcs_update_order_item_type() does, then WCS_Remove_Item recalculates.
+			wc_update_order_item( $fixture['b'], array( 'order_item_type' => 'line_item_removed' ) );
+			wp_cache_delete( 'order-items-' . $order_id, 'orders' );
+			wc_get_order( $order_id )->calculate_totals();
+
+			$order = wc_get_order( $order_id );
+			$this->assertCount( 1, $order->get_items(), 'B is off the order' );
+			$this->assert_order_tax( $order, 0.60, 0.30, 15.90 );
+
+			wc_update_order_item( $fixture['b'], array( 'order_item_type' => 'line_item' ) );
+			wp_cache_delete( 'order-items-' . $order_id, 'orders' );
+			wc_get_order( $order_id )->calculate_totals();
+		} finally {
+			remove_filter( 'woocommerce_get_order_item_classname', $classname, 10 );
+		}
+
+		$order = wc_get_order( $order_id );
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['b'] ), 0.001, 'B comes back with its own tax' );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+	}
+
 	// -------------------------------------------------------------------------
 	// Edges.
 	// -------------------------------------------------------------------------

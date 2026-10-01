@@ -112,6 +112,15 @@ class WC_Connect_TaxJar_Integration {
 	private $order_item_tax_locations = array();
 
 	/**
+	 * Line items, fees and shipping lines taken off an order in this request, keyed by
+	 * order id and item id, as they were saved. Code that removes an item and saves the
+	 * order before recalculating it leaves no saved copy to compare with otherwise.
+	 *
+	 * @var array<int, array<int, WC_Order_Item>>
+	 */
+	private $order_items_removed_in_request = array();
+
+	/**
 	 * Order items being created, like $orders_created_in_request. WC_Order::add_product()
 	 * saves the item at once, so it is already saved when the order is recalculated.
 	 *
@@ -353,6 +362,8 @@ class WC_Connect_TaxJar_Integration {
 		}
 		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'remember_order_item_base_before_save' ), 10, 1 );
 		add_action( 'woocommerce_after_order_item_object_save', array( $this, 'remember_order_item_created' ), 10, 1 );
+		add_action( 'woocommerce_before_delete_order_item', array( $this, 'remember_order_item_before_delete' ), 10, 1 );
+		add_action( 'woocommerce_update_order_item', array( $this, 'remember_order_item_type_change' ), 10, 2 );
 		add_action( 'woocommerce_before_order_object_save', array( $this, 'remember_order_before_save' ), 10, 1 );
 		add_action( 'woocommerce_after_order_object_save', array( $this, 'remember_order_created' ), 10, 1 );
 
@@ -3213,7 +3224,7 @@ class WC_Connect_TaxJar_Integration {
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
 			unset( $this->order_item_base_before_save[ $item_id ], $this->order_items_created_in_request['ids'][ $item_id ], $this->order_item_tax_locations[ spl_object_id( $item ) ] );
 		}
-		unset( $this->order_address_before_save[ $order_id ], $this->orders_created_in_request['ids'][ $order_id ] );
+		unset( $this->order_address_before_save[ $order_id ], $this->orders_created_in_request['ids'][ $order_id ], $this->order_items_removed_in_request[ $order_id ] );
 	}
 
 	/**
@@ -3326,6 +3337,79 @@ class WC_Connect_TaxJar_Integration {
 			unset( $this->order_items_created_in_request['objects'][ $object_id ] );
 			$this->order_items_created_in_request['ids'][ (int) $item->get_id() ] = true;
 		}
+	}
+
+	/**
+	 * Remember a line item, fee or shipping line that is about to be deleted.
+	 *
+	 * WC deletes an item taken off an order when the order is saved, so code that saves
+	 * before recalculating (as the V4 REST orders route does) leaves no saved copy for
+	 * find_order_tax_base_changes() to compare with.
+	 *
+	 * @internal Hooked to woocommerce_before_delete_order_item.
+	 *
+	 * @param int $item_id The item about to be deleted.
+	 *
+	 * @since 3.7.1
+	 */
+	public function remember_order_item_before_delete( $item_id ) {
+		$item = WC_Order_Factory::get_order_item( absint( $item_id ) );
+
+		if ( $item instanceof WC_Order_Item && in_array( $item->get_type(), array( 'line_item', 'fee', 'shipping' ), true ) ) {
+			$this->remember_order_item_removed( $item );
+		}
+	}
+
+	/**
+	 * Follow an order item whose type was changed in place.
+	 *
+	 * WooCommerce Subscriptions takes an item off a subscription by changing its type
+	 * (to line_item_removed), and its Undo changes it back. Leaving the taxed types
+	 * counts as a removal; coming back counts as a new item, which keeps its own tax.
+	 *
+	 * @internal Hooked to woocommerce_update_order_item. Core fires that hook from
+	 *           wc_update_order_item() with the changed columns, and from the item data
+	 *           store with an item object; only the first form can change the type.
+	 *
+	 * @param int   $item_id The updated item.
+	 * @param mixed $args    The changed columns.
+	 *
+	 * @since 3.7.1
+	 */
+	public function remember_order_item_type_change( $item_id, $args = null ) {
+		if ( ! is_array( $args ) || empty( $args['order_item_type'] ) || ! is_string( $args['order_item_type'] ) ) {
+			return;
+		}
+
+		$item_id = absint( $item_id );
+
+		if ( in_array( $args['order_item_type'], array( 'line_item', 'fee', 'shipping' ), true ) ) {
+			foreach ( array_keys( $this->order_items_removed_in_request ) as $order_id ) {
+				unset( $this->order_items_removed_in_request[ $order_id ][ $item_id ] );
+			}
+			$this->order_items_created_in_request['ids'][ $item_id ] = true;
+			return;
+		}
+
+		// The new type is saved already; the item loads as whatever class it now maps to.
+		$item = WC_Order_Factory::get_order_item( $item_id );
+
+		if ( $item instanceof WC_Order_Item ) {
+			$this->remember_order_item_removed( $item );
+		}
+	}
+
+	/**
+	 * Keep a removed item that could have carried tax, for its order's next recalculation.
+	 *
+	 * @param WC_Order_Item $item The removed item, as it was saved.
+	 */
+	private function remember_order_item_removed( WC_Order_Item $item ) {
+		if ( ! is_callable( array( $item, 'get_taxes' ) ) || ! is_callable( array( $item, 'get_tax_class' ) ) ) {
+			return;
+		}
+
+		$this->order_items_removed_in_request[ (int) $item->get_order_id() ][ (int) $item->get_id() ] = $item;
 	}
 
 	/**
@@ -3445,7 +3529,7 @@ class WC_Connect_TaxJar_Integration {
 	 * Covers the three ways an edit reaches a recalculation: an existing item whose
 	 * total changed (saved already, or still pending), an item added (no id yet, or
 	 * first saved in this request), and an item removed (still saved, but no longer on
-	 * the order).
+	 * the order; or deleted or retyped earlier in this request).
 	 *
 	 * @param WC_Order $order The order about to be recalculated.
 	 * @return array {
@@ -3491,6 +3575,10 @@ class WC_Connect_TaxJar_Integration {
 		foreach ( $types as $type ) {
 			$saved_items += (array) $order->get_data_store()->read_items( $order, $type );
 		}
+		// Items taken off and already deleted (or retyped) in this request were part of
+		// what the order's tax was based on, though they are no longer saved as such.
+		$saved_items += $this->order_items_removed_in_request[ (int) $order->get_id() ] ?? array();
+
 		$removed = array_diff( array_map( 'intval', array_keys( $saved_items ) ), $known_ids, array_keys( $this->order_items_created_in_request['ids'] ) );
 
 		// The rates removed items were taxed at, for a new item that replaces the last
