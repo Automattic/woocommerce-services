@@ -872,6 +872,148 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Move the store to Boulder, so the store address and the fixture's Denver customer differ in rate.
+	 */
+	private function move_store_to_boulder() {
+		update_option( 'woocommerce_store_city', 'Boulder' );
+		update_option( 'woocommerce_store_postcode', '80301' );
+	}
+
+	/**
+	 * Change the fixture order's shipping method over REST, keeping its amount.
+	 *
+	 * @param WC_Order $order     Fixture order.
+	 * @param string   $method_id New method id.
+	 * @return WC_Order
+	 */
+	private function rest_switch_shipping_method( WC_Order $order, $method_id ) {
+		$shipping_ids = array_keys( $order->get_shipping_methods() );
+
+		return $this->rest_update(
+			$order->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'id'           => reset( $shipping_ids ),
+						'method_id'    => $method_id,
+						'method_title' => $method_id,
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * @testdox Switching a delivery order to local pickup taxes it at the store address.
+	 */
+	public function test_switch_to_local_pickup_asks_at_store_address() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_switch_shipping_method( $fixture['order'], 'local_pickup' );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'], 'asked at the store' );
+		// 8%: A 0.80, B 1.60, shipping 0.80.
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+		$this->assertCount( 1, $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox Switching a local pickup order to delivery taxes it at the customer's address.
+	 */
+	public function test_switch_to_delivery_asks_at_customer_address() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order( array( 'shipping_method' => 'local_pickup' ) );
+
+		$order = $this->rest_switch_shipping_method( $fixture['order'], 'flat_rate' );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80202', $this->requests[0]['to_zip'], 'asked at the customer' );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+		$this->assertCount( 1, $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox With base tax for local pickup turned off, switching to local pickup is not a change.
+	 */
+	public function test_switch_to_local_pickup_without_base_tax_makes_no_request() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order();
+		add_filter( 'woocommerce_apply_base_tax_for_local_pickup', '__return_false' );
+
+		try {
+			$order = $this->rest_switch_shipping_method( $fixture['order'], 'local_pickup' );
+		} finally {
+			remove_filter( 'woocommerce_apply_base_tax_for_local_pickup', '__return_false' );
+		}
+
+		$this->assertCount( 0, $this->requests );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+	}
+
+	/**
+	 * @testdox A REST order created with local pickup is taxed at the store and gets no note.
+	 */
+	public function test_rest_created_local_pickup_order_is_taxed_at_store() {
+		$this->move_store_to_boulder();
+
+		$order = $this->rest_create(
+			array(
+				'billing'        => self::address(),
+				'shipping'       => self::address(),
+				'shipping_lines' => array(
+					array(
+						'method_id'    => 'local_pickup',
+						'method_title' => 'Pickup',
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'] );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'a new order gets no tax note' );
+	}
+
+	/**
+	 * @testdox A woocommerce_order_get_tax_location filter decides where the order is taxed, as in core.
+	 */
+	public function test_order_tax_location_filter_is_honoured() {
+		$fixture  = $this->create_placed_order();
+		$location = static function ( $location ) {
+			return array_merge(
+				$location,
+				array(
+					'postcode' => '80301',
+					'city'     => 'Boulder',
+				)
+			);
+		};
+		add_filter( 'woocommerce_order_get_tax_location', $location );
+
+		try {
+			// Pinned to one place: a customer address change does not move it.
+			$unchanged = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '80203', 'Denver', '2 Other St' ) ) );
+			$this->assertCount( 0, $this->requests, 'the filtered location did not move' );
+			$this->assert_order_tax( $unchanged, 1.80, 0.60, 42.40 );
+
+			// A new order is looked up at the filtered location, with no street.
+			$order = $this->rest_create( array( 'shipping' => self::address() ) );
+		} finally {
+			remove_filter( 'woocommerce_order_get_tax_location', $location );
+		}
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'] );
+		$this->assertEmpty( $this->requests[0]['to_street'] ?? '' );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+	}
+
+	/**
 	 * @testdox A VAT-exempt order makes no request.
 	 */
 	public function test_vat_exempt_order_makes_no_request() {

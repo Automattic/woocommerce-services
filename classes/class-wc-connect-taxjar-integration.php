@@ -121,6 +121,15 @@ class WC_Connect_TaxJar_Integration {
 	private $order_items_removed_in_request = array();
 
 	/**
+	 * Shipping method ids of shipping lines as they were before an in-request save
+	 * changed them, keyed by item id. Switching between local pickup and delivery moves
+	 * the address the order is taxed on without touching an address field.
+	 *
+	 * @var array<int, string>
+	 */
+	private $order_shipping_method_before_save = array();
+
+	/**
 	 * Order items being created, like $orders_created_in_request. WC_Order::add_product()
 	 * saves the item at once, so it is already saved when the order is recalculated.
 	 *
@@ -3222,7 +3231,7 @@ class WC_Connect_TaxJar_Integration {
 		// The old amounts and address have been used; a later recalculation of the same
 		// order in this request must compare against what is saved now.
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
-			unset( $this->order_item_base_before_save[ $item_id ], $this->order_items_created_in_request['ids'][ $item_id ], $this->order_item_tax_locations[ spl_object_id( $item ) ] );
+			unset( $this->order_item_base_before_save[ $item_id ], $this->order_items_created_in_request['ids'][ $item_id ], $this->order_item_tax_locations[ spl_object_id( $item ) ], $this->order_shipping_method_before_save[ $item_id ] );
 		}
 		unset( $this->order_address_before_save[ $order_id ], $this->orders_created_in_request['ids'][ $order_id ], $this->order_items_removed_in_request[ $order_id ] );
 	}
@@ -3253,11 +3262,15 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		$changes = $item->get_changes();
+
+		if ( 'shipping' === $item->get_type() && array_key_exists( 'method_id', $changes ) && ! isset( $this->order_shipping_method_before_save[ $item_id ] ) ) {
+			$this->order_shipping_method_before_save[ $item_id ] = (string) $item->get_data()['method_id'];
+		}
+
 		if ( isset( $this->order_item_base_before_save[ $item_id ] ) ) {
 			return;
 		}
-
-		$changes = $item->get_changes();
 
 		if ( ! array_key_exists( 'total', $changes ) && ! array_key_exists( 'subtotal', $changes ) ) {
 			return;
@@ -4014,10 +4027,91 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$location_type = $this->get_order_tax_location_type( $order );
-		$old_address   = $this->get_order_tax_address( $before['billing'], $before['shipping'], $location_type );
-		$new_address   = $this->get_order_tax_address( $order->get_address( 'billing' ), $order->get_address( 'shipping' ), $location_type );
+		// A new order was not taxed anywhere before: only its address fields can move.
+		$type_before = isset( $this->orders_created_in_request['ids'][ $order_id ] ) ? $location_type : $this->get_order_tax_location_type( $order, $this->get_order_shipping_method_ids_before( $order ) );
+		$old_address = $this->filter_order_tax_address( $this->get_order_tax_address( $before['billing'], $before['shipping'], $type_before ), $order );
+		$new_address = $this->filter_order_tax_address( $this->get_order_tax_address( $order->get_address( 'billing' ), $order->get_address( 'shipping' ), $location_type ), $order );
 
 		return $old_address->to_taxable_tuple() === $new_address->to_taxable_tuple() ? null : $old_address;
+	}
+
+	/**
+	 * Shipping method ids of the order's shipping lines as they were before this request.
+	 *
+	 * The REST API saves an edited shipping line before it recalculates the order, so
+	 * a method changed in this request is read from what was remembered before the save.
+	 * Lines removed in this request count; lines added in it do not.
+	 *
+	 * @param WC_Order $order The order about to be recalculated.
+	 * @return string[]
+	 */
+	private function get_order_shipping_method_ids_before( $order ) {
+		$saved  = (array) $order->get_data_store()->read_items( $order, 'shipping' );
+		$saved += $this->order_items_removed_in_request[ (int) $order->get_id() ] ?? array();
+
+		$method_ids = array();
+		foreach ( $saved as $item_id => $item ) {
+			if ( ! $item instanceof WC_Order_Item_Shipping || isset( $this->order_items_created_in_request['ids'][ (int) $item_id ] ) ) {
+				continue;
+			}
+
+			$method_ids[] = $this->order_shipping_method_before_save[ (int) $item_id ] ?? $item->get_method_id();
+		}
+
+		return $method_ids;
+	}
+
+	/**
+	 * Apply WooCommerce's woocommerce_order_get_tax_location filter to an order's tax address.
+	 *
+	 * WC_Abstract_Order::get_tax_location() lets plugins move the location an order is
+	 * taxed at. The filter knows no street, so a moved location is sent without one.
+	 *
+	 * @param Address  $address The address the order is taxed at, before the filter.
+	 * @param WC_Order $order   The order.
+	 * @return Address
+	 */
+	private function filter_order_tax_address( Address $address, $order ) {
+		$location = array(
+			'country'  => $address->country(),
+			'state'    => $address->state(),
+			'postcode' => $address->postcode(),
+			'city'     => $address->city(),
+		);
+
+		/**
+		 * Filters the location an order is taxed at. A WooCommerce core filter, applied
+		 * here as WC_Abstract_Order::get_tax_location() applies it.
+		 *
+		 * @since 3.7.1 Applied by this plugin.
+		 *
+		 * @param array    $location Country, state, postcode and city.
+		 * @param WC_Order $order    The order.
+		 */
+		$filtered = apply_filters( 'woocommerce_order_get_tax_location', $location, $order ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
+
+		if ( ! is_array( $filtered ) ) {
+			return $address;
+		}
+
+		foreach ( $location as $key => $value ) {
+			if ( isset( $filtered[ $key ] ) && is_scalar( $filtered[ $key ] ) ) {
+				$location[ $key ] = (string) $filtered[ $key ];
+			}
+		}
+
+		if ( array( $address->country(), $address->state(), $address->postcode(), $address->city() ) === array_values( $location ) ) {
+			return $address;
+		}
+
+		return Address::from_options(
+			array(
+				'to_country' => $location['country'],
+				'to_state'   => $location['state'],
+				'to_zip'     => $location['postcode'],
+				'to_city'    => $location['city'],
+			)
+		);
 	}
 
 	/**
@@ -4054,10 +4148,11 @@ class WC_Connect_TaxJar_Integration {
 	 * Mirrors WC_Abstract_Order::get_tax_location(): the Tax "Calculate tax based on"
 	 * setting, and the store address when the order uses local pickup.
 	 *
-	 * @param WC_Order $order The order.
+	 * @param WC_Order      $order      The order.
+	 * @param string[]|null $method_ids Shipping method ids to decide on instead of the order's current ones.
 	 * @return string
 	 */
-	private function get_order_tax_location_type( $order ) {
+	private function get_order_tax_location_type( $order, ?array $method_ids = null ) {
 		/**
 		 * Filters whether to apply base tax for local pickup. A WooCommerce core filter,
 		 * applied here as WC_Abstract_Order::get_tax_location() applies it.
@@ -4076,10 +4171,15 @@ class WC_Connect_TaxJar_Integration {
 			 */
 			$local_pickup_methods = (array) apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
 
-			foreach ( $order->get_shipping_methods() as $shipping ) {
-				if ( in_array( $shipping->get_method_id(), $local_pickup_methods, true ) ) {
-					return 'base';
+			if ( null === $method_ids ) {
+				$method_ids = array();
+				foreach ( $order->get_shipping_methods() as $shipping ) {
+					$method_ids[] = $shipping->get_method_id();
 				}
+			}
+
+			if ( array_intersect( $method_ids, $local_pickup_methods ) ) {
+				return 'base';
 			}
 		}
 
@@ -4160,11 +4260,11 @@ class WC_Connect_TaxJar_Integration {
 			'line_items'     => $line_items,
 			'rate_ids'       => array(),
 			'response_lines' => array(),
-			'address'        => $this->with_state_code( $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $default_type ) ),
+			'address'        => $this->with_state_code( $this->filter_order_tax_address( $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $default_type ), $order ) ),
 		);
 
 		foreach ( $groups as $type => $items ) {
-			$address = $this->with_state_code( $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $type ) );
+			$address = $type === $default_type ? $result['address'] : $this->with_state_code( $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $type ) );
 
 			// calculate_tax() would take it for another state's address and answer "no
 			// tax" without asking. Keep the order's tax instead.
