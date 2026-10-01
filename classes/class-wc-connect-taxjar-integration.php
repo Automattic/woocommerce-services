@@ -816,7 +816,10 @@ class WC_Connect_TaxJar_Integration {
 			foreach ( $line_items as $item_key => $line_item ) {
 				$rate_ids = $taxes['rate_ids'][ $line_item['id'] ?? '' ] ?? null;
 				if ( is_array( $rate_ids ) && $rate_ids ) {
-					$this->admin_recalculation_rate_ids[ (int) $order_id ][ (int) $item_key ] = $rate_ids;
+					$this->admin_recalculation_rate_ids[ (int) $order_id ][ (int) $item_key ] = array(
+						'rate_ids' => $rate_ids,
+						'line'     => $taxes['line_items'][ $line_item['id'] ] ?? null,
+					);
 				}
 			}
 		}
@@ -1662,9 +1665,9 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public function override_order_item_taxes( $item, $calculate_tax_for ) {
 		// An admin recalculation looked this item up in calculate_backend_totals().
-		$admin_rate_ids = $this->take_admin_recalculation_rate_ids( $item );
-		if ( null !== $admin_rate_ids ) {
-			$this->set_order_item_taxes_from_rate_ids( $item, $admin_rate_ids );
+		$admin_lookup = $this->take_admin_recalculation_rate_ids( $item );
+		if ( null !== $admin_lookup ) {
+			$this->set_order_item_taxes_from_rate_ids( $item, $admin_lookup['rate_ids'], $admin_lookup['line'] );
 			return;
 		}
 
@@ -1687,9 +1690,11 @@ class WC_Connect_TaxJar_Integration {
 		// The trailing "-" delimiter prevents false prefix matches between IDs (e.g. 1 vs 10).
 		// First-match-wins is safe: same product always shares the same tax_location and rates.
 		$matching_rate_ids = null;
+		$matching_line     = null;
 		foreach ( $this->response_rate_ids as $line_item_key => $rate_ids ) {
 			if ( strpos( $line_item_key, $product_id . '-' ) === 0 ) {
 				$matching_rate_ids = $rate_ids;
+				$matching_line     = $this->response_line_items[ $line_item_key ] ?? null;
 				break;
 			}
 		}
@@ -1699,7 +1704,7 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$this->set_order_item_taxes_from_rate_ids( $item, $matching_rate_ids );
+		$this->set_order_item_taxes_from_rate_ids( $item, $matching_rate_ids, $matching_line );
 	}
 
 	/**
@@ -1709,7 +1714,9 @@ class WC_Connect_TaxJar_Integration {
 	 * looked up for and not to a later one in the same request.
 	 *
 	 * @param WC_Order_Item $item The order item being taxed.
-	 * @return int[]|null Rate ids, or null when the item was not looked up.
+	 * @return array{rate_ids: int[], line: object|null}|null Rate ids and TaxJar's answer
+	 *                                                       line, or null when the item
+	 *                                                       was not looked up.
 	 */
 	private function take_admin_recalculation_rate_ids( $item ) {
 		if ( ! ( $item instanceof \WC_Order_Item_Product ) ) {
@@ -1732,28 +1739,18 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Tax an order item at the given rate rows, replacing what WooCommerce found.
 	 *
-	 * @param WC_Order_Item_Product $item     The order item.
-	 * @param array                 $rate_ids Tax rate ids.
+	 * The percentages come from TaxJar's answer for the item when it is given. Rows are
+	 * shared by every product in a tax class, so they hold whichever line was stored
+	 * last: an item TaxJar answered as exempt would otherwise pay the rate of a taxed
+	 * item beside it.
+	 *
+	 * @param WC_Order_Item_Product $item          The order item.
+	 * @param array                 $rate_ids      Tax rate ids.
+	 * @param object|null           $response_line TaxJar's breakdown line for the item.
 	 */
-	private function set_order_item_taxes_from_rate_ids( $item, array $rate_ids ) {
-		// Build tax rates array from the stored rate IDs.
-		$tax_rates = array();
-		foreach ( $rate_ids as $rate_id ) {
-			$rate_id = absint( $rate_id );
-			if ( ! $rate_id ) {
-				continue;
-			}
-
-			$rate_data = \WC_Tax::_get_tax_rate( $rate_id );
-			if ( $rate_data ) {
-				$tax_rates[ $rate_id ] = array(
-					'rate'     => (float) $rate_data['tax_rate'],
-					'label'    => $rate_data['tax_rate_name'],
-					'shipping' => 'yes' === $rate_data['tax_rate_shipping'] ? 'yes' : 'no',
-					'compound' => 'yes' === $rate_data['tax_rate_compound'] ? 'yes' : 'no',
-				);
-			}
-		}
+	private function set_order_item_taxes_from_rate_ids( $item, array $rate_ids, $response_line = null ) {
+		// Positions matter: the answer's components were stored in this order.
+		$tax_rates = $this->get_looked_up_rates( $rate_ids, $response_line );
 
 		if ( empty( $tax_rates ) ) {
 			return;
