@@ -1033,12 +1033,11 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Fill in the street when an order-items request arrived without one.
 	 *
-	 * Core's Recalculate button posts country, state, postcode and city, and the
-	 * order-screen script (`client/new-order-taxjar.js`) adds `street`. When that script
-	 * did not run (not loaded, stopped by another script's error, or another handler
-	 * replaced the request data), the key is missing and TaxJar would get no street.
-	 * Core also posts the address, without a street, when a line item is deleted, so
-	 * this runs for those requests too.
+	 * Core's Recalculate button and line-item delete both post country, state, postcode
+	 * and city, and the order-screen script (`client/new-order-taxjar.js`) adds `street`
+	 * to each. When that script did not run (not loaded, stopped by another script's
+	 * error, or another handler replaced the request data), the key is missing and
+	 * TaxJar would get no street.
 	 *
 	 * The order's saved street is used only when the posted address matches the saved
 	 * address on the side core read it from. Otherwise the merchant edited the address
@@ -2872,7 +2871,7 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 		// Load Javascript for WooCommerce new order page
-		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true );
+		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted.
 	}
 
 	/**

@@ -114,13 +114,45 @@ describe( 'new-order-taxjar recalculate street', () => {
 		} );
 	} );
 
-	it.each( [ false, 'not request data' ] )( 'ignores an earlier handler returning %p', ( returned ) => {
+	it( 'appends the street to a query string an earlier handler returned', () => {
+		global.woocommerce_admin_meta_boxes = { tax_based_on: 'shipping' };
+		jQuery = require( 'jquery' );
+		jQuery( '#woocommerce-order-items' ).on(
+			'woocommerce_order_meta_box_recalculate_ajax_data',
+			( event, data ) => jQuery.param( Object.assign( {}, data, { foo: 1 } ) )
+		);
+		require( '../new-order-taxjar' );
+
+		const sent = filterRecalculateData( { country: 'US' } );
+
+		expect( typeof sent ).toBe( 'string' );
+		expect( Object.fromEntries( new URLSearchParams( sent ) ) ).toEqual( {
+			country: 'US',
+			foo: '1',
+			street: '24500 Highway 145',
+		} );
+	} );
+
+	it.each( [ false, 42 ] )( 'ignores an earlier handler returning %p', ( returned ) => {
 		global.woocommerce_admin_meta_boxes = { tax_based_on: 'shipping' };
 		jQuery = require( 'jquery' );
 		jQuery( '#woocommerce-order-items' ).on( 'woocommerce_order_meta_box_recalculate_ajax_data', () => returned );
 		require( '../new-order-taxjar' );
 
 		expect( filterRecalculateData( { country: 'US' } ) ).toEqual( {
+			country: 'US',
+			street: '24500 Highway 145',
+		} );
+	} );
+
+	it( 'sends the street when an item is deleted', () => {
+		loadScript( 'shipping' );
+
+		expect( jQuery( '#woocommerce-order-items' ).triggerHandler(
+			'woocommerce_order_meta_box_delete_item_ajax_data',
+			[ { action: 'woocommerce_remove_order_item', country: 'US' } ]
+		) ).toEqual( {
+			action: 'woocommerce_remove_order_item',
 			country: 'US',
 			street: '24500 Highway 145',
 		} );

@@ -31,12 +31,21 @@ jobs:
       test-security: true
       test-phpcompatibility: true
       test-validation: true
-      test-plugin-check: true
+      test-plugin-check: false # Plugin Check runs through .github/workflows/plugin_check.yml instead.
       test-phpstan: false # TODO: Enable this once the PHPStan tests are fixed
+
+  plugin-check:
+    if: github.event.pull_request.merged == true
+    name: Plugin Check
+    needs: build
+    uses: ./.github/workflows/plugin_check.yml
+    with:
+      extension: ${{ needs.build.outputs.plugin_name }}
+      artifact: ${{ needs.build.outputs.plugin_name }}
 
   handle-success:
     if: ${{ success() }}
-    needs: qit-tests
+    needs: [ qit-tests, plugin-check ]
     name: Handle success
     runs-on: ubuntu-latest
     env:
@@ -49,7 +58,7 @@ jobs:
 
   handle-cancelled:
     if: ${{ cancelled() }}
-    needs: qit-tests
+    needs: [ qit-tests, plugin-check ]
     name: Handle cancellation
     runs-on: ubuntu-latest
     env:
@@ -62,7 +71,7 @@ jobs:
 
   handle-error:
     if: ${{ failure() }}
-    needs: qit-tests
+    needs: [ qit-tests, plugin-check ]
     name: Handle failure
     runs-on: ubuntu-latest
     env:

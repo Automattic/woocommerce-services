@@ -32,34 +32,45 @@ export const getTaxableStreet = ( taxBasedOn ) => {
 };
 
 /**
- * Adds the street to the data core posts for the Recalculate button.
+ * Adds the street to the data core posts for Recalculate and for deleting an item.
  *
  * @param {Object} event jQuery event.
  * @param {Object} data Request data built by core.
- * @return {Object} The data an earlier handler returned, or core's data, with `street` set.
+ * @return {Object|string} The data an earlier handler returned, or core's data, with `street` set.
  */
 export const addStreetToRecalculateData = ( event, data ) => {
 	// Core always passes an object, but anyone can trigger the event.
 	data = data || {};
 
+	const taxBasedOn = 'undefined' !== typeof woocommerce_admin_meta_boxes ? woocommerce_admin_meta_boxes.tax_based_on : '';
+	const street = getTaxableStreet( taxBasedOn );
+
 	// triggerHandler() passes core's original data to every handler and keeps only the
-	// last value returned, so build on an object an earlier handler returned, or its
-	// changes are lost. A non-object return (false, a string) is not request data.
+	// last value returned, so build on what an earlier handler returned, or its changes
+	// are lost. $.ajax() takes either an object or a query string as request data; any
+	// other return (false, a number) is not request data.
 	const previous = event && event.result;
+
+	if ( previous && 'string' === typeof previous ) {
+		return previous + '&' + jQuery.param( { street } );
+	}
+
 	const target = previous && 'object' === typeof previous ? previous : data;
 
-	const taxBasedOn = 'undefined' !== typeof woocommerce_admin_meta_boxes ? woocommerce_admin_meta_boxes.tax_based_on : '';
-
-	target.street = getTaxableStreet( taxBasedOn );
+	target.street = street;
 
 	return target;
 };
 
 const bindRecalculateFilter = () => {
-	// Core fires this with jQuery's triggerHandler(), which runs only handlers bound
+	// Core fires these with jQuery's triggerHandler(), which runs only handlers bound
 	// through jQuery (never addEventListener) and does not bubble, so bind with
-	// jQuery, on the element itself.
-	jQuery( '#woocommerce-order-items' ).on( 'woocommerce_order_meta_box_recalculate_ajax_data', addStreetToRecalculateData );
+	// jQuery, on the element itself. Deleting an item also saves unsaved item edits,
+	// which recalculates tax from the posted address just like Recalculate does.
+	jQuery( '#woocommerce-order-items' ).on(
+		'woocommerce_order_meta_box_recalculate_ajax_data woocommerce_order_meta_box_delete_item_ajax_data',
+		addStreetToRecalculateData
+	);
 };
 
 if ( 'loading' === document.readyState ) {

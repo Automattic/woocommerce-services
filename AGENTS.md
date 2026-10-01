@@ -84,7 +84,7 @@ The test-env scripts (`tests/bin/*.sh`) and hook helpers (`bin/*.sh`) run on Lin
 - Keep shipping logic gated by eligibility; preserve grandfathered behavior.
 - Keep changes in source files; do not hand-edit generated build outputs in `dist/`.
 - Follow existing WordPress/WooCommerce coding standards and linting rules in this repository.
-- Plugin Check warnings fail CI unless listed in `.github/plugin-check-allowed-warnings.txt`. Fix a new warning, or add it there with a reason.
+- Plugin Check runs on the built package through `.github/workflows/plugin_check.yml`. Any finding fails CI unless its code is listed in `.github/plugin-check-ignored-codes.txt`. Fix the finding, suppress it at the line with `phpcs:ignore`, or add the code there with a reason - the file covers the whole plugin, so prefer the first two.
 
 ## Backward Compatibility
 
