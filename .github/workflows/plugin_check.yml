@@ -1,0 +1,77 @@
+name: Plugin Check
+
+# Runs the WordPress.org Plugin Check against the built package, not the
+# repository, so what is scanned is what merchants install. Scanning the
+# repository instead reports dev-only files - dotfiles, shell scripts, AGENTS.md
+# - as errors, and cannot see anything the build generates, such as languages/.
+
+on:
+    workflow_call:
+        inputs:
+            extension:
+                description: 'Plugin slug, used to find the zip in the artifact.'
+                required: true
+                type: string
+            artifact:
+                description: 'Name of the artifact holding the built zip.'
+                required: true
+                type: string
+
+jobs:
+    plugin-check:
+        name: Run Plugin Check
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        steps:
+            - name: Checkout the accepted codes
+              uses: actions/checkout@v4
+              with:
+                  sparse-checkout: .github/plugin-check-ignored-codes.txt
+                  sparse-checkout-cone-mode: false
+                  path: plugin-check-config
+
+            - name: Download the built plugin
+              uses: actions/download-artifact@v4
+              with:
+                  name: ${{ inputs.artifact }}
+                  path: ${{ runner.temp }}/package
+
+            - name: Unpack the built plugin
+              id: unpack
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  unzip -q "${{ runner.temp }}/package/${{ inputs.extension }}.zip" -d "${{ runner.temp }}/plugin"
+
+                  # Some builds wrap the plugin in a folder named after the slug and some
+                  # do not, so find the directory that actually holds the plugin header.
+                  root="$( find "${{ runner.temp }}/plugin" -maxdepth 2 -name '*.php' \
+                      -exec grep -l '^[[:space:]]*\*\?[[:space:]]*Plugin Name:' {} + \
+                      | head -n 1 | xargs dirname )"
+                  test -n "$root"
+
+                  # The QIT build adds the PHPStan config to the zip. It is not part of the
+                  # released package, and Plugin Check would report it as plugin code.
+                  rm -f "$root/phpstan-bootstrap.php" "$root/phpstan.neon"
+
+                  echo "Scanning $root"
+                  echo "root=$root" >> "$GITHUB_OUTPUT"
+
+            - name: Read the accepted codes
+              id: accepted
+              shell: bash
+              run: |
+                  set -euo pipefail
+                  file=plugin-check-config/.github/plugin-check-ignored-codes.txt
+                  codes="$( grep -vE '^[[:space:]]*(#|$)' "$file" | paste -sd, - )"
+                  echo "Accepted codes: ${codes:-none}"
+                  echo "codes=$codes" >> "$GITHUB_OUTPUT"
+
+            - name: Run Plugin Check
+              uses: WordPress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1.1.9
+              with:
+                  build-dir: ${{ steps.unpack.outputs.root }}
+                  ignore-codes: ${{ steps.accepted.outputs.codes }}
+                  # Without this the action fails on errors only, and a new
+                  # warning would land without anything saying so.
+                  strict: true

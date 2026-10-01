@@ -194,10 +194,12 @@ if ( ! class_exists( 'WC_Connect_PayPal_EC' ) ) {
 					)
 				|| ( // WooCommerce » Settings » Payments.
 					'woocommerce_page_wc-settings' === $screen->base
+					// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen check: WooCommerce puts its settings tab in the URL, and this only decides whether the PayPal banner is enqueued. Nothing is written.
 					&& isset( $_GET['tab'] ) && 'checkout' === $_GET['tab']
 					)
 				|| ( // WooCommerce » Extensions » Payments.
 					'woocommerce_page_wc-addons' === $screen->base
+					// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only screen check, as above: the section query arg is WooCommerce's own and only selects where the banner renders.
 					&& isset( $_GET['section'] ) && 'payment-gateways' === $_GET['section']
 					)
 			) {

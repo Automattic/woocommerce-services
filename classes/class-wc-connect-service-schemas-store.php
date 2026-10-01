@@ -212,6 +212,7 @@ if ( ! class_exists( 'WC_Connect_Service_Schemas_Store' ) ) {
 		 */
 		public function get_service_schema_by_instance_id( $instance_id ) {
 			global $wpdb;
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Only the method_id string is wanted; WC_Shipping_Zones::get_shipping_method() would instantiate the shipping method, and this runs from inside shipping method code, so that would recurse. Caching is skipped because a zone edit can repoint an instance_id at a different method and WooCommerce fires no hook this store could invalidate on.
 			$method_id = $wpdb->get_var(
 				$wpdb->prepare(
 					"SELECT method_id FROM {$wpdb->prefix}woocommerce_shipping_zone_methods WHERE instance_id = %d;",
