@@ -65,6 +65,7 @@
 		"i18n-calypso-cli": "^1.0.0",
 		"jest": "^24.9.0",
 		"jest-puppeteer": "^4.4.0",
+		"jquery": "3.7.1",
 		"lint-staged": "^10.5.4",
 		"mkdirp": "^0.5.5",
 		"moment": "^2.29.1",

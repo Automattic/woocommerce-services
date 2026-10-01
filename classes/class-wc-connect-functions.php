@@ -22,6 +22,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 				// Skip during REST API or XMLRPC requests.
 				( defined( 'REST_REQUEST' ) || defined( 'REST_API_REQUEST' ) || defined( 'XMLRPC_REQUEST' ) ) ||
 				// Skip during Jetpack REST API proxy requests.
+				// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only routing check: it only detects that the current request is Jetpack's REST proxy so the cart API call is skipped. Nothing is written and there is no form submission to carry a nonce.
 				( isset( $_GET['rest_route'] ) && isset( $_GET['_for'] ) && ( 'jetpack' === $_GET['_for'] ) )
 			);
 		}
@@ -156,6 +157,7 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			global $wpdb;
 
 			// Export Tax Rates
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Full dump of WooCommerce's tax rate table for the CSV backup taken right before the CA rate deletion tool wipes rows; core exposes no reader for the whole table, and a cached copy would defeat the point of backing up the current contents.
 			$rates = $wpdb->get_results(
 				$wpdb->prepare(
 					"SELECT * FROM {$wpdb->prefix}woocommerce_tax_rates
@@ -187,8 +189,10 @@ if ( ! class_exists( 'WC_Connect_Functions' ) ) {
 			);
 
 			foreach ( $rates as $rate ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Reads WooCommerce's tax rate locations table, which has no core reader for a single rate's postcodes/cities. Part of the one-shot CSV backup above, so each rate is read once and a cache would never be reused.
 				$postcodes = $wpdb->get_col( $wpdb->prepare( "SELECT location_code FROM {$wpdb->prefix}woocommerce_tax_rate_locations WHERE location_type='postcode' AND tax_rate_id = %d ORDER BY location_code", $rate->tax_rate_id ) );
-				$cities    = $wpdb->get_col( $wpdb->prepare( "SELECT location_code FROM {$wpdb->prefix}woocommerce_tax_rate_locations WHERE location_type='city' AND tax_rate_id = %d ORDER BY location_code", $rate->tax_rate_id ) );
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Same one-shot CSV backup read as the postcode query above, for the rate's city locations.
+				$cities = $wpdb->get_col( $wpdb->prepare( "SELECT location_code FROM {$wpdb->prefix}woocommerce_tax_rate_locations WHERE location_type='city' AND tax_rate_id = %d ORDER BY location_code", $rate->tax_rate_id ) );
 
 				$rows[] = array(
 					$rate->tax_rate_country ? $rate->tax_rate_country : '*',
