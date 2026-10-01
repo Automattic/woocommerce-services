@@ -1,0 +1,24 @@
+# Plugin Check codes that are accepted for this plugin.
+#
+# One code per line. Everything in this file is passed to Plugin Check as
+# --ignore-codes, so a code listed here is not reported at all and every other
+# finding fails CI. Add a code only with a reason, and remove it once the code
+# no longer applies. Note this covers the whole plugin, not one file, so prefer
+# fixing a finding or suppressing it at the line with `phpcs:ignore`.
+
+# The plugin name and slug contain "WooCommerce", and the readme title keeps
+# "(formerly WooCommerce Shipping & Tax)". Neither can change.
+trademarked_term
+mismatched_plugin_name
+
+# Legacy public names. The WC_Connect_* classes, their hooks, the WooCommerce
+# globals and DONOTCACHEPAGE keep their names because code outside this plugin
+# depends on them. New code is prefixed by review, not by this check.
+WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedClassFound
+WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound
+WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedVariableFound
+WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound
+
+# The plugin ships its own translation files in i18n/languages, so it still
+# loads them itself.
+PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound

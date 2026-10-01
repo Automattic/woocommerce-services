@@ -67,6 +67,16 @@ class WC_Connect_TaxJar_Integration {
 	private $response_line_items;
 
 	/**
+	 * Rate ids TaxJar returned for an admin recalculation, keyed by order id, then by
+	 * order item id. Kept apart from $response_rate_ids, which other code reads as
+	 * "this request is the cart flow". Each entry is used once, see
+	 * take_admin_recalculation_rate_ids().
+	 *
+	 * @var array<int, array<int, int[]>>
+	 */
+	private $admin_recalculation_rate_ids = array();
+
+	/**
 	 * Tax snapshots captured before an out-of-cart recalculation, keyed by order id,
 	 * so they can be restored after WC recalculates the order totals.
 	 *
@@ -179,6 +189,33 @@ class WC_Connect_TaxJar_Integration {
 		$jurisdiction = trim( $county . ' ' . $city );
 
 		return ( '' !== $jurisdiction ? $jurisdiction . ' : ' : '' ) . $rate_name;
+	}
+
+	/**
+	 * Name of the 0% row that keeps a merchant's state-wide rate from applying to a looked-up town.
+	 *
+	 * The name is stored with the row and copied to any order it taxes, so it has to say
+	 * why the merchant's own rate does not apply there. US rows carry the same county and
+	 * city prefix as the rows TaxJar's rates are stored in.
+	 *
+	 * @param string $to_country    The destination country.
+	 * @param array  $jurisdictions Tax jurisdictions.
+	 *
+	 * @return string
+	 */
+	private static function generate_nullified_rate_name( string $to_country, array $jurisdictions ) {
+		/* translators: Name of a 0% tax rate added when automated taxes replace a store's manual rate for one town. */
+		$label = __( 'Manual Rate Nullified (Automated Taxes)', 'woocommerce-services' );
+
+		if ( 'US' !== $to_country ) {
+			return $label;
+		}
+
+		$county       = isset( $jurisdictions['county'] ) ? trim( (string) $jurisdictions['county'] ) : '';
+		$city         = isset( $jurisdictions['city'] ) ? trim( (string) $jurisdictions['city'] ) : '';
+		$jurisdiction = trim( $county . ' ' . $city );
+
+		return ( '' !== $jurisdiction ? $jurisdiction . ' : ' : '' ) . $label;
 	}
 
 	public function init() {
@@ -684,6 +721,25 @@ class WC_Connect_TaxJar_Integration {
 				'line_items'      => $line_items,
 			)
 		);
+
+		/*
+		 * WooCommerce recalculates the order after this hook by reading the rate table
+		 * for the address. That can return more than TaxJar did: a merchant's row at a
+		 * priority none of the returned components uses stacks on top of them. Keep the
+		 * rate ids TaxJar returned per order item so override_order_item_taxes() can
+		 * apply exactly those, as checkout does. Without an answer, WooCommerce's
+		 * result stands, as before.
+		 */
+		$this->admin_recalculation_rate_ids[ (int) $order_id ] = array();
+		if ( is_array( $taxes ) && ! empty( $taxes['rate_ids'] ) ) {
+			foreach ( $line_items as $item_key => $line_item ) {
+				$rate_ids = $taxes['rate_ids'][ $line_item['id'] ?? '' ] ?? null;
+				if ( is_array( $rate_ids ) && $rate_ids ) {
+					$this->admin_recalculation_rate_ids[ (int) $order_id ][ (int) $item_key ] = $rate_ids;
+				}
+			}
+		}
+
 		if ( class_exists( 'WC_Order_Item_Tax' ) ) { // Add tax rates manually for Woo 3.0+
 			/**
 			 * @var WC_Order_Item_Product $item Product Order Item.
@@ -1469,6 +1525,13 @@ class WC_Connect_TaxJar_Integration {
 	 * @param array         $calculate_tax_for Tax calculation arguments.
 	 */
 	public function override_order_item_taxes( $item, $calculate_tax_for ) {
+		// An admin recalculation looked this item up in calculate_backend_totals().
+		$admin_rate_ids = $this->take_admin_recalculation_rate_ids( $item );
+		if ( null !== $admin_rate_ids ) {
+			$this->set_order_item_taxes_from_rate_ids( $item, $admin_rate_ids );
+			return;
+		}
+
 		// Only act if we have TaxJar-calculated rate IDs from this request.
 		if ( empty( $this->response_rate_ids ) || ! is_array( $this->response_rate_ids ) ) {
 			return;
@@ -1500,9 +1563,46 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		$this->set_order_item_taxes_from_rate_ids( $item, $matching_rate_ids );
+	}
+
+	/**
+	 * Take the rate ids an admin recalculation looked up for an order item.
+	 *
+	 * Each entry is removed as it is read, so it applies to the recalculation it was
+	 * looked up for and not to a later one in the same request.
+	 *
+	 * @param WC_Order_Item $item The order item being taxed.
+	 * @return int[]|null Rate ids, or null when the item was not looked up.
+	 */
+	private function take_admin_recalculation_rate_ids( $item ) {
+		if ( ! ( $item instanceof \WC_Order_Item_Product ) ) {
+			return null;
+		}
+
+		$order_id = (int) $item->get_order_id();
+		$item_id  = (int) $item->get_id();
+
+		if ( ! isset( $this->admin_recalculation_rate_ids[ $order_id ][ $item_id ] ) ) {
+			return null;
+		}
+
+		$rate_ids = $this->admin_recalculation_rate_ids[ $order_id ][ $item_id ];
+		unset( $this->admin_recalculation_rate_ids[ $order_id ][ $item_id ] );
+
+		return $rate_ids;
+	}
+
+	/**
+	 * Tax an order item at the given rate rows, replacing what WooCommerce found.
+	 *
+	 * @param WC_Order_Item_Product $item     The order item.
+	 * @param array                 $rate_ids Tax rate ids.
+	 */
+	private function set_order_item_taxes_from_rate_ids( $item, array $rate_ids ) {
 		// Build tax rates array from the stored rate IDs.
 		$tax_rates = array();
-		foreach ( $matching_rate_ids as $rate_id ) {
+		foreach ( $rate_ids as $rate_id ) {
 			$rate_id = absint( $rate_id );
 			if ( ! $rate_id ) {
 				continue;
@@ -2064,6 +2164,9 @@ class WC_Connect_TaxJar_Integration {
 				'to_city'      => $to_city,
 			);
 
+			// Priorities written per tax class, for shadow_unscoped_rates_above_components().
+			$written = array();
+
 			// Add line item tax rates.
 			foreach ( $taxes['line_items'] as $line_item_key => $line_item ) {
 				// A line item WooCommerce will not tax was sent to TaxJar as exempt, so its
@@ -2092,15 +2195,18 @@ class WC_Connect_TaxJar_Integration {
 					if ( 'combined_tax_rate' === $tax_rate_name || false === strpos( $tax_rate_name, '_tax_rate' ) ) {
 						continue;
 					}
+					$rate_name = self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions );
+
 					$taxes['rate_ids'][ $line_item_key ][] = $this->create_or_update_tax_rate(
 						$location,
 						round( $tax_rate * 100, 4 ),
 						$tax_class,
 						$taxes['freight_taxable'],
 						$priority,
-						self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions )
+						$rate_name
 					);
 
+					$this->record_written_priority( $written, $tax_class, $priority, $rate_name );
 					++$priority;
 				}
 			}
@@ -2112,16 +2218,25 @@ class WC_Connect_TaxJar_Integration {
 				if ( 'combined_tax_rate' === $tax_rate_name || false === strpos( $tax_rate_name, '_tax_rate' ) ) {
 					continue;
 				}
+				$rate_name = self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions );
+
 				$taxes['rate_ids']['shipping'][] = $this->create_or_update_tax_rate(
 					$location,
 					round( $tax_rate * 100, 4 ),
 					'',
 					$taxes['freight_taxable'],
 					$priority,
-					self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions )
+					$rate_name
 				);
 
+				$this->record_written_priority( $written, '', $priority, $rate_name );
 				++$priority;
+			}
+
+			foreach ( $written as $tax_class => $class_written ) {
+				if ( ! $class_written['vat'] ) {
+					$this->shadow_unscoped_rates_above_components( $location, (string) $tax_class, $class_written['priorities'], $jurisdictions );
+				}
 			}
 		}
 
@@ -2197,20 +2312,7 @@ class WC_Connect_TaxJar_Integration {
 		 * becoming the literal "Array". This method is public and takes the location
 		 * it is handed.
 		 */
-		$field = static function ( $value ) {
-			return is_scalar( $value ) ? (string) $value : '';
-		};
-
-		$address = Address::from_options(
-			array(
-				'to_country' => $field( $location['to_country'] ?? '' ),
-				// Prevent filling "State code" column for countries with VAT tax.
-				// VAT tax is country wide.
-				'to_state'   => 'VAT' === $tax_rate_name ? '' : $field( $location['to_state'] ?? '' ),
-				'to_zip'     => $field( $location['to_zip'] ?? '' ),
-				'to_city'    => $field( $location['to_city'] ?? '' ),
-			)
-		);
+		$address = $this->get_rate_table_address( $location, 'VAT' === $tax_rate_name );
 
 		/**
 		 * @see https://github.com/Automattic/woocommerce-services/issues/2531
@@ -2257,6 +2359,33 @@ class WC_Connect_TaxJar_Integration {
 			$wc_rate = array();
 		}
 
+		/*
+		 * Never repurpose a row whose scope is broader than the jurisdiction about to
+		 * be written. Rows this method inserts always carry the address's postcode or
+		 * city, so a matched row with no location rows at all is a merchant's
+		 * catch-all (or a row written for a scopeless address). Rewriting it in place
+		 * would turn it into, say, a 0% City component that still matches the whole
+		 * state.
+		 *
+		 * Inserting beside it is stable: `WC_Tax::find_rates()` keeps one row per
+		 * priority and prefers the one with more postcode/city locations, so the next
+		 * lookup for this address lands on the scoped row and reuses it, while the
+		 * catch-all keeps covering every other address.
+		 *
+		 * VAT rows are country-wide by design and addresses without a postcode or city
+		 * write no scope, so both keep reusing the matched row. Otherwise they would
+		 * insert a new row on every calculation.
+		 */
+		if ( ! empty( $wc_rate ) && 'VAT' !== $tax_rate_name ) {
+			$wanted_locations = $address->to_rate_table_locations();
+			$wants_scope      = '' !== $wanted_locations['postcode'] || '' !== $wanted_locations['city'];
+
+			if ( $wants_scope && ! $this->tax_rate_has_locations( key( $wc_rate ) ) ) {
+				$this->_log( ':: Matched Tax Rate Is Not Location Scoped, Adding A Scoped Rate Beside It ::' );
+				$wc_rate = array();
+			}
+		}
+
 		if ( ! empty( $wc_rate ) ) {
 			$this->_log( ':: Tax Rate Found ::' );
 			$this->_log( $wc_rate );
@@ -2289,6 +2418,147 @@ class WC_Connect_TaxJar_Integration {
 		$this->_log( 'Tax Rate ID Set for ' . $rate_id );
 
 		return $rate_id;
+	}
+
+	/**
+	 * Whether a tax rate row is restricted to any postcode or city.
+	 *
+	 * @param int $rate_id Tax rate ID.
+	 *
+	 * @return bool
+	 */
+	private function tax_rate_has_locations( $rate_id ) {
+		global $wpdb;
+
+		// WooCommerce has no API for one rate's locations: get_rates_for_tax_class() loads every
+		// row in the class. Not cached: the row's locations change within the request that asks.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		return (bool) $wpdb->get_var(
+			$wpdb->prepare(
+				"SELECT 1 FROM {$wpdb->prefix}woocommerce_tax_rate_locations WHERE tax_rate_id = %d LIMIT 1",
+				$rate_id
+			)
+		);
+	}
+
+	/**
+	 * Note that a component was written at a priority in a tax class.
+	 *
+	 * @param array  $written   Written priorities per tax class, updated in place.
+	 * @param string $tax_class Tax class.
+	 * @param int    $priority  Priority.
+	 * @param string $rate_name Row name; a VAT row marks the class as VAT.
+	 */
+	private function record_written_priority( array &$written, $tax_class, $priority, $rate_name ) {
+		if ( ! isset( $written[ $tax_class ] ) ) {
+			$written[ $tax_class ] = array(
+				'priorities' => array(),
+				'vat'        => false,
+			);
+		}
+
+		$written[ $tax_class ]['priorities'][] = (int) $priority;
+		$written[ $tax_class ]['vat']          = $written[ $tax_class ]['vat'] || 'VAT' === $rate_name;
+	}
+
+	/**
+	 * The address a rate row is written and looked up for.
+	 *
+	 * Non-scalars collapse to an empty string rather than reaching `(string)` and
+	 * becoming the literal "Array": create_or_update_tax_rate() is public and takes
+	 * the location it is handed. VAT rows are country-wide, so they carry no state.
+	 *
+	 * @param array $location Location in the `to_*` shape.
+	 * @param bool  $is_vat   Whether the row is a VAT row.
+	 *
+	 * @return Address
+	 */
+	private function get_rate_table_address( $location, $is_vat ) {
+		$field = static function ( $value ) {
+			return is_scalar( $value ) ? (string) $value : '';
+		};
+
+		return Address::from_options(
+			array(
+				'to_country' => $field( $location['to_country'] ?? '' ),
+				// Prevent filling "State code" column for countries with VAT tax.
+				// VAT tax is country wide.
+				'to_state'   => $is_vat ? '' : $field( $location['to_state'] ?? '' ),
+				'to_zip'     => $field( $location['to_zip'] ?? '' ),
+				'to_city'    => $field( $location['to_city'] ?? '' ),
+			)
+		);
+	}
+
+	/**
+	 * Stop a state-wide rate from adding to the rates just written for an address.
+	 *
+	 * `WC_Tax::find_rates()` keeps one row per priority. The components TaxJar
+	 * returned sit at priorities 1 to N, so a merchant's state-wide row at a higher
+	 * priority still matches the address and is added on top of them. Checkout and
+	 * an admin Recalculate apply only the rate ids TaxJar returned, but everything
+	 * else that reads the rate table (REST and POS orders, shipping) would charge both.
+	 *
+	 * For each such priority this adds a 0% row limited to the address's postcode and
+	 * city. It outranks the state-wide row at that priority, so the table gives the
+	 * address what TaxJar returned, and every other address still gets the merchant's
+	 * row. The merchant's row is not changed.
+	 *
+	 * The row is not marked for shipping, and it still keeps the merchant's row off
+	 * shipping: `WC_Tax::find_shipping_rates()` picks one row per priority first and
+	 * only then drops the rows not marked for shipping. Marked for shipping, it would
+	 * put a $0 tax line on every order that ships to the address, since checkout,
+	 * order creation and Recalculate all tax shipping from the table.
+	 *
+	 * Only rows with no postcode or city are covered; a merchant's own local rows are
+	 * left as they are. Nothing is added for VAT rows, which are country-wide, or for
+	 * an address with no postcode or city, since the new row could not outrank anything.
+	 * The next lookup for the address finds the 0% row at that priority instead of the
+	 * state-wide one, so nothing more is added.
+	 *
+	 * The rows are inserted directly rather than through create_or_update_tax_rate(),
+	 * which matches by position and could otherwise update a merchant's local row.
+	 *
+	 * @param array  $location      Location in the `to_*` shape, as written.
+	 * @param string $tax_class     Tax class the components were written in.
+	 * @param int[]  $priorities    Priorities the components were written at.
+	 * @param array  $jurisdictions County and city names, for the row name.
+	 */
+	private function shadow_unscoped_rates_above_components( $location, $tax_class, array $priorities, array $jurisdictions ) {
+		$address   = $this->get_rate_table_address( $location, false );
+		$locations = $address->to_rate_table_locations();
+
+		if ( '' === $locations['postcode'] && '' === $locations['city'] ) {
+			return;
+		}
+
+		$matched = WC_Tax::find_rates( $address->to_find_rates_args( $tax_class ) );
+
+		foreach ( array_keys( is_array( $matched ) ? $matched : array() ) as $rate_id ) {
+			$row = WC_Tax::_get_tax_rate( $rate_id );
+
+			if ( ! $row || in_array( (int) $row['tax_rate_priority'], $priorities, true ) || $this->tax_rate_has_locations( $rate_id ) ) {
+				continue;
+			}
+
+			$this->_log( ':: Adding A 0% Rate Beside A State-Wide Rate At Priority ' . (int) $row['tax_rate_priority'] . ' ::' );
+
+			$shadow_id = WC_Tax::_insert_tax_rate(
+				array(
+					'tax_rate_country'  => $address->country(),
+					'tax_rate_state'    => $address->state_compact(),
+					'tax_rate_name'     => self::generate_nullified_rate_name( $address->country(), $jurisdictions ),
+					'tax_rate_priority' => (int) $row['tax_rate_priority'],
+					'tax_rate_compound' => false,
+					'tax_rate_shipping' => 0,
+					'tax_rate'          => 0,
+					'tax_rate_class'    => $tax_class,
+				)
+			);
+
+			WC_Tax::_update_tax_rate_postcodes( $shadow_id, $locations['postcode'] );
+			WC_Tax::_update_tax_rate_cities( $shadow_id, $locations['city'] );
+		}
 	}
 
 	/**
@@ -2546,7 +2816,7 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 		// Load Javascript for WooCommerce new order page
-		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true );
+		wp_enqueue_script( 'wc-taxjar-order', $this->wc_connect_base_url . 'woocommerce-services-new-order-taxjar-' . WC_Connect_Loader::get_wcs_version() . '.js', array( 'jquery' ), null, true ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted.
 	}
 
 	/**

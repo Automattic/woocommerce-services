@@ -76,17 +76,6 @@ jobs:
         name: Run QIT Tests
         runs-on: ubuntu-latest
         steps:
-            # This job does not check out the repository. The Plugin Check warnings step needs
-            # these two files.
-            - name: Checkout the Plugin Check allow-list
-              uses: actions/checkout@v4
-              with:
-                  sparse-checkout: |
-                      .github/plugin-check-allowed-warnings.txt
-                      .github/scripts/plugin-check-warnings.sh
-                  sparse-checkout-cone-mode: false
-                  path: plugin-check-config
-
             - name: Install QIT via composer
               shell: bash
               run: composer require woocommerce/qit-cli
@@ -320,21 +309,6 @@ jobs:
                   cat ${{ github.workspace }}/qit-results/qit-plugin-check-results.txt
                   exit ${{ steps.run-plugin-check-tests.outputs.exitcode == 1 && 1 || 0 }}
 
-            # QIT reports warnings as a passing status, so they are checked here against the
-            # allow-list. It also runs when Plugin Check found errors, so both show in one run.
-            # The JSON result carries a private report URL: keep it out of the uploaded results
-            # and out of the log.
-            - name: Fail on new Plugin Check warnings
-              if: ${{ !cancelled() && inputs.test-plugin-check == 'true' && contains( fromJSON( '["0", "1", "3"]' ), steps.run-plugin-check-tests.outputs.exitcode ) }}
-              shell: bash
-              run: |
-                  set -euo pipefail
-                  TEST_ID="$(grep -oE 'Test ID: [0-9]+' "${{ github.workspace }}/qit-results/qit-plugin-check-results.txt" | head -n 1 | grep -oE '[0-9]+')"
-                  # `qit get` exits with the test status (1 failed, 3 warning), not with its own result.
-                  ./vendor/bin/qit get "$TEST_ID" --json -n > "$RUNNER_TEMP/qit-plugin-check-results.json" || true
-                  bash plugin-check-config/.github/scripts/plugin-check-warnings.sh \
-                    "$RUNNER_TEMP/qit-plugin-check-results.json" \
-                    plugin-check-config/.github/plugin-check-allowed-warnings.txt
 
             ##############################
             # WC E2E Tests.

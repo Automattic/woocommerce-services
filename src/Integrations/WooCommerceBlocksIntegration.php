@@ -126,7 +126,7 @@ class WooCommerceBlocksIntegration implements IntegrationInterface {
 			$handle,
 			$script_url,
 			$script_dependencies,
-			null,
+			null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Built asset whose URL carries the build hash, so the version is already in the file name.
 			true
 		);
 	}
