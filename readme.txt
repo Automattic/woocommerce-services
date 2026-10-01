@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.1 - 2026-xx-xx =
+* Fix   - Send the street with the address when you click Recalculate on an order that has no shipping address, so tax is not calculated from the ZIP code alone. Recalculate also no longer freezes when the city contains a double quote.
 * Fix   - Stop automated tax lookups from overwriting a tax rate you set up for a whole state with no ZIP code or city, which could leave in-person and mobile app orders with no tax.
 * Fix   - Recalculating an order in the admin now charges the tax rates returned by the tax service, as checkout does. Other tax rates you set up for the same address are no longer added on top.
 * Fix   - Update an order's tax when its items, quantities, fees, shipping or coupons change through the REST API or the WooCommerce app, using the tax rates recorded when the order was placed. Since 3.6.8 the tax stayed at its original amount after these edits, and each change is now recorded in an order note.
