@@ -540,7 +540,49 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assert_order_tax( $order, 0.0, 0.0, 40.00 );
 		$this->assertCount( 0, $order->get_taxes(), 'no tax lines left' );
 		$this->assertCount( 0, $this->requests, 'no nexus, no request' );
-		$this->assertCount( 1, $this->tax_notes( $order ) );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'from the store\'s tax rates', $notes[0] );
+		$this->assertStringNotContainsString( 'today\'s rates', $notes[0], 'TaxJar was not asked' );
+	}
+
+	/**
+	 * Add a rate the merchant set up by hand for a state the store has no nexus in.
+	 *
+	 * @return int Rate id.
+	 */
+	private function insert_manual_ohio_rate() {
+		return WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'OH',
+				'tax_rate'          => '7.0000',
+				'tax_rate_name'     => 'OH Tax',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+	}
+
+	/**
+	 * @testdox Moving the address to a state with a manual rate charges that rate, as checkout does.
+	 */
+	public function test_out_of_state_address_keeps_manual_rate() {
+		$fixture = $this->create_placed_order();
+		$this->insert_manual_ohio_rate();
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '43215', 'Columbus', '1 High St', 'OH' ) ) );
+
+		// 7% of $30 and of $10 shipping.
+		$this->assert_order_tax( $order, 2.10, 0.70, 42.80 );
+		$this->assertCount( 0, $this->requests, 'no nexus, no request' );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Columbus', $notes[0] );
+		$this->assertStringContainsString( 'from the store\'s tax rates', $notes[0] );
 	}
 
 	/**
@@ -1067,6 +1109,24 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
 		$this->assertCount( 1, $this->requests );
 		$this->assertCount( 2, $this->requests[0]['line_items'], 'both items are sent' );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'a new order gets no tax note' );
+	}
+
+	/**
+	 * @testdox An order created through the REST API for a state with a manual rate is charged that rate.
+	 */
+	public function test_rest_created_order_out_of_state_keeps_manual_rate() {
+		$this->insert_manual_ohio_rate();
+
+		$order = $this->rest_create(
+			array(
+				'billing'  => self::address( '43215', 'Columbus', '1 High St', 'OH' ),
+				'shipping' => self::address( '43215', 'Columbus', '1 High St', 'OH' ),
+			)
+		);
+
+		$this->assert_order_tax( $order, 2.10, 0.70, 42.80 );
+		$this->assertCount( 0, $this->requests, 'no nexus, no request' );
 		$this->assertSame( array(), $this->tax_notes( $order ), 'a new order gets no tax note' );
 	}
 

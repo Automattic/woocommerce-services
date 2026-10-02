@@ -4209,11 +4209,31 @@ class WC_Connect_TaxJar_Integration {
 	 * WC gave it when no such product was looked up. The address and
 	 * the change are recorded in a note when the address changed or the tax moved.
 	 *
+	 * An answer without rates means the store has no nexus at the address. The tax WC
+	 * calculated from the rate table is kept then, as checkout and the admin Recalculate
+	 * keep it, so a rate the merchant added for that state is still charged.
+	 *
 	 * @param WC_Order $order    The recalculated order.
 	 * @param array    $lookup   Result of lookup_order_taxes().
 	 * @param array    $snapshot Snapshot taken before the recalculation.
 	 */
 	private function apply_looked_up_order_taxes( $order, array $lookup, array $snapshot ) {
+		if ( empty( $lookup['rate_ids'] ) ) {
+			if ( null !== $snapshot['address_before'] ) {
+				$this->add_order_tax_note(
+					$order,
+					sprintf(
+						/* translators: 1: address the tax was calculated for, 2: tax before, 3: tax after. */
+						__( 'Tax updated for %1$s from the store\'s tax rates: %2$s → %3$s.', 'woocommerce-services' ),
+						$this->format_order_tax_address( $lookup['address'] ),
+						wc_price( (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'], array( 'currency' => $order->get_currency() ) ),
+						wc_price( (float) $order->get_cart_tax() + (float) $order->get_shipping_tax(), array( 'currency' => $order->get_currency() ) )
+					)
+				);
+			}
+			return;
+		}
+
 		$line_rates     = array();
 		$rates_by_class = array();
 		foreach ( $order->get_items() as $item_key => $item ) {
@@ -4302,11 +4322,21 @@ class WC_Connect_TaxJar_Integration {
 			sprintf(
 				/* translators: 1: address the tax was calculated for, 2: tax before, 3: tax after. */
 				__( 'Tax recalculated with today\'s rates for %1$s: %2$s → %3$s.', 'woocommerce-services' ),
-				implode( ', ', array_filter( array( $lookup['address']->street(), $lookup['address']->city(), $lookup['address']->state(), $lookup['address']->postcode(), $lookup['address']->country() ) ) ),
+				$this->format_order_tax_address( $lookup['address'] ),
 				wc_price( $old_tax, array( 'currency' => $order->get_currency() ) ),
 				wc_price( $new_tax, array( 'currency' => $order->get_currency() ) )
 			)
 		);
+	}
+
+	/**
+	 * An order's tax address on one line, for an order note.
+	 *
+	 * @param Address $address The address the order is taxed at.
+	 * @return string
+	 */
+	private function format_order_tax_address( Address $address ) {
+		return implode( ', ', array_filter( array( $address->street(), $address->city(), $address->state(), $address->postcode(), $address->country() ) ) );
 	}
 
 	/**
