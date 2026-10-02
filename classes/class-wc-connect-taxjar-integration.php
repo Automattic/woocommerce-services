@@ -696,7 +696,7 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Calculate tax / totals using TaxJar for backend orders
 	 *
-	 * Unchanged from the TaxJar plugin.
+	 * Based on the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L557
 	 *
 	 * @return void
@@ -740,29 +740,12 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		if ( class_exists( 'WC_Order_Item_Tax' ) ) { // Add tax rates manually for Woo 3.0+
-			/**
-			 * @var WC_Order_Item_Product $item Product Order Item.
-			 */
-			foreach ( $order->get_items() as $item_key => $item ) {
-				// get_backend_line_items() keys by order item ID and stores the canonical
-				// TaxJar ID under 'id'; the response is keyed by that canonical ID.
-				$line_item_key = $line_items[ $item_key ]['id'] ?? null;
-				if ( null !== $line_item_key && isset( $taxes['rate_ids'][ $line_item_key ] ) ) {
-					$rate_id  = $taxes['rate_ids'][ $line_item_key ];
-					$item_tax = new WC_Order_Item_Tax();
-					$item_tax->set_rate( $rate_id );
-					$item_tax->set_order_id( $order_id );
-					$item_tax->save();
-				}
-			}
-		} elseif ( class_exists( 'WC_AJAX' ) ) { // Recalculate tax for Woo 2.6 to apply new tax rates
-				remove_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
-			if ( check_ajax_referer( 'calc-totals', 'security', false ) ) {
-				WC_AJAX::calc_line_taxes();
-			}
-				add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
-		}
+		/*
+		 * No tax items are saved here. wc_save_order_items(), which fires this hook,
+		 * rebuilds the order's tax items from its line items right after, and
+		 * Recalculate then recalculates them, so WooCommerce adds one per rate the
+		 * order is charged under that rate's own name.
+		 */
 	}
 
 	/**
