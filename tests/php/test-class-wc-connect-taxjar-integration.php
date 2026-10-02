@@ -1345,14 +1345,21 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function test_preserve_order_taxes_skips_when_response_rate_ids_populated() {
 		$this->set_private_property( 'response_rate_ids', array( 'product-key' => array( 1, 2 ) ) );
 
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'pre_recalculation_tax_snapshots', array( 123 => array( 'tax_lines' => array() ) ) );
+
 		$order = $this->getMockBuilder( 'WC_Order' )
 			->disableOriginalConstructor()
+			->onlyMethods( array( 'get_id' ) )
 			->getMock();
-
-		// The first gate returns before the order is inspected.
-		$order->expects( $this->never() )->method( 'get_id' );
+		$order->method( 'get_id' )->willReturn( 123 );
 
 		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
+
+		// The first gate returns without snapshotting or arming the restore handler,
+		// and the snapshot left by an earlier recalculation is dropped.
+		$this->assertSame( array(), $this->get_private_property( 'pre_recalculation_tax_snapshots' ) );
+		$this->assertFalse( has_action( 'woocommerce_order_after_calculate_totals', array( $this->integration, 'restore_order_taxes_after_recalculation' ) ) );
 	}
 
 	/**
@@ -1364,17 +1371,23 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		$this->set_private_property( 'response_rate_ids', array() );
 
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'pre_recalculation_tax_snapshots', array( 123 => array( 'tax_lines' => array() ) ) );
+
 		$order = $this->getMockBuilder( 'WC_Order' )
 			->disableOriginalConstructor()
 			->onlyMethods( array( 'get_id' ) )
 			->getMock();
-
-		// The AJAX gate returns before the order id is inspected.
-		$order->expects( $this->never() )->method( 'get_id' );
+		$order->method( 'get_id' )->willReturn( 123 );
 
 		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
 
 		remove_filter( 'wp_doing_ajax', '__return_true' );
+
+		// The AJAX gate returns without snapshotting or arming the restore handler,
+		// and the snapshot left by an earlier recalculation is dropped.
+		$this->assertSame( array(), $this->get_private_property( 'pre_recalculation_tax_snapshots' ) );
+		$this->assertFalse( has_action( 'woocommerce_order_after_calculate_totals', array( $this->integration, 'restore_order_taxes_after_recalculation' ) ) );
 	}
 
 	/**
@@ -1534,11 +1547,35 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * An integration whose TaxJar requests all fail, as when the service is down.
+	 *
+	 * An address change asks TaxJar for the new address; these tests pin what happens
+	 * when it cannot answer.
+	 *
+	 * @return WC_Connect_TaxJar_Integration
+	 */
+	private function get_integration_with_unreachable_taxjar() {
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
+		$api_client->method( 'proxy_request' )->willReturn( new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' ) );
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
+		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock();
+
+		return new WC_Connect_TaxJar_Integration(
+			$api_client,
+			$logger,
+			'https://example.com',
+			$tracks,
+			new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false )
+		);
+	}
+
+	/**
 	 * End-to-end: a recalculation triggered by an address change on an existing order
-	 * preserves the recorded taxes instead of wiping them to zero, and rebases the
-	 * order total on the preserved tax.
+	 * preserves the recorded taxes instead of wiping them to zero when TaxJar cannot
+	 * answer for the new address, and rebases the order total on the preserved tax.
 	 */
 	public function test_preserve_order_taxes_end_to_end_on_address_change() {
+		$this->integration = $this->get_integration_with_unreachable_taxjar();
 		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
 		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
 		$this->set_private_property( 'response_rate_ids', array() );
@@ -1603,9 +1640,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	/**
 	 * End-to-end: when a recalculation also changes the shipping amount, the
 	 * preserved tax is rebased onto the new non-tax total (so the total reflects the
-	 * updated shipping while the recorded tax is kept).
+	 * updated shipping while the recorded tax is kept). TaxJar cannot answer for the
+	 * new address.
 	 */
 	public function test_preserve_order_taxes_rebases_total_when_shipping_changes() {
+		$this->integration = $this->get_integration_with_unreachable_taxjar();
 		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
 		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
 		$this->set_private_property( 'response_rate_ids', array() );
