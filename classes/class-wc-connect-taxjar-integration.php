@@ -274,8 +274,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @return string
 	 */
 	private static function generate_nullified_rate_name( string $to_country, array $jurisdictions ) {
-		/* translators: Name of a 0% tax rate added when automated taxes replace a store's manual rate for one town. */
-		$label = __( 'Manual Rate Nullified (Automated Taxes)', 'woocommerce-services' );
+		$label = self::get_nullified_rate_label();
 
 		if ( 'US' !== $to_country ) {
 			return $label;
@@ -286,6 +285,18 @@ class WC_Connect_TaxJar_Integration {
 		$jurisdiction = trim( $county . ' ' . $city );
 
 		return ( '' !== $jurisdiction ? $jurisdiction . ' : ' : '' ) . $label;
+	}
+
+	/**
+	 * The part of a 0% row's name that says it stands in for a merchant's state-wide rate.
+	 *
+	 * Every such row's name ends with it.
+	 *
+	 * @return string
+	 */
+	private static function get_nullified_rate_label() {
+		/* translators: Name of a 0% tax rate added when automated taxes replace a store's manual rate for one town. */
+		return __( 'Manual Rate Nullified (Automated Taxes)', 'woocommerce-services' );
 	}
 
 	public function init() {
@@ -2372,6 +2383,8 @@ class WC_Connect_TaxJar_Integration {
 
 			foreach ( $written as $tax_class => $class_written ) {
 				if ( ! $class_written['vat'] ) {
+					$this->remove_stale_components( $location, (string) $tax_class, $class_written['priorities'], $jurisdictions );
+					$this->remove_unneeded_nullified_rates( $location, (string) $tax_class );
 					$this->shadow_unscoped_rates_above_components( $location, (string) $tax_class, $class_written['priorities'], $jurisdictions );
 				}
 			}
@@ -2497,17 +2510,17 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		/*
-		 * Never repurpose a row whose scope is broader than the jurisdiction about to
-		 * be written. Rows this method inserts always carry the address's postcode or
-		 * city, so a matched row with no location rows at all is a merchant's
-		 * catch-all (or a row written for a scopeless address). Rewriting it in place
-		 * would turn it into, say, a 0% City component that still matches the whole
-		 * state.
+		 * Only repurpose a row limited to exactly the postcode and city this method
+		 * writes for the address. Any other match covers more than the address: a
+		 * merchant's state-wide row, or one limited to a ZIP list, a ZIP wildcard or a
+		 * whole city. Rewriting it in place would turn it into, say, a 0% City component
+		 * that still matches every place it covered.
 		 *
-		 * Inserting beside it is stable: `WC_Tax::find_rates()` keeps one row per
-		 * priority and prefers the one with more postcode/city locations, so the next
-		 * lookup for this address lands on the scoped row and reuses it, while the
-		 * catch-all keeps covering every other address.
+		 * The row for the address goes beside it instead. `WC_Tax::find_rates()` keeps
+		 * one row per priority and ranks rows by how many postcodes and cities match, and
+		 * then by age, so it can keep returning the merchant's row first for this address
+		 * too. The next lookup therefore looks for the address's own row at this priority
+		 * and reuses it, rather than adding one on every calculation.
 		 *
 		 * VAT rows are country-wide by design and addresses without a postcode or city
 		 * write no scope, so both keep reusing the matched row. Otherwise they would
@@ -2517,9 +2530,8 @@ class WC_Connect_TaxJar_Integration {
 			$wanted_locations = $address->to_rate_table_locations();
 			$wants_scope      = '' !== $wanted_locations['postcode'] || '' !== $wanted_locations['city'];
 
-			if ( $wants_scope && ! $this->tax_rate_has_locations( key( $wc_rate ) ) ) {
-				$this->_log( ':: Matched Tax Rate Is Not Location Scoped, Adding A Scoped Rate Beside It ::' );
-				$wc_rate = array();
+			if ( $wants_scope ) {
+				$wc_rate = $this->get_rate_for_address( $address, $tax_class, $rate_priority, (int) key( $wc_rate ) );
 			}
 		}
 
@@ -2576,6 +2588,278 @@ class WC_Connect_TaxJar_Integration {
 				$rate_id
 			)
 		);
+	}
+
+	/**
+	 * Rate rows in a tax class limited to exactly the postcode and city written for an address.
+	 *
+	 * These are the rows create_or_update_tax_rate() writes for the address, though a
+	 * merchant can add a row of the same shape. A row limited to more or other places
+	 * (a ZIP list, a wildcard, a city alone) is not one of them. An address with no
+	 * postcode and no city has none: a row limited to neither is a state-wide row.
+	 *
+	 * @param Address $address   Address, as written.
+	 * @param string  $tax_class Tax class.
+	 *
+	 * @return array[] Rows, oldest first, with `tax_rate_id`, `tax_rate_name`, `tax_rate_priority`, `tax_rate` and `tax_rate_shipping`.
+	 */
+	private function get_rates_scoped_to_address( Address $address, $tax_class ) {
+		global $wpdb;
+
+		$wanted = $address->to_rate_table_locations();
+		if ( '' !== $wanted['postcode'] ) {
+			$anchor_type = 'postcode';
+		} elseif ( '' !== $wanted['city'] ) {
+			$anchor_type = 'city';
+		} else {
+			return array();
+		}
+
+		// One row per location of each row limited to the address's postcode (or city).
+		// WooCommerce has no API that finds rows by location. Not cached: the rows change
+		// within the request that asks.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$results = $wpdb->get_results(
+			$wpdb->prepare(
+				"SELECT rates.tax_rate_id, rates.tax_rate_name, rates.tax_rate_priority, rates.tax_rate, rates.tax_rate_shipping, locations.location_type, locations.location_code
+				FROM {$wpdb->prefix}woocommerce_tax_rates AS rates
+				INNER JOIN {$wpdb->prefix}woocommerce_tax_rate_locations AS anchor ON anchor.tax_rate_id = rates.tax_rate_id
+				INNER JOIN {$wpdb->prefix}woocommerce_tax_rate_locations AS locations ON locations.tax_rate_id = rates.tax_rate_id
+				WHERE anchor.location_type = %s AND anchor.location_code = %s
+				AND rates.tax_rate_country = %s AND rates.tax_rate_state = %s AND rates.tax_rate_class = %s
+				ORDER BY rates.tax_rate_id",
+				$anchor_type,
+				$wanted[ $anchor_type ],
+				$address->country(),
+				$address->state_compact(),
+				sanitize_title( $tax_class )
+			),
+			ARRAY_A
+		);
+
+		$rows      = array();
+		$locations = array();
+		foreach ( is_array( $results ) ? $results : array() as $result ) {
+			$rate_id = (int) $result['tax_rate_id'];
+
+			$rows[ $rate_id ] = array(
+				'tax_rate_id'       => $rate_id,
+				'tax_rate_name'     => (string) $result['tax_rate_name'],
+				'tax_rate_priority' => (int) $result['tax_rate_priority'],
+				'tax_rate'          => (string) $result['tax_rate'],
+				'tax_rate_shipping' => (int) $result['tax_rate_shipping'],
+			);
+
+			$locations[ $rate_id ][ $result['location_type'] ][] = (string) $result['location_code'];
+		}
+
+		$scoped = array();
+		foreach ( $rows as $rate_id => $row ) {
+			if ( $this->is_rate_scoped_to_address( $locations[ $rate_id ], $address ) ) {
+				$scoped[] = $row;
+			}
+		}
+
+		return $scoped;
+	}
+
+	/**
+	 * The row create_or_update_tax_rate() reuses for an address, in the shape `WC_Tax::find_rates()` returns.
+	 *
+	 * The row `WC_Tax::find_rates()` matched at the priority's position when it is
+	 * limited to exactly the address's postcode and city. Otherwise a row limited to
+	 * exactly them at the priority, if there is one: the one written beside a row that
+	 * covers more than the address.
+	 *
+	 * @param Address $address    Address, as written.
+	 * @param string  $tax_class  Tax class.
+	 * @param int     $priority   Priority of the row being written.
+	 * @param int     $matched_id Id of the row `WC_Tax::find_rates()` matched.
+	 *
+	 * @return array Empty when there is no row to reuse.
+	 */
+	private function get_rate_for_address( Address $address, $tax_class, $priority, $matched_id ) {
+		$scoped = $this->get_rates_scoped_to_address( $address, $tax_class );
+
+		$found = null;
+		foreach ( $scoped as $row ) {
+			if ( $row['tax_rate_id'] === $matched_id ) {
+				$found = $row;
+				break;
+			}
+		}
+
+		if ( null === $found ) {
+			$this->_log( ':: Matched Tax Rate Covers More Than This Address, Using The Address\'s Own Rate ::' );
+
+			foreach ( $scoped as $row ) {
+				if ( $row['tax_rate_priority'] === $priority ) {
+					$found = $row;
+					break;
+				}
+			}
+		}
+
+		if ( null === $found ) {
+			return array();
+		}
+
+		return array(
+			$found['tax_rate_id'] => array(
+				'rate'     => (float) $found['tax_rate'],
+				'label'    => $found['tax_rate_name'],
+				'shipping' => $found['tax_rate_shipping'] ? 'yes' : 'no',
+			),
+		);
+	}
+
+	/**
+	 * Whether a rate row is limited to exactly the postcode and city written for an address.
+	 *
+	 * This is what ties a row to the address a lookup wrote it for.
+	 *
+	 * @param array   $locations Location codes the row is limited to, by type (`postcode`, `city`).
+	 * @param Address $address   Address, as written.
+	 *
+	 * @return bool
+	 */
+	private function is_rate_scoped_to_address( array $locations, Address $address ) {
+		$wanted = $address->to_rate_table_locations();
+
+		foreach ( array( 'postcode', 'city' ) as $type ) {
+			$expected = '' === $wanted[ $type ] ? array() : array( $wanted[ $type ] );
+
+			if ( array_values( $locations[ $type ] ?? array() ) !== $expected ) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	/**
+	 * Remove the rows an earlier lookup wrote for an address above the ones just written.
+	 *
+	 * Components are written at priorities 1 to N by position. When TaxJar returns fewer
+	 * of them for an address than it did before (a special district ends, say), the rows
+	 * the earlier lookup wrote above N are not rewritten. They still match the address,
+	 * so everything that reads the rate table (REST and POS orders, shipping) would
+	 * charge them on top. Checkout and Recalculate apply only the rate ids TaxJar returned.
+	 *
+	 * A row goes only when it has the name a lookup gives a component for this address
+	 * and is limited to exactly its postcode and city, in the same tax class. Merchant
+	 * rows, the 0% rows added beside state-wide rates, other tax classes and other
+	 * towns are left alone. So is everything for an address with no postcode or city,
+	 * since its rows are limited to no place, as a merchant's state-wide rows are.
+	 *
+	 * The rows are deleted rather than set to 0%: a 0% row would add a $0 tax line to
+	 * every order taxed from the table. Orders keep the name and rate they were charged.
+	 *
+	 * @param array  $location      Location in the `to_*` shape, as written.
+	 * @param string $tax_class     Tax class the components were written in.
+	 * @param int[]  $priorities    Priorities the components were written at.
+	 * @param array  $jurisdictions County and city names, as used in the rows' names.
+	 */
+	private function remove_stale_components( $location, $tax_class, array $priorities, array $jurisdictions ) {
+		if ( empty( $priorities ) ) {
+			return;
+		}
+
+		$address = $this->get_rate_table_address( $location, false );
+		$top     = max( $priorities );
+
+		// The name generate_itemized_tax_rate_name() gives any component here.
+		$placeholder = '###';
+		$name        = self::generate_itemized_tax_rate_name( $placeholder . '_tax_rate', $address->country(), $jurisdictions );
+		$pattern     = '/^' . str_replace( preg_quote( $placeholder, '/' ), '.+', preg_quote( $name, '/' ) ) . '$/u';
+
+		foreach ( $this->get_rates_scoped_to_address( $address, $tax_class ) as $row ) {
+			if ( $row['tax_rate_priority'] <= $top || ! preg_match( $pattern, $row['tax_rate_name'] ) ) {
+				continue;
+			}
+
+			$this->_log( ':: Removing A Rate The Lookup No Longer Returns At Priority ' . $row['tax_rate_priority'] . ' ::' );
+
+			WC_Tax::_delete_tax_rate( $row['tax_rate_id'] );
+		}
+	}
+
+	/**
+	 * Priorities of the state-wide rows (no postcode or city) that apply to an address.
+	 *
+	 * WC_Tax::find_rates() cannot answer this once a 0% row stands beside such a row,
+	 * since the 0% row outranks it at that priority.
+	 *
+	 * @param Address $address   Address, as written.
+	 * @param string  $tax_class Tax class.
+	 *
+	 * @return int[]
+	 */
+	private function get_unscoped_rate_priorities( Address $address, $tax_class ) {
+		global $wpdb;
+
+		// Matches country and state as WC_Tax::find_rates() does: a blank one matches all.
+		// Not cached: the rows change within the request that asks.
+		// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+		$priorities = $wpdb->get_col(
+			$wpdb->prepare(
+				"SELECT DISTINCT rates.tax_rate_priority
+				FROM {$wpdb->prefix}woocommerce_tax_rates AS rates
+				LEFT JOIN {$wpdb->prefix}woocommerce_tax_rate_locations AS locations ON locations.tax_rate_id = rates.tax_rate_id
+				WHERE rates.tax_rate_country IN ( %s, '' ) AND rates.tax_rate_state IN ( %s, '' ) AND rates.tax_rate_class = %s
+				AND locations.tax_rate_id IS NULL",
+				$address->country(),
+				$address->state_compact(),
+				sanitize_title( $tax_class )
+			)
+		);
+
+		return array_map( 'intval', is_array( $priorities ) ? $priorities : array() );
+	}
+
+	/**
+	 * Remove an address's 0% rows that no longer stand beside a state-wide rate.
+	 *
+	 * For each state-wide row above the components, shadow_unscoped_rates_above_components()
+	 * adds a 0% row for the address at that row's priority. When the merchant deletes
+	 * that row, or moves it to another priority, the 0% row is left behind: an order
+	 * taxed from the table gets a $0 tax line for it, and a second one once the moved
+	 * row is shadowed at its new priority. This removes the address's 0% rows at any
+	 * priority that no longer has a state-wide row. Run it before
+	 * shadow_unscoped_rates_above_components(), which then adds what is missing.
+	 *
+	 * A 0% row is never left at a priority the components use: the lookup that writes
+	 * a component there finds the 0% row in its place and reuses it.
+	 *
+	 * Doing this when a town is looked up again keeps it to the rows of that town. Every
+	 * order whose tax is looked up passes through here, and it needs nothing from the
+	 * merchant's edit of the state-wide row, which could also come from an import.
+	 *
+	 * Only 0% rows limited to exactly the address's postcode and city, in the same tax
+	 * class, whose name ends with the label they are given, are removed, so a merchant's
+	 * own 0% rows are never touched.
+	 *
+	 * @param array  $location  Location in the `to_*` shape, as written.
+	 * @param string $tax_class Tax class the components were written in.
+	 */
+	private function remove_unneeded_nullified_rates( $location, $tax_class ) {
+		$address = $this->get_rate_table_address( $location, false );
+		$label   = self::get_nullified_rate_label();
+		$needed  = $this->get_unscoped_rate_priorities( $address, $tax_class );
+
+		foreach ( $this->get_rates_scoped_to_address( $address, $tax_class ) as $row ) {
+			if (
+				0.0 !== (float) $row['tax_rate'] ||
+				substr( $row['tax_rate_name'], -strlen( $label ) ) !== $label ||
+				in_array( $row['tax_rate_priority'], $needed, true )
+			) {
+				continue;
+			}
+
+			$this->_log( ':: Removing A 0% Rate No State-Wide Rate Needs At Priority ' . $row['tax_rate_priority'] . ' ::' );
+
+			WC_Tax::_delete_tax_rate( $row['tax_rate_id'] );
+		}
 	}
 
 	/**
