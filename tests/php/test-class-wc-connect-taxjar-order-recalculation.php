@@ -1372,6 +1372,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertCount( 1, $notes, 'exactly one tax note' );
 		$this->assertStringContainsString( '2.10', $notes[0], 'old tax' );
 		$this->assertStringContainsString( '2.70', $notes[0], 'new tax' );
+		$this->assertStringContainsString( 'already saved on the order were used', $notes[0] );
+		$this->assertStringNotContainsString( 'when the order was placed', $notes[0] );
 	}
 
 	/**
@@ -1956,6 +1958,99 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		$order = wc_get_order( $order->get_id() );
 		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+	}
+
+	/**
+	 * Move the fixture's addresses to Gwinn, MI, where the store is given nexus so TaxJar is
+	 * asked (and, with the mocked client, fails).
+	 *
+	 * @return array REST body fields.
+	 */
+	private static function michigan_address() {
+		$address = array(
+			'country'   => 'US',
+			'state'     => 'MI',
+			'postcode'  => '49841',
+			'city'      => 'Gwinn',
+			'address_1' => '1 Main St',
+		);
+
+		return array(
+			'billing'  => $address,
+			'shipping' => $address,
+		);
+	}
+
+	/**
+	 * @testdox A failed lookup that also leaves a new item untaxed writes one note.
+	 */
+	public function test_failed_lookup_with_untaxed_new_item_writes_one_note() {
+		$fixture = $this->create_placed_order();
+		$nexus   = $this->add_nexus_in( 'MI', '49841', 'Gwinn' );
+
+		try {
+			$order = $this->rest_update(
+				$fixture['order']->get_id(),
+				array_merge(
+					self::michigan_address(),
+					array(
+						'line_items' => array(
+							array(
+								'product_id' => $this->create_product( '10', 'reduced-rate' )->get_id(),
+								'quantity'   => 1,
+							),
+						),
+					)
+				)
+			);
+		} finally {
+			remove_filter( 'woocommerce_taxjar_nexus_address', $nexus );
+		}
+
+		// The order has no rate for Reduced rate: the new $10 item is untaxed.
+		$this->assert_order_tax( $order, 1.80, 0.30, 47.10 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes, 'one note for one update' );
+		$this->assertStringContainsString( 'could not be updated', $notes[0] );
+		$this->assertStringContainsString( 'No tax was added', $notes[0] );
+	}
+
+	/**
+	 * @testdox A failed lookup on an order that does not record its rates writes one note.
+	 */
+	public function test_failed_lookup_without_stored_rate_writes_one_note() {
+		$fixture = $this->create_placed_order( array( 'rate_percent' => null ) );
+		$nexus   = $this->add_nexus_in( 'MI', '49841', 'Gwinn' );
+
+		try {
+			$order = $this->rest_update(
+				$fixture['order']->get_id(),
+				array_merge(
+					self::michigan_address(),
+					array(
+						'line_items' => array(
+							array(
+								'id'       => $fixture['a'],
+								'quantity' => 2,
+								'subtotal' => '20.00',
+								'total'    => '20.00',
+							),
+						),
+					)
+				)
+			);
+		} finally {
+			remove_filter( 'woocommerce_taxjar_nexus_address', $nexus );
+		}
+
+		// The recorded tax is kept: 40 + 5 + 1.80 + 0.30.
+		$this->assertEqualsWithDelta( 1.80, (float) $order->get_cart_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 0.30, (float) $order->get_shipping_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 47.10, (float) $order->get_total(), 0.001 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes, 'one note for one update' );
+		$this->assertStringContainsString( 'does not record the tax rates', $notes[0] );
+		$this->assertStringContainsString( 'could not be updated', $notes[0] );
 	}
 
 	/**
