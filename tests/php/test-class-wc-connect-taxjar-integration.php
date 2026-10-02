@@ -3950,6 +3950,96 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Merchant rows limited to more than one town, and the towns a lookup and a
+	 * table-only order go to.
+	 *
+	 * A row limited to one ZIP pattern and one city ranks the same as a row a lookup
+	 * writes for one ZIP and one city, and WooCommerce then prefers the older row, so
+	 * the merchant's row keeps coming first for the looked-up town. So does a row for
+	 * the town's ZIP alone. A row at a priority above the first makes the lookup's
+	 * position-based match land on it for a later component.
+	 *
+	 * @return array
+	 */
+	public function merchant_rows_covering_more_than_the_looked_up_town() {
+		return array(
+			'ZIP list'               => array( '49855;49841', '', '49841', 'Gwinn', '49855', 'Marquette' ),
+			'ZIP wildcard'           => array( '49*', '', '49841', 'Gwinn', '49855', 'Marquette' ),
+			'city only'              => array( '', 'MARQUETTE', '49855', 'Marquette', '49856', 'Marquette' ),
+			'ZIP wildcard + city'    => array( '49*', 'GWINN', '49841', 'Gwinn', '49899', 'Gwinn' ),
+			'ZIP only'               => array( '49841', '', '49841', 'Gwinn', '49841', 'Sands' ),
+			'ZIP list + city'        => array( '49855;49841', 'GWINN', '49841', 'Gwinn', '49855', 'Gwinn' ),
+			'ZIP list at priority 3' => array( '49855;49841', '', '49841', 'Gwinn', '49855', 'Marquette', 3 ),
+		);
+	}
+
+	/**
+	 * A lookup must not rewrite a merchant's row that covers more than the looked-up
+	 * town into one of the town's components.
+	 *
+	 * Matching is by position, so the City component (priority 1) used to land on the
+	 * merchant's priority 1 row, rename it and set it to 0% while it kept covering
+	 * every place it did. Every other address it covered was then taxed at 0% by
+	 * anything that taxes from the rate table. The lookup has to write its own row
+	 * beside it, and find that row again on the next lookup rather than add another.
+	 *
+	 * @dataProvider merchant_rows_covering_more_than_the_looked_up_town
+	 *
+	 * @param string $postcodes  Merchant row postcodes.
+	 * @param string $cities     Merchant row cities.
+	 * @param string $zip        Looked-up postcode.
+	 * @param string $city       Looked-up city.
+	 * @param string $other_zip  Postcode of another address the merchant row covers.
+	 * @param string $other_city City of that address.
+	 * @param int    $priority   Merchant row priority.
+	 */
+	public function test_lookup_leaves_a_merchant_row_covering_more_than_the_town_untouched( $postcodes, $cities, $zip, $city, $other_zip, $other_city, $priority = 1 ) {
+		$this->reset_tax_rate_tables();
+
+		$merchant_id = $this->insert_michigan_rate( $priority, '6.0000', 'Tax', $postcodes, $cities );
+		$merchant    = $this->tax_rate_snapshot( $merchant_id );
+
+		$integration = $this->michigan_integration();
+		$first       = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $integration, $zip, $city ) );
+
+		$this->assertSame( $merchant, $this->tax_rate_snapshot( $merchant_id ), 'The merchant row changed.' );
+		$this->assertNotContains( $merchant_id, $first );
+		$this->assertSame( 5, $this->count_tax_rate_rows(), 'Expected the merchant row and four components.' );
+
+		foreach ( $first as $index => $rate_id ) {
+			$snapshot = $this->tax_rate_snapshot( $rate_id );
+			$this->assertSame( $index + 1, $snapshot['priority'] );
+			$this->assertSame( array( $zip ), $snapshot['postcodes'] );
+			$this->assertSame( array( strtoupper( $city ) ), $snapshot['cities'] );
+		}
+
+		// The next lookup for the town finds the same rows.
+		$this->assertSame( $first, $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $integration, $zip, $city ) ) );
+		$this->assertSame( 5, $this->count_tax_rate_rows(), 'A repeat lookup added rows.' );
+
+		// Another address the merchant row covers is still taxed at the merchant's rate.
+		$other = $this->michigan_rates_from_table( $other_zip, $other_city );
+		$this->assertSame( array( $merchant_id ), $other['ids'] );
+		$this->assertEqualsWithDelta( 6.0, $other['percent'], 0.0001 );
+	}
+
+	/**
+	 * A row limited to exactly the looked-up ZIP and city is the town's own, and is
+	 * reused in place, as before.
+	 */
+	public function test_lookup_reuses_a_row_limited_to_exactly_the_town() {
+		$this->reset_tax_rate_tables();
+
+		$row_id = $this->insert_michigan_rate( 1, '6.0000', 'Tax', '49841', 'GWINN' );
+
+		$looked_up = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' ) );
+
+		$this->assertSame( $row_id, $looked_up[0] );
+		$this->assertSame( 'MARQUETTE GWINN : City Tax', $this->tax_rate_snapshot( $row_id )['name'] );
+		$this->assertSame( 4, $this->count_tax_rate_rows() );
+	}
+
+	/**
 	 * An integration whose TaxJar answer for any Michigan request is 6% state tax and
 	 * 0% for the other three components, for a store in Marquette, MI.
 	 *

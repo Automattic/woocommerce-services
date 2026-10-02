@@ -2428,17 +2428,17 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		/*
-		 * Never repurpose a row whose scope is broader than the jurisdiction about to
-		 * be written. Rows this method inserts always carry the address's postcode or
-		 * city, so a matched row with no location rows at all is a merchant's
-		 * catch-all (or a row written for a scopeless address). Rewriting it in place
-		 * would turn it into, say, a 0% City component that still matches the whole
-		 * state.
+		 * Only repurpose a row limited to exactly the postcode and city this method
+		 * writes for the address. Any other match covers more than the address: a
+		 * merchant's state-wide row, or one limited to a ZIP list, a ZIP wildcard or a
+		 * whole city. Rewriting it in place would turn it into, say, a 0% City component
+		 * that still matches every place it covered.
 		 *
-		 * Inserting beside it is stable: `WC_Tax::find_rates()` keeps one row per
-		 * priority and prefers the one with more postcode/city locations, so the next
-		 * lookup for this address lands on the scoped row and reuses it, while the
-		 * catch-all keeps covering every other address.
+		 * The row for the address goes beside it instead. `WC_Tax::find_rates()` keeps
+		 * one row per priority and ranks rows by how many postcodes and cities match, and
+		 * then by age, so it can keep returning the merchant's row first for this address
+		 * too. The next lookup therefore looks for the address's own row at this priority
+		 * and reuses it, rather than adding one on every calculation.
 		 *
 		 * VAT rows are country-wide by design and addresses without a postcode or city
 		 * write no scope, so both keep reusing the matched row. Otherwise they would
@@ -2448,9 +2448,8 @@ class WC_Connect_TaxJar_Integration {
 			$wanted_locations = $address->to_rate_table_locations();
 			$wants_scope      = '' !== $wanted_locations['postcode'] || '' !== $wanted_locations['city'];
 
-			if ( $wants_scope && ! $this->tax_rate_has_locations( key( $wc_rate ) ) ) {
-				$this->_log( ':: Matched Tax Rate Is Not Location Scoped, Adding A Scoped Rate Beside It ::' );
-				$wc_rate = array();
+			if ( $wants_scope ) {
+				$wc_rate = $this->get_rate_for_address( $address, $tax_class, $rate_priority, (int) key( $wc_rate ) );
 			}
 		}
 
@@ -2580,6 +2579,56 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $scoped;
+	}
+
+	/**
+	 * The row create_or_update_tax_rate() reuses for an address, in the shape `WC_Tax::find_rates()` returns.
+	 *
+	 * The row `WC_Tax::find_rates()` matched at the priority's position when it is
+	 * limited to exactly the address's postcode and city. Otherwise a row limited to
+	 * exactly them at the priority, if there is one: the one written beside a row that
+	 * covers more than the address.
+	 *
+	 * @param Address $address    Address, as written.
+	 * @param string  $tax_class  Tax class.
+	 * @param int     $priority   Priority of the row being written.
+	 * @param int     $matched_id Id of the row `WC_Tax::find_rates()` matched.
+	 *
+	 * @return array Empty when there is no row to reuse.
+	 */
+	private function get_rate_for_address( Address $address, $tax_class, $priority, $matched_id ) {
+		$scoped = $this->get_rates_scoped_to_address( $address, $tax_class );
+
+		$found = null;
+		foreach ( $scoped as $row ) {
+			if ( $row['tax_rate_id'] === $matched_id ) {
+				$found = $row;
+				break;
+			}
+		}
+
+		if ( null === $found ) {
+			$this->_log( ':: Matched Tax Rate Covers More Than This Address, Using The Address\'s Own Rate ::' );
+
+			foreach ( $scoped as $row ) {
+				if ( $row['tax_rate_priority'] === $priority ) {
+					$found = $row;
+					break;
+				}
+			}
+		}
+
+		if ( null === $found ) {
+			return array();
+		}
+
+		return array(
+			$found['tax_rate_id'] => array(
+				'rate'     => (float) $found['tax_rate'],
+				'label'    => $found['tax_rate_name'],
+				'shipping' => $found['tax_rate_shipping'] ? 'yes' : 'no',
+			),
+		);
 	}
 
 	/**
