@@ -112,6 +112,24 @@ class WC_Connect_TaxJar_Integration {
 	private $order_item_tax_locations = array();
 
 	/**
+	 * Line items, fees and shipping lines taken off an order in this request, keyed by
+	 * order id and item id, as they were saved. Code that removes an item and saves the
+	 * order before recalculating it leaves no saved copy to compare with otherwise.
+	 *
+	 * @var array<int, array<int, WC_Order_Item>>
+	 */
+	private $order_items_removed_in_request = array();
+
+	/**
+	 * Shipping method ids of shipping lines as they were before an in-request save
+	 * changed them, keyed by item id. Switching between local pickup and delivery moves
+	 * the address the order is taxed on without touching an address field.
+	 *
+	 * @var array<int, string>
+	 */
+	private $order_shipping_method_before_save = array();
+
+	/**
 	 * Order items being created, like $orders_created_in_request. WC_Order::add_product()
 	 * saves the item at once, so it is already saved when the order is recalculated.
 	 *
@@ -353,6 +371,8 @@ class WC_Connect_TaxJar_Integration {
 		}
 		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'remember_order_item_base_before_save' ), 10, 1 );
 		add_action( 'woocommerce_after_order_item_object_save', array( $this, 'remember_order_item_created' ), 10, 1 );
+		add_action( 'woocommerce_before_delete_order_item', array( $this, 'remember_order_item_before_delete' ), 10, 1 );
+		add_action( 'woocommerce_update_order_item', array( $this, 'remember_order_item_type_change' ), 10, 2 );
 		add_action( 'woocommerce_before_order_object_save', array( $this, 'remember_order_before_save' ), 10, 1 );
 		add_action( 'woocommerce_after_order_object_save', array( $this, 'remember_order_created' ), 10, 1 );
 
@@ -3211,9 +3231,9 @@ class WC_Connect_TaxJar_Integration {
 		// The old amounts and address have been used; a later recalculation of the same
 		// order in this request must compare against what is saved now.
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
-			unset( $this->order_item_base_before_save[ $item_id ], $this->order_items_created_in_request['ids'][ $item_id ], $this->order_item_tax_locations[ spl_object_id( $item ) ] );
+			unset( $this->order_item_base_before_save[ $item_id ], $this->order_items_created_in_request['ids'][ $item_id ], $this->order_item_tax_locations[ spl_object_id( $item ) ], $this->order_shipping_method_before_save[ $item_id ] );
 		}
-		unset( $this->order_address_before_save[ $order_id ], $this->orders_created_in_request['ids'][ $order_id ] );
+		unset( $this->order_address_before_save[ $order_id ], $this->orders_created_in_request['ids'][ $order_id ], $this->order_items_removed_in_request[ $order_id ] );
 	}
 
 	/**
@@ -3242,11 +3262,15 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		$changes = $item->get_changes();
+
+		if ( 'shipping' === $item->get_type() && array_key_exists( 'method_id', $changes ) && ! isset( $this->order_shipping_method_before_save[ $item_id ] ) ) {
+			$this->order_shipping_method_before_save[ $item_id ] = (string) $item->get_data()['method_id'];
+		}
+
 		if ( isset( $this->order_item_base_before_save[ $item_id ] ) ) {
 			return;
 		}
-
-		$changes = $item->get_changes();
 
 		if ( ! array_key_exists( 'total', $changes ) && ! array_key_exists( 'subtotal', $changes ) ) {
 			return;
@@ -3326,6 +3350,79 @@ class WC_Connect_TaxJar_Integration {
 			unset( $this->order_items_created_in_request['objects'][ $object_id ] );
 			$this->order_items_created_in_request['ids'][ (int) $item->get_id() ] = true;
 		}
+	}
+
+	/**
+	 * Remember a line item, fee or shipping line that is about to be deleted.
+	 *
+	 * WC deletes an item taken off an order when the order is saved, so code that saves
+	 * before recalculating (as the V4 REST orders route does) leaves no saved copy for
+	 * find_order_tax_base_changes() to compare with.
+	 *
+	 * @internal Hooked to woocommerce_before_delete_order_item.
+	 *
+	 * @param int $item_id The item about to be deleted.
+	 *
+	 * @since 3.7.1
+	 */
+	public function remember_order_item_before_delete( $item_id ) {
+		$item = WC_Order_Factory::get_order_item( absint( $item_id ) );
+
+		if ( $item instanceof WC_Order_Item && in_array( $item->get_type(), array( 'line_item', 'fee', 'shipping' ), true ) ) {
+			$this->remember_order_item_removed( $item );
+		}
+	}
+
+	/**
+	 * Follow an order item whose type was changed in place.
+	 *
+	 * WooCommerce Subscriptions takes an item off a subscription by changing its type
+	 * (to line_item_removed), and its Undo changes it back. Leaving the taxed types
+	 * counts as a removal; coming back counts as a new item, which keeps its own tax.
+	 *
+	 * @internal Hooked to woocommerce_update_order_item. Core fires that hook from
+	 *           wc_update_order_item() with the changed columns, and from the item data
+	 *           store with an item object; only the first form can change the type.
+	 *
+	 * @param int   $item_id The updated item.
+	 * @param mixed $args    The changed columns.
+	 *
+	 * @since 3.7.1
+	 */
+	public function remember_order_item_type_change( $item_id, $args = null ) {
+		if ( ! is_array( $args ) || empty( $args['order_item_type'] ) || ! is_string( $args['order_item_type'] ) ) {
+			return;
+		}
+
+		$item_id = absint( $item_id );
+
+		if ( in_array( $args['order_item_type'], array( 'line_item', 'fee', 'shipping' ), true ) ) {
+			foreach ( array_keys( $this->order_items_removed_in_request ) as $order_id ) {
+				unset( $this->order_items_removed_in_request[ $order_id ][ $item_id ] );
+			}
+			$this->order_items_created_in_request['ids'][ $item_id ] = true;
+			return;
+		}
+
+		// The new type is saved already; the item loads as whatever class it now maps to.
+		$item = WC_Order_Factory::get_order_item( $item_id );
+
+		if ( $item instanceof WC_Order_Item ) {
+			$this->remember_order_item_removed( $item );
+		}
+	}
+
+	/**
+	 * Keep a removed item that could have carried tax, for its order's next recalculation.
+	 *
+	 * @param WC_Order_Item $item The removed item, as it was saved.
+	 */
+	private function remember_order_item_removed( WC_Order_Item $item ) {
+		if ( ! is_callable( array( $item, 'get_taxes' ) ) || ! is_callable( array( $item, 'get_tax_class' ) ) ) {
+			return;
+		}
+
+		$this->order_items_removed_in_request[ (int) $item->get_order_id() ][ (int) $item->get_id() ] = $item;
 	}
 
 	/**
@@ -3445,7 +3542,7 @@ class WC_Connect_TaxJar_Integration {
 	 * Covers the three ways an edit reaches a recalculation: an existing item whose
 	 * total changed (saved already, or still pending), an item added (no id yet, or
 	 * first saved in this request), and an item removed (still saved, but no longer on
-	 * the order).
+	 * the order; or deleted or retyped earlier in this request).
 	 *
 	 * @param WC_Order $order The order about to be recalculated.
 	 * @return array {
@@ -3491,6 +3588,10 @@ class WC_Connect_TaxJar_Integration {
 		foreach ( $types as $type ) {
 			$saved_items += (array) $order->get_data_store()->read_items( $order, $type );
 		}
+		// Items taken off and already deleted (or retyped) in this request were part of
+		// what the order's tax was based on, though they are no longer saved as such.
+		$saved_items += $this->order_items_removed_in_request[ (int) $order->get_id() ] ?? array();
+
 		$removed = array_diff( array_map( 'intval', array_keys( $saved_items ) ), $known_ids, array_keys( $this->order_items_created_in_request['ids'] ) );
 
 		// The rates removed items were taxed at, for a new item that replaces the last
@@ -3512,7 +3613,7 @@ class WC_Connect_TaxJar_Integration {
 			if ( 'shipping' === $saved_items[ $item_id ]->get_type() ) {
 				$removed_rate_ids['shipping']         = array_unique( array_merge( $removed_rate_ids['shipping'], $rate_ids ) );
 				$removed_rate_ids['untaxed_shipping'] = $removed_rate_ids['untaxed_shipping'] || ( ! $rate_ids && $this->shipping_line_could_carry_tax( $saved_items[ $item_id ] ) );
-			} elseif ( $rate_ids ) {
+			} elseif ( $rate_ids && ! $this->is_negative_fee( $saved_items[ $item_id ] ) ) {
 				$tax_class                                 = $saved_items[ $item_id ]->get_tax_class();
 				$removed_rate_ids['classes'][ $tax_class ] = array_unique( array_merge( $removed_rate_ids['classes'][ $tax_class ] ?? array(), $rate_ids ) );
 			}
@@ -3525,6 +3626,20 @@ class WC_Connect_TaxJar_Integration {
 			'removed_rate_ids' => $removed_rate_ids,
 			'has_changes'      => $added || ! empty( $removed ) || ! empty( $changed_ids ),
 		);
+	}
+
+	/**
+	 * Whether an order item is a fee that takes money off the order.
+	 *
+	 * WooCommerce taxes such a fee by splitting it across every tax class on the order,
+	 * so it carries the rates of other classes too. Its rates cannot show which rates
+	 * its own class uses.
+	 *
+	 * @param WC_Order_Item $item A line item, fee or shipping item.
+	 * @return bool
+	 */
+	private function is_negative_fee( $item ) {
+		return 'fee' === $item->get_type() && (float) $item->get_total() < 0;
 	}
 
 	/**
@@ -3604,8 +3719,9 @@ class WC_Connect_TaxJar_Integration {
 	 * Re-apply an order's recorded rates to the items whose amounts changed.
 	 *
 	 * Items that did not change keep the tax they had. A changed item is taxed at the
-	 * rates it already carries; a new item or fee at the rates of an existing item in
-	 * the same tax class; a new shipping line at the rates of the existing shipping.
+	 * rates it was charged at (a rate it paid nothing under is left out); a new item or
+	 * fee at the rates of an existing item in the same tax class; a new shipping line at
+	 * the rates of the existing shipping.
 	 * If the edit removed the last item of that class (or all the shipping), the rates
 	 * the removed items were taxed at are used. With no such rate on the order, a new
 	 * item is left untaxed and the note says so, unless it is shipping on an order
@@ -3634,7 +3750,8 @@ class WC_Connect_TaxJar_Integration {
 		$known_ids   = $snapshot['base_changes']['known_ids'];
 		$changed_ids = $snapshot['base_changes']['changed_ids'];
 
-		// Rates already on the order, per tax class and for shipping, for new items.
+		// Rates already on the order, per tax class and for shipping, for new items. A
+		// negative fee is left out: it carries the rates of every class on the order.
 		$rate_ids_by_class = array();
 		$shipping_rate_ids = array();
 		$untaxed_shipping  = $snapshot['base_changes']['removed_rate_ids']['untaxed_shipping'];
@@ -3653,7 +3770,7 @@ class WC_Connect_TaxJar_Integration {
 			$item_rate_ids = array_keys( $snapshot['item_taxes'][ $key ]['total'] );
 			if ( 'shipping' === $item->get_type() ) {
 				$shipping_rate_ids = array_unique( array_merge( $shipping_rate_ids, $item_rate_ids ) );
-			} else {
+			} elseif ( ! $this->is_negative_fee( $item ) ) {
 				$tax_class                       = $item->get_tax_class();
 				$rate_ids_by_class[ $tax_class ] = array_unique( array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), $item_rate_ids ) );
 			}
@@ -3687,7 +3804,16 @@ class WC_Connect_TaxJar_Integration {
 			if ( 'taxable' !== $item->get_tax_status() ) {
 				$item_rate_ids = array();
 			} elseif ( $is_known ) {
-				$item_rate_ids = empty( $snapshot['item_taxes'][ $key ]['total'] ) ? array() : array_keys( $snapshot['item_taxes'][ $key ]['total'] );
+				// Only the rates it was charged at. A line taxed $0 under a rate (TaxJar's
+				// answer for an exempt product) still carries that rate id, with no tax.
+				$item_rate_ids = empty( $snapshot['item_taxes'][ $key ]['total'] ) ? array() : array_keys(
+					array_filter(
+						$snapshot['item_taxes'][ $key ]['total'],
+						static function ( $tax ) {
+							return 0.0 !== (float) $tax;
+						}
+					)
+				);
 			} elseif ( $is_shipping ) {
 				$item_rate_ids = $shipping_rate_ids;
 			} else {
@@ -3916,10 +4042,91 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$location_type = $this->get_order_tax_location_type( $order );
-		$old_address   = $this->get_order_tax_address( $before['billing'], $before['shipping'], $location_type );
-		$new_address   = $this->get_order_tax_address( $order->get_address( 'billing' ), $order->get_address( 'shipping' ), $location_type );
+		// A new order was not taxed anywhere before: only its address fields can move.
+		$type_before = isset( $this->orders_created_in_request['ids'][ $order_id ] ) ? $location_type : $this->get_order_tax_location_type( $order, $this->get_order_shipping_method_ids_before( $order ) );
+		$old_address = $this->filter_order_tax_address( $this->get_order_tax_address( $before['billing'], $before['shipping'], $type_before ), $order );
+		$new_address = $this->filter_order_tax_address( $this->get_order_tax_address( $order->get_address( 'billing' ), $order->get_address( 'shipping' ), $location_type ), $order );
 
 		return $old_address->to_taxable_tuple() === $new_address->to_taxable_tuple() ? null : $old_address;
+	}
+
+	/**
+	 * Shipping method ids of the order's shipping lines as they were before this request.
+	 *
+	 * The REST API saves an edited shipping line before it recalculates the order, so
+	 * a method changed in this request is read from what was remembered before the save.
+	 * Lines removed in this request count; lines added in it do not.
+	 *
+	 * @param WC_Order $order The order about to be recalculated.
+	 * @return string[]
+	 */
+	private function get_order_shipping_method_ids_before( $order ) {
+		$saved  = (array) $order->get_data_store()->read_items( $order, 'shipping' );
+		$saved += $this->order_items_removed_in_request[ (int) $order->get_id() ] ?? array();
+
+		$method_ids = array();
+		foreach ( $saved as $item_id => $item ) {
+			if ( ! $item instanceof WC_Order_Item_Shipping || isset( $this->order_items_created_in_request['ids'][ (int) $item_id ] ) ) {
+				continue;
+			}
+
+			$method_ids[] = $this->order_shipping_method_before_save[ (int) $item_id ] ?? $item->get_method_id();
+		}
+
+		return $method_ids;
+	}
+
+	/**
+	 * Apply WooCommerce's woocommerce_order_get_tax_location filter to an order's tax address.
+	 *
+	 * WC_Abstract_Order::get_tax_location() lets plugins move the location an order is
+	 * taxed at. The filter knows no street, so a moved location is sent without one.
+	 *
+	 * @param Address  $address The address the order is taxed at, before the filter.
+	 * @param WC_Order $order   The order.
+	 * @return Address
+	 */
+	private function filter_order_tax_address( Address $address, $order ) {
+		$location = array(
+			'country'  => $address->country(),
+			'state'    => $address->state(),
+			'postcode' => $address->postcode(),
+			'city'     => $address->city(),
+		);
+
+		/**
+		 * Filters the location an order is taxed at. A WooCommerce core filter, applied
+		 * here as WC_Abstract_Order::get_tax_location() applies it.
+		 *
+		 * @since 3.7.1 Applied by this plugin.
+		 *
+		 * @param array    $location Country, state, postcode and city.
+		 * @param WC_Order $order    The order.
+		 */
+		$filtered = apply_filters( 'woocommerce_order_get_tax_location', $location, $order ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
+
+		if ( ! is_array( $filtered ) ) {
+			return $address;
+		}
+
+		foreach ( $location as $key => $value ) {
+			if ( isset( $filtered[ $key ] ) && is_scalar( $filtered[ $key ] ) ) {
+				$location[ $key ] = (string) $filtered[ $key ];
+			}
+		}
+
+		if ( array( $address->country(), $address->state(), $address->postcode(), $address->city() ) === array_values( $location ) ) {
+			return $address;
+		}
+
+		return Address::from_options(
+			array(
+				'to_country' => $location['country'],
+				'to_state'   => $location['state'],
+				'to_zip'     => $location['postcode'],
+				'to_city'    => $location['city'],
+			)
+		);
 	}
 
 	/**
@@ -3956,10 +4163,11 @@ class WC_Connect_TaxJar_Integration {
 	 * Mirrors WC_Abstract_Order::get_tax_location(): the Tax "Calculate tax based on"
 	 * setting, and the store address when the order uses local pickup.
 	 *
-	 * @param WC_Order $order The order.
+	 * @param WC_Order      $order      The order.
+	 * @param string[]|null $method_ids Shipping method ids to decide on instead of the order's current ones.
 	 * @return string
 	 */
-	private function get_order_tax_location_type( $order ) {
+	private function get_order_tax_location_type( $order, ?array $method_ids = null ) {
 		/**
 		 * Filters whether to apply base tax for local pickup. A WooCommerce core filter,
 		 * applied here as WC_Abstract_Order::get_tax_location() applies it.
@@ -3978,10 +4186,15 @@ class WC_Connect_TaxJar_Integration {
 			 */
 			$local_pickup_methods = (array) apply_filters( 'woocommerce_local_pickup_methods', array( 'legacy_local_pickup', 'local_pickup' ) ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
 
-			foreach ( $order->get_shipping_methods() as $shipping ) {
-				if ( in_array( $shipping->get_method_id(), $local_pickup_methods, true ) ) {
-					return 'base';
+			if ( null === $method_ids ) {
+				$method_ids = array();
+				foreach ( $order->get_shipping_methods() as $shipping ) {
+					$method_ids[] = $shipping->get_method_id();
 				}
+			}
+
+			if ( array_intersect( $method_ids, $local_pickup_methods ) ) {
+				return 'base';
 			}
 		}
 
@@ -4062,11 +4275,11 @@ class WC_Connect_TaxJar_Integration {
 			'line_items'     => $line_items,
 			'rate_ids'       => array(),
 			'response_lines' => array(),
-			'address'        => $this->with_state_code( $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $default_type ) ),
+			'address'        => $this->with_state_code( $this->filter_order_tax_address( $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $default_type ), $order ) ),
 		);
 
 		foreach ( $groups as $type => $items ) {
-			$address = $this->with_state_code( $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $type ) );
+			$address = $type === $default_type ? $result['address'] : $this->with_state_code( $this->get_order_tax_address( $billing, $order->get_address( 'shipping' ), $type ) );
 
 			// calculate_tax() would take it for another state's address and answer "no
 			// tax" without asking. Keep the order's tax instead.
