@@ -462,7 +462,14 @@ export const getRatesErrors = ( { values: selectedRates, available: allRates } )
 				? messages
 				: [ "We couldn't get a rate for this package, please try again." ];
 		}
-		if ( selectedRates[ boxId ] && selectedRates[ boxId ].serviceId ) {
+		// A selection only counts when the retrieved rates still carry that service. A
+		// selection left over from rates that have since been replaced points at a rate
+		// that cannot be purchased, so it has to be treated as no selection at all.
+		const selectedServiceId = get( selectedRates, [ boxId, 'serviceId' ] );
+		if (
+			selectedServiceId &&
+			find( rate.default.rates, r => selectedServiceId === r.service_id )
+		) {
 			return [];
 		} else if ( isEmpty( rate.default.rates ) ) {
 			return [
