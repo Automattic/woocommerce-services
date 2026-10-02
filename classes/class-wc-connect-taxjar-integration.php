@@ -3613,7 +3613,7 @@ class WC_Connect_TaxJar_Integration {
 			if ( 'shipping' === $saved_items[ $item_id ]->get_type() ) {
 				$removed_rate_ids['shipping']         = array_unique( array_merge( $removed_rate_ids['shipping'], $rate_ids ) );
 				$removed_rate_ids['untaxed_shipping'] = $removed_rate_ids['untaxed_shipping'] || ( ! $rate_ids && $this->shipping_line_could_carry_tax( $saved_items[ $item_id ] ) );
-			} elseif ( $rate_ids ) {
+			} elseif ( $rate_ids && ! $this->is_negative_fee( $saved_items[ $item_id ] ) ) {
 				$tax_class                                 = $saved_items[ $item_id ]->get_tax_class();
 				$removed_rate_ids['classes'][ $tax_class ] = array_unique( array_merge( $removed_rate_ids['classes'][ $tax_class ] ?? array(), $rate_ids ) );
 			}
@@ -3626,6 +3626,20 @@ class WC_Connect_TaxJar_Integration {
 			'removed_rate_ids' => $removed_rate_ids,
 			'has_changes'      => $added || ! empty( $removed ) || ! empty( $changed_ids ),
 		);
+	}
+
+	/**
+	 * Whether an order item is a fee that takes money off the order.
+	 *
+	 * WooCommerce taxes such a fee by splitting it across every tax class on the order,
+	 * so it carries the rates of other classes too. Its rates cannot show which rates
+	 * its own class uses.
+	 *
+	 * @param WC_Order_Item $item A line item, fee or shipping item.
+	 * @return bool
+	 */
+	private function is_negative_fee( $item ) {
+		return 'fee' === $item->get_type() && (float) $item->get_total() < 0;
 	}
 
 	/**
@@ -3736,7 +3750,8 @@ class WC_Connect_TaxJar_Integration {
 		$known_ids   = $snapshot['base_changes']['known_ids'];
 		$changed_ids = $snapshot['base_changes']['changed_ids'];
 
-		// Rates already on the order, per tax class and for shipping, for new items.
+		// Rates already on the order, per tax class and for shipping, for new items. A
+		// negative fee is left out: it carries the rates of every class on the order.
 		$rate_ids_by_class = array();
 		$shipping_rate_ids = array();
 		$untaxed_shipping  = $snapshot['base_changes']['removed_rate_ids']['untaxed_shipping'];
@@ -3755,7 +3770,7 @@ class WC_Connect_TaxJar_Integration {
 			$item_rate_ids = array_keys( $snapshot['item_taxes'][ $key ]['total'] );
 			if ( 'shipping' === $item->get_type() ) {
 				$shipping_rate_ids = array_unique( array_merge( $shipping_rate_ids, $item_rate_ids ) );
-			} else {
+			} elseif ( ! $this->is_negative_fee( $item ) ) {
 				$tax_class                       = $item->get_tax_class();
 				$rate_ids_by_class[ $tax_class ] = array_unique( array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), $item_rate_ids ) );
 			}
