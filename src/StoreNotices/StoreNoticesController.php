@@ -20,6 +20,13 @@ defined( 'ABSPATH' ) || exit;
 class StoreNoticesController {
 
 	/**
+	 * Selector of the classic checkout notices container, replaced by the update_order_review fragment.
+	 *
+	 * @var string
+	 */
+	const CLASSIC_CHECKOUT_NOTICES_SELECTOR = 'div.wcservices-checkout-notices';
+
+	/**
 	 * Notifier instance.
 	 *
 	 * @var StoreNoticesNotifier
@@ -36,6 +43,8 @@ class StoreNoticesController {
 
 		add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_display_notices' ), 30 );
 		add_filter( 'woocommerce_store_api_cart_errors', array( $this, 'add_store_api_cart_errors' ), 10, 2 );
+		add_action( 'woocommerce_checkout_before_customer_details', array( $this, 'print_classic_checkout_notices_container' ) );
+		add_filter( 'woocommerce_update_order_review_fragments', array( $this, 'add_update_order_review_fragment' ) );
 	}
 
 	/**
@@ -46,8 +55,64 @@ class StoreNoticesController {
 			return;
 		}
 
+		// WooCommerce marks update_order_review as failed when the notice queue is not empty, and the classic
+		// checkout then blurs every field, which triggers another update: an endless loop. The notices are sent
+		// as a fragment instead (see add_update_order_review_fragment()). Placing the order still queues them.
+		if ( did_action( 'woocommerce_checkout_update_order_review' ) ) {
+			return;
+		}
+
 		$this->notifier->print_notices();
 		$this->notifier::clear_notices();
+	}
+
+	/**
+	 * Print the classic checkout container that the update_order_review fragment fills with the notices.
+	 */
+	public function print_classic_checkout_notices_container() {
+		echo '<div class="wcservices-checkout-notices"></div>';
+	}
+
+	/**
+	 * Send the notices to the classic checkout as an update_order_review fragment.
+	 *
+	 * The container is replaced even when there are no notices, so a corrected address clears the message.
+	 *
+	 * @param array $fragments Checkout fragments.
+	 *
+	 * @return array
+	 */
+	public function add_update_order_review_fragment( $fragments ) {
+		if ( ! is_array( $fragments ) ) {
+			return $fragments;
+		}
+
+		$fragments[ self::CLASSIC_CHECKOUT_NOTICES_SELECTOR ] = '<div class="wcservices-checkout-notices">' . $this->get_notices_html() . '</div>';
+		$this->notifier::clear_notices();
+
+		return $fragments;
+	}
+
+	/**
+	 * Render the notices with the WooCommerce notice templates.
+	 *
+	 * @return string
+	 */
+	private function get_notices_html(): string {
+		$html = '';
+
+		foreach ( StoreNoticesNotifier::get_notices() as $type => $notices ) {
+			// The types wc_print_notices() renders by default, so the fragment shows what the notice queue would.
+			if ( ! in_array( $type, array( 'error', 'success', 'notice' ), true ) ) {
+				continue;
+			}
+
+			foreach ( $notices as $notice ) {
+				$html .= wc_print_notice( $this->notifier->maybe_get_formatted_message( $notice['message'], $notice['data'] ), $type, array(), true );
+			}
+		}
+
+		return $html;
 	}
 
 	/**
