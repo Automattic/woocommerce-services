@@ -4834,6 +4834,153 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Ids of the 0% rows added beside a state-wide rate, at any priority.
+	 *
+	 * @return int[]
+	 */
+	private function nullified_rate_ids() {
+		global $wpdb;
+
+		return array_map(
+			'intval',
+			$wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				"SELECT tax_rate_id FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_name LIKE '%Manual Rate Nullified (Automated Taxes)' ORDER BY tax_rate_id" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			)
+		);
+	}
+
+	/**
+	 * Once the merchant deletes their state-wide rate, the next lookup for a town
+	 * removes the 0% row it added beside that rate.
+	 */
+	public function test_lookup_removes_the_rate_added_beside_a_deleted_state_wide_rate() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$this->assertCount( 1, $this->nullified_rate_ids() );
+
+		// A state-wide rate in another tax class does not keep it.
+		$reduced_id = $this->insert_michigan_rate( 5, '3.0000', 'Reduced', '', '', 'reduced-rate' );
+
+		WC_Tax::_delete_tax_rate( $catch_all_id );
+
+		$taxes = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$this->assertSame( array(), $this->nullified_rate_ids() );
+		$this->assertSame( array( $reduced_id ), $this->tax_rate_ids_at_priority( 5 ) );
+		$this->assertSame( 5, $this->count_tax_rate_rows() );
+		$this->assertSame( $this->looked_up_rate_ids( $taxes ), $this->michigan_rates_from_table( '49841', 'Gwinn' )['ids'] );
+	}
+
+	/**
+	 * A merchant rate for every state, or every country, applies to the town as a
+	 * state-wide one does, so the 0% row beside it stays across lookups.
+	 *
+	 * @testWith ["US", ""]
+	 *           ["", ""]
+	 *
+	 * @param string $country Merchant row country.
+	 * @param string $state   Merchant row state.
+	 */
+	public function test_lookup_keeps_the_rate_added_beside_a_rate_for_every_state( $country, $state ) {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate(
+			$catch_all_id,
+			array(
+				'tax_rate_country'  => $country,
+				'tax_rate_state'    => $state,
+				'tax_rate_priority' => 5,
+			)
+		);
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$nullified = $this->nullified_rate_ids();
+		$this->assertCount( 1, $nullified );
+
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$this->assertSame( $nullified, $this->nullified_rate_ids() );
+		$this->assertSame( 6, $this->count_tax_rate_rows() );
+	}
+
+	/**
+	 * When the merchant moves their state-wide rate to another priority, the next
+	 * lookup moves the 0% row with it, so the town has one, at the new priority.
+	 * Left at the old priority too, an order taxed from the table would carry two $0
+	 * "Manual Rate Nullified" tax lines.
+	 */
+	public function test_lookup_moves_the_rate_added_beside_a_state_wide_rate_that_moved() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 6 ) );
+
+		$taxes = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$nullified = $this->nullified_rate_ids();
+		$this->assertCount( 1, $nullified );
+		$this->assertSame( 6, $this->tax_rate_snapshot( $nullified[0] )['priority'] );
+		$this->assertSame( array(), $this->tax_rate_ids_at_priority( 5 ) );
+		// The merchant row, four components and one 0% row.
+		$this->assertSame( 6, $this->count_tax_rate_rows() );
+
+		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
+		$this->assertSame( array_merge( $this->looked_up_rate_ids( $taxes ), $nullified ), $gwinn['ids'] );
+		$this->assertEqualsWithDelta( 6.0, $gwinn['percent'], 0.0001 );
+	}
+
+	/**
+	 * Only the town's own 0% rows are removed: a merchant's 0% row for the same ZIP and
+	 * city, a row with the same name that is not 0% or covers more than the town, the
+	 * town's row in another tax class, and another town's row all stay.
+	 */
+	public function test_lookup_removes_only_the_towns_own_rate_added_beside_a_state_wide_rate() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$gwinn_nullified = $this->nullified_rate_ids();
+		$this->lookup_michigan_taxes( $integration, '48226', 'Detroit' );
+
+		$label     = 'MARQUETTE GWINN : Manual Rate Nullified (Automated Taxes)';
+		$kept      = array_merge(
+			array_diff( $this->nullified_rate_ids(), $gwinn_nullified ),
+			array(
+				$this->insert_michigan_rate( 7, '0.0000', 'Gwinn Exempt', '49841', 'GWINN' ),
+				$this->insert_michigan_rate( 8, '1.0000', $label, '49841', 'GWINN' ),
+				$this->insert_michigan_rate( 9, '0.0000', $label, '49841' ),
+				$this->insert_michigan_rate( 10, '0.0000', $label, '49841', 'GWINN', 'reduced-rate' ),
+			)
+		);
+		$snapshots = array_map( array( $this, 'tax_rate_snapshot' ), $kept );
+
+		WC_Tax::_delete_tax_rate( $catch_all_id );
+
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$this->assertSame( $snapshots, array_map( array( $this, 'tax_rate_snapshot' ), $kept ) );
+		$this->assertNotContains( $gwinn_nullified[0], $this->nullified_rate_ids(), "Gwinn's own 0% row stayed." );
+		// Detroit's four components and 0% row, Gwinn's four components and the four kept rows.
+		$this->assertSame( 13, $this->count_tax_rate_rows() );
+	}
+
+	/**
 	 * The write and the read are two different methods, and they have to agree.
 	 *
 	 * `create_or_update_tax_rate()` persists the row; `allow_street_address_for_matched_rates()`
