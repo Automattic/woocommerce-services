@@ -3957,11 +3957,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * so City is priority 1 and State priority 4. With `$freight_taxable`, shipping is
 	 * taxed at the same components and the answer carries their shipping breakdown.
 	 *
-	 * @param bool $answers         False to have the request fail.
-	 * @param bool $freight_taxable Whether TaxJar taxes shipping.
+	 * @param bool       $answers         False to have the request fail.
+	 * @param bool       $freight_taxable Whether TaxJar taxes shipping.
+	 * @param float|null $exempt_under    Answer 0% for lines priced under this, as a clothing threshold does.
+	 * @param array|null $components      Rates to answer with, by TaxJar key, in place of the default four.
 	 * @return WC_Connect_TaxJar_Integration
 	 */
-	private function michigan_integration( $answers = true, $freight_taxable = false ) {
+	private function michigan_integration( $answers = true, $freight_taxable = false, $exempt_under = null, $components = null ) {
 		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
 			->disableOriginalConstructor()
 			->onlyMethods( array( 'smartcalcs_cache_request', 'get_store_settings', '_log' ) )
@@ -3978,12 +3980,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		);
 
 		$integration->method( 'smartcalcs_cache_request' )->willReturnCallback(
-			function ( $json ) use ( $answers, $freight_taxable ) {
+			function ( $json ) use ( $answers, $freight_taxable, $exempt_under, $components ) {
 				if ( ! $answers ) {
 					return false;
 				}
 
-				$components = array(
+				$components = $components ?? array(
 					'combined_tax_rate'    => 0.06,
 					'city_tax_rate'        => 0.0,
 					'county_tax_rate'      => 0.0,
@@ -3994,7 +3996,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 				$body  = json_decode( $json, true );
 				$lines = array();
 				foreach ( $body['line_items'] ?? array() as $line_item ) {
-					$lines[] = array_merge( array( 'id' => $line_item['id'] ), $components );
+					$exempt  = null !== $exempt_under && (float) $line_item['unit_price'] < $exempt_under;
+					$lines[] = array_merge( array( 'id' => $line_item['id'] ), $exempt ? array_map( '__return_zero', $components ) : $components );
 				}
 
 				$breakdown = array( 'line_items' => $lines );
@@ -4680,6 +4683,154 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$this->assertSame( array( $catch_all_id ), $this->tax_rate_ids_at_priority( 5 ) );
 		$this->assertSame( 1, $this->count_tax_rate_rows() );
+	}
+
+	/**
+	 * Insert a Michigan rate row the way a merchant would, limited to the given
+	 * postcodes and cities.
+	 *
+	 * @param int    $priority  Priority.
+	 * @param float  $rate      Rate percentage.
+	 * @param string $name      Row name.
+	 * @param string $postcodes Postcodes, `;`-separated, or empty.
+	 * @param string $cities    Cities, `;`-separated, or empty.
+	 * @param string $tax_class Tax class slug.
+	 * @return int Tax rate id.
+	 */
+	private function insert_michigan_rate( $priority, $rate, $name, $postcodes = '', $cities = '', $tax_class = '' ) {
+		$rate_id = (int) WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'MI',
+				'tax_rate_name'     => $name,
+				'tax_rate_priority' => $priority,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate'          => $rate,
+				'tax_rate_class'    => $tax_class,
+			)
+		);
+
+		WC_Tax::_update_tax_rate_postcodes( $rate_id, $postcodes );
+		WC_Tax::_update_tax_rate_cities( $rate_id, $cities );
+
+		return $rate_id;
+	}
+
+	/**
+	 * TaxJar's answer for Gwinn with a 1% special district, then without one.
+	 *
+	 * @return array{0: array, 1: array} Components by TaxJar key: before, after.
+	 */
+	private function gwinn_answers_before_and_after_a_special_district_ends() {
+		return array(
+			array(
+				'combined_tax_rate'    => 0.07,
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.01,
+				'state_sales_tax_rate' => 0.06,
+			),
+			array(
+				'combined_tax_rate'    => 0.06,
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'state_sales_tax_rate' => 0.06,
+			),
+		);
+	}
+
+	/**
+	 * When TaxJar returns fewer rates for a town than it did before, the rows the
+	 * earlier lookup wrote above the new ones go.
+	 *
+	 * The first lookup writes City, County, Special and State at priorities 1 to 4.
+	 * The second writes City, County and State at 1 to 3, reusing the rows at those
+	 * priorities. Left in place, the old State row at priority 4 would still match the
+	 * town, and anything taxed from the table would charge the state rate twice.
+	 */
+	public function test_lookup_with_fewer_rates_removes_the_rows_it_no_longer_returns() {
+		$this->reset_tax_rate_tables();
+
+		list( $before, $after ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '49841', 'Gwinn' );
+		$this->assertSame( 4, $this->count_tax_rate_rows() );
+		// 0% + 0% + 1% + 6%.
+		$this->assertEqualsWithDelta( 7.0, $this->michigan_rates_from_table( '49841', 'Gwinn' )['percent'], 0.0001 );
+
+		$taxes = $this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $after ), '49841', 'Gwinn' );
+
+		$this->assertSame( 3, $this->count_tax_rate_rows() );
+		$this->assertSame( array(), $this->tax_rate_ids_at_priority( 4 ) );
+
+		// 0% + 0% + 6%, from exactly the rows checkout applies.
+		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
+		$this->assertSame( $this->looked_up_rate_ids( $taxes ), $gwinn['ids'] );
+		$this->assertEqualsWithDelta( 6.0, $gwinn['percent'], 0.0001 );
+	}
+
+	/**
+	 * Only the rows a lookup wrote for exactly this town, in this tax class, go.
+	 *
+	 * Left alone: a merchant's row for exactly the same ZIP and city (its name is not
+	 * one a lookup writes), a merchant's row for the ZIP alone that carries a lookup's
+	 * name, the same town's rows in another tax class, and another town's rows.
+	 */
+	public function test_lookup_with_fewer_rates_keeps_rows_it_did_not_write_for_the_town() {
+		$this->reset_tax_rate_tables();
+
+		list( $before, $after ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '49841', 'Gwinn' );
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '48226', 'Detroit' );
+		$detroit_ids = $this->michigan_rates_from_table( '48226', 'Detroit' )['ids'];
+
+		$location = array(
+			'from_country' => 'US',
+			'from_state'   => 'MI',
+			'to_country'   => 'US',
+			'to_state'     => 'MI',
+			'to_zip'       => '49841',
+			'to_city'      => 'Gwinn',
+		);
+
+		$kept = array(
+			$this->insert_michigan_rate( 5, '0.5000', 'Gwinn Assessment', '49841', 'GWINN' ),
+			$this->insert_michigan_rate( 6, '1.0000', 'MARQUETTE GWINN : Local Tax', '49841' ),
+			(int) $this->integration->create_or_update_tax_rate( $location, 1.0, 'reduced-rate', 1, 4, 'MARQUETTE GWINN : Special Tax' ),
+		);
+		$kept = array_merge( $kept, $detroit_ids );
+
+		$snapshots = array_map( array( $this, 'tax_rate_snapshot' ), $kept );
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $after ), '49841', 'Gwinn' );
+
+		$this->assertSame( $snapshots, array_map( array( $this, 'tax_rate_snapshot' ), $kept ) );
+		// Gwinn's three components, the three kept Gwinn rows and Detroit's four.
+		$this->assertSame( 10, $this->count_tax_rate_rows() );
+		$this->assertEqualsWithDelta( 7.0, $this->michigan_rates_from_table( '48226', 'Detroit' )['percent'], 0.0001 );
+	}
+
+	/**
+	 * An address with no postcode or city writes rows with no location, the same
+	 * shape as a merchant's state-wide row, so nothing above the components is removed.
+	 */
+	public function test_removing_rows_above_the_components_needs_a_postcode_or_city() {
+		$this->reset_tax_rate_tables();
+
+		$state_wide_id = $this->insert_michigan_rate( 5, '6.0000', 'MARQUETTE : County Tax' );
+
+		$location = array(
+			'to_country' => 'US',
+			'to_state'   => 'MI',
+			'to_zip'     => '',
+			'to_city'    => '',
+		);
+
+		$this->invoke_protected_method( 'remove_stale_components', array( $location, '', array( 1, 2, 3, 4 ), array( 'county' => 'MARQUETTE' ) ) );
+
+		$this->assertSame( array( $state_wide_id ), $this->tax_rate_ids_at_priority( 5 ) );
 	}
 
 	/**
