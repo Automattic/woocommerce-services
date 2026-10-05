@@ -5934,20 +5934,47 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Without a notifier, a customer-input error on the front end is logged instead of shown.
+	 * Without a notifier, a customer-input error on the front end is logged instead of shown,
+	 * through the debug log, so it does not replace a pending admin error notice.
 	 */
 	public function test_customer_input_error_without_a_notifier_is_logged() {
-		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
-		$logger->expects( $this->once() )
-			->method( 'error' )
-			->with( $this->stringContains( "isn't a valid postal code for" ), 'WCS Tax' );
+		// The logger's error() raises this notice, so load it to see it if that path is taken.
+		require_once __DIR__ . '/../../classes/class-wc-connect-error-notice.php';
 
-		$integration = $this->get_integration_for_notifier_tests( array(), $logger );
-		$this->ensure_wc_session();
+		$pending_notice = new WP_Error( 'product_missing_weight', 'Missing weight.', array( 'product_id' => 1 ) );
+		WC_Connect_Options::update_option( 'error_notice', $pending_notice );
+		WC_Connect_Options::update_option( 'debug_logging_enabled', true );
 
-		$integration->_error( "Error retrieving the tax rates. Received (400): to_zip 1234 isn't a valid postal code for US" );
+		$written   = array();
+		$wc_logger = $this->getMockBuilder( 'WC_Logger' )->disableOriginalConstructor()->getMock();
+		$wc_logger->method( 'add' )->willReturnCallback(
+			function ( $handle, $message ) use ( &$written ) {
+				$written[] = $message;
+				return true;
+			}
+		);
 
-		$this->assertSame( array(), Automattic\WCServices\StoreNotices\StoreNoticesNotifier::get_notices() );
+		// log() also writes to error_log() under WP_DEBUG; keep that out of the test output.
+		$previous_error_log = ini_set( 'error_log', '/dev/null' ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+
+		try {
+			$integration = $this->get_integration_for_notifier_tests( array(), new WC_Connect_Logger( $wc_logger ) );
+			$this->ensure_wc_session();
+
+			$integration->_error( "Error retrieving the tax rates. Received (400): to_zip 1234 isn't a valid postal code for US" );
+
+			$this->assertCount( 1, $written );
+			$this->assertStringContainsString( "isn't a valid postal code for", $written[0] );
+			$this->assertSame( array(), Automattic\WCServices\StoreNotices\StoreNoticesNotifier::get_notices() );
+
+			$notice = WC_Connect_Options::get_option( 'error_notice' );
+			$this->assertInstanceOf( WP_Error::class, $notice );
+			$this->assertSame( 'product_missing_weight', $notice->get_error_code() );
+		} finally {
+			ini_set( 'error_log', (string) $previous_error_log ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+			WC_Connect_Options::delete_option( 'error_notice' );
+			WC_Connect_Options::delete_option( 'debug_logging_enabled' );
+		}
 	}
 
 	/**

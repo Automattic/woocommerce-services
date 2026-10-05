@@ -652,12 +652,17 @@ class WC_Connect_TaxJar_Integration {
 				$message = sprintf( _x( 'Invalid %s entered.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			}
 
-			// The notifier is optional; without one the error is logged below instead.
 			if ( $this->notifier ) {
 				$this->notifier->error( $message, array(), 'taxjar' );
 
 				return;
 			}
+
+			// The notifier is optional. Without one, log the error, but through log() rather
+			// than error(): customer input must not replace the admin error notice.
+			$this->logger->log( $formatted_message, 'WCS Tax' );
+
+			return;
 		}
 
 		$this->logger->error( $formatted_message, 'WCS Tax' );
