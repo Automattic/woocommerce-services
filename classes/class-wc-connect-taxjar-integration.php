@@ -777,7 +777,7 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Calculate tax / totals using TaxJar for backend orders
 	 *
-	 * Unchanged from the TaxJar plugin.
+	 * Based on the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L557
 	 *
 	 * @return void
@@ -824,29 +824,12 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		if ( class_exists( 'WC_Order_Item_Tax' ) ) { // Add tax rates manually for Woo 3.0+
-			/**
-			 * @var WC_Order_Item_Product $item Product Order Item.
-			 */
-			foreach ( $order->get_items() as $item_key => $item ) {
-				// get_backend_line_items() keys by order item ID and stores the canonical
-				// TaxJar ID under 'id'; the response is keyed by that canonical ID.
-				$line_item_key = $line_items[ $item_key ]['id'] ?? null;
-				if ( null !== $line_item_key && isset( $taxes['rate_ids'][ $line_item_key ] ) ) {
-					$rate_id  = $taxes['rate_ids'][ $line_item_key ];
-					$item_tax = new WC_Order_Item_Tax();
-					$item_tax->set_rate( $rate_id );
-					$item_tax->set_order_id( $order_id );
-					$item_tax->save();
-				}
-			}
-		} elseif ( class_exists( 'WC_AJAX' ) ) { // Recalculate tax for Woo 2.6 to apply new tax rates
-				remove_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
-			if ( check_ajax_referer( 'calc-totals', 'security', false ) ) {
-				WC_AJAX::calc_line_taxes();
-			}
-				add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
-		}
+		/*
+		 * No tax items are saved here. wc_save_order_items(), which fires this hook,
+		 * rebuilds the order's tax items from its line items right after, and
+		 * Recalculate then recalculates them, so WooCommerce adds one per rate the
+		 * order is charged under that rate's own name.
+		 */
 	}
 
 	/**
@@ -3124,6 +3107,15 @@ class WC_Connect_TaxJar_Integration {
 		$snapshot['address_before'] = $this->find_order_tax_address_change( $order );
 		$snapshot['lookup']         = $this->order_needs_tax_lookup( $snapshot );
 
+		// A refund records its tax against the order's rate ids. TaxJar's rates for a new
+		// address are stored under other ids, so after a lookup the refunded tax would
+		// belong to rates the order no longer has. Keep the recorded rates instead; the
+		// admin does not let a refunded order be edited at all.
+		$snapshot['kept_for_refunds'] = $snapshot['lookup'] && ! empty( $snapshot['tax_lines'] ) && 0.0 !== (float) $order->get_total_tax_refunded();
+		if ( $snapshot['kept_for_refunds'] ) {
+			$snapshot['lookup'] = false;
+		}
+
 		// Without tax lines there is nothing to preserve; never turn a first-time tax
 		// calculation into a zeroed one. Leave it to WC unless TaxJar is to be asked.
 		if ( empty( $snapshot['tax_lines'] ) && ! $snapshot['lookup'] ) {
@@ -3154,6 +3146,9 @@ class WC_Connect_TaxJar_Integration {
 	 * - The taxed address changed, or a new order has no tax yet: TaxJar is asked and
 	 *   its rates replace the order's tax. If that fails, the cases above apply as if
 	 *   no lookup was due, and a note says the tax could not be updated.
+	 * - The taxed address changed on an order with refunded tax: TaxJar is not asked,
+	 *   so the refunds keep matching the order's rates. The cases above apply, and a
+	 *   note says why the tax was not updated.
 	 *
 	 * @internal Hooked to woocommerce_order_after_calculate_totals.
 	 *
@@ -3203,6 +3198,15 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( ! is_array( $lookup ) && null !== $lookup && ! empty( $snapshot['tax_lines'] ) ) {
 			$this->add_order_tax_note( $order, $this->get_failed_order_tax_update_note( $lookup, $reapplied ) );
+		}
+
+		if ( ! empty( $snapshot['kept_for_refunds'] ) ) {
+			$this->add_order_tax_note(
+				$order,
+				$reapplied
+					? __( 'Tax was not updated for the new address, because this order has refunded tax. The tax rates recorded when the order was placed were used instead. Check the order\'s address and its tax.', 'woocommerce-services' )
+					: __( 'Tax was not updated for the new address, because this order has refunded tax. The tax this order already had was kept. Check the order\'s address and its tax.', 'woocommerce-services' )
+			);
 		}
 
 		// The old amounts and address have been used; a later recalculation of the same

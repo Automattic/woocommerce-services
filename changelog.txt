@@ -14,6 +14,7 @@
 * Tweak - Include composer.json in the plugin package.
 * Fix   - Require a nonce on the setup banner's Terms of Service and dismiss links, so they cannot be triggered by loading a crafted URL.
 * Tweak - Bind the service IDs in the enabled services query with prepare() instead of escaping them by hand.
+* Fix   - Stop Recalculate and saving an order's items in the admin from logging a PHP notice for every item and saving an extra tax line with no name, which other plugins could see before it was removed again.
 * Fix   - Stop charging tax on an item the tax service answered as tax-exempt, such as clothing under New York's price threshold, when another item in the same tax class is taxed. This affected orders placed at checkout and orders recalculated in the admin.
 
 = 3.7.0 - 2026-09-22 =
