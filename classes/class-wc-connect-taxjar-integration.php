@@ -640,7 +640,8 @@ class WC_Connect_TaxJar_Integration {
 		// have no WC session, so those errors are logged.
 		$state_zip_mismatch = false !== strpos( $formatted_message, 'to_zip' ) && false !== strpos( $formatted_message, 'is not used within to_state' );
 		$invalid_postcode   = false !== strpos( $formatted_message, 'isn\'t a valid postal code for' );
-		$malformed_postcode = false !== strpos( $formatted_message, 'zip code has incorrect format' );
+		// Only the shopper's ZIP. A bad store ZIP is the merchant's to fix, so it is logged and checkout goes on.
+		$malformed_postcode = false !== strpos( $formatted_message, 'Country destination is set to US but the zip code has incorrect format' );
 		if ( ! is_admin() && StoreNoticesNotifier::wc_session_exists() && ( $state_zip_mismatch || $invalid_postcode || $malformed_postcode ) ) {
 			$fields              = WC()->countries->get_address_fields();
 			$postcode_field_name = __( 'ZIP/Postal code', 'woocommerce-services' );
