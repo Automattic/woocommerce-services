@@ -1,0 +1,339 @@
+<?php
+/**
+ * Tests that the label routes act only on a real order, and only on that order's labels.
+ *
+ * @package WooCommerce_Services
+ */
+
+/**
+ * The label routes take the order ID from the URL. Anything that is not an order must be
+ * refused before any write or upstream call.
+ */
+class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case {
+
+	/**
+	 * Origin address stored before each test, which a refused request may not change.
+	 */
+	const STORED_ORIGIN = array(
+		'address' => '1 Main St',
+		'city'    => 'Marquette',
+		'country' => 'US',
+	);
+
+	/**
+	 * API client stand-in.
+	 *
+	 * @var WC_Connect_API_Client|PHPUnit\Framework\MockObject\MockObject
+	 */
+	private $api_client;
+
+	/**
+	 * Logger stand-in.
+	 *
+	 * @var WC_Connect_Logger|PHPUnit\Framework\MockObject\MockObject
+	 */
+	private $logger;
+
+	/**
+	 * Real settings store, so writes to options and order meta can be checked.
+	 *
+	 * @var WC_Connect_Service_Settings_Store
+	 */
+	private $settings_store;
+
+	/**
+	 * Messages passed to the logger's log().
+	 *
+	 * @var string[]
+	 */
+	private $logged = array();
+
+	/**
+	 * Load the classes under test.
+	 */
+	public static function set_up_before_class() {
+		parent::set_up_before_class();
+
+		$classes = __DIR__ . '/../../../classes/';
+		require_once $classes . 'class-wc-connect-options.php';
+		require_once $classes . 'class-wc-connect-utils.php';
+		require_once $classes . 'class-wc-connect-logger.php';
+		require_once $classes . 'class-wc-connect-api-client.php';
+		require_once $classes . 'class-wc-connect-service-schemas-store.php';
+		require_once $classes . 'class-wc-connect-service-settings-store.php';
+		require_once $classes . 'class-wc-rest-connect-base-controller.php';
+		require_once $classes . 'class-wc-rest-connect-shipping-rates-controller.php';
+	}
+
+	/**
+	 * Set up the REST server and the controllers. Overrides setUp() rather than set_up()
+	 * because WC_REST_Unit_Test_Case creates the server in setUp().
+	 */
+	public function setUp(): void {
+		parent::setUp();
+
+		// The base controller sends a no-cache header, which core's spy server records instead.
+		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
+		$this->server              = $GLOBALS['wp_rest_server'];
+
+		$this->api_client = $this->createMock( WC_Connect_API_Client::class );
+		$this->logger     = $this->createMock( WC_Connect_Logger::class );
+		$this->logged     = array();
+		$this->logger->method( 'log' )->willReturnCallback(
+			function ( $message ) {
+				$this->logged[] = is_wp_error( $message ) ? $message->get_error_code() : (string) $message;
+			}
+		);
+
+		$this->settings_store = new WC_Connect_Service_Settings_Store(
+			$this->createMock( WC_Connect_Service_Schemas_Store::class ),
+			$this->api_client,
+			$this->logger
+		);
+
+		( new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $this->settings_store, $this->logger ) )->register_routes();
+
+		WC_Connect_Options::update_option( 'origin_address', self::STORED_ORIGIN );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
+	}
+
+	/**
+	 * Clean up the options touched.
+	 */
+	public function tearDown(): void {
+		WC_Connect_Options::delete_option( 'origin_address' );
+		parent::tearDown();
+	}
+
+	/**
+	 * IDs that are not orders: missing, a page, a product, a refund.
+	 *
+	 * @return array
+	 */
+	public function not_an_order_provider() {
+		return array(
+			'nonexistent' => array( 'nonexistent' ),
+			'page'        => array( 'page' ),
+			'product'     => array( 'product' ),
+			'refund'      => array( 'refund' ),
+		);
+	}
+
+	/**
+	 * Build an ID of the given kind.
+	 *
+	 * @param string $kind One of the not_an_order_provider() keys.
+	 * @return int
+	 */
+	private function make_id( $kind ) {
+		switch ( $kind ) {
+			case 'page':
+				return self::factory()->post->create( array( 'post_type' => 'page' ) );
+			case 'product':
+				return WC_Helper_Product::create_simple_product()->get_id();
+			case 'refund':
+				$order = WC_Helper_Order::create_order();
+				return wc_create_refund(
+					array(
+						'order_id' => $order->get_id(),
+						'amount'   => 1,
+					)
+				)->get_id();
+			default:
+				return 999999;
+		}
+	}
+
+	/**
+	 * Send a JSON request.
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $route  Route.
+	 * @param mixed  $body   Value to JSON-encode, or null for no body.
+	 * @return WP_REST_Response
+	 */
+	private function send( $method, $route, $body = null ) {
+		$request = new WP_REST_Request( $method, $route );
+		if ( null !== $body ) {
+			$request->set_header( 'content-type', 'application/json' );
+			$request->set_body( wp_json_encode( $body ) );
+		}
+
+		return $this->server->dispatch( $request );
+	}
+
+	/**
+	 * Assert a refused request: the given error and status.
+	 *
+	 * @param WP_REST_Response $response Response.
+	 * @param string           $code     Expected error code.
+	 * @param int              $status   Expected HTTP status.
+	 */
+	private function assert_refused( $response, $code, $status ) {
+		$this->assertSame( $status, $response->get_status() );
+		$this->assertSame( $code, $response->get_data()['code'] );
+	}
+
+	/**
+	 * A valid rates body for the given product IDs.
+	 *
+	 * @param array $product_ids IDs to put in the package, with customs data.
+	 * @return array
+	 */
+	private function rates_body( array $product_ids ) {
+		$items = array();
+		foreach ( $product_ids as $product_id ) {
+			$items[] = array(
+				'product_id'       => $product_id,
+				'description'      => 'Customs ' . $product_id,
+				'hs_tariff_number' => '123456',
+				'origin_country'   => 'US',
+			);
+		}
+
+		return array(
+			'origin'      => array(
+				'address' => '2 New St',
+				'city'    => 'Gwinn',
+				'country' => 'US',
+				'name'    => 'Store',
+			),
+			'destination' => array(
+				'address' => '9 Dest Rd',
+				'city'    => 'Detroit',
+				'country' => 'US',
+				'name'    => 'Customer',
+			),
+			'packages'    => array(
+				array(
+					'id'            => 'box1',
+					'contents_type' => 'merchandise',
+					'items'         => $items,
+				),
+			),
+		);
+	}
+
+	/**
+	 * Make the rates call succeed.
+	 */
+	private function expect_rates_once() {
+		$this->api_client->expects( $this->once() )
+			->method( 'get_label_rates' )
+			->willReturn( (object) array( 'rates' => (object) array( 'box1' => (object) array( 'rates' => array() ) ) ) );
+	}
+
+	/**
+	 * Rates for something that is not an order: 404, nothing written, nothing sent.
+	 *
+	 * @dataProvider not_an_order_provider
+	 * @param string $kind Kind of ID.
+	 */
+	public function test_rates_for_an_id_that_is_not_an_order_is_refused( $kind ) {
+		$product = WC_Helper_Product::create_simple_product();
+		$this->api_client->expects( $this->never() )->method( 'get_label_rates' );
+
+		$response = $this->send( 'POST', '/wc/v1/connect/label/' . $this->make_id( $kind ) . '/rates', $this->rates_body( array( $product->get_id() ) ) );
+
+		$this->assert_refused( $response, 'not_found', 404 );
+		$this->assertSame( self::STORED_ORIGIN, WC_Connect_Options::get_option( 'origin_address' ) );
+		$this->assertSame( '', get_post_meta( $product->get_id(), 'wc_connect_customs_info', true ) );
+	}
+
+	/**
+	 * Bodies missing what the route needs.
+	 *
+	 * @return array
+	 */
+	public function bad_rates_body_provider() {
+		return array(
+			'empty object'       => array( new stdClass() ),
+			'no packages'        => array(
+				array(
+					'origin'      => array( 'address' => '2 New St' ),
+					'destination' => array( 'address' => '9 Dest Rd' ),
+				),
+			),
+			'origin not array'   => array(
+				array(
+					'origin'      => 'x',
+					'destination' => array( 'address' => '9 Dest Rd' ),
+					'packages'    => array(),
+				),
+			),
+			'packages not array' => array(
+				array(
+					'origin'      => array( 'address' => '2 New St' ),
+					'destination' => array( 'address' => '9 Dest Rd' ),
+					'packages'    => 'x',
+				),
+			),
+		);
+	}
+
+	/**
+	 * A body missing the origin, destination or packages: 400, and neither the stored origin
+	 * nor the order's shipping address changes. Before, {} saved a null origin, blanked the
+	 * order's street and then failed with a TypeError.
+	 *
+	 * @dataProvider bad_rates_body_provider
+	 * @param mixed $body Request body.
+	 */
+	public function test_rates_with_a_bad_body_changes_nothing( $body ) {
+		$order = WC_Helper_Order::create_order();
+		$order->set_shipping_address_1( '5 Kept St' );
+		$order->save();
+		$this->api_client->expects( $this->never() )->method( 'get_label_rates' );
+
+		$response = $this->send( 'POST', '/wc/v1/connect/label/' . $order->get_id() . '/rates', $body );
+
+		$this->assert_refused( $response, 'bad_request', 400 );
+		$this->assertSame( self::STORED_ORIGIN, WC_Connect_Options::get_option( 'origin_address' ) );
+		$this->assertSame( '5 Kept St', wc_get_order( $order->get_id() )->get_shipping_address_1() );
+	}
+
+	/**
+	 * Customs info is saved only for products on the order, including a variation. Other
+	 * IDs are skipped and logged, and the rates are still returned.
+	 */
+	public function test_rates_save_customs_info_only_for_products_on_the_order() {
+		$on_order  = WC_Helper_Product::create_simple_product();
+		$variable  = WC_Helper_Product::create_variation_product();
+		$variation = wc_get_product( $variable->get_children()[0] );
+		$off_order = WC_Helper_Product::create_simple_product();
+		$page_id   = self::factory()->post->create( array( 'post_type' => 'page' ) );
+		$order     = WC_Helper_Order::create_order( 1, $on_order );
+		$order->add_product( $variation, 1 );
+		$order->save();
+		$this->expect_rates_once();
+
+		$response = $this->send(
+			'POST',
+			'/wc/v1/connect/label/' . $order->get_id() . '/rates',
+			$this->rates_body( array( $on_order->get_id(), $variation->get_id(), $off_order->get_id(), $page_id ) )
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertTrue( $response->get_data()['success'] );
+		$this->assertSame( 'Customs ' . $on_order->get_id(), get_post_meta( $on_order->get_id(), 'wc_connect_customs_info', true )['description'] );
+		$this->assertSame( 'Customs ' . $variation->get_id(), get_post_meta( $variation->get_id(), 'wc_connect_customs_info', true )['description'] );
+		$this->assertSame( '', get_post_meta( $off_order->get_id(), 'wc_connect_customs_info', true ) );
+		$this->assertSame( '', get_post_meta( $page_id, 'wc_connect_customs_info', true ) );
+		$this->assertContains( 'Skipped customs info for ID "' . $off_order->get_id() . '": not a product on order ' . $order->get_id() . '.', $this->logged );
+		$this->assertContains( 'Skipped customs info for ID "' . $page_id . '": not a product on order ' . $order->get_id() . '.', $this->logged );
+	}
+
+	/**
+	 * The normal flow still saves the origin and the order's address, then asks for rates.
+	 */
+	public function test_rates_for_an_order_saves_the_addresses_and_returns_rates() {
+		$order = WC_Helper_Order::create_order();
+		$this->expect_rates_once();
+
+		$response = $this->send( 'POST', '/wc/v1/connect/label/' . $order->get_id() . '/rates', $this->rates_body( array() ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( '2 New St', WC_Connect_Options::get_option( 'origin_address' )['address'] );
+		$this->assertSame( '9 Dest Rd', wc_get_order( $order->get_id() )->get_shipping_address_1() );
+	}
+}
