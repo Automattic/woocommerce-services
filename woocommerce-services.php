@@ -1415,7 +1415,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			$logger     = $this->get_logger();
-			$route_info = addcslashes( $request->get_method() . ' ' . $request->get_route(), "\0..\37\177" );
+			$route_info = $request->get_method() . ' ' . $this->encode_for_log( $request->get_route() );
 
 			// log() rather than error(): a REST error must not replace the admin error notice.
 			$logger->log( $response, $route_info, true );
@@ -1449,10 +1449,23 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		}
 
 		/**
-		 * Describe a request body for the log: its length and a JSON-encoded excerpt.
+		 * JSON-encode request text for the log.
 		 *
-		 * JSON encoding escapes line breaks and control characters, so the body cannot
-		 * add lines of its own to the log.
+		 * Line breaks and control characters are escaped, so the text cannot add lines of
+		 * its own to the log. Invalid UTF-8 is replaced rather than dropping the text.
+		 *
+		 * @param string $text Text taken from the request.
+		 *
+		 * @return string The quoted, escaped text.
+		 */
+		private function encode_for_log( $text ) {
+			$encoded = wp_json_encode( (string) $text, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE );
+
+			return false === $encoded ? '""' : $encoded;
+		}
+
+		/**
+		 * Describe a request body for the log: its length and an encoded excerpt.
 		 *
 		 * @param string $body Raw request body.
 		 *
@@ -1470,9 +1483,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 					: substr( $body, 0, self::REST_ERROR_LOG_BODY_LIMIT );
 			}
 
-			$encoded = wp_json_encode( $excerpt, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE );
-
-			return sprintf( 'body, %d bytes: %s%s', $length, false === $encoded ? '""' : $encoded, $is_long ? '...' : '' );
+			return sprintf( 'body, %d bytes: %s%s', $length, $this->encode_for_log( $excerpt ), $is_long ? '...' : '' );
 		}
 
 		/**

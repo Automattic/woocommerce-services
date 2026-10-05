@@ -192,7 +192,7 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 
 		$this->assertCount( 1, $this->logged );
 		$this->assertStringStartsWith( 'rest_invalid_json ', $this->logged[0] );
-		$this->assertStringEndsWith( ' (POST /wc/v1/connect/self-help)', $this->logged[0] );
+		$this->assertStringEndsWith( ' (POST "/wc/v1/connect/self-help")', $this->logged[0] );
 		$this->assertStringNotContainsString( 'FAKE LOG LINE', $this->logged[0] );
 		$this->assert_notice_untouched();
 	}
@@ -210,7 +210,7 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 		$this->assertCount( 2, $this->logged );
 		$this->assertStringStartsWith( 'rest_invalid_json ', $this->logged[0] );
 		$this->assertSame(
-			'POST /wc/v1/connect/self-help (body, 5005 bytes: "{bad\n' . str_repeat( 'x', 1019 ) . '"...)',
+			'POST "/wc/v1/connect/self-help" (body, 5005 bytes: "{bad\n' . str_repeat( 'x', 1019 ) . '"...)',
 			$this->logged[1]
 		);
 		foreach ( $this->logged as $message ) {
@@ -305,7 +305,7 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
-	 * A route ending in a line break still matches ("$" allows it) and is logged escaped.
+	 * A route ending in a line break still matches ("$" allows it) and is logged JSON-encoded.
 	 */
 	public function test_route_with_a_line_break_is_logged_escaped() {
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
@@ -314,12 +314,12 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 
 		$this->assertSame( 'rest_invalid_json', $response->get_data()['code'] );
 		$this->assertCount( 1, $this->logged );
-		$this->assertStringEndsWith( ' (POST /wc/v1/connect/self-help\n)', $this->logged[0] );
+		$this->assertStringEndsWith( ' (POST "/wc/v1/connect/self-help\n")', $this->logged[0] );
 		$this->assertStringNotContainsString( "\n", $this->logged[0] );
 	}
 
 	/**
-	 * A carriage return in the route cannot start a line of its own in the log.
+	 * A carriage return in the route is JSON-encoded, so it cannot start a line of its own in the log.
 	 */
 	public function test_route_with_a_carriage_return_is_logged_escaped() {
 		$this->use_logger( true );
@@ -329,8 +329,8 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 		$this->loader->log_rest_api_errors( new WP_Error( 'rest_invalid_json', 'Invalid JSON body passed.' ), array( 'permission_callback' => '__return_true' ), $request );
 
 		$this->assertCount( 2, $this->logged );
-		$this->assertStringEndsWith( ' (POST /wc/v1/connect/self-help\rFAKE LOG LINE)', $this->logged[0] );
-		$this->assertStringStartsWith( 'POST /wc/v1/connect/self-help\rFAKE LOG LINE (body, 4 bytes: ', $this->logged[1] );
+		$this->assertStringEndsWith( ' (POST "/wc/v1/connect/self-help\rFAKE LOG LINE")', $this->logged[0] );
+		$this->assertStringStartsWith( 'POST "/wc/v1/connect/self-help\rFAKE LOG LINE" (body, 4 bytes: ', $this->logged[1] );
 		foreach ( $this->logged as $message ) {
 			$this->assertStringNotContainsString( "\r", $message );
 		}
@@ -349,7 +349,7 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 
 		$this->assertCount( 2, $this->logged );
 		$this->assertSame(
-			'POST /wc/v1/connect/self-help (body, 1036 bytes: "{bad' . str_repeat( 'x', 1019 ) . '"...)',
+			'POST "/wc/v1/connect/self-help" (body, 1036 bytes: "{bad' . str_repeat( 'x', 1019 ) . '"...)',
 			$this->logged[1]
 		);
 	}
@@ -365,7 +365,7 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 
 		$this->assertCount( 2, $this->logged );
 		$this->assertSame(
-			'POST /wc/v1/connect/self-help (body, 6 bytes: "{bad' . "\xEF\xBF\xBD\xEF\xBF\xBD" . '")',
+			'POST "/wc/v1/connect/self-help" (body, 6 bytes: "{bad' . "\xEF\xBF\xBD\xEF\xBF\xBD" . '")',
 			$this->logged[1]
 		);
 	}
