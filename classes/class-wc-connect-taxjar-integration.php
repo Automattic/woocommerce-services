@@ -652,9 +652,12 @@ class WC_Connect_TaxJar_Integration {
 				$message = sprintf( _x( 'Invalid %s entered.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			}
 
-			$this->notifier->error( $message, array(), 'taxjar' );
+			// The notifier is optional; without one the error is logged below instead.
+			if ( $this->notifier ) {
+				$this->notifier->error( $message, array(), 'taxjar' );
 
-			return;
+				return;
+			}
 		}
 
 		$this->logger->error( $formatted_message, 'WCS Tax' );
@@ -2797,7 +2800,9 @@ class WC_Connect_TaxJar_Integration {
 		$save_error_codes = array( 404, 400 );
 
 		// Clear the taxjar notices before calculating taxes or using cached response.
-		$this->notifier->clear_notices( 'taxjar' );
+		if ( $this->notifier ) {
+			$this->notifier->clear_notices( 'taxjar' );
+		}
 
 		if ( false === $response ) {
 			$response      = $this->smartcalcs_request( $json );

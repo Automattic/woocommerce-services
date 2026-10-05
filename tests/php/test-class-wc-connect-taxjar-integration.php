@@ -41,6 +41,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	private $captured_taxjar_errors = array();
 
 	/**
+	 * WC()->session before ensure_wc_session() ran, put back in tear_down(). False when untouched.
+	 *
+	 * @var WC_Session|null|false
+	 */
+	private $saved_wc_session = false;
+
+	/**
 	 * Load required classes before running tests.
 	 */
 	public static function set_up_before_class() {
@@ -100,6 +107,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// Clear cart.
 		if ( WC()->cart ) {
 			WC()->cart->empty_cart();
+		}
+
+		if ( false !== $this->saved_wc_session ) {
+			Automattic\WCServices\StoreNotices\StoreNoticesNotifier::clear_notices();
+			WC()->session           = $this->saved_wc_session;
+			$this->saved_wc_session = false;
 		}
 
 		parent::tear_down();
@@ -2791,9 +2804,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			->disableOriginalConstructor()
 			->getMock();
 
-		// The notifier is optional on the constructor but dereferenced unguarded in
-		// `smartcalcs_cache_request()`, so it has to be supplied. A real instance
-		// rather than a mock: `clear_notices()` is static, which a mock cannot stand in for.
+		// A real notifier rather than a mock: `clear_notices()` is static, which a mock
+		// cannot stand in for.
 		$notifier = new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false );
 
 		$integration = new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks, $notifier );
@@ -5869,5 +5881,89 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			),
 			'Outside the US the label is used as is, not upper-cased.'
 		);
+	}
+
+	/**
+	 * Build an integration without a notifier, as the optional constructor argument allows.
+	 *
+	 * @param array|WP_Error $api_response What the API client returns for every request.
+	 * @param object|null    $logger       Logger mock, or null for a plain one.
+	 * @param object|null    $notifier     Notifier to pass, or null to leave it out.
+	 * @return WC_Connect_TaxJar_Integration
+	 */
+	private function get_integration_for_notifier_tests( $api_response, $logger = null, $notifier = null ) {
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
+		$api_client->method( 'proxy_request' )->willReturn( $api_response );
+		$logger = $logger ? $logger : $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
+		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock();
+
+		if ( null === $notifier ) {
+			return new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks );
+		}
+
+		return new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks, $notifier );
+	}
+
+	/**
+	 * Make sure a WC session exists, as on a front-end checkout request.
+	 */
+	private function ensure_wc_session() {
+		$this->saved_wc_session = WC()->session;
+
+		if ( empty( WC()->session ) ) {
+			WC()->initialize_session();
+		}
+		WC()->session->set( Automattic\WCServices\StoreNotices\StoreNoticesNotifier::WC_SESSION_KEY, array() );
+	}
+
+	/**
+	 * A tax calculation runs without a notifier instead of fatalling on the notice clear.
+	 */
+	public function test_tax_calculation_without_a_notifier_does_not_fatal() {
+		$api_response = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( array( 'tax' => array( 'amount_to_collect' => 2.5 ) ) ),
+		);
+		$integration  = $this->get_integration_for_notifier_tests( $api_response );
+		$this->ensure_wc_session();
+
+		// from_state 'CA' skips the California nexus check.
+		$response = $integration->smartcalcs_cache_request( $this->get_taxjar_request_body( array( 'to_zip' => '90211' ) ), 'CA' );
+
+		$this->assertEquals( $api_response, $response );
+	}
+
+	/**
+	 * Without a notifier, a customer-input error on the front end is logged instead of shown.
+	 */
+	public function test_customer_input_error_without_a_notifier_is_logged() {
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
+		$logger->expects( $this->once() )
+			->method( 'error' )
+			->with( $this->stringContains( "isn't a valid postal code for" ), 'WCS Tax' );
+
+		$integration = $this->get_integration_for_notifier_tests( array(), $logger );
+		$this->ensure_wc_session();
+
+		$integration->_error( "Error retrieving the tax rates. Received (400): to_zip 1234 isn't a valid postal code for US" );
+
+		$this->assertSame( array(), Automattic\WCServices\StoreNotices\StoreNoticesNotifier::get_notices() );
+	}
+
+	/**
+	 * With a notifier, the same error is shown to the customer and not logged, as before.
+	 */
+	public function test_customer_input_error_with_a_notifier_is_shown() {
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
+		$logger->expects( $this->never() )->method( 'error' );
+
+		$notifier    = new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false );
+		$integration = $this->get_integration_for_notifier_tests( array(), $logger, $notifier );
+		$this->ensure_wc_session();
+
+		$integration->_error( "Error retrieving the tax rates. Received (400): to_zip 1234 isn't a valid postal code for US" );
+
+		$notices = Automattic\WCServices\StoreNotices\StoreNoticesNotifier::get_notices();
+		$this->assertNotEmpty( $notices['error'] ?? array() );
 	}
 }
