@@ -4082,12 +4082,14 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * so City is priority 1 and State priority 4. With `$freight_taxable`, shipping is
 	 * taxed at the same components and the answer carries their shipping breakdown.
 	 *
-	 * @param bool       $answers         False to have the request fail.
-	 * @param bool       $freight_taxable Whether TaxJar taxes shipping.
-	 * @param float|null $exempt_under    Answer 0% for lines priced under this, as a clothing threshold does.
+	 * @param bool          $answers         False to have the request fail.
+	 * @param bool          $freight_taxable Whether TaxJar taxes shipping.
+	 * @param float|null    $exempt_under    Answer 0% for lines priced under this, as a clothing threshold does.
+	 * @param array|null    $components      Rates to answer with, by TaxJar key, in place of the default four.
+	 * @param callable|null $components_for  Returns the rates to answer one request line with, in place of the above.
 	 * @return WC_Connect_TaxJar_Integration
 	 */
-	private function michigan_integration( $answers = true, $freight_taxable = false, $exempt_under = null ) {
+	private function michigan_integration( $answers = true, $freight_taxable = false, $exempt_under = null, $components = null, $components_for = null ) {
 		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
 			->disableOriginalConstructor()
 			->onlyMethods( array( 'smartcalcs_cache_request', 'get_store_settings', '_log' ) )
@@ -4104,12 +4106,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		);
 
 		$integration->method( 'smartcalcs_cache_request' )->willReturnCallback(
-			function ( $json ) use ( $answers, $freight_taxable, $exempt_under ) {
+			function ( $json ) use ( $answers, $freight_taxable, $exempt_under, $components, $components_for ) {
 				if ( ! $answers ) {
 					return false;
 				}
 
-				$components = array(
+				$components = $components ?? array(
 					'combined_tax_rate'    => 0.06,
 					'city_tax_rate'        => 0.0,
 					'county_tax_rate'      => 0.0,
@@ -4120,6 +4122,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 				$body  = json_decode( $json, true );
 				$lines = array();
 				foreach ( $body['line_items'] ?? array() as $line_item ) {
+					if ( is_callable( $components_for ) ) {
+						$lines[] = array_merge( array( 'id' => $line_item['id'] ), $components_for( $line_item ) );
+						continue;
+					}
 					$exempt  = null !== $exempt_under && (float) $line_item['unit_price'] < $exempt_under;
 					$lines[] = array_merge( array( 'id' => $line_item['id'] ), $exempt ? array_map( '__return_zero', $components ) : $components );
 				}
@@ -4300,7 +4306,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function test_admin_recalculate_keeps_an_exempt_line_untaxed() {
 		$this->require_taxes_controller();
 		$this->reset_tax_rate_tables();
-		$this->expect_backend_tax_line_notice();
 
 		$order = $this->create_michigan_order( '49841', 'Gwinn' );
 		$shirt = WC_Helper_Product::create_simple_product();
@@ -4322,6 +4327,258 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001, 'Cart tax' );
 
 		$shirt->delete( true );
+	}
+
+	/**
+	 * Check out the cart as the Store API does, shipping to Gwinn, MI.
+	 *
+	 * The cart is totalled for the request, and again when the order is synced from it,
+	 * so a line TaxJar answered at 0% on the first pass is sent as exempt on the second.
+	 * The order is then built from the cart and totalled.
+	 *
+	 * @param WC_Connect_TaxJar_Integration $integration Integration under test.
+	 * @return WC_Order
+	 */
+	private function store_api_checkout( $integration ) {
+		$saved_route = $GLOBALS['wp']->query_vars['rest_route'] ?? null;
+
+		$GLOBALS['wp']->query_vars['rest_route'] = '/wc/store/v1/checkout';
+		WC()->customer->set_billing_location( 'US', 'MI', '49841', 'Gwinn' );
+		WC()->customer->set_shipping_location( 'US', 'MI', '49841', 'Gwinn' );
+
+		// The hooks init() registers for this path.
+		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $integration, 'override_cart_item_tax_rates' ), 10, 3 );
+		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $integration, 'override_order_item_taxes' ), 10, 2 );
+
+		try {
+			for ( $pass = 0; $pass < 2; $pass++ ) {
+				WC()->cart->calculate_totals();
+				$integration->calculate_totals( WC()->cart );
+			}
+
+			$address = array(
+				'country'   => 'US',
+				'state'     => 'MI',
+				'postcode'  => '49841',
+				'city'      => 'Gwinn',
+				'address_1' => '1 Test St',
+			);
+
+			$order = wc_create_order();
+			$order->set_billing_address( $address );
+			$order->set_shipping_address( $address );
+			WC()->checkout->create_order_line_items( $order, WC()->cart );
+			$order->calculate_totals();
+			$order->save();
+		} finally {
+			remove_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $integration, 'override_cart_item_tax_rates' ), 10 );
+			remove_action( 'woocommerce_order_item_after_calculate_taxes', array( $integration, 'override_order_item_taxes' ), 10 );
+			$GLOBALS['wp']->query_vars['rest_route'] = $saved_route;
+		}
+
+		return $order;
+	}
+
+	/**
+	 * Total item tax on an order line.
+	 *
+	 * @param WC_Order_Item_Product $item Order item.
+	 * @return float
+	 */
+	private static function item_tax( $item ) {
+		$taxes = $item->get_taxes();
+
+		return (float) array_sum( $taxes['total'] );
+	}
+
+	/**
+	 * A product priced at the given amount.
+	 *
+	 * @param float $price Price.
+	 * @return WC_Product_Simple
+	 */
+	private function priced_product( $price ) {
+		$product = WC_Helper_Product::create_simple_product();
+		$product->set_regular_price( $price );
+		$product->save();
+
+		return $product;
+	}
+
+	/**
+	 * At checkout, a line TaxJar answered as exempt stays untaxed on the order, though a
+	 * taxed line of the same class wrote the shared rows on the second pass.
+	 */
+	public function test_checkout_keeps_an_exempt_line_untaxed() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$shirt         = $this->priced_product( 50 );
+		$this->product = $this->priced_product( 100 );
+		WC()->cart->add_to_cart( $shirt->get_id(), 1 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ) );
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ $item->get_product_id() ] = self::item_tax( $item );
+		}
+		$this->assertEqualsWithDelta( 0.0, $taxed[ $shirt->get_id() ], 0.001, 'TaxJar answered the $50 line as exempt' );
+		$this->assertEqualsWithDelta( 6.0, $taxed[ $this->product->get_id() ], 0.001 );
+		$this->assertEqualsWithDelta( (float) WC()->cart->get_cart_contents_tax(), (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
+
+		$shirt->delete( true );
+	}
+
+	/**
+	 * At checkout, two lines of the same product at different prices each get their own
+	 * answer, not the first line's.
+	 */
+	public function test_checkout_taxes_each_line_of_one_product_by_its_own_answer() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$add_on_key = WC()->cart->add_to_cart( $this->product->get_id(), 1, 0, array(), array( 'add_on' => 'gift wrap' ) );
+		WC()->cart->cart_contents[ $add_on_key ]['data']->set_price( 120 );
+
+		$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ) );
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ (string) (float) $item->get_total() ] = self::item_tax( $item );
+		}
+		$this->assertEqualsWithDelta( 0.0, $taxed['50'], 0.001, 'TaxJar answered the $50 line as exempt' );
+		$this->assertEqualsWithDelta( 7.2, $taxed['120'], 0.001, '$120 at 6%' );
+		$this->assertEqualsWithDelta( (float) WC()->cart->get_cart_contents_tax(), (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
+	}
+
+	/**
+	 * At checkout, a variation finds its own answer: the cart sends it under the
+	 * variation id, not the parent's.
+	 */
+	public function test_checkout_finds_the_answer_for_a_variation() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$tee          = WC_Helper_Product::create_variation_product();
+		$variation_id = $tee->get_children()[0];
+		$attributes   = array(
+			'attribute_pa_size'   => 'small',
+			'attribute_pa_colour' => 'red',
+			'attribute_pa_number' => '0',
+		);
+		$this->assertNotFalse( WC()->cart->add_to_cart( $tee->get_id(), 1, $variation_id, $attributes ) );
+		$this->product = $this->priced_product( 100 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ) );
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ $item->get_product_id() ] = self::item_tax( $item );
+		}
+		$this->assertEqualsWithDelta( 0.0, $taxed[ $tee->get_id() ], 0.001, 'TaxJar answered the $10 variation as exempt' );
+		$this->assertEqualsWithDelta( 6.0, $taxed[ $this->product->get_id() ], 0.001 );
+
+		$tee->delete( true );
+	}
+
+	/**
+	 * The cart shows the tax the order charges for a line TaxJar answered as partly
+	 * exempt, though its rows were last written by a line taxed at other components.
+	 */
+	public function test_cart_and_order_agree_on_a_partly_exempt_line() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$shirt         = $this->priced_product( 50 );
+		$this->product = $this->priced_product( 100 );
+		$shirt_key     = WC()->cart->add_to_cart( $shirt->get_id(), 1 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		// The $50 line: no state tax, 2% city tax. The $100 line: 6% state tax only.
+		$integration = $this->michigan_integration(
+			true,
+			false,
+			null,
+			null,
+			function ( $line_item ) {
+				$partly_exempt = (float) $line_item['unit_price'] < 60;
+
+				return array(
+					'combined_tax_rate'    => $partly_exempt ? 0.02 : 0.06,
+					'city_tax_rate'        => $partly_exempt ? 0.02 : 0.0,
+					'county_tax_rate'      => 0.0,
+					'special_tax_rate'     => 0.0,
+					'state_sales_tax_rate' => $partly_exempt ? 0.0 : 0.06,
+				);
+			}
+		);
+
+		$order = $this->store_api_checkout( $integration );
+
+		$this->assertEqualsWithDelta( 1.0, (float) WC()->cart->get_cart_item( $shirt_key )['line_tax'], 0.001, 'Cart: $50 at 2%' );
+		foreach ( $order->get_items() as $item ) {
+			if ( $item->get_product_id() === $shirt->get_id() ) {
+				$this->assertEqualsWithDelta( 1.0, self::item_tax( $item ), 0.001, 'Order: $50 at 2%' );
+			}
+		}
+		$this->assertEqualsWithDelta( 7.0, (float) $order->get_cart_tax(), 0.001 );
+
+		$shirt->delete( true );
+	}
+
+	/**
+	 * In the cart and on the order, two taxed lines of the same product at different
+	 * prices each use their own answer.
+	 */
+	public function test_cart_and_order_tax_each_line_of_one_product_by_its_own_answer() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		$plain_key     = WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$add_on_key    = WC()->cart->add_to_cart( $this->product->get_id(), 1, 0, array(), array( 'add_on' => 'gift wrap' ) );
+		WC()->cart->cart_contents[ $add_on_key ]['data']->set_price( 120 );
+
+		// The $50 line: 2% city tax only. The $120 line: 6% state tax only.
+		$integration = $this->michigan_integration(
+			true,
+			false,
+			null,
+			null,
+			function ( $line_item ) {
+				$under = (float) $line_item['unit_price'] < 60;
+
+				return array(
+					'combined_tax_rate'    => $under ? 0.02 : 0.06,
+					'city_tax_rate'        => $under ? 0.02 : 0.0,
+					'county_tax_rate'      => 0.0,
+					'special_tax_rate'     => 0.0,
+					'state_sales_tax_rate' => $under ? 0.0 : 0.06,
+				);
+			}
+		);
+
+		$order = $this->store_api_checkout( $integration );
+
+		$this->assertEqualsWithDelta( 1.0, (float) WC()->cart->get_cart_item( $plain_key )['line_tax'], 0.001, 'Cart: $50 at 2%' );
+		$this->assertEqualsWithDelta( 7.2, (float) WC()->cart->get_cart_item( $add_on_key )['line_tax'], 0.001, 'Cart: $120 at 6%' );
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ (string) (float) $item->get_total() ] = self::item_tax( $item );
+		}
+		$this->assertEqualsWithDelta( 1.0, $taxed['50'], 0.001, 'Order: $50 at 2%' );
+		$this->assertEqualsWithDelta( 7.2, $taxed['120'], 0.001, 'Order: $120 at 6%' );
 	}
 
 	/**
