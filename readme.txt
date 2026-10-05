@@ -6,7 +6,7 @@ Requires at least: 7.0
 Requires Plugins: woocommerce
 Tested up to: 7.1
 WC requires at least: 10.9
-WC tested up to: 11.1
+WC tested up to: 11.2
 Stable tag: 3.7.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -80,12 +80,14 @@ This plugin relies on the following external services:
 * Fix   - Calculate tax with WooCommerce Tax for orders created through the REST API, the WooCommerce app or point of sale, instead of using whatever tax rates happened to be stored for that area.
 * Fix   - Keep the TaxJar product tax code when recalculating an order in the admin for tax classes whose name has more than one word, such as "Reduced rate 12345", so the order is taxed the same as at checkout. Products in the built-in "Zero rate" class also stay tax-free when the order is recalculated.
 * Fix   - Unslash and sanitize request values in the label reports, settings, migration survey and tracking code, and stop using print_r in log messages.
-* Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
-* Tweak - Include composer.json in the plugin package.
 * Fix   - Require a nonce on the setup banner's Terms of Service and dismiss links, so they cannot be triggered by loading a crafted URL.
-* Tweak - Bind the service IDs in the enabled services query with prepare() instead of escaping them by hand.
+* Fix   - Stop Recalculate and saving an order's items in the admin from logging a PHP notice for every item and saving an extra tax line with no name, which other plugins could see before it was removed again.
 * Fix   - Stop Recalculate and saving an order's items in the admin from logging a PHP notice for every item and saving an extra tax line with no name, which other plugins could see before it was removed again.
 * Fix   - Stop charging tax on an item the tax service answered as tax-exempt, such as clothing under New York's price threshold, when another item in the same tax class is taxed. This affected orders placed at checkout and orders recalculated in the admin. The cart now also shows the tax the order charges when items in one tax class are taxed differently, including product variations and the same product added twice at different prices.
+* Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
+* Tweak - Include composer.json in the plugin package.
+* Tweak - Bind the service IDs in the enabled services query with prepare() instead of escaping them by hand.
+* Tweak - WooCommerce 11.2 Compatibility.
 
 = 3.7.0 - 2026-09-22 =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
