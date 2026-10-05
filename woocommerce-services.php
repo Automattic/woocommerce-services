@@ -1430,8 +1430,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Whether the route's own permission check allows a request.
 		 *
-		 * WordPress has not run it yet for a request that failed validation, and will not.
-		 * A missing or non-callable check counts as denied.
+		 * WordPress skips its own check for a request that failed validation. It still
+		 * calls the callback afterwards to build the Allow header, which does not decide
+		 * access. A missing or non-callable check counts as denied.
 		 *
 		 * @param array|mixed     $handler Route handler used for the request.
 		 * @param WP_REST_Request $request Request used to generate the response.
