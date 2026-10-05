@@ -45,6 +45,13 @@ class WP_Test_Store_Api_Extension_Controller extends WC_Unit_Test_Case {
 	private $logger;
 
 	/**
+	 * The logger wc_get_logger() returned before the test, handed back in tear_down().
+	 *
+	 * @var WC_Logger_Interface
+	 */
+	private $original_logger;
+
+	/**
 	 * Save the shared static and route wc_get_logger() to a recording logger.
 	 */
 	public function set_up() {
@@ -53,6 +60,7 @@ class WP_Test_Store_Api_Extension_Controller extends WC_Unit_Test_Case {
 		$property                  = $this->extend_schema_property();
 		$this->saved_extend_schema = $property->isInitialized() ? $property->getValue() : null;
 		$this->extend_schema       = StoreApi::container()->get( ExtendSchema::class );
+		$this->original_logger     = wc_get_logger();
 
 		$this->logger = new class() extends WC_Logger {
 			/**
@@ -80,7 +88,7 @@ class WP_Test_Store_Api_Extension_Controller extends WC_Unit_Test_Case {
 	 * Put the static and the logger back.
 	 */
 	public function tear_down() {
-		remove_filter( 'woocommerce_logging_class', array( $this, 'get_logger' ) );
+		$this->restore_logger();
 		$this->unregister_healthy_namespace();
 
 		if ( null !== $this->saved_extend_schema ) {
@@ -97,6 +105,23 @@ class WP_Test_Store_Api_Extension_Controller extends WC_Unit_Test_Case {
 	 */
 	public function get_logger() {
 		return $this->logger;
+	}
+
+	/**
+	 * Stop recording and put the original logger back in wc_get_logger()'s cache.
+	 *
+	 * wc_get_logger() keeps the last logger in a static and returns it while it is still a
+	 * WC_Logger, which the recorder is. Handing the original back once makes it the cached one.
+	 */
+	private function restore_logger() {
+		remove_filter( 'woocommerce_logging_class', array( $this, 'get_logger' ) );
+
+		$restore = function () {
+			return $this->original_logger;
+		};
+		add_filter( 'woocommerce_logging_class', $restore );
+		wc_get_logger();
+		remove_filter( 'woocommerce_logging_class', $restore );
 	}
 
 	/**
@@ -264,5 +289,17 @@ class WP_Test_Store_Api_Extension_Controller extends WC_Unit_Test_Case {
 		$controller->register_endpoint_data( $this->throwing_extension( new Exception( 'Simulated exception.' ) ) );
 
 		$this->assert_logged( 'Failed to register endpoint data for extension', 'Simulated exception.' );
+	}
+
+	/**
+	 * Once the recorder is removed, wc_get_logger() returns the logger it had before the test.
+	 */
+	public function test_logger_cache_is_restored_after_tear_down() {
+		$this->assertSame( $this->logger, wc_get_logger(), 'The recorder is active during the test.' );
+
+		$this->restore_logger();
+
+		$this->assertSame( $this->original_logger, wc_get_logger() );
+		$this->assertNotSame( $this->logger, wc_get_logger() );
 	}
 }
