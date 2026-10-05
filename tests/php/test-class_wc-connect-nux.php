@@ -275,6 +275,77 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A non-owner admin never gets the accept link, so even a valid accept nonce minted for
+	 * them does not accept the terms.
+	 */
+	public function test_non_owner_cannot_accept_through_the_tos_link() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = wp_create_nonce( WC_Connect_Nux::ACCEPT_TOS_NONCE_ACTION );
+
+		$result = $this->run_admin_notices( $nux );
+
+		$this->assertFalse( has_action( 'admin_notices', array( $nux, 'show_tos_banner' ) ) );
+		$this->assertNotFalse( has_action( 'admin_notices', array( $nux, 'show_tos_informational_banner' ) ) );
+		$this->assertNull( $result['redirect'] );
+		$this->assertFalse( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+	}
+
+	/**
+	 * The connection owner accepts through the same link.
+	 */
+	public function test_owner_accepts_through_the_tos_link() {
+		$nux = $this->arm_banner();
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = wp_create_nonce( WC_Connect_Nux::ACCEPT_TOS_NONCE_ACTION );
+
+		$result = $this->run_admin_notices( $nux );
+
+		$this->assertNotNull( $result['redirect'] );
+		$this->assertTrue( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+	}
+
+	/**
+	 * Called directly for a non-owner admin with a valid nonce, the accept handler does not
+	 * accept the terms and shows the informational banner instead.
+	 */
+	public function test_tos_handler_does_not_accept_for_a_non_owner() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = wp_create_nonce( WC_Connect_Nux::ACCEPT_TOS_NONCE_ACTION );
+
+		$result = $this->run_banner( $nux, 'show_tos_banner' );
+
+		$this->assertNull( $result['redirect'] );
+		$this->assertFalse( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+		$this->assertStringContainsString( 'needs to accept the Terms of Service', $result['output'] );
+	}
+
+	/**
+	 * In offline mode there is no owner to wait for, so any admin gets the link and can accept.
+	 */
+	public function test_offline_mode_lets_any_admin_accept() {
+		$nux = $this->arm_banner( false );
+		WCS_Test_Jetpack_Connection::set_offline( true );
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = wp_create_nonce( WC_Connect_Nux::ACCEPT_TOS_NONCE_ACTION );
+
+		$result = $this->run_admin_notices( $nux );
+
+		$this->assertNotFalse( has_action( 'admin_notices', array( $nux, 'show_tos_banner' ) ) );
+		$this->assertNotNull( $result['redirect'] );
+		$this->assertTrue( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+	}
+
+	/**
 	 * A non-owner admin in the after-connection state gets the informational banner, and
 	 * loading the page does not accept the terms.
 	 */

@@ -633,6 +633,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				return;
 			}
 
+			// Only a user who may accept the terms gets the link that accepts them.
+			if ( ! self::current_user_can_accept_tos() ) {
+				$this->show_tos_informational_banner();
+				return;
+			}
+
 			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- The nonce is verified by self::is_nux_action_verified() on the next line before the Terms of Service acceptance is stored.
 			if ( isset( $_GET['wcs-nux-tos'] ) && 'accept' === $_GET['wcs-nux-tos']
 				&& self::is_nux_action_verified( self::ACCEPT_TOS_NONCE_ACTION ) ) {
