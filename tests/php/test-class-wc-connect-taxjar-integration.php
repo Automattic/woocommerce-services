@@ -4251,17 +4251,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Expect the notice a TaxJar answer raises on the admin Recalculate path.
-	 *
-	 * calculate_backend_totals() hands WC_Order_Item_Tax::set_rate() the array of rate
-	 * ids (one per component) where it expects one id. That predates these tests and is
-	 * not what they are about.
-	 */
-	private function expect_backend_tax_line_notice() {
-		$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
-	}
-
-	/**
 	 * Merchant catch-all priorities around the four the components use.
 	 *
 	 * @return array
@@ -4296,8 +4285,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => $priority ) );
-
-		$this->expect_backend_tax_line_notice();
 
 		$this->integration = $this->michigan_integration();
 		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
@@ -4341,8 +4328,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$this->assertEqualsWithDelta( 12.0, $this->michigan_rates_from_table( '49841', 'Gwinn' )['percent'], 0.0001, 'The table should stack the local row.' );
 
-		$this->expect_backend_tax_line_notice();
-
 		$this->integration = $this->michigan_integration();
 		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
 
@@ -4382,8 +4367,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
 
-		$this->expect_backend_tax_line_notice();
-
 		$this->integration = $this->michigan_integration();
 		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
 
@@ -4403,6 +4386,119 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// Nobody looked Detroit up: the catch-all is the only row that matches it.
 		$this->assertSame( array( $catch_all_id ), $this->order_tax_rate_ids( $order ) );
+	}
+
+	/**
+	 * Record every tax item saved to an order from here on.
+	 *
+	 * Other plugins see each one through `woocommerce_new_order_item`, so a tax item
+	 * that is saved and dropped again still reaches them.
+	 *
+	 * @return ArrayObject Saved tax items, filled as they are saved.
+	 */
+	private function record_new_tax_items() {
+		$saved = new ArrayObject();
+
+		add_action(
+			'woocommerce_new_order_item',
+			function ( $item_id, $item ) use ( $saved ) {
+				if ( $item instanceof WC_Order_Item_Tax ) {
+					$saved[] = array(
+						'rate_id' => (int) $item->get_rate_id(),
+						'label'   => (string) $item->get_label(),
+					);
+				}
+			},
+			10,
+			2
+		);
+
+		return $saved;
+	}
+
+	/**
+	 * Recalculate saves only the tax items WooCommerce builds from the looked-up rates.
+	 *
+	 * Each saved tax item names a rate row and carries its label, and no notice is
+	 * raised along the way. The order's tax lines are the four rows the lookup wrote,
+	 * under their own names.
+	 */
+	public function test_admin_recalculate_saves_no_tax_item_without_a_rate() {
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$saved = $this->record_new_tax_items();
+
+		$this->integration = $this->michigan_integration();
+		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
+
+		$this->assertArrayNotHasKey( 'wpdb::prepare', $this->caught_doing_it_wrong );
+
+		// The lookup wrote one row per component, at priorities 1 to 4 and nowhere else.
+		$component_ids = array();
+		foreach ( array( 1, 2, 3, 4 ) as $priority ) {
+			$at_priority = $this->tax_rate_ids_at_priority( $priority );
+			$this->assertCount( 1, $at_priority, "Priority $priority" );
+			$component_ids[] = $at_priority[0];
+		}
+		$this->assertSame( 4, $this->count_tax_rate_rows() );
+
+		// One tax item per component, each under its own row's name. A tax item saved
+		// without a rate gets id 1 and the fallback label "Tax", so a name check is
+		// what tells it apart when the first component happens to be row 1.
+		$expected = array();
+		foreach ( $component_ids as $rate_id ) {
+			$expected[] = array(
+				'rate_id' => $rate_id,
+				'label'   => $this->tax_rate_snapshot( $rate_id )['name'],
+			);
+		}
+		$this->assertEqualsCanonicalizing( $expected, $saved->getArrayCopy() );
+
+		$this->assertEqualsCanonicalizing( $component_ids, $this->order_tax_rate_ids( $order ) );
+		foreach ( $order->get_taxes() as $tax ) {
+			$this->assertSame( $this->tax_rate_snapshot( $tax->get_rate_id() )['name'], $tax->get_label() );
+		}
+
+		// $100 at TaxJar's 6%.
+		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001, 'Cart tax' );
+	}
+
+	/**
+	 * Saving an order's items in the admin looks the tax up too. It must not save a
+	 * tax item of its own: WooCommerce rebuilds the order's tax items right after.
+	 */
+	public function test_saving_order_items_saves_no_tax_item_without_a_rate() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->reset_tax_rate_tables();
+
+		$order = $this->create_michigan_order( '49841', 'Gwinn' );
+		$saved = $this->record_new_tax_items();
+
+		$this->integration = $this->michigan_integration();
+
+		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Saved to restore after the simulated request.
+		$_POST      = array(
+			'order_id' => $order->get_id(),
+			'country'  => 'US',
+			'state'    => 'MI',
+			'postcode' => '49841',
+			'city'     => 'Gwinn',
+			'street'   => '1 Test St',
+		);
+		add_action( 'woocommerce_before_save_order_items', array( $this->integration, 'calculate_backend_totals' ), 20 );
+
+		try {
+			wc_save_order_items( $order->get_id(), array() );
+		} finally {
+			$_POST = $saved_post;
+			remove_action( 'woocommerce_before_save_order_items', array( $this->integration, 'calculate_backend_totals' ), 20 );
+		}
+
+		$this->assertSame( 4, $this->count_tax_rate_rows(), 'The lookup did not run.' );
+		$this->assertArrayNotHasKey( 'wpdb::prepare', $this->caught_doing_it_wrong );
+		$this->assertSame( array(), $saved->getArrayCopy() );
+		$this->assertSame( array(), $this->order_tax_rate_ids( wc_get_order( $order->get_id() ) ) );
 	}
 
 	/**

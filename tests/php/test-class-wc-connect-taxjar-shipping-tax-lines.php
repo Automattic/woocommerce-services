@@ -394,11 +394,6 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 			'items'    => '',
 		);
 
-		if ( $answers ) {
-			// Pre-existing: calculate_backend_totals() hands set_rate() an array of ids.
-			$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
-		}
-
 		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing
 		$_POST      = $post;
 		add_filter( 'wp_doing_ajax', '__return_true' );
