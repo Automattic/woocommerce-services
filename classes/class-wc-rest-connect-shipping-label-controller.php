@@ -42,6 +42,12 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 	}
 
 	public function post( $request ) {
+		// Check the order before a label is bought for it.
+		$order = $this->get_order_for_label_request( $request['order_id'] );
+		if ( is_wp_error( $order ) ) {
+			return $order;
+		}
+
 		$settings             = $request->get_json_params();
 		$order_id             = $request['order_id'];
 		$settings['order_id'] = $order_id;

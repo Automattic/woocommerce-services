@@ -65,6 +65,9 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 		require_once $classes . 'class-wc-rest-connect-shipping-rates-controller.php';
 		require_once $classes . 'class-wc-rest-connect-shipping-label-status-controller.php';
 		require_once $classes . 'class-wc-rest-connect-shipping-label-refund-controller.php';
+		require_once $classes . 'class-wc-connect-shipping-label.php';
+		require_once $classes . 'class-wc-connect-payment-methods-store.php';
+		require_once $classes . 'class-wc-rest-connect-shipping-label-controller.php';
 	}
 
 	/**
@@ -96,6 +99,13 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 		( new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $this->settings_store, $this->logger ) )->register_routes();
 		( new WC_REST_Connect_Shipping_Label_Status_Controller( $this->api_client, $this->settings_store, $this->logger ) )->register_routes();
 		( new WC_REST_Connect_Shipping_Label_Refund_Controller( $this->api_client, $this->settings_store, $this->logger ) )->register_routes();
+		( new WC_REST_Connect_Shipping_Label_Controller(
+			$this->api_client,
+			$this->settings_store,
+			$this->logger,
+			$this->createMock( WC_Connect_Shipping_Label::class ),
+			$this->createMock( WC_Connect_Payment_Methods_Store::class )
+		) )->register_routes();
 
 		WC_Connect_Options::update_option( 'origin_address', self::STORED_ORIGIN );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -480,5 +490,73 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertEquals( $refund, $this->labels_of( $order )[0]['refund'] );
+	}
+
+	/**
+	 * A purchase body for one package holding the given product.
+	 *
+	 * @param int $product_id Product in the package.
+	 * @return array
+	 */
+	private function purchase_body( $product_id ) {
+		return array(
+			'packages' => array(
+				array(
+					'box_id'       => 'individual',
+					'service_id'   => 'pri',
+					'carrier_id'   => 'usps',
+					'service_name' => 'USPS - Priority Mail',
+					'products'     => array( $product_id ),
+				),
+			),
+		);
+	}
+
+	/**
+	 * Buying a label for something that is not an order: 404, and no label is bought.
+	 * Before, the label was bought upstream and then the request failed, so the paid
+	 * label was recorded nowhere.
+	 *
+	 * @dataProvider not_an_order_provider
+	 * @param string $kind Kind of ID.
+	 */
+	public function test_purchase_for_an_id_that_is_not_an_order_is_refused( $kind ) {
+		$product = WC_Helper_Product::create_simple_product();
+		$this->api_client->expects( $this->never() )->method( 'send_shipping_label_request' );
+
+		$response = $this->send( 'POST', '/wc/v1/connect/label/' . $this->make_id( $kind ), $this->purchase_body( $product->get_id() ) );
+
+		$this->assert_refused( $response, 'not_found', 404 );
+	}
+
+	/**
+	 * Buying a label for an order still buys it and saves it on that order.
+	 */
+	public function test_purchase_for_an_order_saves_the_label_on_it() {
+		$product = WC_Helper_Product::create_simple_product();
+		$order   = WC_Helper_Order::create_order( 1, $product );
+		$this->api_client->expects( $this->once() )
+			->method( 'send_shipping_label_request' )
+			->willReturn(
+				(object) array(
+					'labels' => array(
+						(object) array(
+							'label' => (object) array(
+								'label_id'          => 333,
+								'tracking_id'       => '',
+								'refundable_amount' => 7.5,
+								'created'           => 1,
+								'carrier_id'        => 'usps',
+								'status'            => 'PURCHASE_IN_PROGRESS',
+							),
+						),
+					),
+				)
+			);
+
+		$response = $this->send( 'POST', '/wc/v1/connect/label/' . $order->get_id(), $this->purchase_body( $product->get_id() ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 333, $this->labels_of( $order )[0]['label_id'] );
 	}
 }
