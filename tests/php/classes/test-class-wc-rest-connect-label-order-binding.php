@@ -64,6 +64,7 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 		require_once $classes . 'class-wc-rest-connect-base-controller.php';
 		require_once $classes . 'class-wc-rest-connect-shipping-rates-controller.php';
 		require_once $classes . 'class-wc-rest-connect-shipping-label-status-controller.php';
+		require_once $classes . 'class-wc-rest-connect-shipping-label-refund-controller.php';
 	}
 
 	/**
@@ -94,6 +95,7 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 
 		( new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $this->settings_store, $this->logger ) )->register_routes();
 		( new WC_REST_Connect_Shipping_Label_Status_Controller( $this->api_client, $this->settings_store, $this->logger ) )->register_routes();
+		( new WC_REST_Connect_Shipping_Label_Refund_Controller( $this->api_client, $this->settings_store, $this->logger ) )->register_routes();
 
 		WC_Connect_Options::update_option( 'origin_address', self::STORED_ORIGIN );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -425,5 +427,58 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 'DELIVERED', $this->labels_of( $order )[0]['status'] );
+	}
+
+	/**
+	 * Refund for something that is not an order: 404, nothing refunded.
+	 *
+	 * @dataProvider not_an_order_provider
+	 * @param string $kind Kind of ID.
+	 */
+	public function test_refund_for_an_id_that_is_not_an_order_is_refused( $kind ) {
+		$this->api_client->expects( $this->never() )->method( 'send_shipping_label_refund_request' );
+
+		$response = $this->send( 'POST', '/wc/v1/connect/label/' . $this->make_id( $kind ) . '/111/refund' );
+
+		$this->assert_refused( $response, 'not_found', 404 );
+	}
+
+	/**
+	 * Refund of another order's label through this order's URL: 404, nothing refunded
+	 * upstream, and neither order's labels change.
+	 */
+	public function test_refund_of_a_label_of_another_order_is_refused() {
+		$order_a = $this->order_with_label( 111 );
+		$order_b = $this->order_with_label( 222 );
+		$this->api_client->expects( $this->never() )->method( 'send_shipping_label_refund_request' );
+
+		$response = $this->send( 'POST', '/wc/v1/connect/label/' . $order_a->get_id() . '/222/refund' );
+
+		$this->assert_refused( $response, 'not_found', 404 );
+		$this->assertSame( 'Shipping label not found', $response->get_data()['message'] );
+		$this->assertArrayNotHasKey( 'refund', $this->labels_of( $order_a )[0] );
+		$this->assertArrayNotHasKey( 'refund', $this->labels_of( $order_b )[0] );
+	}
+
+	/**
+	 * Refund of the order's own label is sent upstream and saved on that order.
+	 */
+	public function test_refund_of_the_orders_own_label_is_saved() {
+		$order  = $this->order_with_label( 111 );
+		$refund = (object) array( 'status' => 'pending' );
+		$this->api_client->expects( $this->once() )
+			->method( 'send_shipping_label_refund_request' )
+			->with( '111' )
+			->willReturn(
+				(object) array(
+					'label'  => (object) array( 'id' => 111 ),
+					'refund' => $refund,
+				)
+			);
+
+		$response = $this->send( 'POST', '/wc/v1/connect/label/' . $order->get_id() . '/111/refund' );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEquals( $refund, $this->labels_of( $order )[0]['refund'] );
 	}
 }
