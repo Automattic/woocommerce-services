@@ -1345,14 +1345,21 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function test_preserve_order_taxes_skips_when_response_rate_ids_populated() {
 		$this->set_private_property( 'response_rate_ids', array( 'product-key' => array( 1, 2 ) ) );
 
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'pre_recalculation_tax_snapshots', array( 123 => array( 'tax_lines' => array() ) ) );
+
 		$order = $this->getMockBuilder( 'WC_Order' )
 			->disableOriginalConstructor()
+			->onlyMethods( array( 'get_id' ) )
 			->getMock();
-
-		// The first gate returns before the order is inspected.
-		$order->expects( $this->never() )->method( 'get_id' );
+		$order->method( 'get_id' )->willReturn( 123 );
 
 		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
+
+		// The first gate returns without snapshotting or arming the restore handler,
+		// and the snapshot left by an earlier recalculation is dropped.
+		$this->assertSame( array(), $this->get_private_property( 'pre_recalculation_tax_snapshots' ) );
+		$this->assertFalse( has_action( 'woocommerce_order_after_calculate_totals', array( $this->integration, 'restore_order_taxes_after_recalculation' ) ) );
 	}
 
 	/**
@@ -1364,17 +1371,23 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		$this->set_private_property( 'response_rate_ids', array() );
 
+		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
+		$this->set_private_property( 'pre_recalculation_tax_snapshots', array( 123 => array( 'tax_lines' => array() ) ) );
+
 		$order = $this->getMockBuilder( 'WC_Order' )
 			->disableOriginalConstructor()
 			->onlyMethods( array( 'get_id' ) )
 			->getMock();
-
-		// The AJAX gate returns before the order id is inspected.
-		$order->expects( $this->never() )->method( 'get_id' );
+		$order->method( 'get_id' )->willReturn( 123 );
 
 		$this->integration->preserve_order_taxes_on_recalculation( array(), $order );
 
 		remove_filter( 'wp_doing_ajax', '__return_true' );
+
+		// The AJAX gate returns without snapshotting or arming the restore handler,
+		// and the snapshot left by an earlier recalculation is dropped.
+		$this->assertSame( array(), $this->get_private_property( 'pre_recalculation_tax_snapshots' ) );
+		$this->assertFalse( has_action( 'woocommerce_order_after_calculate_totals', array( $this->integration, 'restore_order_taxes_after_recalculation' ) ) );
 	}
 
 	/**
@@ -1534,11 +1547,35 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	// -------------------------------------------------------------------------
 
 	/**
+	 * An integration whose TaxJar requests all fail, as when the service is down.
+	 *
+	 * An address change asks TaxJar for the new address; these tests pin what happens
+	 * when it cannot answer.
+	 *
+	 * @return WC_Connect_TaxJar_Integration
+	 */
+	private function get_integration_with_unreachable_taxjar() {
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
+		$api_client->method( 'proxy_request' )->willReturn( new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' ) );
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
+		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock();
+
+		return new WC_Connect_TaxJar_Integration(
+			$api_client,
+			$logger,
+			'https://example.com',
+			$tracks,
+			new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false )
+		);
+	}
+
+	/**
 	 * End-to-end: a recalculation triggered by an address change on an existing order
-	 * preserves the recorded taxes instead of wiping them to zero, and rebases the
-	 * order total on the preserved tax.
+	 * preserves the recorded taxes instead of wiping them to zero when TaxJar cannot
+	 * answer for the new address, and rebases the order total on the preserved tax.
 	 */
 	public function test_preserve_order_taxes_end_to_end_on_address_change() {
+		$this->integration = $this->get_integration_with_unreachable_taxjar();
 		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
 		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
 		$this->set_private_property( 'response_rate_ids', array() );
@@ -1603,9 +1640,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	/**
 	 * End-to-end: when a recalculation also changes the shipping amount, the
 	 * preserved tax is rebased onto the new non-tax total (so the total reflects the
-	 * updated shipping while the recorded tax is kept).
+	 * updated shipping while the recorded tax is kept). TaxJar cannot answer for the
+	 * new address.
 	 */
 	public function test_preserve_order_taxes_rebases_total_when_shipping_changes() {
+		$this->integration = $this->get_integration_with_unreachable_taxjar();
 		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
 		remove_all_actions( 'woocommerce_order_after_calculate_totals' );
 		$this->set_private_property( 'response_rate_ids', array() );
@@ -4119,17 +4158,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Expect the notice a TaxJar answer raises on the admin Recalculate path.
-	 *
-	 * calculate_backend_totals() hands WC_Order_Item_Tax::set_rate() the array of rate
-	 * ids (one per component) where it expects one id. That predates these tests and is
-	 * not what they are about.
-	 */
-	private function expect_backend_tax_line_notice() {
-		$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
-	}
-
-	/**
 	 * Merchant catch-all priorities around the four the components use.
 	 *
 	 * @return array
@@ -4164,8 +4192,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => $priority ) );
-
-		$this->expect_backend_tax_line_notice();
 
 		$this->integration = $this->michigan_integration();
 		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
@@ -4209,8 +4235,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$this->assertEqualsWithDelta( 12.0, $this->michigan_rates_from_table( '49841', 'Gwinn' )['percent'], 0.0001, 'The table should stack the local row.' );
 
-		$this->expect_backend_tax_line_notice();
-
 		$this->integration = $this->michigan_integration();
 		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
 
@@ -4250,8 +4274,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
 
-		$this->expect_backend_tax_line_notice();
-
 		$this->integration = $this->michigan_integration();
 		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
 
@@ -4271,6 +4293,119 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// Nobody looked Detroit up: the catch-all is the only row that matches it.
 		$this->assertSame( array( $catch_all_id ), $this->order_tax_rate_ids( $order ) );
+	}
+
+	/**
+	 * Record every tax item saved to an order from here on.
+	 *
+	 * Other plugins see each one through `woocommerce_new_order_item`, so a tax item
+	 * that is saved and dropped again still reaches them.
+	 *
+	 * @return ArrayObject Saved tax items, filled as they are saved.
+	 */
+	private function record_new_tax_items() {
+		$saved = new ArrayObject();
+
+		add_action(
+			'woocommerce_new_order_item',
+			function ( $item_id, $item ) use ( $saved ) {
+				if ( $item instanceof WC_Order_Item_Tax ) {
+					$saved[] = array(
+						'rate_id' => (int) $item->get_rate_id(),
+						'label'   => (string) $item->get_label(),
+					);
+				}
+			},
+			10,
+			2
+		);
+
+		return $saved;
+	}
+
+	/**
+	 * Recalculate saves only the tax items WooCommerce builds from the looked-up rates.
+	 *
+	 * Each saved tax item names a rate row and carries its label, and no notice is
+	 * raised along the way. The order's tax lines are the four rows the lookup wrote,
+	 * under their own names.
+	 */
+	public function test_admin_recalculate_saves_no_tax_item_without_a_rate() {
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$saved = $this->record_new_tax_items();
+
+		$this->integration = $this->michigan_integration();
+		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
+
+		$this->assertArrayNotHasKey( 'wpdb::prepare', $this->caught_doing_it_wrong );
+
+		// The lookup wrote one row per component, at priorities 1 to 4 and nowhere else.
+		$component_ids = array();
+		foreach ( array( 1, 2, 3, 4 ) as $priority ) {
+			$at_priority = $this->tax_rate_ids_at_priority( $priority );
+			$this->assertCount( 1, $at_priority, "Priority $priority" );
+			$component_ids[] = $at_priority[0];
+		}
+		$this->assertSame( 4, $this->count_tax_rate_rows() );
+
+		// One tax item per component, each under its own row's name. A tax item saved
+		// without a rate gets id 1 and the fallback label "Tax", so a name check is
+		// what tells it apart when the first component happens to be row 1.
+		$expected = array();
+		foreach ( $component_ids as $rate_id ) {
+			$expected[] = array(
+				'rate_id' => $rate_id,
+				'label'   => $this->tax_rate_snapshot( $rate_id )['name'],
+			);
+		}
+		$this->assertEqualsCanonicalizing( $expected, $saved->getArrayCopy() );
+
+		$this->assertEqualsCanonicalizing( $component_ids, $this->order_tax_rate_ids( $order ) );
+		foreach ( $order->get_taxes() as $tax ) {
+			$this->assertSame( $this->tax_rate_snapshot( $tax->get_rate_id() )['name'], $tax->get_label() );
+		}
+
+		// $100 at TaxJar's 6%.
+		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001, 'Cart tax' );
+	}
+
+	/**
+	 * Saving an order's items in the admin looks the tax up too. It must not save a
+	 * tax item of its own: WooCommerce rebuilds the order's tax items right after.
+	 */
+	public function test_saving_order_items_saves_no_tax_item_without_a_rate() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->reset_tax_rate_tables();
+
+		$order = $this->create_michigan_order( '49841', 'Gwinn' );
+		$saved = $this->record_new_tax_items();
+
+		$this->integration = $this->michigan_integration();
+
+		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Saved to restore after the simulated request.
+		$_POST      = array(
+			'order_id' => $order->get_id(),
+			'country'  => 'US',
+			'state'    => 'MI',
+			'postcode' => '49841',
+			'city'     => 'Gwinn',
+			'street'   => '1 Test St',
+		);
+		add_action( 'woocommerce_before_save_order_items', array( $this->integration, 'calculate_backend_totals' ), 20 );
+
+		try {
+			wc_save_order_items( $order->get_id(), array() );
+		} finally {
+			$_POST = $saved_post;
+			remove_action( 'woocommerce_before_save_order_items', array( $this->integration, 'calculate_backend_totals' ), 20 );
+		}
+
+		$this->assertSame( 4, $this->count_tax_rate_rows(), 'The lookup did not run.' );
+		$this->assertArrayNotHasKey( 'wpdb::prepare', $this->caught_doing_it_wrong );
+		$this->assertSame( array(), $saved->getArrayCopy() );
+		$this->assertSame( array(), $this->order_tax_rate_ids( wc_get_order( $order->get_id() ) ) );
 	}
 
 	/**

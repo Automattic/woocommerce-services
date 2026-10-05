@@ -131,6 +131,10 @@ class StoreNoticesNotifier {
 	 * @return bool
 	 */
 	public function has_notice( string $message, string $type = 'notice', array $data = array(), string $group = '' ): bool {
+		if ( ! self::wc_session_exists() ) {
+			return false;
+		}
+
 		$notices = WC()->session->get( self::WC_SESSION_KEY, array() );
 
 		$notices = $notices[ $type ] ?? array();
