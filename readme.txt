@@ -84,7 +84,6 @@ This plugin relies on the following external services:
 * Tweak - Include composer.json in the plugin package.
 * Fix   - Require a nonce on the setup banner's Terms of Service and dismiss links, so they cannot be triggered by loading a crafted URL.
 * Tweak - Bind the service IDs in the enabled services query with prepare() instead of escaping them by hand.
-* Tweak - Git hooks no longer run npm install after a checkout or merge; they print a reminder instead, and run on the Node.js version in .nvmrc when nvm is installed.
 
 = 3.7.0 - 2026-09-22 =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.
