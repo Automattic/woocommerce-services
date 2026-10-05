@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.7.1 - 2026-xx-xx =
 * Add   - Check a US store address when it changes, and show a notice in WooCommerce admin when its state or ZIP code looks wrong or is missing, since either can make automated taxes charge the wrong tax or none.
+* Fix   - Stop a store address with no ZIP code from blocking checkout with "ZIP Code is not formatted correctly." The order now goes through without automated tax, and a notice in the admin asks you to add the ZIP code.
 * Fix   - Send the street with the address when you click Recalculate on an order that has no shipping address, so tax is not calculated from the ZIP code alone. Recalculate also no longer freezes when the city contains a double quote.
 * Fix   - Stop automated tax lookups from overwriting a tax rate you set up for a whole state with no ZIP code or city, which could leave in-person and mobile app orders with no tax.
 * Fix   - Recalculating an order in the admin now charges the tax rates returned by the tax service, as checkout does. Other tax rates you set up for the same address are no longer added on top.
