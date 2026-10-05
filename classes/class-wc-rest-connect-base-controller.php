@@ -171,4 +171,22 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 
 		return $order;
 	}
+
+	/**
+	 * Whether a shipping label is one of the order's own labels.
+	 *
+	 * @param WC_Order   $order    Order from get_order_for_label_request().
+	 * @param int|string $label_id Label ID from the route.
+	 *
+	 * @return bool
+	 */
+	protected function is_label_on_order( WC_Order $order, $label_id ) {
+		foreach ( $this->settings_store->get_label_order_meta_data( $order->get_id() ) as $label ) {
+			if ( is_array( $label ) && isset( $label['label_id'] ) && (int) $label['label_id'] === (int) $label_id ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

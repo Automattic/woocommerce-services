@@ -63,6 +63,7 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 		require_once $classes . 'class-wc-connect-service-settings-store.php';
 		require_once $classes . 'class-wc-rest-connect-base-controller.php';
 		require_once $classes . 'class-wc-rest-connect-shipping-rates-controller.php';
+		require_once $classes . 'class-wc-rest-connect-shipping-label-status-controller.php';
 	}
 
 	/**
@@ -92,6 +93,7 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 		);
 
 		( new WC_REST_Connect_Shipping_Rates_Controller( $this->api_client, $this->settings_store, $this->logger ) )->register_routes();
+		( new WC_REST_Connect_Shipping_Label_Status_Controller( $this->api_client, $this->settings_store, $this->logger ) )->register_routes();
 
 		WC_Connect_Options::update_option( 'origin_address', self::STORED_ORIGIN );
 		wp_set_current_user( self::factory()->user->create( array( 'role' => 'administrator' ) ) );
@@ -335,5 +337,93 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( '2 New St', WC_Connect_Options::get_option( 'origin_address' )['address'] );
 		$this->assertSame( '9 Dest Rd', wc_get_order( $order->get_id() )->get_shipping_address_1() );
+	}
+
+	/**
+	 * An order carrying one purchased label.
+	 *
+	 * @param int $label_id Label ID.
+	 * @return WC_Order
+	 */
+	private function order_with_label( $label_id ) {
+		$order = WC_Helper_Order::create_order();
+		$order->update_meta_data(
+			'wc_connect_labels',
+			array(
+				array(
+					'label_id' => $label_id,
+					'status'   => 'PURCHASED',
+				),
+			)
+		);
+		$order->save();
+
+		return $order;
+	}
+
+	/**
+	 * The labels stored on an order.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return array
+	 */
+	private function labels_of( WC_Order $order ) {
+		return wc_get_order( $order->get_id() )->get_meta( 'wc_connect_labels', true );
+	}
+
+	/**
+	 * Status for something that is not an order: 404, no upstream call.
+	 *
+	 * @dataProvider not_an_order_provider
+	 * @param string $kind Kind of ID.
+	 */
+	public function test_status_for_an_id_that_is_not_an_order_is_refused( $kind ) {
+		$this->api_client->expects( $this->never() )->method( 'get_label_status' );
+
+		$response = $this->send( 'GET', '/wc/v1/connect/label/' . $this->make_id( $kind ) . '/111' );
+
+		$this->assert_refused( $response, 'not_found', 404 );
+	}
+
+	/**
+	 * Status for another order's label, alone or next to this order's own: 404 before any
+	 * upstream call, and neither order's labels change.
+	 */
+	public function test_status_for_a_label_of_another_order_is_refused() {
+		$order_a = $this->order_with_label( 111 );
+		$order_b = $this->order_with_label( 222 );
+		$this->api_client->expects( $this->never() )->method( 'get_label_status' );
+
+		foreach ( array( '222', '111,222' ) as $label_ids ) {
+			$response = $this->send( 'GET', '/wc/v1/connect/label/' . $order_a->get_id() . '/' . $label_ids );
+
+			$this->assert_refused( $response, 'not_found', 404 );
+			$this->assertSame( 'Shipping label not found', $response->get_data()['message'] );
+		}
+		$this->assertSame( 'PURCHASED', $this->labels_of( $order_a )[0]['status'] );
+		$this->assertSame( 'PURCHASED', $this->labels_of( $order_b )[0]['status'] );
+	}
+
+	/**
+	 * Status for the order's own label still asks upstream and saves the answer.
+	 */
+	public function test_status_for_the_orders_own_label_is_updated() {
+		$order = $this->order_with_label( 111 );
+		$this->api_client->expects( $this->once() )
+			->method( 'get_label_status' )
+			->with( '111' )
+			->willReturn(
+				(object) array(
+					'label' => (object) array(
+						'label_id' => 111,
+						'status'   => 'DELIVERED',
+					),
+				)
+			);
+
+		$response = $this->send( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/111' );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'DELIVERED', $this->labels_of( $order )[0]['status'] );
 	}
 }
