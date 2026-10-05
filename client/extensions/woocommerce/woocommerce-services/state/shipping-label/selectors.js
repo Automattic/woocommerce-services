@@ -454,6 +454,21 @@ export const hasSelectedRates = ( { values: selectedRates, available: allRates }
 	return ! isEmpty( selections ) && every( selections );
 };
 
+export const getSelectedRate = ( allRates, packageId, selectedRate ) => {
+	if ( ! selectedRate || ! selectedRate.serviceId ) {
+		return;
+	}
+
+	const { serviceId, carrierId, signatureRequired } = selectedRate;
+	const rateType = signatureRequired || 'default';
+	const availableRates = get( allRates, [ packageId, rateType, 'rates' ], [] );
+
+	return find(
+		availableRates,
+		rate => serviceId === rate.service_id && ( isNil( carrierId ) || carrierId === rate.carrier_id )
+	);
+};
+
 export const getRatesErrors = ( { values: selectedRates, available: allRates } ) =>
 	mapValues( allRates, ( rate, boxId ) => {
 		if ( ! isEmpty( rate.default.errors ) ) {
@@ -465,11 +480,7 @@ export const getRatesErrors = ( { values: selectedRates, available: allRates } )
 		// A selection only counts when the retrieved rates still carry that service. A
 		// selection left over from rates that have since been replaced points at a rate
 		// that cannot be purchased, so it has to be treated as no selection at all.
-		const selectedServiceId = get( selectedRates, [ boxId, 'serviceId' ] );
-		if (
-			selectedServiceId &&
-			find( rate.default.rates, r => selectedServiceId === r.service_id )
-		) {
+		if ( getSelectedRate( allRates, boxId, selectedRates[ boxId ] ) ) {
 			return [];
 		} else if ( isEmpty( rate.default.rates ) ) {
 			return [

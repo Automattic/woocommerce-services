@@ -508,6 +508,25 @@ describe( 'Shipping label Actions', () => {
 			expect( carrierId ).to.equal( undefined );
 		} );
 
+		it( 'no default when another carrier offers a service with the same ID', () => {
+			const rates = {
+				...domesticRates,
+				available: {
+					default_box: {
+						default: {
+							rates: [ { service_id: 'Priority', carrier_id: 'ups' } ],
+						},
+					},
+				},
+			};
+			const selection = getDefaultServiceSelection( orderId, siteId, createGetStateFn( {
+				userMeta: lastUsedService,
+				rates,
+			} ) );
+
+			expect( selection ).to.equal( undefined );
+		} );
+
 		it( 'no default when no rates have been retrieved yet', () => {
 			const { serviceId } = getDefaultServiceSelection( orderId, siteId, createGetStateFn( {
 				userMeta: lastUsedService,

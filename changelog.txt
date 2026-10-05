@@ -1,15 +1,22 @@
 *** WooCommerce Tax Changelog ***
 
 = 3.7.1 - 2026-xx-xx =
+* Fix   - Send the street with the address when you click Recalculate on an order that has no shipping address, so tax is not calculated from the ZIP code alone. Recalculate also no longer freezes when the city contains a double quote.
 * Fix   - Stop automated tax lookups from overwriting a tax rate you set up for a whole state with no ZIP code or city, which could leave in-person and mobile app orders with no tax.
 * Fix   - Recalculating an order in the admin now charges the tax rates returned by the tax service, as checkout does. Other tax rates you set up for the same address are no longer added on top.
+* Fix   - Update an order's tax when its items, quantities, fees, shipping or coupons change through the REST API or the WooCommerce app, using the tax rates recorded when the order was placed. Since 3.6.8 the tax stayed at its original amount after these edits, and each change is now recorded in an order note.
+* Fix   - Stop putting tax back on an order that was made VAT exempt after it was placed.
+* Fix   - Look up the tax for the new address when an order's address changes through the REST API or the WooCommerce app. If the tax service cannot answer, the order keeps its tax and a note says so.
+* Fix   - Calculate tax with WooCommerce Tax for orders created through the REST API, the WooCommerce app or point of sale, instead of using whatever tax rates happened to be stored for that area.
 * Fix   - Keep the TaxJar product tax code when recalculating an order in the admin for tax classes whose name has more than one word, such as "Reduced rate 12345", so the order is taxed the same as at checkout. Products in the built-in "Zero rate" class also stay tax-free when the order is recalculated.
 * Fix   - Unslash and sanitize request values in the label reports, settings, migration survey and tracking code, and stop using print_r in log messages.
 * Fix   - Stop the shipping label purchase from failing silently when the last used shipping service is not offered for the order being shipped, such as a domestic service on an international shipment. The service is no longer preselected in that case, so a rate can be chosen and the label bought.
+* Fix   - Require a nonce on the setup banner's Terms of Service and dismiss links, so they cannot be triggered by loading a crafted URL.
+* Fix   - Stop Recalculate and saving an order's items in the admin from logging a PHP notice for every item and saving an extra tax line with no name, which other plugins could see before it was removed again.
 * Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
 * Tweak - Include composer.json in the plugin package.
-* Fix   - Require a nonce on the setup banner's Terms of Service and dismiss links, so they cannot be triggered by loading a crafted URL.
 * Tweak - Bind the service IDs in the enabled services query with prepare() instead of escaping them by hand.
+* Tweak - WooCommerce 11.2 Compatibility.
 
 = 3.7.0 - 2026-09-22 =
 * Fix   - Prevent a fatal error that stopped WooCommerce Tax from being deactivated while WooCommerce was inactive.

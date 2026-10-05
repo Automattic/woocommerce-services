@@ -590,4 +590,27 @@ describe( 'Label purchase form reducer', () => {
 			signatureRequired: false,
 		} );
 	} );
+
+	it( 'SET_DEFAULT_RATE replaces an empty selection object', () => {
+		const stateWithEmptySelection = cloneDeep( initialState );
+		stateWithEmptySelection[ orderId ].form.rates.values.weight_0_custom1 = {
+			serviceId: '',
+			carrierId: '',
+			signatureRequired: false,
+		};
+
+		const state = reducer( stateWithEmptySelection, {
+			type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
+			orderId,
+			siteId,
+			packageId: 'weight_0_custom1',
+			serviceId: 'Priority',
+			carrierId: 'usps',
+		} );
+
+		expect( state[ orderId ].form.rates.values.weight_0_custom1 ).to.eql( {
+			serviceId: 'Priority',
+			carrierId: 'usps',
+		} );
+	} );
 } );

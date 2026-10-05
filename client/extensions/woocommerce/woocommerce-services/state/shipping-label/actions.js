@@ -38,6 +38,7 @@ import {
 	getFirstErroneousStep,
 	getShippingLabel,
 	getFormErrors,
+	getSelectedRate,
 	shouldFulfillOrder,
 	shouldEmailDetails,
 	isCustomsFormRequired
@@ -376,7 +377,12 @@ export const getDefaultServiceSelection = ( orderId, siteId, getState ) => {
 		[]
 	);
 
-	if ( ! find( availableRates, r => userMeta.last_service_id === r.service_id ) ) {
+	if ( ! find(
+		availableRates,
+		rate =>
+			userMeta.last_service_id === rate.service_id &&
+			userMeta.last_carrier_id === rate.carrier_id
+	) ) {
 		return;
 	}
 
@@ -1184,21 +1190,20 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 				? form.customs.items
 				: null;
 			const packages = map( form.packages.selected, ( pckg, pckgId ) => {
-				const { serviceId, signatureRequired } = form.rates.values[ pckgId ];
-				const rateType = ( signatureRequired in form.rates.available[ pckgId ] ) ? signatureRequired : 'default';
-				const packageFields = convertToApiPackage( pckg, customsItems );
-				const rate = find( form.rates.available[ pckgId ][ rateType ].rates, r => serviceId === r.service_id );
+				const selectedRate = form.rates.values[ pckgId ];
+				const rate = getSelectedRate( form.rates.available, pckgId, selectedRate );
 				// The retrieved rates no longer carry the selected service, so there is
 				// nothing to buy for this package. Report it instead of sending a request
 				// that cannot succeed.
 				if ( ! rate ) {
 					return null;
 				}
+				const packageFields = convertToApiPackage( pckg, customsItems );
 				const packageData = {
 					...packageFields,
 					shipment_id: rate.shipment_id,
 					rate_id: rate.rate_id,
-					service_id: serviceId,
+					service_id: selectedRate.serviceId,
 					carrier_id: rate.carrier_id,
 					service_name: rate.title,
 					products: flatten(

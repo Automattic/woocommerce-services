@@ -8,7 +8,13 @@ import { expect } from 'chai';
 /**
  * Internal dependencies
  */
-import { getRatesErrors, getRawAddressErrors, getTotalPriceBreakdown, isAddressUsable } from '../selectors';
+import {
+	getRatesErrors,
+	getRawAddressErrors,
+	getSelectedRate,
+	getTotalPriceBreakdown,
+	isAddressUsable,
+} from '../selectors';
 
 describe( '#getRatesErrors', () => {
 	// when there are selected rates
@@ -249,6 +255,59 @@ describe( '#getRatesErrors', () => {
 				} );
 			} );
 		} );
+
+		describe( 'selected carrier no longer offers the service', () => {
+			const rates = {
+				values: {
+					box_1: { serviceId: 'Priority', carrierId: 'ups', signatureRequired: false }
+				},
+				available: firstBoxRatesWithNoServerErrors,
+			};
+
+			it( 'should return an error even when another carrier has the same service ID', () => {
+				expect( getRatesErrors( rates ) ).to.eql( {
+					box_1: [ 'Please choose a rate' ],
+				} );
+			} );
+		} );
+
+		describe( 'selected signature rate is no longer available', () => {
+			const rates = {
+				values: {
+					box_1: {
+						serviceId: 'Priority',
+						carrierId: 'usps',
+						signatureRequired: 'signature_required',
+					},
+				},
+				available: {
+					box_1: {
+						...firstBoxRatesWithNoServerErrors.box_1,
+						signature_required: {
+							rates: [ firstBoxRatesWithNoServerErrors.box_1.default.rates[ 1 ] ],
+							errors: [],
+						},
+					},
+				},
+			};
+
+			it( 'should return an error when only the default variant remains', () => {
+				expect( getRatesErrors( rates ) ).to.eql( {
+					box_1: [ 'Please choose a rate' ],
+				} );
+			} );
+
+			it( 'should return an error when the signature bucket is gone', () => {
+				const ratesWithoutSignatureOptions = {
+					...rates,
+					available: firstBoxRatesWithNoServerErrors,
+				};
+
+				expect( getRatesErrors( ratesWithoutSignatureOptions ) ).to.eql( {
+					box_1: [ 'Please choose a rate' ],
+				} );
+			} );
+		} );
 	} );
 
 	describe( 'two boxes: box 1 with server errors, box 2 without', () => {
@@ -287,6 +346,12 @@ describe( '#getRatesErrors', () => {
 				} );
 			} );
 		} );
+	} );
+} );
+
+describe( '#getSelectedRate', () => {
+	it( 'returns undefined when a package or selection is missing', () => {
+		expect( getSelectedRate( {}, 'box_1' ) ).to.equal( undefined );
 	} );
 } );
 

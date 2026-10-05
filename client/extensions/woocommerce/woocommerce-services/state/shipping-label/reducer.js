@@ -1148,7 +1148,7 @@ reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_RATES ] = ( state, { rates, re
 reducers[ WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE ] = ( state, { packageId, serviceId, carrierId } ) => {
 	// The service was checked against this package's rates, so it must not leak into the
 	// other packages of a multi-package shipment, whose rates can offer other services.
-	if ( state.form.rates.values[ packageId ] ) {
+	if ( get( state.form.rates.values, [ packageId, 'serviceId' ] ) ) {
 		return state;
 	}
 
