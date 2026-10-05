@@ -17,6 +17,13 @@ require_once __DIR__ . '/class-wcservices-throwing-store-api-extension.php';
 class WP_Test_Store_Api_Extension_Controller extends WC_Unit_Test_Case {
 
 	/**
+	 * Namespace the healthy test extension registers under.
+	 *
+	 * @var string
+	 */
+	const HEALTHY_NAMESPACE = 'wcservices-test-healthy-extension';
+
+	/**
 	 * The controller's ExtendSchema before the test, put back afterwards.
 	 *
 	 * @var ExtendSchema|null
@@ -74,6 +81,7 @@ class WP_Test_Store_Api_Extension_Controller extends WC_Unit_Test_Case {
 	 */
 	public function tear_down() {
 		remove_filter( 'woocommerce_logging_class', array( $this, 'get_logger' ) );
+		$this->unregister_healthy_namespace();
 
 		if ( null !== $this->saved_extend_schema ) {
 			$this->extend_schema_property()->setValue( null, $this->saved_extend_schema );
@@ -89,6 +97,27 @@ class WP_Test_Store_Api_Extension_Controller extends WC_Unit_Test_Case {
 	 */
 	public function get_logger() {
 		return $this->logger;
+	}
+
+	/**
+	 * Remove what the healthy test extension registered on the shared ExtendSchema.
+	 */
+	private function unregister_healthy_namespace() {
+		foreach ( array( 'extend_data', 'callback_methods' ) as $name ) {
+			$property = new ReflectionProperty( ExtendSchema::class, $name );
+			$property->setAccessible( true );
+			$value = $property->getValue( $this->extend_schema );
+
+			if ( 'extend_data' === $name ) {
+				foreach ( $value as $endpoint => $namespaces ) {
+					unset( $value[ $endpoint ][ self::HEALTHY_NAMESPACE ] );
+				}
+			} else {
+				unset( $value[ self::HEALTHY_NAMESPACE ] );
+			}
+
+			$property->setValue( $this->extend_schema, $value );
+		}
 	}
 
 	/**
@@ -155,15 +184,75 @@ class WP_Test_Store_Api_Extension_Controller extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * One broken extension does not stop extend_store(): both registrations are attempted and logged.
+	 * One broken extension does not stop extend_store(): a healthy extension registered after it
+	 * still gets its endpoint data and its update callback.
 	 */
 	public function test_extend_store_continues_past_a_throwing_extension() {
+		$healthy = new class( $this->extend_schema ) extends Automattic\WCServices\StoreApi\AbstractStoreApiExtension {
+			/**
+			 * Namespace used only by this test, removed again in tear_down().
+			 *
+			 * @return string
+			 */
+			public function get_namespace(): string {
+				return WP_Test_Store_Api_Extension_Controller::HEALTHY_NAMESPACE;
+			}
+
+			/**
+			 * Extend the cart endpoint.
+			 *
+			 * @return string
+			 */
+			public function get_endpoint(): string {
+				return Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema::IDENTIFIER;
+			}
+
+			/**
+			 * Data added to the endpoint.
+			 *
+			 * @return array
+			 */
+			public function data_callback(): array {
+				return array( 'registered' => true );
+			}
+
+			/**
+			 * Schema for the added data.
+			 *
+			 * @return array
+			 */
+			public function schema_callback(): array {
+				return array();
+			}
+
+			/**
+			 * Update callback.
+			 *
+			 * @param array $data Update data.
+			 */
+			public function update_callback( array $data ): void {}
+
+			/**
+			 * Schema type.
+			 *
+			 * @return string
+			 */
+			public function get_schema_type(): string {
+				return ARRAY_A;
+			}
+		};
+
 		$controller = new StoreApiExtensionController( $this->extend_schema );
 		$controller->register_extension( $this->throwing_extension( new Error( 'Simulated error.' ) ) );
+		$controller->register_extension( $healthy );
 
 		$controller->extend_store();
 
-		$this->assertCount( 2, $this->logger->entries );
+		$this->assertCount( 2, $this->logger->entries, 'Both registrations of the throwing extension are logged.' );
+
+		$data = $this->extend_schema->get_endpoint_data( Automattic\WooCommerce\StoreApi\Schemas\V1\CartSchema::IDENTIFIER );
+		$this->assertSame( array( 'registered' => true ), $data->{ self::HEALTHY_NAMESPACE } );
+		$this->assertSame( array( $healthy, 'update_callback' ), $this->extend_schema->get_update_callback( self::HEALTHY_NAMESPACE ) );
 	}
 
 	/**
