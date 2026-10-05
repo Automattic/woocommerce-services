@@ -1420,7 +1420,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// log() rather than error(): a REST error must not replace the admin error notice.
 			$logger->log( $response, $route_info, true );
 
-			if ( $logger->is_logging_enabled() ) {
+			// A request with no body has nothing to add.
+			if ( $logger->is_logging_enabled() && '' !== (string) $request->get_body() ) {
 				$logger->log( $route_info, $this->format_rest_body_for_log( $request->get_body() ) );
 			}
 

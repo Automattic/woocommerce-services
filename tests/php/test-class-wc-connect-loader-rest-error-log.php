@@ -251,6 +251,22 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
+	 * With debug logging on, a request with no body logs the error line only.
+	 */
+	public function test_request_without_a_body_logs_no_body_line_when_logging_is_on() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
+		$this->use_logger( true );
+
+		$request = new WP_REST_Request( 'GET', '/wc/v1/connect/label/creation_eligibility' );
+		$request->set_query_params( array( 'order_id' => 'abc' ) );
+		$this->server->dispatch( $request );
+
+		$this->assertCount( 1, $this->logged );
+		$this->assertStringStartsWith( 'rest_invalid_param ', $this->logged[0] );
+		$this->assertStringEndsWith( ' (GET "/wc/v1/connect/label/creation_eligibility")', $this->logged[0] );
+	}
+
+	/**
 	 * The same invalid parameter from an anonymous request is not logged.
 	 */
 	public function test_anonymous_request_with_an_invalid_param_is_not_logged() {
