@@ -363,6 +363,7 @@ class WC_Connect_TaxJar_Integration {
 			add_action( $after_calculate_taxes, array( $this, 'remember_order_item_tax_location' ), PHP_INT_MIN, 2 );
 		}
 		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'remember_order_item_base_before_save' ), 10, 1 );
+		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'keep_details_of_removed_tax_rate' ), 10, 1 );
 		add_action( 'woocommerce_after_order_item_object_save', array( $this, 'remember_order_item_created' ), 10, 1 );
 		add_action( 'woocommerce_before_order_object_save', array( $this, 'remember_order_before_save' ), 10, 1 );
 		add_action( 'woocommerce_after_order_object_save', array( $this, 'remember_order_created' ), 10, 1 );
@@ -3813,6 +3814,42 @@ class WC_Connect_TaxJar_Integration {
 			'removed_rate_ids' => $removed_rate_ids,
 			'has_changes'      => $added || ! empty( $removed ) || ! empty( $changed_ids ),
 		);
+	}
+
+	/**
+	 * Keep the details an order's tax line was saved with once its rate row is gone.
+	 *
+	 * WooCommerce's update_taxes() reads a tax line's code, name, percent and compound
+	 * flag back from the rate table whenever the order's items are saved. A lookup that
+	 * returns fewer rates for a town removes rows that placed orders were taxed at, and
+	 * for those the table gives "Tax" at 0%, with the amount kept. A later edit that
+	 * re-applies the rates recorded on the order would then charge 0%.
+	 *
+	 * @internal Hooked to woocommerce_before_order_item_object_save.
+	 *
+	 * @param mixed $item Order item about to be saved.
+	 */
+	public function keep_details_of_removed_tax_rate( $item ) {
+		if ( ! $item instanceof WC_Order_Item_Tax || ! $item->get_id() ) {
+			return;
+		}
+
+		// get_data() still holds the saved values until the save applies the changes.
+		$saved   = $item->get_data();
+		$details = array( 'rate_code', 'label', 'rate_percent', 'compound' );
+
+		if ( ! array_intersect_key( $item->get_changes(), array_flip( $details ) ) || (int) $saved['rate_id'] !== (int) $item->get_rate_id() ) {
+			return;
+		}
+
+		if ( WC_Tax::_get_tax_rate( $item->get_rate_id() ) ) {
+			return;
+		}
+
+		$item->set_rate_code( $saved['rate_code'] );
+		$item->set_label( $saved['label'] );
+		$item->set_rate_percent( $saved['rate_percent'] );
+		$item->set_compound( $saved['compound'] );
 	}
 
 	/**

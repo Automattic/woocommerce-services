@@ -4996,6 +4996,114 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * An order taxed at a row a later lookup removed keeps that tax line's name, code
+	 * and percent when its items are saved again.
+	 *
+	 * WooCommerce's update_taxes() reads them back from the rate table, which no longer
+	 * has the row, so the line would turn into "Tax" at 0% with its amount kept. A later
+	 * REST edit re-applies the percent recorded on the line, so it would charge 0%.
+	 */
+	public function test_order_keeps_the_details_of_a_rate_a_lookup_removed() {
+		$this->reset_tax_rate_tables();
+		add_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10, 1 );
+
+		list( $before, $after ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+		$rate_ids               = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '49841', 'Gwinn' ) );
+
+		// The $100 item taxed at City, County, Special (1%) and State (6%), as checkout records it.
+		$order = $this->create_michigan_order( '49841', 'Gwinn' );
+		$item  = current( $order->get_items() );
+		$taxes = array_combine( $rate_ids, array( '0', '0', '1', '6' ) );
+		$item->set_taxes(
+			array(
+				'total'    => $taxes,
+				'subtotal' => $taxes,
+			)
+		);
+		$item->save();
+		$order->update_taxes();
+
+		// The second lookup reuses the rows at priorities 1 to 3 and removes State's at 4.
+		$removed_id = $rate_ids[3];
+		$recorded   = $this->tax_line_details( $order, $removed_id );
+		$this->assertEqualsWithDelta( 6.0, $recorded['rate_percent'], 0.0001 );
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $after ), '49841', 'Gwinn' );
+		$this->assertEmpty( WC_Tax::_get_tax_rate( $removed_id ), 'The second lookup removed the row at priority 4.' );
+
+		// What saving the order's items in the admin does, in a later request.
+		$this->forget_cached_tax_rates();
+		$order = wc_get_order( $order->get_id() );
+		$order->update_taxes();
+
+		$this->assertSame( $recorded, $this->tax_line_details( wc_get_order( $order->get_id() ), $removed_id ) );
+
+		remove_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10 );
+	}
+
+	/**
+	 * A row that still exists still gives the tax line its current details.
+	 */
+	public function test_order_tax_line_follows_a_rate_that_still_exists() {
+		$this->reset_tax_rate_tables();
+		add_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10, 1 );
+
+		$rate_id = $this->insert_michigan_rate( 1, '6.0000', 'MI Tax' );
+		$order   = $this->create_michigan_order( '49841', 'Gwinn' );
+		$item    = current( $order->get_items() );
+		$item->set_taxes(
+			array(
+				'total'    => array( $rate_id => '6' ),
+				'subtotal' => array( $rate_id => '6' ),
+			)
+		);
+		$item->save();
+		$order->update_taxes();
+
+		WC_Tax::_update_tax_rate( $rate_id, array( 'tax_rate_name' => 'Michigan Sales Tax' ) );
+		$this->forget_cached_tax_rates();
+		$order = wc_get_order( $order->get_id() );
+		$order->update_taxes();
+
+		$this->assertSame( 'Michigan Sales Tax', $this->tax_line_details( wc_get_order( $order->get_id() ), $rate_id )['label'] );
+
+		remove_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10 );
+	}
+
+	/**
+	 * Forget the rate rows WooCommerce read in this process, as a new request would.
+	 */
+	private function forget_cached_tax_rates() {
+		$store    = wc_get_container()->get( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class );
+		$property = new ReflectionProperty( $store, 'rate_objects_cache' );
+		$property->setAccessible( true );
+		$property->setValue( $store, array() );
+	}
+
+	/**
+	 * The details an order's tax line holds for a rate.
+	 *
+	 * @param WC_Order $order   Order.
+	 * @param int      $rate_id Rate id.
+	 * @return array|null
+	 */
+	private function tax_line_details( $order, $rate_id ) {
+		foreach ( $order->get_taxes() as $tax_line ) {
+			if ( (int) $tax_line->get_rate_id() === (int) $rate_id ) {
+				return array(
+					'rate_code'    => $tax_line->get_rate_code(),
+					'label'        => $tax_line->get_label(),
+					'rate_percent' => (float) $tax_line->get_rate_percent(),
+					'compound'     => $tax_line->get_compound(),
+					'tax_total'    => (float) $tax_line->get_tax_total(),
+				);
+			}
+		}
+
+		return null;
+	}
+
+	/**
 	 * Only the rows a lookup wrote for exactly this town, in this tax class, go.
 	 *
 	 * Left alone: a merchant's row for exactly the same ZIP and city (its name is not
