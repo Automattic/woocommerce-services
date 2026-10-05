@@ -254,14 +254,13 @@ class WP_Test_WC_Connect_Loader_REST_Routes extends WC_REST_Unit_Test_Case {
 			array( 'GET', '/wc/v1/connect/assets', '/wc/v1/connect/assets' ),
 			array( 'GET', '/wc/v1/connect/shipping/carrier-types', '/wc/v1/connect/shipping/carrier-types' ),
 			array( 'GET', '/wc/v1/connect/account/settings', '/wc/v1/connect/account/settings' ),
-			array( 'POST', '/wc/v1/connect/migration-flag', '/wc/v1/connect/migration-flag' ),
 			array( 'GET', '/wc/v1/connect/label/creation_eligibility', '/wc/v1/connect/label/creation_eligibility' ),
 			array( 'GET', '/wc/v1/connect/label/(?P<order_id>\d+)/creation_eligibility', '/wc/v1/connect/label/1/creation_eligibility' ),
 		);
 	}
 
 	/**
-	 * Route and method pairs that act on the whole store's shipping account.
+	 * Route and method pairs that act on the whole store's shipping account or settings.
 	 *
 	 * @return array[]
 	 */
@@ -273,6 +272,10 @@ class WP_Test_WC_Connect_Loader_REST_Routes extends WC_REST_Unit_Test_Case {
 			array( 'POST', '/wc/v1/connect/subscription/(?P<subscription_key>.+)/activate', '/wc/v1/connect/subscription/abc/activate' ),
 			array( 'GET', '/wc/v1/connect/shipping/carriers', '/wc/v1/connect/shipping/carriers' ),
 			array( 'POST', '/wc/v1/connect/subscriptions', '/wc/v1/connect/subscriptions' ),
+			array( 'POST', '/wc/v1/connect/self-help', '/wc/v1/connect/self-help' ),
+			array( 'GET', '/wc/v1/connect/services/(?P<id>[a-z_]+)\/(?P<instance>[\d]+)', '/wc/v1/connect/services/usps/0' ),
+			array( 'POST', '/wc/v1/connect/services/(?P<id>[a-z_]+)\/(?P<instance>[\d]+)', '/wc/v1/connect/services/usps/0' ),
+			array( 'POST', '/wc/v1/connect/migration-flag', '/wc/v1/connect/migration-flag' ),
 		);
 	}
 
@@ -339,6 +342,18 @@ class WP_Test_WC_Connect_Loader_REST_Routes extends WC_REST_Unit_Test_Case {
 
 		$response = $this->server->dispatch( new WP_REST_Request( 'POST', '/wc/v1/connect/shipping/carrier' ) );
 		$this->assertSame( 403, $response->get_status() );
+
+		$request = new WP_REST_Request( 'POST', '/wc/v1/connect/self-help' );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body(
+			wp_json_encode(
+				array(
+					'wcc_debug_on'   => 1,
+					'wcc_logging_on' => 1,
+				)
+			)
+		);
+		$this->assertSame( 403, $this->server->dispatch( $request )->get_status() );
 	}
 
 	/**

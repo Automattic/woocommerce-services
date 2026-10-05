@@ -101,4 +101,14 @@ class WC_REST_Connect_Services_Controller extends WC_REST_Connect_Base_Controlle
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}
+
+	/**
+	 * Live rate method settings apply to the whole store, so the label capability alone is not enough.
+	 *
+	 * @param WP_REST_Request $request The request.
+	 * @return bool
+	 */
+	public function check_permission( $request ) {
+		return parent::check_permission( $request ) && current_user_can( 'manage_woocommerce' );
+	}
 }
