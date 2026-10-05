@@ -3647,6 +3647,17 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * The amounts a saved order item was taxed on, before this request changed them.
+	 *
+	 * @param WC_Order_Item $item A saved line item, fee or shipping item.
+	 * @return array{total: float|null, subtotal: float|null}
+	 */
+	private function get_order_item_saved_base( $item ) {
+		// get_data() still holds the saved values until a save applies the changes.
+		return $this->order_item_base_before_save[ (int) $item->get_id() ] ?? self::get_order_item_tax_base( $item->get_data() );
+	}
+
+	/**
 	 * Whether a saved order item's taxable amount differs from what it was taxed on.
 	 *
 	 * Compared as numbers: a caller that re-sends "10.00" for a stored "10" has not
@@ -3656,19 +3667,15 @@ class WC_Connect_TaxJar_Integration {
 	 * @return bool
 	 */
 	private function order_item_base_moved( $item ) {
-		$item_id = (int) $item->get_id();
-
-		if ( isset( $this->order_item_base_before_save[ $item_id ] ) ) {
-			$before = $this->order_item_base_before_save[ $item_id ];
-		} else {
+		if ( ! isset( $this->order_item_base_before_save[ (int) $item->get_id() ] ) ) {
 			$changes = $item->get_changes();
 
 			if ( ! array_key_exists( 'total', $changes ) && ! array_key_exists( 'subtotal', $changes ) ) {
 				return false;
 			}
-
-			$before = self::get_order_item_tax_base( $item->get_data() );
 		}
+
+		$before = $this->get_order_item_saved_base( $item );
 
 		$after = self::get_order_item_tax_base(
 			array(
@@ -3808,14 +3815,20 @@ class WC_Connect_TaxJar_Integration {
 			if ( 'taxable' !== $item->get_tax_status() ) {
 				$item_rate_ids = array();
 			} elseif ( $is_known ) {
-				// Only the rates it was charged at. A line taxed $0 under a rate (TaxJar's
-				// answer for an exempt product) still carries that rate id, with no tax.
-				$item_rate_ids = empty( $snapshot['item_taxes'][ $key ]['total'] ) ? array() : array_keys(
+				// Only the rates it was charged at. A line charged $0 under a rate while it
+				// had an amount (TaxJar's answer for an exempt product) still carries that
+				// rate id, with no tax. A line with no amount (discounted to $0, or $0
+				// shipping) was charged $0 at every rate, which says nothing about them.
+				$item_taxes    = $snapshot['item_taxes'][ $key ] ?? array();
+				$saved_base    = $this->get_order_item_saved_base( $item );
+				$had_amount    = 0.0 !== (float) $saved_base['total'] || 0.0 !== (float) $saved_base['subtotal'];
+				$item_rate_ids = empty( $item_taxes['total'] ) ? array() : array_keys(
 					array_filter(
-						$snapshot['item_taxes'][ $key ]['total'],
-						static function ( $tax ) {
-							return 0.0 !== (float) $tax;
-						}
+						$item_taxes['total'],
+						static function ( $tax, $rate_id ) use ( $item_taxes, $had_amount ) {
+							return ! $had_amount || 0.0 !== (float) $tax || 0.0 !== (float) ( $item_taxes['subtotal'][ $rate_id ] ?? 0 );
+						},
+						ARRAY_FILTER_USE_BOTH
 					)
 				);
 			} elseif ( $is_shipping ) {

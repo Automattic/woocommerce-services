@@ -431,6 +431,139 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Give a placed order's item new saved amounts and taxes, as if it had been placed so.
+	 *
+	 * Forgets the amounts it had before, so the next request sees only its own edit.
+	 *
+	 * @param WC_Order_Item $item     Item.
+	 * @param string        $total    Total.
+	 * @param array         $taxes    Taxes array.
+	 * @param string|null   $subtotal Subtotal, for a line item.
+	 */
+	private function place_item_as( $item, $total, array $taxes, $subtotal = null ) {
+		$item->set_total( $total );
+		if ( null !== $subtotal ) {
+			$item->set_subtotal( $subtotal );
+		}
+		$item->set_taxes( $taxes );
+		$item->save();
+
+		$property = new ReflectionProperty( $this->integration, 'order_item_base_before_save' );
+		$property->setAccessible( true );
+		$property->setValue( $this->integration, array() );
+		$this->forget_created_in_request();
+	}
+
+	/**
+	 * Situations where a changed item was charged $0 at its rate for a reason other than
+	 * being exempt, so it is taxed at that rate again once it has an amount.
+	 *
+	 * @return array
+	 */
+	public function provide_zero_tax_that_is_not_exempt() {
+		return array(
+			'line discounted to $0'    => array(
+				'a',
+				'0',
+				'10',
+				array(
+					'total'    => array( 'RATE' => '0' ),
+					'subtotal' => array( 'RATE' => '0.6' ),
+				),
+				array(
+					'line_items' => array(
+						array(
+							'id'       => 'ID',
+							'subtotal' => '10.00',
+							'total'    => '10.00',
+						),
+					),
+				),
+				0.60,
+			),
+			'free shipping now priced' => array(
+				'shipping',
+				'0',
+				null,
+				array( 'total' => array( 'RATE' => '0' ) ),
+				array(
+					'shipping_lines' => array(
+						array(
+							'id'    => 'ID',
+							'total' => '5.00',
+						),
+					),
+				),
+				0.30,
+			),
+		);
+	}
+
+	/**
+	 * @testdox An item charged $0 only because its amount was $0 is taxed at its rate once it has an amount.
+	 * @dataProvider provide_zero_tax_that_is_not_exempt
+	 *
+	 * @param string      $which    Fixture item key.
+	 * @param string      $total    Total it was placed with.
+	 * @param string|null $subtotal Subtotal it was placed with.
+	 * @param array       $taxes    Taxes it was placed with; RATE is replaced by the rate id.
+	 * @param array       $body     REST body; ID is replaced by the item id.
+	 * @param float       $expected Its tax after the edit.
+	 */
+	public function test_zero_tax_that_is_not_exempt_is_taxed_again( $which, $total, $subtotal, $taxes, $body, $expected ) {
+		$fixture = $this->create_placed_order();
+		$order   = $fixture['order'];
+		$item    = 'shipping' === $which ? $order->get_item( $fixture['shipping'] ) : $order->get_item( $fixture[ $which ] );
+
+		$rate_id = $this->rate_id;
+		$taxes   = array_map(
+			static function ( $by_rate ) use ( $rate_id ) {
+				return array( $rate_id => $by_rate['RATE'] );
+			},
+			$taxes
+		);
+		$this->place_item_as( $item, $total, $taxes, $subtotal );
+
+		$type                   = key( $body );
+		$body[ $type ][0]['id'] = $item->get_id();
+		$order                  = $this->rest_update( $order->get_id(), $body );
+
+		$this->assertEqualsWithDelta( $expected, $this->item_tax( $order, $item->get_id() ), 0.001 );
+	}
+
+	/**
+	 * @testdox An exempt line discounted to $0 stays at $0 when the discount is removed.
+	 */
+	public function test_exempt_line_discounted_to_zero_stays_untaxed() {
+		$fixture = $this->create_placed_order( array( 'a_tax' => '0' ) );
+		$order   = $fixture['order'];
+		$this->place_item_as(
+			$order->get_item( $fixture['a'] ),
+			'0',
+			array(
+				'total'    => array( $this->rate_id => '0' ),
+				'subtotal' => array( $this->rate_id => '0' ),
+			),
+			'10'
+		);
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'subtotal' => '10.00',
+						'total'    => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+	}
+
+	/**
 	 * @testdox Next to an item taxed $0, a taxed item in the same class still moves with its quantity.
 	 */
 	public function test_zero_taxed_item_beside_taxed_item_both_changed() {
