@@ -2,4 +2,5 @@
 . "$(dirname "$0")/_/husky.sh"
 
 # using `--no-install` just in case it's the first time a person is checking out the repo and doesn't have yarnhook installed
-npx --no-install yarnhook
+# Report a changed lockfile instead of installing: an install started by git runs unattended.
+YARNHOOK_DRYRUN=1 npx --no-install yarnhook
