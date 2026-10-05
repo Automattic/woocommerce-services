@@ -3,7 +3,9 @@
  * Shows the result of the store address check to store managers.
  *
  * Reads what StoreAddressVerifier stored for the current store address and shows a notice
- * on WooCommerce admin screens when something needs the merchant's attention. When TaxJar
+ * on WooCommerce admin screens when something needs the merchant's attention. A wrong state
+ * is also shown on the Dashboard, because the store may be charging no tax on orders from
+ * its own state. When TaxJar
  * places the store in a different state or ZIP, the merchant can apply that with one click. Nothing changes
  * the store address without that click.
  *
@@ -62,13 +64,28 @@ final class StoreAddressNotice {
 	 * Print the notice, if one is due on this screen.
 	 */
 	public function render() {
-		if ( ! current_user_can( 'manage_woocommerce' ) || ! $this->is_woocommerce_screen() ) {
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			return;
+		}
+
+		$on_woocommerce_screen = $this->is_woocommerce_screen();
+
+		if ( ! $on_woocommerce_screen && ! $this->is_dashboard() ) {
 			return;
 		}
 
 		$result = $this->verifier->get_current_result();
 
 		if ( null === $result || ! empty( $result['dismissed'] ) ) {
+			return;
+		}
+
+		if ( ! $on_woocommerce_screen ) {
+			// The Dashboard shows only the wrong state, which can mean no tax on in-state orders.
+			if ( $this->is_state_change( $result ) ) {
+				$this->render_suggestion( $result );
+			}
+
 			return;
 		}
 
@@ -135,7 +152,7 @@ final class StoreAddressNotice {
 			return;
 		}
 
-		$state_changed = $suggestion['state'] !== $this->verifier->get_store_address()->state();
+		$state_changed = $this->is_state_change( $result );
 
 		$message = $state_changed
 			? esc_html__( 'Your store address may have the wrong state. If it does, orders from your own state may be charged no tax.', 'woocommerce-services' )
@@ -246,6 +263,34 @@ final class StoreAddressNotice {
 		);
 
 		return StoreAddressVerifier::hash_address( $saved ) === StoreAddressVerifier::hash_address( $this->verifier->get_store_address() );
+	}
+
+	/**
+	 * Does the result suggest a different state from the store's?
+	 *
+	 * @param array $result Stored result.
+	 * @return bool
+	 */
+	private function is_state_change( array $result ) {
+		return StoreAddressVerifier::STATUS_SUGGESTION === $result['status']
+			&& isset( $result['suggestion'] ) && is_array( $result['suggestion'] )
+			&& ! empty( $result['suggestion']['state'] )
+			&& $result['suggestion']['state'] !== $this->verifier->get_store_address()->state();
+	}
+
+	/**
+	 * Is the current admin screen the WordPress Dashboard?
+	 *
+	 * @return bool
+	 */
+	private function is_dashboard() {
+		if ( ! function_exists( 'get_current_screen' ) ) {
+			return false;
+		}
+
+		$screen = get_current_screen();
+
+		return null !== $screen && 'dashboard' === $screen->id;
 	}
 
 	/**

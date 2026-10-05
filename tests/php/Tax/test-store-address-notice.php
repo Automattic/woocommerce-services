@@ -205,6 +205,68 @@ class WP_Test_WCServices_Tax_Store_Address_Notice extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A wrong state is also shown on the WordPress Dashboard, with the apply button.
+	 */
+	public function test_state_suggestion_is_shown_on_the_dashboard() {
+		$this->store_result( StoreAddressVerifier::STATUS_SUGGESTION, $this->suggestion( 'UT', '84101' ) );
+		set_current_screen( 'dashboard' );
+
+		$html = $this->render();
+
+		$this->assertStringContainsString( 'notice-error', $html );
+		$this->assertStringContainsString( 'wrong state', $html );
+		$this->assertStringContainsString( StoreAddressNotice::APPLY_ACTION, $html );
+
+		// Other non-WooCommerce screens still show nothing.
+		set_current_screen( 'edit-post' );
+		$this->assertSame( '', $this->render() );
+	}
+
+	/**
+	 * Results the Dashboard leaves to the WooCommerce screens.
+	 *
+	 * @return array
+	 */
+	public function provide_results_not_shown_on_the_dashboard() {
+		return array(
+			'ZIP-only suggestion' => array(
+				StoreAddressVerifier::STATUS_SUGGESTION,
+				array(
+					'state'    => 'CO',
+					'postcode' => '81321',
+				),
+				false,
+			),
+			'dismissed state'     => array(
+				StoreAddressVerifier::STATUS_SUGGESTION,
+				array(
+					'state'    => 'UT',
+					'postcode' => '84101',
+				),
+				true,
+			),
+			'not found'           => array( StoreAddressVerifier::STATUS_NOT_FOUND, null, false ),
+			'ambiguous'           => array( StoreAddressVerifier::STATUS_AMBIGUOUS, null, false ),
+			'missing ZIP'         => array( StoreAddressVerifier::STATUS_ZIP_MISSING, null, false ),
+		);
+	}
+
+	/**
+	 * @testdox The Dashboard shows nothing but an undismissed wrong state.
+	 * @dataProvider provide_results_not_shown_on_the_dashboard
+	 *
+	 * @param string     $status     Status.
+	 * @param array|null $suggestion Suggested address.
+	 * @param bool       $dismissed  Dismissed.
+	 */
+	public function test_other_results_are_not_shown_on_the_dashboard( $status, $suggestion, $dismissed ) {
+		$this->store_result( $status, $suggestion, $dismissed );
+		set_current_screen( 'dashboard' );
+
+		$this->assertSame( '', $this->render() );
+	}
+
+	/**
 	 * Situations where nothing is shown.
 	 *
 	 * @return array
