@@ -234,6 +234,158 @@ class WP_Test_WC_Connect_Loader_REST_Routes extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
+	 * Route and method pairs the label UI or the plugin's own screens call with the label capability.
+	 *
+	 * @return array[]
+	 */
+	private static function label_permission_routes() {
+		return array(
+			array( 'GET', '/wc/v1/connect/label/(?P<order_id>\d+)', '/wc/v1/connect/label/1' ),
+			array( 'POST', '/wc/v1/connect/label/(?P<order_id>\d+)', '/wc/v1/connect/label/1' ),
+			array( 'GET', '/wc/v1/connect/label/(?P<order_id>\d+)/(?P<label_ids>(\d+)(,\d+)*)', '/wc/v1/connect/label/1/2' ),
+			array( 'POST', '/wc/v1/connect/label/(?P<order_id>\d+)/(?P<label_id>\d+)/refund', '/wc/v1/connect/label/1/2/refund' ),
+			array( 'GET', '/wc/v1/connect/label/preview', '/wc/v1/connect/label/preview' ),
+			array( 'GET', '/wc/v1/connect/label/print', '/wc/v1/connect/label/print' ),
+			array( 'POST', '/wc/v1/connect/label/(?P<order_id>\d+)/rates', '/wc/v1/connect/label/1/rates' ),
+			array( 'POST', '/wc/v1/connect/normalize-address', '/wc/v1/connect/normalize-address' ),
+			array( 'GET', '/wc/v1/connect/packages', '/wc/v1/connect/packages' ),
+			array( 'PUT', '/wc/v1/connect/packages', '/wc/v1/connect/packages' ),
+			array( 'POST', '/wc/v1/connect/packages', '/wc/v1/connect/packages' ),
+			array( 'GET', '/wc/v1/connect/assets', '/wc/v1/connect/assets' ),
+			array( 'GET', '/wc/v1/connect/shipping/carrier-types', '/wc/v1/connect/shipping/carrier-types' ),
+			array( 'GET', '/wc/v1/connect/account/settings', '/wc/v1/connect/account/settings' ),
+			array( 'POST', '/wc/v1/connect/migration-flag', '/wc/v1/connect/migration-flag' ),
+			array( 'GET', '/wc/v1/connect/label/creation_eligibility', '/wc/v1/connect/label/creation_eligibility' ),
+			array( 'GET', '/wc/v1/connect/label/(?P<order_id>\d+)/creation_eligibility', '/wc/v1/connect/label/1/creation_eligibility' ),
+		);
+	}
+
+	/**
+	 * Route and method pairs that act on the whole store's shipping account.
+	 *
+	 * @return array[]
+	 */
+	private static function account_permission_routes() {
+		return array(
+			array( 'POST', '/wc/v1/connect/account/settings', '/wc/v1/connect/account/settings' ),
+			array( 'POST', '/wc/v1/connect/shipping/carrier', '/wc/v1/connect/shipping/carrier' ),
+			array( 'DELETE', '/wc/v1/connect/shipping/carrier/(?P<carrier_id>.+)', '/wc/v1/connect/shipping/carrier/ups' ),
+			array( 'POST', '/wc/v1/connect/subscription/(?P<subscription_key>.+)/activate', '/wc/v1/connect/subscription/abc/activate' ),
+			array( 'GET', '/wc/v1/connect/shipping/carriers', '/wc/v1/connect/shipping/carriers' ),
+			array( 'POST', '/wc/v1/connect/subscriptions', '/wc/v1/connect/subscriptions' ),
+		);
+	}
+
+	/**
+	 * Run the permission callback registered for a route and method as the current user.
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $route  Route pattern as registered.
+	 * @param string $path   A concrete path for the request.
+	 * @return bool
+	 */
+	private function can_access( $method, $route, $path ) {
+		$routes = $this->server->get_routes();
+		$this->assertArrayHasKey( $route, $routes );
+
+		foreach ( $routes[ $route ] as $handler ) {
+			if ( ! empty( $handler['methods'][ $method ] ) ) {
+				return true === call_user_func( $handler['permission_callback'], new WP_REST_Request( $method, $path ) );
+			}
+		}
+
+		$this->fail( "No $method handler on $route" );
+	}
+
+	/**
+	 * Assert the current user's access to each route in a list.
+	 *
+	 * @param array[] $routes   Lists of method, route, path.
+	 * @param bool    $expected Expected access.
+	 */
+	private function assert_access( $routes, $expected ) {
+		foreach ( $routes as list( $method, $route, $path ) ) {
+			$this->assertSame( $expected, $this->can_access( $method, $route, $path ), "$method $route" );
+		}
+	}
+
+	/**
+	 * Make the current user someone who holds only wcship_manage_labels.
+	 */
+	private function set_label_only_user() {
+		$user = get_user_by( 'id', $this->factory->user->create( array( 'role' => 'subscriber' ) ) );
+		$user->add_cap( 'wcship_manage_labels' );
+		wp_set_current_user( $user->ID );
+	}
+
+	/**
+	 * @testdox On a grandfathered store a label-only user keeps every route the label UI calls.
+	 */
+	public function test_grandfathered_store_label_only_user_keeps_label_routes() {
+		$this->register_routes_for_store( false, false );
+		$this->set_label_only_user();
+
+		$this->assert_access( self::label_permission_routes(), true );
+	}
+
+	/**
+	 * @testdox On a grandfathered store a label-only user is refused the account-wide routes.
+	 */
+	public function test_grandfathered_store_label_only_user_is_refused_account_routes() {
+		$this->register_routes_for_store( false, false );
+		$this->set_label_only_user();
+
+		$this->assert_access( self::account_permission_routes(), false );
+
+		$response = $this->server->dispatch( new WP_REST_Request( 'POST', '/wc/v1/connect/shipping/carrier' ) );
+		$this->assertSame( 403, $response->get_status() );
+	}
+
+	/**
+	 * @testdox On a grandfathered store an administrator keeps every route.
+	 */
+	public function test_grandfathered_store_administrator_keeps_every_route() {
+		$this->register_routes_for_store( false, false );
+
+		$this->assert_access( self::label_permission_routes(), true );
+		$this->assert_access( self::account_permission_routes(), true );
+	}
+
+	/**
+	 * @testdox The wcship_user_can_manage_labels filter still refuses an administrator it denies.
+	 */
+	public function test_manage_labels_filter_still_denies_administrator() {
+		$this->register_routes_for_store( false, false );
+		add_filter( 'wcship_user_can_manage_labels', '__return_false' );
+
+		try {
+			$this->assert_access( self::label_permission_routes(), false );
+			$this->assert_access( self::account_permission_routes(), false );
+		} finally {
+			remove_filter( 'wcship_user_can_manage_labels', '__return_false' );
+		}
+	}
+
+	/**
+	 * A callback that returns true lets in a user with neither capability. That user keeps
+	 * the label routes but no longer reaches the account-wide ones.
+	 *
+	 * @testdox A user let in only by the wcship_user_can_manage_labels filter is refused the account-wide routes.
+	 */
+	public function test_manage_labels_filter_no_longer_grants_account_routes() {
+		$this->register_routes_for_store( false, false );
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'subscriber' ) ) );
+		add_filter( 'wcship_user_can_manage_labels', '__return_true' );
+
+		try {
+			$this->assert_access( self::label_permission_routes(), true );
+			$this->assert_access( self::account_permission_routes(), false );
+		} finally {
+			remove_filter( 'wcship_user_can_manage_labels', '__return_true' );
+		}
+	}
+
+	/**
 	 * @testdox A grandfathered store with WC Shipping active keeps the migration flag, carriers and subscriptions routes.
 	 */
 	public function test_grandfathered_store_with_wc_shipping_keeps_routes_outside_shipping_block() {

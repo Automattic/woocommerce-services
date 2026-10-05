@@ -72,4 +72,19 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 
 		return new WP_REST_Response( array( 'success' => true ), 200 );
 	}
+
+	/**
+	 * The label modal reads these settings, so reading keeps the label check. Changing them
+	 * affects the whole store and also needs manage_woocommerce.
+	 *
+	 * @param WP_REST_Request $request The request.
+	 * @return bool
+	 */
+	public function check_permission( $request ) {
+		if ( in_array( $request->get_method(), array( 'GET', 'HEAD' ), true ) ) {
+			return parent::check_permission( $request );
+		}
+
+		return parent::check_permission( $request ) && current_user_can( 'manage_woocommerce' );
+	}
 }
