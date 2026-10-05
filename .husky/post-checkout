@@ -1,5 +1,6 @@
 #!/bin/sh
 . "$(dirname "$0")/_/husky.sh"
+. "$(dirname "$0")/../bin/use-nvmrc-node.sh"
 
 # using `--no-install` just in case it's the first time a person is checking out the repo and doesn't have yarnhook installed
 # Report a changed lockfile instead of installing: an install started by git runs unattended.
