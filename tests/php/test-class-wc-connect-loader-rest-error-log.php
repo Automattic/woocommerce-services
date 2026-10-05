@@ -171,6 +171,21 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
+	 * With debug logging on, an anonymous malformed body still writes nothing.
+	 */
+	public function test_anonymous_malformed_body_is_not_logged_when_logging_is_on() {
+		wp_set_current_user( 0 );
+		$this->use_logger( true );
+
+		$response = $this->post_malformed_json( '/wc/v1/connect/self-help' );
+
+		$this->assertSame( 400, $response->get_status() );
+		$this->assertSame( 'rest_invalid_json', $response->get_data()['code'] );
+		$this->assertSame( array(), $this->logged );
+		$this->assert_notice_untouched();
+	}
+
+	/**
 	 * A logged-in user the route does not allow writes nothing either.
 	 */
 	public function test_customer_malformed_body_is_not_logged() {
