@@ -22,6 +22,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 		}
 
 		public function get_export_button() {
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only: the range only lands in the suggested CSV filename of the export link. WooCommerce core supplies this query arg on its own report screens, so there is no submission of ours to nonce.
 			$current_range = ! empty( $_GET['range'] ) ? sanitize_text_field( wp_unslash( $_GET['range'] ) ) : '7day';
 			?>
 			<a
@@ -44,6 +45,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 
 			$table_name = OrderUtil::get_table_for_order_meta();
 			$id_column  = OrderUtil::custom_orders_table_usage_is_enabled() ? 'order_id' : 'post_id';
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Bulk read of one meta key across every order; core offers no API for that, and wc_get_orders() would hydrate every order object. The result is cached by the only caller, query_labels(), in the wcs_label_reports transient for 30 minutes.
 			$db_results = $wpdb->get_results(
 				$wpdb->prepare(
 					'SELECT %i, meta_value FROM %i WHERE meta_key = %s',
@@ -132,6 +134,7 @@ if ( ! class_exists( 'WC_Connect_Label_Reports' ) ) {
 				'7day'       => __( 'Last 7 days', 'woocommerce-services' ),
 			);
 
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only date-range selection for the report; the value is allow-listed below and WC_Admin_Report::check_current_range_nonce() on the next lines verifies core's nonce for the one range ('custom') that carries user input.
 			$current_range = ! empty( $_GET['range'] ) ? sanitize_text_field( wp_unslash( $_GET['range'] ) ) : '7day';
 
 			if ( ! in_array( $current_range, array( 'custom', 'year', 'last_month', 'month', '7day' ) ) ) {

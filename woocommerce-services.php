@@ -1784,6 +1784,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			// Order list page doesn't have the action parameter in the querystring.
+			// phpcs:ignore WordPress.Security.NonceVerification.Recommended -- Read-only: distinguishes WooCommerce's order list screen from the single order screen, which is the only one that carries the action arg. It only gates which assets are enqueued.
 			if ( isset( $_GET['action'] ) ) {
 				return false;
 			}
@@ -1840,9 +1841,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				);
 			}
 
-			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null );
-			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.css', array(), null );
-			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js', array(), null );
+			wp_register_script( 'wc_services_admin_pointers', $this->wc_connect_base_url . 'woocommerce-services-admin-pointers-' . $plugin_version . '.js', array( 'wp-pointer', 'jquery' ), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted. Registered in the head because the wp-pointer it drives runs before the footer.
+			wp_register_style( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted.
+			wp_register_script( 'wc_connect_banner', $this->wc_connect_base_url . 'woocommerce-services-banner-' . $plugin_version . '.js', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted. Registered in the head so the banner is styled and wired before first paint.
 
 			$i18n_json = $this->get_i18n_json();
 			// JS translations loaded from i18n/languages/woocommerce-services-{LOCALE}.json via get_i18n_json().
@@ -1870,6 +1871,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$shipping_service_ids     = $this->get_service_schemas_store()->get_all_shipping_method_ids();
 
 			foreach ( $shipping_service_ids as $shipping_service_id ) {
+				// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Asks only whether an enabled zone method row exists for this method id; WC_Shipping_Zones has no such reader and would instantiate every shipping method to answer it. Not cached because zone methods are enabled and disabled from WooCommerce's own screens with no hook this plugin could invalidate on, and a stale answer would misreport the store's active services to the Connect server.
 				$is_active = $wpdb->get_var(
 					$wpdb->prepare(
 						"SELECT instance_id FROM {$wpdb->prefix}woocommerce_shipping_zone_methods WHERE is_enabled = 1 AND method_id = %s LIMIT 1;",
@@ -2072,6 +2074,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 
 			$meta_table_to_check = OrderUtil::get_table_for_order_meta();
 
+			// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- Indexed EXISTS probe on the order meta table; core offers no "does any order carry this meta key" API, and wc_get_orders() cannot run this early (the check is reachable from the all_plugins filter). Left uncached deliberately: the answer decides whether the plugin's shipping features load at all, and the meta is also written by the WooCommerce Shipping migration, so there is no write this plugin could hang invalidation on, and serving a stale "no labels" would hide shipping from a store that has it.
 			return (bool) $wpdb->get_var(
 				$wpdb->prepare(
 					'SELECT EXISTS (
@@ -2169,7 +2172,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				'sift-science',
 				'https://cdn.sift.com/s.js',
 				array(),
-				null,
+				null, // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion -- Third-party script served from Sift's CDN, which versions it server side; a ?ver= we invent would be wrong.
 				array(
 					'strategy'  => 'defer',
 					'in_footer' => true,
@@ -2411,7 +2414,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		public function register_wcshipping_migration_modal() {
 			$plugin_version = self::get_wcs_version();
 			wp_register_style( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.css', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion
-			wp_register_script( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array(), null );
+			wp_register_script( 'wcst_wcshipping_migration_admin_notice', $this->wc_connect_base_url . 'woocommerce-services-wcshipping-migration-admin-notice-' . $plugin_version . '.js', array(), null ); // phpcs:ignore WordPress.WP.EnqueuedResourceParameters.MissingVersion, WordPress.WP.EnqueuedResourceParameters.NotInFooter -- Served from the Connect Server and the version is already in the file name, so no ?ver= is wanted. Registered in the head alongside the stylesheet above, which carries the same note.
 			wp_localize_script(
 				'wcst_wcshipping_migration_admin_notice',
 				'wcsPluginData',
