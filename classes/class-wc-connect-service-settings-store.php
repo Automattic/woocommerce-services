@@ -282,7 +282,7 @@ if ( ! class_exists( 'WC_Connect_Service_Settings_Store' ) ) {
 			$labels_data = $this->get_label_order_meta_data( $order_id );
 			$matched     = false;
 			foreach ( $labels_data as $index => $label_data ) {
-				if ( $label_data['label_id'] === $new_label_data->label_id ) {
+				if ( (int) $label_data['label_id'] === (int) $new_label_data->label_id ) {
 					$matched               = true;
 					$result                = array_merge( $label_data, (array) $new_label_data );
 					$labels_data[ $index ] = $result;

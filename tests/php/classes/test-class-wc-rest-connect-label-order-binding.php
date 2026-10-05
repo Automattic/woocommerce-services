@@ -494,6 +494,29 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 	}
 
 	/**
+	 * A label stored with a string ID is refunded and the refund is saved on the order.
+	 * Before, the check passed but the save compared strictly, so the refund was lost.
+	 */
+	public function test_refund_of_a_label_stored_with_a_string_id_is_saved() {
+		$order  = $this->order_with_label( '444' );
+		$refund = (object) array( 'status' => 'pending' );
+		$this->api_client->expects( $this->once() )
+			->method( 'send_shipping_label_refund_request' )
+			->with( '444' )
+			->willReturn(
+				(object) array(
+					'label'  => (object) array( 'id' => 444 ),
+					'refund' => $refund,
+				)
+			);
+
+		$response = $this->send( 'POST', '/wc/v1/connect/label/' . $order->get_id() . '/444/refund' );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertEquals( $refund, $this->labels_of( $order )[0]['refund'] );
+	}
+
+	/**
 	 * A purchase body for one package holding the given product.
 	 *
 	 * @param int $product_id Product in the package.
