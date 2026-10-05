@@ -769,6 +769,101 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	// -------------------------------------------------------------------------
+	// Refunded tax keeps the order's rates.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Refund item A of the fixture order, with or without its tax.
+	 *
+	 * @param array $fixture    Result of create_placed_order().
+	 * @param bool  $refund_tax Whether the refund includes A's tax.
+	 */
+	private function refund_item_a( array $fixture, $refund_tax = true ) {
+		wc_create_refund(
+			array(
+				'order_id'   => $fixture['order']->get_id(),
+				'amount'     => $refund_tax ? 10.60 : 10.00,
+				'line_items' => array(
+					$fixture['a'] => array(
+						'qty'          => 1,
+						'refund_total' => 10.00,
+						'refund_tax'   => $refund_tax ? array( $this->rate_id => 0.60 ) : array(),
+					),
+				),
+			)
+		);
+		$this->forget_created_in_request();
+	}
+
+	/**
+	 * @testdox An address change on an order with refunded tax keeps its rates, so the refund still matches them.
+	 */
+	public function test_address_change_with_refunded_tax_keeps_rates() {
+		$fixture = $this->create_placed_order();
+		$this->refund_item_a( $fixture );
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '80301', 'Boulder' ) ) );
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+		$this->assertSame( array( $this->rate_id ), array_map( fn( $line ) => (int) $line->get_rate_id(), array_values( $order->get_taxes() ) ), 'the tax line keeps its rate id' );
+		$this->assertEqualsWithDelta( 0.60, $order->get_tax_refunded_for_item( $fixture['a'], $this->rate_id ), 0.001, 'the refund still matches a rate on the order' );
+
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'refunded tax', $notes[0] );
+		$this->assertStringContainsString( 'already had was kept', $notes[0] );
+	}
+
+	/**
+	 * @testdox An address and quantity change on an order with refunded tax re-apply the recorded rate.
+	 */
+	public function test_address_and_amount_change_with_refunded_tax_reapplies_recorded_rate() {
+		$fixture = $this->create_placed_order();
+		$this->refund_item_a( $fixture );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping'   => self::address( '80301', 'Boulder' ),
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		// 6% recorded: A $20 1.20, B 1.20, shipping 0.60.
+		$this->assert_order_tax( $order, 2.40, 0.60, 53.00 );
+		$this->assertEqualsWithDelta( 0.60, $order->get_tax_refunded_for_item( $fixture['a'], $this->rate_id ), 0.001 );
+
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 2, $notes, 'the re-apply note and the refund note' );
+		$refund_note = implode( "\n", preg_grep( '/refunded tax/', $notes ) );
+		$this->assertStringContainsString( 'recorded when the order was placed were used instead', $refund_note );
+		$this->assertStringNotContainsString( 'was kept', $refund_note, 'The tax changed, so the note must not say it was kept.' );
+	}
+
+	/**
+	 * @testdox A refund without tax does not stop the lookup: nothing refunded is tied to a rate.
+	 */
+	public function test_address_change_with_untaxed_refund_asks_taxjar() {
+		$fixture = $this->create_placed_order();
+		$this->refund_item_a( $fixture, false );
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '80301', 'Boulder' ) ) );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+		$this->assertCount( 0, preg_grep( '/refunded tax/', $this->tax_notes( $order ) ) );
+	}
+
+	// -------------------------------------------------------------------------
 	// Everything else makes no request.
 	// -------------------------------------------------------------------------
 
