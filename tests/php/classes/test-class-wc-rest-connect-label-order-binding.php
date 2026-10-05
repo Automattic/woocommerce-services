@@ -304,6 +304,7 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 		$this->assert_refused( $response, 'bad_request', 400 );
 		$this->assertSame( self::STORED_ORIGIN, WC_Connect_Options::get_option( 'origin_address' ) );
 		$this->assertSame( '5 Kept St', wc_get_order( $order->get_id() )->get_shipping_address_1() );
+		$this->assertFalse( wc_get_order( $order->get_id() )->meta_exists( '_wc_connect_destination_normalized' ) );
 	}
 
 	/**
@@ -558,5 +559,82 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( 333, $this->labels_of( $order )[0]['label_id'] );
+	}
+
+	/**
+	 * The settings store's order writers return instead of failing when the ID is not an
+	 * order, for any caller that has not checked it first.
+	 *
+	 * @dataProvider not_an_order_provider
+	 * @param string $kind Kind of ID.
+	 */
+	public function test_settings_store_order_writers_ignore_an_id_that_is_not_an_order( $kind ) {
+		$id    = $this->make_id( $kind );
+		$label = (object) array(
+			'label_id' => 111,
+			'status'   => 'DELIVERED',
+		);
+
+		$this->assertSame( $label, $this->settings_store->update_label_order_meta_data( $id, $label ) );
+		$this->assertNull( $this->settings_store->add_labels_to_order( $id, array( array( 'label_id' => 111 ) ) ) );
+		$this->assertNull( $this->settings_store->update_destination_address( $id, array( 'address' => '9 Dest Rd' ) ) );
+		$this->assertSame( '', get_post_meta( $id, 'wc_connect_labels', true ) );
+	}
+
+	/**
+	 * Another order's label, through an order that has no labels at all: refused by both
+	 * routes, and no wc_connect_labels row is created on the target order. Before, an empty
+	 * list was saved there, which _has_any_labels_db_check() counts as a label.
+	 */
+	public function test_a_label_of_another_order_creates_no_label_meta_on_the_target_order() {
+		$target = WC_Helper_Order::create_order();
+		$this->order_with_label( 222 );
+		$this->api_client->expects( $this->never() )->method( 'get_label_status' );
+		$this->api_client->expects( $this->never() )->method( 'send_shipping_label_refund_request' );
+
+		$this->assert_refused( $this->send( 'GET', '/wc/v1/connect/label/' . $target->get_id() . '/222' ), 'not_found', 404 );
+		$this->assert_refused( $this->send( 'POST', '/wc/v1/connect/label/' . $target->get_id() . '/222/refund' ), 'not_found', 404 );
+
+		$this->assertFalse( wc_get_order( $target->get_id() )->meta_exists( 'wc_connect_labels' ) );
+	}
+
+	/**
+	 * The settings store does not save a label list for a label the order does not have.
+	 */
+	public function test_settings_store_saves_nothing_for_a_label_the_order_does_not_have() {
+		$order = WC_Helper_Order::create_order();
+		$label = (object) array(
+			'label_id' => 222,
+			'status'   => 'DELIVERED',
+		);
+
+		$this->assertSame( $label, $this->settings_store->update_label_order_meta_data( $order->get_id(), $label ) );
+		$this->assertFalse( wc_get_order( $order->get_id() )->meta_exists( 'wc_connect_labels' ) );
+	}
+
+	/**
+	 * A trashed order is still an order: its labels can still be checked, as before.
+	 */
+	public function test_status_for_a_trashed_orders_own_label_is_still_updated() {
+		$order    = $this->order_with_label( 111 );
+		$order_id = $order->get_id();
+		$order->delete( false );
+		$order = wc_get_order( $order_id );
+		$this->assertSame( 'trash', $order->get_status() );
+		$this->api_client->expects( $this->once() )
+			->method( 'get_label_status' )
+			->willReturn(
+				(object) array(
+					'label' => (object) array(
+						'label_id' => 111,
+						'status'   => 'DELIVERED',
+					),
+				)
+			);
+
+		$response = $this->send( 'GET', '/wc/v1/connect/label/' . $order->get_id() . '/111' );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'DELIVERED', $this->labels_of( $order )[0]['status'] );
 	}
 }
