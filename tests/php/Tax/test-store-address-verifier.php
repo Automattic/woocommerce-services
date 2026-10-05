@@ -37,6 +37,13 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 	private $api_client;
 
 	/**
+	 * Mocked logger.
+	 *
+	 * @var WC_Connect_Logger|\PHPUnit\Framework\MockObject\MockObject
+	 */
+	private $logger;
+
+	/**
 	 * Load required classes before running tests.
 	 */
 	public static function set_up_before_class() {
@@ -57,7 +64,7 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 			->disableOriginalConstructor()
 			->getMock();
 
-		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )
+		$this->logger = $this->getMockBuilder( 'WC_Connect_Logger' )
 			->disableOriginalConstructor()
 			->getMock();
 
@@ -65,7 +72,7 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 			->disableOriginalConstructor()
 			->getMock();
 
-		$taxjar = new WC_Connect_TaxJar_Integration( $this->api_client, $logger, 'https://example.com', $tracks );
+		$taxjar = new WC_Connect_TaxJar_Integration( $this->api_client, $this->logger, 'https://example.com', $tracks );
 
 		$this->sut = new StoreAddressVerifier( $this->api_client, $taxjar );
 
@@ -343,6 +350,33 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 	}
 
 	/* ──── verify() ──── */
+
+	/**
+	 * @testdox A failed check is logged even with logging turned off, without turning on the error notice.
+	 */
+	public function test_failed_check_is_logged_even_with_logging_off() {
+		$this->logger->method( 'is_logging_enabled' )->willReturn( false );
+		$this->api_client->method( 'proxy_request' )->willReturn( new WP_Error( 'http_request_failed', 'timed out' ) );
+
+		$this->logger->expects( $this->once() )
+			->method( 'log' )
+			->with( $this->stringContains( 'Store address check failed: http_request_failed' ), $this->anything(), true );
+		$this->logger->expects( $this->never() )->method( 'error' );
+
+		$this->sut->verify();
+	}
+
+	/**
+	 * @testdox A check that gets an answer writes nothing to the log.
+	 */
+	public function test_answered_check_is_not_logged() {
+		$this->api_client->method( 'proxy_request' )->willReturn( $this->response( 404, self::TAXJAR_NOT_FOUND ) );
+
+		$this->logger->expects( $this->never() )->method( 'log' );
+		$this->logger->expects( $this->never() )->method( 'error' );
+
+		$this->sut->verify();
+	}
 
 	/**
 	 * @testdox The store address is sent to TaxJar's address validation, and the answer is stored for that address.

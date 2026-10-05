@@ -302,7 +302,9 @@ final class StoreAddressVerifier {
 		$result = array_merge( $result, self::classify_response( $address, $response ) );
 
 		if ( self::STATUS_ERROR === $result['status'] ) {
-			$this->taxjar->_log( 'Store address check failed: ' . self::describe_response( $response ) );
+			// Forced, so it is written even with logging off: a failed check shows no notice, so the
+			// log is the only trace of it. Not logger->error(), which also turns on the site-wide error notice.
+			$this->taxjar->logger->log( 'Store address check failed: ' . self::describe_response( $response ), 'WCS Tax', true );
 		}
 
 		return $this->save_result( $result );
