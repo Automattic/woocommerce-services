@@ -4,10 +4,10 @@
  *
  * Reads what StoreAddressVerifier stored for the current store address and shows a notice
  * on WooCommerce admin screens when something needs the merchant's attention. A wrong state
- * is also shown on the Dashboard, because the store may be charging no tax on orders from
- * its own state. When TaxJar
- * places the store in a different state or ZIP, the merchant can apply that with one click. Nothing changes
- * the store address without that click.
+ * and a missing or invalid ZIP are also shown on the Dashboard, because the store may be
+ * charging no tax on orders from its own state. When TaxJar places the store in a different
+ * state or ZIP, the merchant can apply that with one click. Nothing changes the store address
+ * without that click.
  *
  * Dismissing a notice hides it until the store address changes.
  *
@@ -80,18 +80,15 @@ final class StoreAddressNotice {
 			return;
 		}
 
-		if ( ! $on_woocommerce_screen ) {
-			// The Dashboard shows only the wrong state, which can mean no tax on in-state orders.
-			if ( $this->is_state_change( $result ) ) {
-				$this->render_suggestion( $result );
-			}
-
+		if ( ! $on_woocommerce_screen && ! $this->can_stop_in_state_tax( $result ) ) {
+			// The Dashboard shows only the problems that can mean no tax on in-state orders.
 			return;
 		}
 
+		$settings_url  = admin_url( 'admin.php?page=wc-settings&tab=general' );
 		$settings_link = sprintf(
 			'<a href="%s">%s</a>',
-			esc_url( admin_url( 'admin.php?page=wc-settings&tab=general' ) ),
+			esc_url( $settings_url ),
 			esc_html__( 'Check your store address', 'woocommerce-services' )
 		);
 
@@ -102,8 +99,21 @@ final class StoreAddressNotice {
 					esc_html__( 'Your store address has no ZIP code. Automated taxes need it to calculate tax.', 'woocommerce-services' ),
 					sprintf(
 						'<a href="%s">%s</a>',
-						esc_url( admin_url( 'admin.php?page=wc-settings&tab=general' ) ),
+						esc_url( $settings_url ),
 						esc_html__( 'Add a ZIP code', 'woocommerce-services' )
+					),
+					false
+				);
+				break;
+
+			case StoreAddressVerifier::STATUS_ZIP_INVALID:
+				$this->print_notice(
+					'error',
+					esc_html__( 'Your store ZIP code isn\'t a valid US ZIP code. Automated taxes need it to calculate tax.', 'woocommerce-services' ),
+					sprintf(
+						'<a href="%s">%s</a>',
+						esc_url( $settings_url ),
+						esc_html__( 'Fix the ZIP code', 'woocommerce-services' )
 					),
 					false
 				);
@@ -276,6 +286,21 @@ final class StoreAddressNotice {
 			&& isset( $result['suggestion'] ) && is_array( $result['suggestion'] )
 			&& ! empty( $result['suggestion']['state'] )
 			&& $result['suggestion']['state'] !== $this->verifier->get_store_address()->state();
+	}
+
+	/**
+	 * Can the result mean orders from the store's own state get no tax from TaxJar?
+	 *
+	 * A wrong state makes them out-of-state orders, and a missing or invalid ZIP stops the
+	 * request. Either way they are charged only rates saved by earlier lookups, or none.
+	 *
+	 * @param array $result Stored result.
+	 * @return bool
+	 */
+	private function can_stop_in_state_tax( array $result ) {
+		return StoreAddressVerifier::STATUS_ZIP_MISSING === $result['status']
+			|| StoreAddressVerifier::STATUS_ZIP_INVALID === $result['status']
+			|| $this->is_state_change( $result );
 	}
 
 	/**

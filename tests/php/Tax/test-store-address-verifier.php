@@ -404,6 +404,48 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Store ZIPs the tax calculation rejects before calling TaxJar.
+	 *
+	 * @return array
+	 */
+	public function provide_invalid_zips() {
+		return array(
+			'four digits'          => array( '4985' ),
+			'nine digits, no dash' => array( '813239704' ),
+			'letters'              => array( 'ABCDE' ),
+		);
+	}
+
+	/**
+	 * @testdox A US store with an invalid ZIP is reported without asking TaxJar.
+	 * @dataProvider provide_invalid_zips
+	 *
+	 * @param string $postcode Store ZIP.
+	 */
+	public function test_invalid_zip_is_reported_without_a_request( $postcode ) {
+		$this->set_store_address( 'US:CO', $postcode, 'Dolores', '123 Main St' );
+		$this->api_client->expects( $this->never() )->method( 'proxy_request' );
+
+		$result = $this->sut->verify();
+
+		$this->assertSame( StoreAddressVerifier::STATUS_ZIP_INVALID, $result['status'] );
+	}
+
+	/**
+	 * @testdox A ZIP+4 is a valid ZIP and is sent to TaxJar.
+	 */
+	public function test_zip_plus_four_is_sent() {
+		$this->set_store_address( 'US:CO', '81323-9704', 'Dolores', '123 Main St' );
+		$this->api_client->expects( $this->once() )
+			->method( 'proxy_request' )
+			->willReturn( $this->response( 200, array( 'addresses' => array( $this->candidate( 'CO', '81323-9704' ) ) ) ) );
+
+		$result = $this->sut->verify();
+
+		$this->assertSame( StoreAddressVerifier::STATUS_VERIFIED, $result['status'] );
+	}
+
+	/**
 	 * @testdox The address checked is the one tax is calculated from, including a taxjar_store_settings filter.
 	 */
 	public function test_verify_checks_the_filtered_address() {
@@ -556,6 +598,20 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 
 		$this->assertFalse( wp_next_scheduled( StoreAddressVerifier::CRON_HOOK ) );
 		$this->assertSame( StoreAddressVerifier::STATUS_ZIP_MISSING, $this->sut->get_current_result()['status'] );
+	}
+
+	/**
+	 * @testdox An invalid ZIP is reported on the same page load, with nothing scheduled.
+	 */
+	public function test_admin_load_reports_an_invalid_zip_immediately() {
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		$this->set_store_address( 'US:CO', '4985', 'Dolores', '123 Main St' );
+		$this->api_client->expects( $this->never() )->method( 'proxy_request' );
+
+		$this->sut->maybe_schedule_check();
+
+		$this->assertFalse( wp_next_scheduled( StoreAddressVerifier::CRON_HOOK ) );
+		$this->assertSame( StoreAddressVerifier::STATUS_ZIP_INVALID, $this->sut->get_current_result()['status'] );
 	}
 
 	/* ──── dismiss() / mark_verified() ──── */

@@ -134,6 +134,20 @@ class WP_Test_WCServices_Tax_Store_Address_Notice extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox An invalid ZIP shows its own error that can't be dismissed.
+	 */
+	public function test_invalid_zip_shows_an_undismissable_error() {
+		$this->store_result( StoreAddressVerifier::STATUS_ZIP_INVALID );
+
+		$html = $this->render();
+
+		$this->assertStringContainsString( 'notice-error', $html );
+		$this->assertStringContainsString( 'isn&#039;t a valid US ZIP code', $html );
+		$this->assertStringNotContainsString( 'has no ZIP code', $html );
+		$this->assertStringNotContainsString( 'notice-dismiss', $html );
+	}
+
+	/**
 	 * @testdox An address TaxJar can't find shows a dismissible error.
 	 */
 	public function test_not_found_shows_a_dismissible_error() {
@@ -223,6 +237,39 @@ class WP_Test_WCServices_Tax_Store_Address_Notice extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * ZIP problems that stop every in-state lookup, with text their notice shows.
+	 *
+	 * @return array
+	 */
+	public function provide_zip_problems() {
+		return array(
+			'missing ZIP' => array( StoreAddressVerifier::STATUS_ZIP_MISSING, 'has no ZIP code' ),
+			'invalid ZIP' => array( StoreAddressVerifier::STATUS_ZIP_INVALID, 'valid US ZIP code' ),
+		);
+	}
+
+	/**
+	 * @testdox A missing or invalid ZIP is also shown on the WordPress Dashboard.
+	 * @dataProvider provide_zip_problems
+	 *
+	 * @param string $status Status.
+	 * @param string $text   Text the notice shows.
+	 */
+	public function test_zip_problem_is_shown_on_the_dashboard( $status, $text ) {
+		$this->store_result( $status );
+		set_current_screen( 'dashboard' );
+
+		$html = $this->render();
+
+		$this->assertStringContainsString( 'notice-error', $html );
+		$this->assertStringContainsString( $text, $html );
+
+		// Other non-WooCommerce screens still show nothing.
+		set_current_screen( 'edit-post' );
+		$this->assertSame( '', $this->render() );
+	}
+
+	/**
 	 * Results the Dashboard leaves to the WooCommerce screens.
 	 *
 	 * @return array
@@ -247,12 +294,11 @@ class WP_Test_WCServices_Tax_Store_Address_Notice extends WC_Unit_Test_Case {
 			),
 			'not found'           => array( StoreAddressVerifier::STATUS_NOT_FOUND, null, false ),
 			'ambiguous'           => array( StoreAddressVerifier::STATUS_AMBIGUOUS, null, false ),
-			'missing ZIP'         => array( StoreAddressVerifier::STATUS_ZIP_MISSING, null, false ),
 		);
 	}
 
 	/**
-	 * @testdox The Dashboard shows nothing but an undismissed wrong state.
+	 * @testdox The Dashboard shows nothing but an undismissed wrong state or a ZIP problem.
 	 * @dataProvider provide_results_not_shown_on_the_dashboard
 	 *
 	 * @param string     $status     Status.

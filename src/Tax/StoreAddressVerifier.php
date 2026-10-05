@@ -28,6 +28,7 @@ namespace Automattic\WCServices\Tax;
 
 use WC_Connect_API_Client;
 use WC_Connect_TaxJar_Integration;
+use WC_Validation;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -66,6 +67,7 @@ final class StoreAddressVerifier {
 	const STATUS_AMBIGUOUS   = 'ambiguous';
 	const STATUS_NOT_FOUND   = 'not_found';
 	const STATUS_ZIP_MISSING = 'zip_missing';
+	const STATUS_ZIP_INVALID = 'zip_invalid';
 	const STATUS_SKIPPED     = 'skipped';
 	const STATUS_ERROR       = 'error';
 
@@ -233,10 +235,12 @@ final class StoreAddressVerifier {
 	 * Does checking this address need a call to TaxJar?
 	 *
 	 * @param Address $address Address.
-	 * @return bool False for a non-US store or a US store without a ZIP: both are answered locally.
+	 * @return bool False for a non-US store or a US store without a valid ZIP: both are answered locally.
 	 */
 	private function needs_request( Address $address ) {
-		return 'US' === $address->country() && '' !== $address->postcode();
+		// The same test the tax calculation makes before it calls TaxJar, so a ZIP that stops
+		// the calculation is reported here instead of failing at TaxJar and staying silent.
+		return 'US' === $address->country() && WC_Validation::is_postcode( $address->postcode(), 'US' );
 	}
 
 	/**
@@ -285,9 +289,9 @@ final class StoreAddressVerifier {
 		);
 
 		if ( ! $this->needs_request( $address ) ) {
-			// TaxJar's address validation is US-only, and a US store without a ZIP can't be placed at all.
+			// TaxJar's address validation is US-only, and a US store without a valid ZIP can't be placed at all.
 			if ( 'US' === $address->country() ) {
-				$result['status'] = self::STATUS_ZIP_MISSING;
+				$result['status'] = '' === $address->postcode() ? self::STATUS_ZIP_MISSING : self::STATUS_ZIP_INVALID;
 			}
 
 			return $this->save_result( $result );
