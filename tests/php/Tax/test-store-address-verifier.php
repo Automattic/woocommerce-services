@@ -14,6 +14,15 @@ use Automattic\WCServices\Tax\StoreAddressVerifier;
 class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 
 	/**
+	 * TaxJar's 404 body when it can't match an address, as recorded from the live API.
+	 */
+	const TAXJAR_NOT_FOUND = array(
+		'detail' => 'Resource can not be found',
+		'status' => 404,
+		'error'  => 'Not Found',
+	);
+
+	/**
 	 * The System Under Test.
 	 *
 	 * @var StoreAddressVerifier
@@ -227,13 +236,7 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 	 * @testdox A 404 means TaxJar could not find the address.
 	 */
 	public function test_404_is_not_found() {
-		$response = $this->response(
-			404,
-			array(
-				'error'  => 'Not Found',
-				'detail' => 'Resource can not be found',
-			)
-		);
+		$response = $this->response( 404, self::TAXJAR_NOT_FOUND );
 
 		$result = StoreAddressVerifier::classify_response( $this->typed_address(), $response );
 
@@ -256,50 +259,68 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 	 */
 	public function provide_failed_responses() {
 		return array(
-			'transport error'        => array( new WP_Error( 'http_request_failed', 'timed out' ) ),
-			'server error'           => array(
+			'transport error'                => array( new WP_Error( 'http_request_failed', 'timed out' ) ),
+			'server error'                   => array(
 				array(
 					'response' => array( 'code' => 500 ),
 					'body'     => '',
 				),
 			),
-			'unauthorized'           => array(
+			'unauthorized'                   => array(
 				array(
 					'response' => array( 'code' => 401 ),
 					'body'     => '{}',
 				),
 			),
-			'rate limited'           => array(
+			'rate limited'                   => array(
 				array(
 					'response' => array( 'code' => 429 ),
 					'body'     => '{}',
 				),
 			),
-			'not JSON'               => array(
+			'not JSON'                       => array(
 				array(
 					'response' => array( 'code' => 200 ),
 					'body'     => '<html>',
 				),
 			),
-			'no address list'        => array(
+			'no address list'                => array(
 				array(
 					'response' => array( 'code' => 200 ),
 					'body'     => '{"foo":1}',
 				),
 			),
-			'state name, not a code' => array(
+			'state name, not a code'         => array(
 				array(
 					'response' => array( 'code' => 200 ),
 					'body'     => '{"addresses":[{"country":"US","state":"COLORADO","zip":"81321"}]}',
 				),
 			),
-			'unknown state code'     => array(
+			'unknown state code'             => array(
 				array(
 					'response' => array( 'code' => 200 ),
 					'body'     => '{"addresses":[{"country":"US","state":"XX","zip":"81321"}]}',
 				),
 			),
-			'short ZIP'              => array(
+			'404 from the route, not TaxJar' => array(
+				array(
+					'response' => array( 'code' => 404 ),
+					'body'     => '<!DOCTYPE html><pre>Cannot POST /taxjar/v2/addresses/validate</pre>',
+				),
+			),
+			'404 with another detail'        => array(
+				array(
+					'response' => array( 'code' => 404 ),
+					'body'     => '{"detail":"Route not allowed","status":404,"error":"Not Found"}',
+				),
+			),
+			'404 with another JSON body'     => array(
+				array(
+					'response' => array( 'code' => 404 ),
+					'body'     => '{"error":{"code":404,"message":"Not Found"}}',
+				),
+			),
+			'short ZIP'                      => array(
 				array(
 					'response' => array( 'code' => 200 ),
 					'body'     => '{"addresses":[{"country":"US","state":"CO","zip":"813"}]}',
@@ -407,7 +428,7 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 					}
 				)
 			)
-			->willReturn( $this->response( 404, '{}' ) );
+			->willReturn( $this->response( 404, self::TAXJAR_NOT_FOUND ) );
 
 		$this->sut->verify();
 	}
@@ -543,7 +564,7 @@ class WP_Test_WCServices_Tax_Store_Address_Verifier extends WC_Unit_Test_Case {
 	 * @testdox Dismissing hides the result for this address, and a new address brings a fresh one.
 	 */
 	public function test_dismiss_lasts_until_the_address_changes() {
-		$this->api_client->method( 'proxy_request' )->willReturn( $this->response( 404, '{}' ) );
+		$this->api_client->method( 'proxy_request' )->willReturn( $this->response( 404, self::TAXJAR_NOT_FOUND ) );
 		$this->sut->verify();
 
 		$this->sut->dismiss();

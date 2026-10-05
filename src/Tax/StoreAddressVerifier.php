@@ -342,11 +342,19 @@ final class StoreAddressVerifier {
 		$code = (int) wp_remote_retrieve_response_code( $response );
 
 		if ( 404 === $code ) {
-			// TaxJar answers 404 when it can't match the address to a real one.
-			return array(
-				'status'     => self::STATUS_NOT_FOUND,
-				'suggestion' => null,
-			);
+			$body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+			// TaxJar answers 404 with this body when it can't match the address to a real one. Any
+			// other 404 (the route itself missing, e.g. on the Connect server) says nothing about the
+			// address, so it is an error and is retried rather than a notice that never clears.
+			if ( is_array( $body ) && isset( $body['detail'] ) && 'Resource can not be found' === $body['detail'] ) {
+				return array(
+					'status'     => self::STATUS_NOT_FOUND,
+					'suggestion' => null,
+				);
+			}
+
+			return $error;
 		}
 
 		if ( 200 !== $code ) {
