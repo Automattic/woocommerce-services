@@ -315,6 +315,17 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		/**
+		 * Whether the current user may accept the Terms of Service.
+		 *
+		 * Only the Jetpack connection owner may, or any user while Jetpack is in offline mode.
+		 *
+		 * @return bool
+		 */
+		public static function current_user_can_accept_tos() {
+			return WC_Connect_Jetpack::is_current_user_connection_owner() || WC_Connect_Jetpack::is_offline_mode();
+		}
+
+		/**
 		 * Whether the WooCommerce Tax connection banner may render on the given screen.
 		 *
 		 * The banner only offers WooCommerce Tax, so it is confined to where WooCommerce
@@ -406,7 +417,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				array(
 					'jetpack_connection_status'       => $jetpack_install_status,
 					'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
-					'can_accept_tos'                  => WC_Connect_Jetpack::is_current_user_connection_owner() || WC_Connect_Jetpack::is_offline_mode(),
+					'can_accept_tos'                  => self::current_user_can_accept_tos(),
 					'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
 					'is_site_only_connection'         => WC_Connect_Jetpack::is_site_only_connection(),
 				)
