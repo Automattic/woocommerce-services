@@ -167,6 +167,8 @@ class WP_Test_WC_Connect_Account_Settings extends WC_REST_Unit_Test_Case {
 
 		$meta = $this->account_settings->get()['formMeta'];
 
+		$this->assertNotEmpty( $this->owner->display_name );
+		$this->assertSame( $this->owner->display_name, $meta['master_user_name'] );
 		$this->assertSame( $this->owner->user_login, $meta['master_user_login'] );
 		$this->assertSame( self::OWNER_WPCOM_LOGIN, $meta['master_user_wpcom_login'] );
 		$this->assertSame( self::OWNER_EMAIL, $meta['master_user_email'] );
@@ -191,12 +193,12 @@ class WP_Test_WC_Connect_Account_Settings extends WC_REST_Unit_Test_Case {
 		$this->assertSame( '', $meta['master_user_email'] );
 		$this->assertSame( array(), $meta['payment_methods'] );
 		$this->assertSame( '', $meta['add_payment_method_url'] );
-		$this->assertSame( $this->owner->display_name, $meta['master_user_name'] );
+		$this->assertSame( '', $meta['master_user_name'] );
 		$this->assertSame( 7, $settings['formData']['selected_payment_method_id'], 'Label purchase needs the selected card id.' );
 	}
 
 	/**
-	 * @testdox A label-only user still reads account settings over REST, without the owner's email.
+	 * @testdox A label-only user still reads account settings over REST, without the owner's name or email.
 	 */
 	public function test_label_only_user_reads_redacted_settings_over_rest() {
 		$this->set_label_only_user();
@@ -205,6 +207,7 @@ class WP_Test_WC_Connect_Account_Settings extends WC_REST_Unit_Test_Case {
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( '', $response->get_data()['formMeta']['master_user_email'] );
+		$this->assertSame( '', $response->get_data()['formMeta']['master_user_name'] );
 		$this->assertStringNotContainsString( self::OWNER_EMAIL, wp_json_encode( $response->get_data() ) );
 	}
 }

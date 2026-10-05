@@ -66,6 +66,7 @@ class WC_Connect_Account_Settings {
 
 		// Users who can only print labels do not need the connection owner's identity or the store's cards.
 		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			$settings['formMeta']['master_user_name']        = '';
 			$settings['formMeta']['master_user_login']       = '';
 			$settings['formMeta']['master_user_wpcom_login'] = '';
 			$settings['formMeta']['master_user_email']       = '';
