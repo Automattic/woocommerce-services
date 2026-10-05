@@ -303,4 +303,70 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 		$this->assertSame( $ok, $this->loader->log_rest_api_errors( $ok, array( 'permission_callback' => '__return_true' ), $request ) );
 		$this->assertCount( 1, $this->logged );
 	}
+
+	/**
+	 * A route ending in a line break still matches ("$" allows it) and is logged escaped.
+	 */
+	public function test_route_with_a_line_break_is_logged_escaped() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
+
+		$response = $this->post_malformed_json( "/wc/v1/connect/self-help\n" );
+
+		$this->assertSame( 'rest_invalid_json', $response->get_data()['code'] );
+		$this->assertCount( 1, $this->logged );
+		$this->assertStringEndsWith( ' (POST /wc/v1/connect/self-help\n)', $this->logged[0] );
+		$this->assertStringNotContainsString( "\n", $this->logged[0] );
+	}
+
+	/**
+	 * A carriage return in the route cannot start a line of its own in the log.
+	 */
+	public function test_route_with_a_carriage_return_is_logged_escaped() {
+		$this->use_logger( true );
+		$request = new WP_REST_Request( 'POST', "/wc/v1/connect/self-help\rFAKE LOG LINE" );
+		$request->set_body( '{bad' );
+
+		$this->loader->log_rest_api_errors( new WP_Error( 'rest_invalid_json', 'Invalid JSON body passed.' ), array( 'permission_callback' => '__return_true' ), $request );
+
+		$this->assertCount( 2, $this->logged );
+		$this->assertStringEndsWith( ' (POST /wc/v1/connect/self-help\rFAKE LOG LINE)', $this->logged[0] );
+		$this->assertStringStartsWith( 'POST /wc/v1/connect/self-help\rFAKE LOG LINE (body, 4 bytes: ', $this->logged[1] );
+		foreach ( $this->logged as $message ) {
+			$this->assertStringNotContainsString( "\r", $message );
+		}
+	}
+
+	/**
+	 * The cut at the limit never splits a multibyte character.
+	 */
+	public function test_body_is_not_cut_inside_a_multibyte_character() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
+		$this->use_logger( true );
+
+		// 1023 bytes, then a 3-byte euro sign across the 1024-byte limit.
+		$body = '{bad' . str_repeat( 'x', 1019 ) . "\xE2\x82\xAC" . str_repeat( 'y', 10 );
+		$this->post_malformed_json( '/wc/v1/connect/self-help', $body );
+
+		$this->assertCount( 2, $this->logged );
+		$this->assertSame(
+			'POST /wc/v1/connect/self-help (body, 1036 bytes: "{bad' . str_repeat( 'x', 1019 ) . '"...)',
+			$this->logged[1]
+		);
+	}
+
+	/**
+	 * Invalid UTF-8 is replaced rather than dropping the whole excerpt.
+	 */
+	public function test_invalid_utf8_in_the_body_is_substituted() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
+		$this->use_logger( true );
+
+		$this->post_malformed_json( '/wc/v1/connect/self-help', "{bad\xFF\xFE" );
+
+		$this->assertCount( 2, $this->logged );
+		$this->assertSame(
+			'POST /wc/v1/connect/self-help (body, 6 bytes: "{bad' . "\xEF\xBF\xBD\xEF\xBF\xBD" . '")',
+			$this->logged[1]
+		);
+	}
 }
