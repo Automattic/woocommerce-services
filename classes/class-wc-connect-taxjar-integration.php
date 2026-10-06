@@ -2,6 +2,8 @@
 
 use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
 use Automattic\WCServices\Tax\Address;
+use Automattic\WCServices\Tax\StoreAddressNotice;
+use Automattic\WCServices\Tax\StoreAddressVerifier;
 
 class WC_Connect_TaxJar_Integration {
 
@@ -16,7 +18,9 @@ class WC_Connect_TaxJar_Integration {
 	public $logger;
 
 	/**
-	 * @var StoreNoticesNotifier
+	 * Shows customer-input errors at checkout. Optional: null when none is passed to the constructor.
+	 *
+	 * @var StoreNoticesNotifier|null
 	 */
 	private $notifier;
 
@@ -332,6 +336,11 @@ class WC_Connect_TaxJar_Integration {
 
 		$this->configure_tax_settings();
 
+		// Check the store address with TaxJar when it changes, and tell the merchant when it looks wrong.
+		$store_address_verifier = new StoreAddressVerifier( $this->api_client, $this );
+		$store_address_verifier->init();
+		( new StoreAddressNotice( $store_address_verifier ) )->init();
+
 		// Calculate Taxes at Cart / Checkout
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
 			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
@@ -628,13 +637,22 @@ class WC_Connect_TaxJar_Integration {
 	public function _error( $message ) {
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
-		// Show errors caused by customer input to the customer instead of logging them.
-		// Only where there is a customer to show them to: REST, cron and WP-CLI requests
-		// have no WC session, so those errors are logged.
+		// Show errors caused by customer input to the customer through the notifier, when there is
+		// one, instead of logging them. Only where there is a customer to show them to: REST, cron
+		// and WP-CLI requests have no WC session, so those errors are logged.
 		$state_zip_mismatch = false !== strpos( $formatted_message, 'to_zip' ) && false !== strpos( $formatted_message, 'is not used within to_state' );
 		$invalid_postcode   = false !== strpos( $formatted_message, 'isn\'t a valid postal code for' );
-		$malformed_postcode = false !== strpos( $formatted_message, 'zip code has incorrect format' );
+		// Only the shopper's ZIP. A bad store ZIP is the merchant's to fix, so it is logged and checkout goes on.
+		$malformed_postcode = false !== strpos( $formatted_message, 'Country destination is set to US but the zip code has incorrect format' );
 		if ( ! is_admin() && StoreNoticesNotifier::wc_session_exists() && ( $state_zip_mismatch || $invalid_postcode || $malformed_postcode ) ) {
+			if ( ! $this->notifier ) {
+				// The notifier is optional. Without one, log the error, but through log() rather
+				// than error(): customer input must not replace the admin error notice.
+				$this->logger->log( $formatted_message, 'WCS Tax' );
+
+				return;
+			}
+
 			$fields              = WC()->countries->get_address_fields();
 			$postcode_field_name = __( 'ZIP/Postal code', 'woocommerce-services' );
 			if ( isset( $fields['billing_postcode'] ) && isset( $fields['billing_postcode']['label'] ) ) {
@@ -777,7 +795,7 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Calculate tax / totals using TaxJar for backend orders
 	 *
-	 * Unchanged from the TaxJar plugin.
+	 * Based on the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L557
 	 *
 	 * @return void
@@ -821,29 +839,12 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		if ( class_exists( 'WC_Order_Item_Tax' ) ) { // Add tax rates manually for Woo 3.0+
-			/**
-			 * @var WC_Order_Item_Product $item Product Order Item.
-			 */
-			foreach ( $order->get_items() as $item_key => $item ) {
-				// get_backend_line_items() keys by order item ID and stores the canonical
-				// TaxJar ID under 'id'; the response is keyed by that canonical ID.
-				$line_item_key = $line_items[ $item_key ]['id'] ?? null;
-				if ( null !== $line_item_key && isset( $taxes['rate_ids'][ $line_item_key ] ) ) {
-					$rate_id  = $taxes['rate_ids'][ $line_item_key ];
-					$item_tax = new WC_Order_Item_Tax();
-					$item_tax->set_rate( $rate_id );
-					$item_tax->set_order_id( $order_id );
-					$item_tax->save();
-				}
-			}
-		} elseif ( class_exists( 'WC_AJAX' ) ) { // Recalculate tax for Woo 2.6 to apply new tax rates
-				remove_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
-			if ( check_ajax_referer( 'calc-totals', 'security', false ) ) {
-				WC_AJAX::calc_line_taxes();
-			}
-				add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
-		}
+		/*
+		 * No tax items are saved here. wc_save_order_items(), which fires this hook,
+		 * rebuilds the order's tax items from its line items right after, and
+		 * Recalculate then recalculates them, so WooCommerce adds one per rate the
+		 * order is charged under that rate's own name.
+		 */
 	}
 
 	/**
@@ -2797,7 +2798,9 @@ class WC_Connect_TaxJar_Integration {
 		$save_error_codes = array( 404, 400 );
 
 		// Clear the taxjar notices before calculating taxes or using cached response.
-		$this->notifier->clear_notices( 'taxjar' );
+		if ( $this->notifier ) {
+			$this->notifier->clear_notices( 'taxjar' );
+		}
 
 		if ( false === $response ) {
 			$response      = $this->smartcalcs_request( $json );
@@ -3127,6 +3130,15 @@ class WC_Connect_TaxJar_Integration {
 		$snapshot['address_before'] = $this->find_order_tax_address_change( $order );
 		$snapshot['lookup']         = $this->order_needs_tax_lookup( $snapshot );
 
+		// A refund records its tax against the order's rate ids. TaxJar's rates for a new
+		// address are stored under other ids, so after a lookup the refunded tax would
+		// belong to rates the order no longer has. Keep the recorded rates instead; the
+		// admin does not let a refunded order be edited at all.
+		$snapshot['kept_for_refunds'] = $snapshot['lookup'] && ! empty( $snapshot['tax_lines'] ) && 0.0 !== (float) $order->get_total_tax_refunded();
+		if ( $snapshot['kept_for_refunds'] ) {
+			$snapshot['lookup'] = false;
+		}
+
 		// Without tax lines there is nothing to preserve; never turn a first-time tax
 		// calculation into a zeroed one. Leave it to WC unless TaxJar is to be asked.
 		if ( empty( $snapshot['tax_lines'] ) && ! $snapshot['lookup'] ) {
@@ -3157,6 +3169,9 @@ class WC_Connect_TaxJar_Integration {
 	 * - The taxed address changed, or a new order has no tax yet: TaxJar is asked and
 	 *   its rates replace the order's tax. If that fails, the cases above apply as if
 	 *   no lookup was due, and a note says the tax could not be updated.
+	 * - The taxed address changed on an order with refunded tax: TaxJar is not asked,
+	 *   so the refunds keep matching the order's rates. The cases above apply, and a
+	 *   note says why the tax was not updated.
 	 *
 	 * @internal Hooked to woocommerce_order_after_calculate_totals.
 	 *
@@ -3206,6 +3221,15 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( ! is_array( $lookup ) && null !== $lookup && ! empty( $snapshot['tax_lines'] ) ) {
 			$this->add_order_tax_note( $order, $this->get_failed_order_tax_update_note( $lookup, $reapplied ) );
+		}
+
+		if ( ! empty( $snapshot['kept_for_refunds'] ) ) {
+			$this->add_order_tax_note(
+				$order,
+				$reapplied
+					? __( 'Tax was not updated for the new address, because this order has refunded tax. The tax rates recorded when the order was placed were used instead. Check the order\'s address and its tax.', 'woocommerce-services' )
+					: __( 'Tax was not updated for the new address, because this order has refunded tax. The tax this order already had was kept. Check the order\'s address and its tax.', 'woocommerce-services' )
+			);
 		}
 
 		// The old amounts and address have been used; a later recalculation of the same
