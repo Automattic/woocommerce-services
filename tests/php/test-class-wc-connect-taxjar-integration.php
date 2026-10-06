@@ -102,6 +102,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			WC()->cart->empty_cart();
 		}
 
+		wc_get_container()->reset_replacement( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class );
+
 		parent::tear_down();
 	}
 
@@ -5118,10 +5120,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * Forget the rate rows WooCommerce read in this process, as a new request would.
 	 */
 	private function forget_cached_tax_rates() {
-		$store    = wc_get_container()->get( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class );
-		$property = new ReflectionProperty( $store, 'rate_objects_cache' );
-		$property->setAccessible( true );
-		$property->setValue( $store, array() );
+		// A fresh store has an empty cache. WooCommerce 11.0 has no cache to forget.
+		if ( class_exists( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class ) ) {
+			wc_get_container()->replace( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class, new Automattic\WooCommerce\Internal\Tax\TaxRateDataStore() );
+		}
 	}
 
 	/**
