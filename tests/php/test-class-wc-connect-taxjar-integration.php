@@ -6119,10 +6119,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 	/**
 	 * With a notifier, the same error is shown to the customer and not logged, as before.
+	 * log() must not run either: a missing return after the notifier would fall through to it.
 	 */
 	public function test_customer_input_error_with_a_notifier_is_shown() {
 		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
 		$logger->expects( $this->never() )->method( 'error' );
+		$logger->expects( $this->never() )->method( 'log' );
 
 		$notifier    = new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false );
 		$integration = $this->get_integration_for_notifier_tests( array(), $logger, $notifier );
