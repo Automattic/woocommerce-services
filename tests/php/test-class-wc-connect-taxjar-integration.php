@@ -5117,6 +5117,60 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Changes to a tax line whose row is gone, other than what the rate table gives for
+	 * a missing row.
+	 *
+	 * @return array
+	 */
+	public function provider_deliberate_changes_to_a_removed_rate_line() {
+		return array(
+			'renamed'                     => array( 'MI Tax', true, 'label', 'Michigan Tax' ),
+			'renamed, saved with no code' => array( 'MI Tax', false, 'label', 'Michigan Tax' ),
+			'new percent, named Tax'      => array( 'Tax', true, 'rate_percent', 7.0 ),
+			'set to 0%, still named Tax'  => array( 'Tax', true, 'rate_percent', 0.0 ),
+		);
+	}
+
+	/**
+	 * A change made on purpose to a tax line whose row is gone is saved, even when part
+	 * of it matches what the rate table gives for a missing row.
+	 *
+	 * @dataProvider provider_deliberate_changes_to_a_removed_rate_line
+	 *
+	 * @param string $label    Name the line was saved with.
+	 * @param bool   $has_code Whether the line was saved with its rate's code.
+	 * @param string $field    Detail changed.
+	 * @param mixed  $value    New value.
+	 */
+	public function test_deliberate_change_to_a_removed_rate_line_is_kept( $label, $has_code, $field, $value ) {
+		$this->reset_tax_rate_tables();
+		add_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10, 1 );
+
+		$rate_id  = $this->insert_michigan_rate( 1, '6.0000', $label );
+		$order    = $this->create_michigan_order( '49841', 'Gwinn' );
+		$tax_line = new WC_Order_Item_Tax();
+		$tax_line->set_rate_id( $rate_id );
+		$tax_line->set_rate_code( $has_code ? WC_Tax::get_rate_code( $rate_id ) : '' );
+		$tax_line->set_label( $label );
+		$tax_line->set_rate_percent( 6.0 );
+		$tax_line->set_compound( false );
+		$tax_line->set_tax_total( 6 );
+		$order->add_item( $tax_line );
+		$order->save();
+
+		WC_Tax::_delete_tax_rate( $rate_id );
+		$this->forget_cached_tax_rates();
+
+		$tax_line = current( wc_get_order( $order->get_id() )->get_taxes() );
+		$tax_line->{'set_' . $field}( $value );
+		$tax_line->save();
+
+		$this->assertSame( $value, $this->tax_line_details( wc_get_order( $order->get_id() ), $rate_id )[ $field ] );
+
+		remove_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10 );
+	}
+
+	/**
 	 * Forget the rate rows WooCommerce read in this process, as a new request would.
 	 */
 	private function forget_cached_tax_rates() {

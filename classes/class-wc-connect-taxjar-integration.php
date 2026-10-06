@@ -3831,7 +3831,8 @@ class WC_Connect_TaxJar_Integration {
 	 * flag back from the rate table whenever the order's items are saved. A lookup that
 	 * returns fewer rates for a town removes rows that placed orders were taxed at, and
 	 * for those the table gives "Tax" at 0%, with the amount kept. A later edit that
-	 * re-applies the rates recorded on the order would then charge 0%.
+	 * re-applies the rates recorded on the order would then charge 0%. Details other
+	 * than the table's are left alone.
 	 *
 	 * @internal Hooked to woocommerce_before_order_item_object_save.
 	 *
@@ -3850,7 +3851,18 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		if ( WC_Tax::_get_tax_rate( $item->get_rate_id() ) ) {
+		$rate_id = $item->get_rate_id();
+		if ( WC_Tax::_get_tax_rate( $rate_id ) ) {
+			return;
+		}
+
+		// Only undo what the rate table gives for a missing row. Anything else was set on
+		// purpose, such as the plugin putting back the rates recorded on the order.
+		if ( $item->get_rate_code() !== WC_Tax::get_rate_code( $rate_id )
+			|| $item->get_label() !== WC_Tax::get_rate_label( $rate_id )
+			|| (float) $item->get_rate_percent() !== WC_Tax::get_rate_percent_value( $rate_id )
+			|| (bool) $item->get_compound() !== WC_Tax::is_compound( $rate_id )
+		) {
 			return;
 		}
 
@@ -4093,7 +4105,23 @@ class WC_Connect_TaxJar_Integration {
 	private function rebuild_order_tax_totals( $order, array $recorded ) {
 		$non_tax_total = (float) $order->get_total() - (float) $order->get_cart_tax() - (float) $order->get_shipping_tax();
 
-		$order->update_taxes();
+		// update_taxes() saves a tax line it adds before the loop below runs, and
+		// WooCommerce writes a tax line's code only when the line is first saved.
+		$set_recorded = static function ( $item ) use ( $recorded ) {
+			if ( ! $item instanceof WC_Order_Item_Tax || $item->get_id() ) {
+				return;
+			}
+			foreach ( $recorded[ (int) $item->get_rate_id() ] ?? array() as $field => $value ) {
+				$item->{'set_' . $field}( $value );
+			}
+		};
+		add_action( 'woocommerce_before_order_item_object_save', $set_recorded, 10, 1 );
+		try {
+			$order->update_taxes();
+		} finally {
+			remove_action( 'woocommerce_before_order_item_object_save', $set_recorded, 10 );
+		}
+
 		foreach ( $order->get_taxes() as $tax_item ) {
 			$rate_id = (int) $tax_item->get_rate_id();
 			foreach ( $recorded[ $rate_id ] ?? array() as $field => $value ) {
