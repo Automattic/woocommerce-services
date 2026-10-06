@@ -783,6 +783,40 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 	}
 
 	/**
+	 * A stored label entry without a label_id, or that is not an array, is skipped and kept,
+	 * as is_label_on_order() skips it, and the order's real label is still updated.
+	 */
+	public function test_settings_store_skips_label_entries_without_a_label_id() {
+		$order = WC_Helper_Order::create_order();
+		$order->update_meta_data(
+			'wc_connect_labels',
+			array(
+				array( 'status' => 'PURCHASED' ),
+				'not a label',
+				array(
+					'label_id' => 777,
+					'status'   => 'PURCHASED',
+				),
+			)
+		);
+		$order->save();
+
+		$result = $this->settings_store->update_label_order_meta_data(
+			$order->get_id(),
+			(object) array(
+				'label_id' => 777,
+				'status'   => 'DELIVERED',
+			)
+		);
+
+		$this->assertSame( 'DELIVERED', $result['status'] );
+		$labels = $this->labels_of( $order );
+		$this->assertSame( array( 'status' => 'PURCHASED' ), $labels[0] );
+		$this->assertSame( 'not a label', $labels[1] );
+		$this->assertSame( 'DELIVERED', $labels[2]['status'] );
+	}
+
+	/**
 	 * A trashed order is still an order: its labels can still be checked, as before.
 	 */
 	public function test_status_for_a_trashed_orders_own_label_is_still_updated() {
