@@ -409,6 +409,49 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertStringNotContainsString( 'Setup complete.', $result['output'] );
 	}
 
+	/**
+	 * Called directly for a non-owner admin once the terms are accepted, the after-connection
+	 * handler renders nothing: no "Setup complete." and no "owner needs to accept" notice.
+	 */
+	public function test_after_connection_handler_is_silent_for_a_non_owner_once_accepted() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', true );
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$result = $this->run_banner( $nux, 'show_banner_after_connection' );
+
+		$this->assertSame( '', trim( $result['output'] ) );
+	}
+
+	/**
+	 * Called directly for a non-owner admin once the terms are accepted, the ToS handler
+	 * renders nothing either, as the after-connection handler does.
+	 */
+	public function test_tos_handler_is_silent_for_a_non_owner_once_accepted() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', true );
+
+		$result = $this->run_banner( $nux, 'show_tos_banner' );
+
+		$this->assertSame( '', trim( $result['output'] ) );
+	}
+
+	/**
+	 * In offline mode any admin may accept, so a non-owner still gets "Setup complete." and
+	 * accepts the terms by seeing it.
+	 */
+	public function test_offline_mode_non_owner_after_connection_accepts_on_render() {
+		$nux = $this->arm_banner( false );
+		WCS_Test_Jetpack_Connection::set_offline( true );
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$result = $this->run_admin_notices( $nux );
+
+		$this->assertStringContainsString( 'Setup complete.', $result['output'] );
+		$this->assertTrue( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+	}
+
 	public function test_get_banner_type_to_display_dev_jp() {
 		$this->assertEquals(
 			WC_Connect_Nux::get_banner_type_to_display(

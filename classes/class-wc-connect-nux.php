@@ -318,6 +318,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Whether the current user may accept the Terms of Service.
 		 *
 		 * Only the Jetpack connection owner may, or any user while Jetpack is in offline mode.
+		 * This checks no capability, so in offline mode it is true for every user: callers must
+		 * check capabilities themselves.
+		 *
+		 * @since 3.7.1
 		 *
 		 * @return bool
 		 */
@@ -635,7 +639,9 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			// Only a user who may accept the terms gets the link that accepts them.
 			if ( ! self::current_user_can_accept_tos() ) {
-				$this->show_tos_informational_banner();
+				if ( ! WC_Connect_Options::get_option( 'tos_accepted' ) ) {
+					$this->show_tos_informational_banner();
+				}
 				return;
 			}
 
