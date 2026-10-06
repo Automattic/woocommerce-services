@@ -275,6 +275,13 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 					'packages'    => array(),
 				),
 			),
+			'destination not array' => array(
+				array(
+					'origin'      => array( 'address' => '2 New St' ),
+					'destination' => 'x',
+					'packages'    => array(),
+				),
+			),
 			'packages not array' => array(
 				array(
 					'origin'      => array( 'address' => '2 New St' ),
@@ -517,6 +524,68 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 	}
 
 	/**
+	 * An order whose labels are still stored in the old JSON format.
+	 *
+	 * @param int $label_id Label ID.
+	 * @return WC_Order
+	 */
+	private function order_with_json_label( $label_id ) {
+		$order = WC_Helper_Order::create_order();
+		$order->update_meta_data(
+			'wc_connect_labels',
+			wp_json_encode(
+				array(
+					array(
+						'label_id' => $label_id,
+						'status'   => 'PURCHASED',
+					),
+				)
+			)
+		);
+		$order->save();
+
+		return $order;
+	}
+
+	/**
+	 * Labels stored in the old JSON format are still the order's own: status and refund
+	 * work for them, as before.
+	 */
+	public function test_status_and_refund_of_a_label_stored_as_json_still_work() {
+		$status_order = $this->order_with_json_label( 555 );
+		$refund_order = $this->order_with_json_label( 666 );
+		$refund       = (object) array( 'status' => 'pending' );
+		$this->api_client->expects( $this->once() )
+			->method( 'get_label_status' )
+			->with( '555' )
+			->willReturn(
+				(object) array(
+					'label' => (object) array(
+						'label_id' => 555,
+						'status'   => 'DELIVERED',
+					),
+				)
+			);
+		$this->api_client->expects( $this->once() )
+			->method( 'send_shipping_label_refund_request' )
+			->with( '666' )
+			->willReturn(
+				(object) array(
+					'label'  => (object) array( 'id' => 666 ),
+					'refund' => $refund,
+				)
+			);
+
+		$status_response = $this->send( 'GET', '/wc/v1/connect/label/' . $status_order->get_id() . '/555' );
+		$refund_response = $this->send( 'POST', '/wc/v1/connect/label/' . $refund_order->get_id() . '/666/refund' );
+
+		$this->assertSame( 200, $status_response->get_status() );
+		$this->assertSame( 'DELIVERED', $this->labels_of( $status_order )[0]['status'] );
+		$this->assertSame( 200, $refund_response->get_status() );
+		$this->assertEquals( $refund, $this->labels_of( $refund_order )[0]['refund'] );
+	}
+
+	/**
 	 * A purchase body for one package holding the given product.
 	 *
 	 * @param int $product_id Product in the package.
@@ -601,7 +670,13 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 		$this->assertSame( $label, $this->settings_store->update_label_order_meta_data( $id, $label ) );
 		$this->assertNull( $this->settings_store->add_labels_to_order( $id, array( array( 'label_id' => 111 ) ) ) );
 		$this->assertNull( $this->settings_store->update_destination_address( $id, array( 'address' => '9 Dest Rd' ) ) );
-		$this->assertSame( '', get_post_meta( $id, 'wc_connect_labels', true ) );
+		// A refund is an order object: with HPOS its meta is not in postmeta, so read it through CRUD.
+		$object = wc_get_order( $id );
+		if ( $object ) {
+			$this->assertFalse( $object->meta_exists( 'wc_connect_labels' ) );
+		} else {
+			$this->assertSame( '', get_post_meta( $id, 'wc_connect_labels', true ) );
+		}
 	}
 
 	/**
