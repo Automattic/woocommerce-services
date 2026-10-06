@@ -47,12 +47,12 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	/**
 	 * Whether an ID is a product on one of the order's line items, as product or variation.
 	 *
-	 * @param string   $product_id Product ID from the request.
 	 * @param WC_Order $order      Order the rates are for.
+	 * @param string   $product_id Product ID from the request.
 	 *
 	 * @return bool
 	 */
-	private function is_product_on_order( $product_id, WC_Order $order ) {
+	private function is_product_on_order( WC_Order $order, $product_id ) {
 		if ( ! ctype_digit( $product_id ) || 0 === (int) $product_id || ! wc_get_product( (int) $product_id ) ) {
 			return false;
 		}
@@ -104,7 +104,7 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 					$updated_product_ids[ $product_id ] = true;
 
 					// Only products on this order get customs info; skip any other ID.
-					if ( ! $this->is_product_on_order( $product_id, $order ) ) {
+					if ( ! $this->is_product_on_order( $order, $product_id ) ) {
 						$this->logger->log(
 							sprintf( 'Skipped customs info for ID %s: not a product on order %d.', wp_json_encode( $product_id ), $order_id ),
 							__CLASS__
