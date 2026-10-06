@@ -85,6 +85,7 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 	public function tear_down() {
 		ini_set( 'error_log', (string) $this->previous_error_log ); // phpcs:ignore WordPress.PHP.IniSet.Risky
 		remove_filter( 'rest_request_before_callbacks', array( $this->loader, 'log_rest_api_errors' ), 10 );
+		remove_action( 'rest_api_init', array( $this, 'register_routes' ) );
 		WC_Connect_Options::delete_option( 'error_notice' );
 		WC_Connect_Options::delete_option( 'debug_logging_enabled' );
 
@@ -308,6 +309,44 @@ class WP_Test_WC_Connect_Loader_Rest_Error_Log extends WC_REST_Unit_Test_Case {
 		$this->assertSame( $error, $this->loader->log_rest_api_errors( $error, null, $request ) );
 
 		$this->assertSame( array(), $this->logged );
+	}
+
+	/**
+	 * A permission check that returns a WP_Error or null counts as denied, as in core.
+	 */
+	public function test_permission_check_returning_wp_error_or_null_is_not_logged() {
+		$error   = new WP_Error( 'rest_invalid_json', 'Invalid JSON body passed.' );
+		$request = new WP_REST_Request( 'POST', '/wc/v1/connect/self-help' );
+
+		$this->loader->log_rest_api_errors(
+			$error,
+			array(
+				'permission_callback' => function () {
+					return new WP_Error( 'rest_forbidden', 'Denied.' );
+				},
+			),
+			$request
+		);
+		$this->loader->log_rest_api_errors( $error, array( 'permission_callback' => '__return_null' ), $request );
+
+		$this->assertSame( array(), $this->logged );
+	}
+
+	/**
+	 * With debug logging off, the body does not reach the PHP error log either.
+	 */
+	public function test_body_is_not_written_to_the_php_error_log_when_logging_is_off() {
+		$this->assertTrue( defined( 'WP_DEBUG' ) && WP_DEBUG, 'This test needs WP_DEBUG, which makes log() call error_log().' );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
+		$error_log = wp_tempnam( 'wcs-rest-error-log' );
+		ini_set( 'error_log', $error_log ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+
+		$this->post_malformed_json( '/wc/v1/connect/self-help' );
+
+		$written = (string) file_get_contents( $error_log ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
+		unlink( $error_log ); // phpcs:ignore WordPress.WP.AlternativeFunctions.unlink_unlink
+		$this->assertStringContainsString( 'rest_invalid_json', $written );
+		$this->assertStringNotContainsString( 'FAKE LOG LINE', $written );
 	}
 
 	/**
