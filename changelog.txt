@@ -19,6 +19,7 @@
 * Fix   - Prevent a fatal error in the tax calculation when custom code creates the TaxJar integration without a store notices notifier.
 * Fix   - Prevent a rare fatal error when WooCommerce Tax registers its Store API data on incomplete WooCommerce installations.
 * Fix   - Stop exposing the shipping label, carrier and subscription REST routes on stores that only use tax features. Users who can only print labels can no longer manage carrier accounts, subscriptions, label account settings, live rate settings or debug logging, or see the connected WordPress.com account's name and email, or the store's saved cards.
+* Tweak - Changing shipping label account settings, including the selected credit card, now requires the Manage WooCommerce capability.
 * Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
 * Tweak - Include composer.json in the plugin package.
 * Tweak - Bind the service IDs in the enabled services query with prepare() instead of escaping them by hand.
