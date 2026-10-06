@@ -41,6 +41,13 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	private $captured_taxjar_errors = array();
 
 	/**
+	 * WC()->session before ensure_wc_session() ran, put back in tear_down(). False when untouched.
+	 *
+	 * @var WC_Session|null|false
+	 */
+	private $saved_wc_session = false;
+
+	/**
 	 * Load required classes before running tests.
 	 */
 	public static function set_up_before_class() {
@@ -100,6 +107,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// Clear cart.
 		if ( WC()->cart ) {
 			WC()->cart->empty_cart();
+		}
+
+		if ( false !== $this->saved_wc_session ) {
+			Automattic\WCServices\StoreNotices\StoreNoticesNotifier::clear_notices();
+			WC()->session           = $this->saved_wc_session;
+			$this->saved_wc_session = false;
 		}
 
 		parent::tear_down();
@@ -2791,9 +2804,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			->disableOriginalConstructor()
 			->getMock();
 
-		// The notifier is optional on the constructor but dereferenced unguarded in
-		// `smartcalcs_cache_request()`, so it has to be supplied. A real instance
-		// rather than a mock: `clear_notices()` is static, which a mock cannot stand in for.
+		// A real notifier rather than a mock: `clear_notices()` is static, which a mock
+		// cannot stand in for.
 		$notifier = new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false );
 
 		$integration = new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks, $notifier );
@@ -2821,6 +2833,50 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		}
 
 		return null === $sent ? null : json_decode( $sent, true );
+	}
+
+	/**
+	 * Error notices the integration queued for the shopper.
+	 *
+	 * @return array
+	 */
+	private function queued_error_notices() {
+		$notices = WC()->session->get( Automattic\WCServices\StoreNotices\StoreNoticesNotifier::WC_SESSION_KEY, array() );
+
+		return $notices['error'] ?? array();
+	}
+
+	/**
+	 * A store with no ZIP code must not block checkout with an error about the shopper's ZIP.
+	 *
+	 * The store ZIP is the merchant's setting. The request is still stopped, but the error is
+	 * logged instead of shown, so the order goes through.
+	 */
+	public function test_missing_store_zip_is_logged_and_does_not_block_checkout() {
+		WC()->session->set( Automattic\WCServices\StoreNotices\StoreNoticesNotifier::WC_SESSION_KEY, array() );
+		$store             = $this->default_store_settings();
+		$store['postcode'] = '';
+
+		$body = $this->capture_taxjar_request_json( $this->in_state_options(), null, $store );
+
+		$this->assertNull( $body, 'A store with no ZIP was sent to TaxJar.' );
+		$this->assertSame( array(), $this->queued_error_notices() );
+		$this->assertNotEmpty( preg_grep( '/Country store is set to US but the zip code has incorrect format/', $this->captured_taxjar_errors ) );
+	}
+
+	/**
+	 * A malformed shopper ZIP is still shown to the shopper, not logged.
+	 */
+	public function test_malformed_destination_zip_is_still_shown_to_the_shopper() {
+		WC()->session->set( Automattic\WCServices\StoreNotices\StoreNoticesNotifier::WC_SESSION_KEY, array() );
+		$options           = $this->in_state_options();
+		$options['to_zip'] = '9410A';
+
+		$body = $this->capture_taxjar_request_json( $options );
+
+		$this->assertNull( $body );
+		$this->assertStringContainsString( 'is not formatted correctly', wp_json_encode( $this->queued_error_notices() ) );
+		$this->assertEmpty( preg_grep( '/zip code has incorrect format/', $this->captured_taxjar_errors ) );
 	}
 
 	/**
@@ -4158,17 +4214,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Expect the notice a TaxJar answer raises on the admin Recalculate path.
-	 *
-	 * calculate_backend_totals() hands WC_Order_Item_Tax::set_rate() the array of rate
-	 * ids (one per component) where it expects one id. That predates these tests and is
-	 * not what they are about.
-	 */
-	private function expect_backend_tax_line_notice() {
-		$this->setExpectedIncorrectUsage( 'wpdb::prepare' );
-	}
-
-	/**
 	 * Merchant catch-all priorities around the four the components use.
 	 *
 	 * @return array
@@ -4203,8 +4248,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => $priority ) );
-
-		$this->expect_backend_tax_line_notice();
 
 		$this->integration = $this->michigan_integration();
 		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
@@ -4248,8 +4291,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$this->assertEqualsWithDelta( 12.0, $this->michigan_rates_from_table( '49841', 'Gwinn' )['percent'], 0.0001, 'The table should stack the local row.' );
 
-		$this->expect_backend_tax_line_notice();
-
 		$this->integration = $this->michigan_integration();
 		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
 
@@ -4289,8 +4330,6 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
 
-		$this->expect_backend_tax_line_notice();
-
 		$this->integration = $this->michigan_integration();
 		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
 
@@ -4310,6 +4349,119 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// Nobody looked Detroit up: the catch-all is the only row that matches it.
 		$this->assertSame( array( $catch_all_id ), $this->order_tax_rate_ids( $order ) );
+	}
+
+	/**
+	 * Record every tax item saved to an order from here on.
+	 *
+	 * Other plugins see each one through `woocommerce_new_order_item`, so a tax item
+	 * that is saved and dropped again still reaches them.
+	 *
+	 * @return ArrayObject Saved tax items, filled as they are saved.
+	 */
+	private function record_new_tax_items() {
+		$saved = new ArrayObject();
+
+		add_action(
+			'woocommerce_new_order_item',
+			function ( $item_id, $item ) use ( $saved ) {
+				if ( $item instanceof WC_Order_Item_Tax ) {
+					$saved[] = array(
+						'rate_id' => (int) $item->get_rate_id(),
+						'label'   => (string) $item->get_label(),
+					);
+				}
+			},
+			10,
+			2
+		);
+
+		return $saved;
+	}
+
+	/**
+	 * Recalculate saves only the tax items WooCommerce builds from the looked-up rates.
+	 *
+	 * Each saved tax item names a rate row and carries its label, and no notice is
+	 * raised along the way. The order's tax lines are the four rows the lookup wrote,
+	 * under their own names.
+	 */
+	public function test_admin_recalculate_saves_no_tax_item_without_a_rate() {
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$saved = $this->record_new_tax_items();
+
+		$this->integration = $this->michigan_integration();
+		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
+
+		$this->assertArrayNotHasKey( 'wpdb::prepare', $this->caught_doing_it_wrong );
+
+		// The lookup wrote one row per component, at priorities 1 to 4 and nowhere else.
+		$component_ids = array();
+		foreach ( array( 1, 2, 3, 4 ) as $priority ) {
+			$at_priority = $this->tax_rate_ids_at_priority( $priority );
+			$this->assertCount( 1, $at_priority, "Priority $priority" );
+			$component_ids[] = $at_priority[0];
+		}
+		$this->assertSame( 4, $this->count_tax_rate_rows() );
+
+		// One tax item per component, each under its own row's name. A tax item saved
+		// without a rate gets id 1 and the fallback label "Tax", so a name check is
+		// what tells it apart when the first component happens to be row 1.
+		$expected = array();
+		foreach ( $component_ids as $rate_id ) {
+			$expected[] = array(
+				'rate_id' => $rate_id,
+				'label'   => $this->tax_rate_snapshot( $rate_id )['name'],
+			);
+		}
+		$this->assertEqualsCanonicalizing( $expected, $saved->getArrayCopy() );
+
+		$this->assertEqualsCanonicalizing( $component_ids, $this->order_tax_rate_ids( $order ) );
+		foreach ( $order->get_taxes() as $tax ) {
+			$this->assertSame( $this->tax_rate_snapshot( $tax->get_rate_id() )['name'], $tax->get_label() );
+		}
+
+		// $100 at TaxJar's 6%.
+		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001, 'Cart tax' );
+	}
+
+	/**
+	 * Saving an order's items in the admin looks the tax up too. It must not save a
+	 * tax item of its own: WooCommerce rebuilds the order's tax items right after.
+	 */
+	public function test_saving_order_items_saves_no_tax_item_without_a_rate() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->reset_tax_rate_tables();
+
+		$order = $this->create_michigan_order( '49841', 'Gwinn' );
+		$saved = $this->record_new_tax_items();
+
+		$this->integration = $this->michigan_integration();
+
+		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Saved to restore after the simulated request.
+		$_POST      = array(
+			'order_id' => $order->get_id(),
+			'country'  => 'US',
+			'state'    => 'MI',
+			'postcode' => '49841',
+			'city'     => 'Gwinn',
+			'street'   => '1 Test St',
+		);
+		add_action( 'woocommerce_before_save_order_items', array( $this->integration, 'calculate_backend_totals' ), 20 );
+
+		try {
+			wc_save_order_items( $order->get_id(), array() );
+		} finally {
+			$_POST = $saved_post;
+			remove_action( 'woocommerce_before_save_order_items', array( $this->integration, 'calculate_backend_totals' ), 20 );
+		}
+
+		$this->assertSame( 4, $this->count_tax_rate_rows(), 'The lookup did not run.' );
+		$this->assertArrayNotHasKey( 'wpdb::prepare', $this->caught_doing_it_wrong );
+		$this->assertSame( array(), $saved->getArrayCopy() );
+		$this->assertSame( array(), $this->order_tax_rate_ids( wc_get_order( $order->get_id() ) ) );
 	}
 
 	/**
@@ -5869,5 +6021,160 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			),
 			'Outside the US the label is used as is, not upper-cased.'
 		);
+	}
+
+	/**
+	 * Build an integration without a notifier, as the optional constructor argument allows.
+	 *
+	 * @param array|WP_Error $api_response What the API client returns for every request.
+	 * @param object|null    $logger       Logger mock, or null for a plain one.
+	 * @param object|null    $notifier     Notifier to pass, or null to leave it out.
+	 * @return WC_Connect_TaxJar_Integration
+	 */
+	private function get_integration_for_notifier_tests( $api_response, $logger = null, $notifier = null ) {
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
+		$api_client->method( 'proxy_request' )->willReturn( $api_response );
+		$logger = $logger ? $logger : $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
+		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock();
+
+		if ( null === $notifier ) {
+			return new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks );
+		}
+
+		return new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks, $notifier );
+	}
+
+	/**
+	 * Make sure a WC session exists, as on a front-end checkout request.
+	 */
+	private function ensure_wc_session() {
+		$this->saved_wc_session = WC()->session;
+
+		if ( empty( WC()->session ) ) {
+			WC()->initialize_session();
+		}
+		WC()->session->set( Automattic\WCServices\StoreNotices\StoreNoticesNotifier::WC_SESSION_KEY, array() );
+	}
+
+	/**
+	 * A tax calculation runs without a notifier instead of fatalling on the notice clear.
+	 */
+	public function test_tax_calculation_without_a_notifier_does_not_fatal() {
+		$api_response = array(
+			'response' => array( 'code' => 200 ),
+			'body'     => wp_json_encode( array( 'tax' => array( 'amount_to_collect' => 2.5 ) ) ),
+		);
+		$integration  = $this->get_integration_for_notifier_tests( $api_response );
+		$this->ensure_wc_session();
+
+		// from_state 'CA' skips the California nexus check.
+		$response = $integration->smartcalcs_cache_request( $this->get_taxjar_request_body( array( 'to_zip' => '90211' ) ), 'CA' );
+
+		$this->assertEquals( $api_response, $response );
+	}
+
+	/**
+	 * Without a notifier, a customer-input error on the front end is logged instead of shown,
+	 * through the debug log, so it does not replace a pending admin error notice.
+	 */
+	public function test_customer_input_error_without_a_notifier_is_logged() {
+		// The logger's error() raises this notice, so load it to see it if that path is taken.
+		require_once __DIR__ . '/../../classes/class-wc-connect-error-notice.php';
+
+		$pending_notice = new WP_Error( 'product_missing_weight', 'Missing weight.', array( 'product_id' => 1 ) );
+		WC_Connect_Options::update_option( 'error_notice', $pending_notice );
+		WC_Connect_Options::update_option( 'debug_logging_enabled', true );
+
+		$written   = array();
+		$wc_logger = $this->getMockBuilder( 'WC_Logger' )->disableOriginalConstructor()->getMock();
+		$wc_logger->method( 'add' )->willReturnCallback(
+			function ( $handle, $message ) use ( &$written ) {
+				$written[] = $message;
+				return true;
+			}
+		);
+
+		// log() also writes to error_log() under WP_DEBUG; keep that out of the test output.
+		$previous_error_log = ini_set( 'error_log', '/dev/null' ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+
+		try {
+			$integration = $this->get_integration_for_notifier_tests( array(), new WC_Connect_Logger( $wc_logger ) );
+			$this->ensure_wc_session();
+
+			$integration->_error( "Error retrieving the tax rates. Received (400): to_zip 1234 isn't a valid postal code for US" );
+
+			$this->assertCount( 1, $written );
+			$this->assertStringContainsString( "isn't a valid postal code for", $written[0] );
+			$this->assertSame( array(), Automattic\WCServices\StoreNotices\StoreNoticesNotifier::get_notices() );
+
+			$notice = WC_Connect_Options::get_option( 'error_notice' );
+			$this->assertInstanceOf( WP_Error::class, $notice );
+			$this->assertSame( 'product_missing_weight', $notice->get_error_code() );
+		} finally {
+			ini_set( 'error_log', (string) $previous_error_log ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+			WC_Connect_Options::delete_option( 'error_notice' );
+			WC_Connect_Options::delete_option( 'debug_logging_enabled' );
+		}
+	}
+
+	/**
+	 * Without a notifier and with debug logging off, a customer-input error is not written at all.
+	 * The log() call must follow the debug logging setting, not force the write.
+	 */
+	public function test_customer_input_error_without_a_notifier_is_not_logged_when_logging_is_off() {
+		require_once __DIR__ . '/../../classes/class-wc-connect-error-notice.php';
+
+		$pending_notice = new WP_Error( 'product_missing_weight', 'Missing weight.', array( 'product_id' => 1 ) );
+		WC_Connect_Options::update_option( 'error_notice', $pending_notice );
+		WC_Connect_Options::update_option( 'debug_logging_enabled', false );
+
+		$written   = array();
+		$wc_logger = $this->getMockBuilder( 'WC_Logger' )->disableOriginalConstructor()->getMock();
+		$wc_logger->method( 'add' )->willReturnCallback(
+			function ( $handle, $message ) use ( &$written ) {
+				$written[] = $message;
+				return true;
+			}
+		);
+
+		// log() also writes to error_log() under WP_DEBUG; keep that out of the test output.
+		$previous_error_log = ini_set( 'error_log', '/dev/null' ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+
+		try {
+			$integration = $this->get_integration_for_notifier_tests( array(), new WC_Connect_Logger( $wc_logger ) );
+			$this->ensure_wc_session();
+
+			$integration->_error( "Error retrieving the tax rates. Received (400): to_zip 1234 isn't a valid postal code for US" );
+
+			$this->assertSame( array(), $written );
+			$this->assertSame( array(), Automattic\WCServices\StoreNotices\StoreNoticesNotifier::get_notices() );
+
+			$notice = WC_Connect_Options::get_option( 'error_notice' );
+			$this->assertInstanceOf( WP_Error::class, $notice );
+			$this->assertSame( 'product_missing_weight', $notice->get_error_code() );
+		} finally {
+			ini_set( 'error_log', (string) $previous_error_log ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+			WC_Connect_Options::delete_option( 'error_notice' );
+			WC_Connect_Options::delete_option( 'debug_logging_enabled' );
+		}
+	}
+
+	/**
+	 * With a notifier, the same error is shown to the customer and not logged, as before.
+	 * log() must not run either: a missing return after the notifier would fall through to it.
+	 */
+	public function test_customer_input_error_with_a_notifier_is_shown() {
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
+		$logger->expects( $this->never() )->method( 'error' );
+		$logger->expects( $this->never() )->method( 'log' );
+
+		$notifier    = new Automattic\WCServices\StoreNotices\StoreNoticesNotifier( false );
+		$integration = $this->get_integration_for_notifier_tests( array(), $logger, $notifier );
+		$this->ensure_wc_session();
+
+		$integration->_error( "Error retrieving the tax rates. Received (400): to_zip 1234 isn't a valid postal code for US" );
+
+		$notices = Automattic\WCServices\StoreNotices\StoreNoticesNotifier::get_notices();
+		$this->assertNotEmpty( $notices['error'] ?? array() );
 	}
 }
