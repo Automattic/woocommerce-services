@@ -261,40 +261,75 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 	 */
 	public function bad_rates_body_provider() {
 		return array(
-			'empty object'       => array( new stdClass() ),
-			'no packages'        => array(
+			'empty object'                => array( new stdClass() ),
+			'no packages'                 => array(
 				array(
 					'origin'      => array( 'address' => '2 New St' ),
 					'destination' => array( 'address' => '9 Dest Rd' ),
 				),
 			),
-			'origin not array'   => array(
+			'origin not array'            => array(
 				array(
 					'origin'      => 'x',
 					'destination' => array( 'address' => '9 Dest Rd' ),
 					'packages'    => array(),
 				),
 			),
-			'destination not array' => array(
+			'destination not array'       => array(
 				array(
 					'origin'      => array( 'address' => '2 New St' ),
 					'destination' => 'x',
 					'packages'    => array(),
 				),
 			),
-			'packages not array' => array(
+			'packages not array'          => array(
 				array(
 					'origin'      => array( 'address' => '2 New St' ),
 					'destination' => array( 'address' => '9 Dest Rd' ),
 					'packages'    => 'x',
 				),
 			),
+			'empty addresses'             => array(
+				array(
+					'origin'      => array(),
+					'destination' => array(),
+					'packages'    => array(),
+				),
+			),
+			'origin without address'      => array(
+				array(
+					'origin'      => array( 'city' => 'Gwinn' ),
+					'destination' => array( 'address' => '9 Dest Rd' ),
+					'packages'    => array(),
+				),
+			),
+			'destination without address' => array(
+				array(
+					'origin'      => array( 'address' => '2 New St' ),
+					'destination' => array( 'city' => 'Detroit' ),
+					'packages'    => array(),
+				),
+			),
+			'destination address empty'   => array(
+				array(
+					'origin'      => array( 'address' => '2 New St' ),
+					'destination' => array( 'address' => ' ' ),
+					'packages'    => array(),
+				),
+			),
+			'package not array'           => array(
+				array(
+					'origin'      => array( 'address' => '2 New St' ),
+					'destination' => array( 'address' => '9 Dest Rd' ),
+					'packages'    => array( 'x' ),
+				),
+			),
 		);
 	}
 
 	/**
-	 * A body missing the origin, destination or packages: 400, and neither the stored origin
-	 * nor the order's shipping address changes. Before, {} saved a null origin, blanked the
+	 * A body without an origin or destination street, or whose packages are not all arrays: 400,
+	 * and neither the stored origin nor the order's shipping address changes. Before, {} saved a null origin, blanked the
 	 * order's street and then failed with a TypeError.
 	 *
 	 * @dataProvider bad_rates_body_provider

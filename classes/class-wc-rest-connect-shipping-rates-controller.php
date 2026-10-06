@@ -33,6 +33,18 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	}
 
 	/**
+	 * Whether an address from the request is an array with a street, so saving it cannot blank
+	 * the stored origin or the order's shipping street.
+	 *
+	 * @param mixed $address Address from the request.
+	 *
+	 * @return bool
+	 */
+	private function has_street_address( $address ) {
+		return is_array( $address ) && isset( $address['address'] ) && is_string( $address['address'] ) && '' !== trim( $address['address'] );
+	}
+
+	/**
 	 * Whether an ID is a product on one of the order's line items, as product or variation.
 	 *
 	 * @param string   $product_id Product ID from the request.
@@ -64,9 +76,10 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 		// Check the body before anything is saved, so a bad request changes nothing.
 		if ( ! is_array( $payload )
 			|| ! isset( $payload['origin'], $payload['destination'], $payload['packages'] )
-			|| ! is_array( $payload['origin'] )
-			|| ! is_array( $payload['destination'] )
-			|| ! is_array( $payload['packages'] ) ) {
+			|| ! $this->has_street_address( $payload['origin'] )
+			|| ! $this->has_street_address( $payload['destination'] )
+			|| ! is_array( $payload['packages'] )
+			|| count( array_filter( $payload['packages'], 'is_array' ) ) !== count( $payload['packages'] ) ) {
 			return new WP_Error( 'bad_request', __( 'Bad request', 'woocommerce-services' ), array( 'status' => 400 ) );
 		}
 
