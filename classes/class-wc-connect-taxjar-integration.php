@@ -18,7 +18,9 @@ class WC_Connect_TaxJar_Integration {
 	public $logger;
 
 	/**
-	 * @var StoreNoticesNotifier
+	 * Shows customer-input errors at checkout. Optional: null when none is passed to the constructor.
+	 *
+	 * @var StoreNoticesNotifier|null
 	 */
 	private $notifier;
 
@@ -643,14 +645,22 @@ class WC_Connect_TaxJar_Integration {
 	public function _error( $message ) {
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
-		// Show errors caused by customer input to the customer instead of logging them.
-		// Only where there is a customer to show them to: REST, cron and WP-CLI requests
-		// have no WC session, so those errors are logged.
+		// Show errors caused by customer input to the customer through the notifier, when there is
+		// one, instead of logging them. Only where there is a customer to show them to: REST, cron
+		// and WP-CLI requests have no WC session, so those errors are logged.
 		$state_zip_mismatch = false !== strpos( $formatted_message, 'to_zip' ) && false !== strpos( $formatted_message, 'is not used within to_state' );
 		$invalid_postcode   = false !== strpos( $formatted_message, 'isn\'t a valid postal code for' );
 		// Only the shopper's ZIP. A bad store ZIP is the merchant's to fix, so it is logged and checkout goes on.
 		$malformed_postcode = false !== strpos( $formatted_message, 'Country destination is set to US but the zip code has incorrect format' );
 		if ( ! is_admin() && StoreNoticesNotifier::wc_session_exists() && ( $state_zip_mismatch || $invalid_postcode || $malformed_postcode ) ) {
+			if ( ! $this->notifier ) {
+				// The notifier is optional. Without one, log the error, but through log() rather
+				// than error(): customer input must not replace the admin error notice.
+				$this->logger->log( $formatted_message, 'WCS Tax' );
+
+				return;
+			}
+
 			$fields              = WC()->countries->get_address_fields();
 			$postcode_field_name = __( 'ZIP/Postal code', 'woocommerce-services' );
 			if ( isset( $fields['billing_postcode'] ) && isset( $fields['billing_postcode']['label'] ) ) {
@@ -2825,7 +2835,9 @@ class WC_Connect_TaxJar_Integration {
 		$save_error_codes = array( 404, 400 );
 
 		// Clear the taxjar notices before calculating taxes or using cached response.
-		$this->notifier->clear_notices( 'taxjar' );
+		if ( $this->notifier ) {
+			$this->notifier->clear_notices( 'taxjar' );
+		}
 
 		if ( false === $response ) {
 			$response      = $this->smartcalcs_request( $json );
