@@ -10,7 +10,7 @@
 namespace Automattic\WCServices\StoreApi;
 
 use Automattic\WooCommerce\StoreApi\Schemas\ExtendSchema;
-use Exception;
+use Throwable;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -92,8 +92,14 @@ class StoreApiExtensionController {
 					'schema_type'     => $extension->get_schema_type(),
 				)
 			);
-		} catch ( Exception $e ) {
-			wc_get_logger()->debug( 'Failed to register endpoint data for extension', array( 'error', $e->getMessage() ) );
+		} catch ( Throwable $e ) {
+			wc_get_logger()->debug(
+				'Failed to register endpoint data for extension',
+				array(
+					'source' => 'woocommerce-services',
+					'error'  => $e->getMessage(),
+				)
+			);
 		}
 	}
 
@@ -110,8 +116,14 @@ class StoreApiExtensionController {
 					'callback'  => array( $extension, 'update_callback' ),
 				)
 			);
-		} catch ( Exception $e ) {
-			wc_get_logger()->debug( 'Failed to register update callback for extension', array( 'error', $e->getMessage() ) );
+		} catch ( Throwable $e ) {
+			wc_get_logger()->debug(
+				'Failed to register update callback for extension',
+				array(
+					'source' => 'woocommerce-services',
+					'error'  => $e->getMessage(),
+				)
+			);
 		}
 	}
 }
