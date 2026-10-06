@@ -645,6 +645,14 @@ class WC_Connect_TaxJar_Integration {
 		// Only the shopper's ZIP. A bad store ZIP is the merchant's to fix, so it is logged and checkout goes on.
 		$malformed_postcode = false !== strpos( $formatted_message, 'Country destination is set to US but the zip code has incorrect format' );
 		if ( ! is_admin() && StoreNoticesNotifier::wc_session_exists() && ( $state_zip_mismatch || $invalid_postcode || $malformed_postcode ) ) {
+			if ( ! $this->notifier ) {
+				// The notifier is optional. Without one, log the error, but through log() rather
+				// than error(): customer input must not replace the admin error notice.
+				$this->logger->log( $formatted_message, 'WCS Tax' );
+
+				return;
+			}
+
 			$fields              = WC()->countries->get_address_fields();
 			$postcode_field_name = __( 'ZIP/Postal code', 'woocommerce-services' );
 			if ( isset( $fields['billing_postcode'] ) && isset( $fields['billing_postcode']['label'] ) ) {
@@ -662,15 +670,7 @@ class WC_Connect_TaxJar_Integration {
 				$message = sprintf( _x( 'Invalid %s entered.', '%s - ZIP/Postal code checkout field label', 'woocommerce-services' ), $postcode_field_name );
 			}
 
-			if ( $this->notifier ) {
-				$this->notifier->error( $message, array(), 'taxjar' );
-
-				return;
-			}
-
-			// The notifier is optional. Without one, log the error, but through log() rather
-			// than error(): customer input must not replace the admin error notice.
-			$this->logger->log( $formatted_message, 'WCS Tax' );
+			$this->notifier->error( $message, array(), 'taxjar' );
 
 			return;
 		}
