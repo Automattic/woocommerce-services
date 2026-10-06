@@ -85,6 +85,8 @@ This plugin relies on the following external services:
 * Fix   - Unslash and sanitize request values in the label reports, settings, migration survey and tracking code, and stop using print_r in log messages.
 * Fix   - Require a nonce on the setup banner's Terms of Service and dismiss links, so they cannot be triggered by loading a crafted URL.
 * Fix   - Stop Recalculate and saving an order's items in the admin from logging a PHP notice for every item and saving an extra tax line with no name, which other plugins could see before it was removed again.
+* Fix   - Prevent a fatal error in the tax calculation when custom code creates the TaxJar integration without a store notices notifier.
+* Fix   - Prevent a rare fatal error when WooCommerce Tax registers its Store API data on incomplete WooCommerce installations.
 * Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
 * Tweak - Include composer.json in the plugin package.
 * Tweak - Bind the service IDs in the enabled services query with prepare() instead of escaping them by hand.
