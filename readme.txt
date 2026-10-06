@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.7.1 - 2026-xx-xx =
 * Add   - Check a US store address when it changes, and show a notice in the admin when its state or ZIP code looks wrong or is missing, since either can make automated taxes charge the wrong tax or none.
+* Fix   - Stop the classic checkout from jumping to the top of the page and taking focus away from the ZIP code field when an invalid ZIP code is entered, which could loop endlessly with address autocomplete enabled.
 * Fix   - Stop a store address with a missing or badly formatted ZIP code from blocking checkout with "ZIP Code is not formatted correctly." The order now goes through, but its tax is not looked up: it gets only the tax rates saved by earlier lookups for the same address, or no tax. A notice in the admin asks you to fix the ZIP code.
 * Fix   - Send the street with the address when you click Recalculate on an order that has no shipping address, so tax is not calculated from the ZIP code alone. Recalculate also no longer freezes when the city contains a double quote.
 * Fix   - Stop automated tax lookups from overwriting a tax rate you set up for a whole state with no ZIP code or city, which could leave in-person and mobile app orders with no tax.
@@ -85,6 +86,7 @@ This plugin relies on the following external services:
 * Fix   - Require a nonce on the setup banner's Terms of Service and dismiss links, so they cannot be triggered by loading a crafted URL.
 * Fix   - Stop Recalculate and saving an order's items in the admin from logging a PHP notice for every item and saving an extra tax line with no name, which other plugins could see before it was removed again.
 * Fix   - Prevent a fatal error in the tax calculation when custom code creates the TaxJar integration without a store notices notifier.
+* Fix   - Prevent a rare fatal error when WooCommerce Tax registers its Store API data on incomplete WooCommerce installations.
 * Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
 * Tweak - Include composer.json in the plugin package.
 * Tweak - Bind the service IDs in the enabled services query with prepare() instead of escaping them by hand.
