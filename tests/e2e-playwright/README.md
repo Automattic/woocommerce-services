@@ -78,3 +78,8 @@ In CI: **Actions → Manual Test Runner**, with **QIT Tests** set to
 and `bin/resolve-base-url.js` are byte-identical to the sibling extension suites
 (for example `woocommerce-shipping-australia-post`). Keep them that way, so fixes
 carry across repositories.
+
+The one exception is `bin/resolve-base-url.js`, which has no `'use strict';` line.
+This repository's pre-commit hook runs `eslint --fix`, which removes it, and the
+script behaves the same without it. When porting a fix from a sibling repository,
+compare the rest of the file.
