@@ -54,7 +54,7 @@ class WP_Test_WC_Connect_Loader_REST_Routes extends WC_REST_Unit_Test_Case {
 	);
 
 	/**
-	 * @inherit
+	 * {@inheritDoc}
 	 */
 	public static function set_up_before_class() {
 		$classes = __DIR__ . '/../../classes/';
@@ -177,6 +177,15 @@ class WP_Test_WC_Connect_Loader_REST_Routes extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A tax-only store with WC Shipping active registers only the eligibility and shared routes.
+	 */
+	public function test_tax_only_store_with_wc_shipping_registers_no_shipping_routes() {
+		$this->register_routes_for_store( true, true );
+
+		$this->assertSame( $this->sorted( self::$always_routes ), $this->connect_routes() );
+	}
+
+	/**
 	 * @testdox A tax-only store answers 404 on the label purchase, rates and carrier routes.
 	 */
 	public function test_tax_only_store_returns_404_on_shipping_routes() {
@@ -254,6 +263,7 @@ class WP_Test_WC_Connect_Loader_REST_Routes extends WC_REST_Unit_Test_Case {
 			array( 'GET', '/wc/v1/connect/assets', '/wc/v1/connect/assets' ),
 			array( 'GET', '/wc/v1/connect/shipping/carrier-types', '/wc/v1/connect/shipping/carrier-types' ),
 			array( 'GET', '/wc/v1/connect/account/settings', '/wc/v1/connect/account/settings' ),
+			array( 'HEAD', '/wc/v1/connect/account/settings', '/wc/v1/connect/account/settings' ),
 			array( 'GET', '/wc/v1/connect/label/creation_eligibility', '/wc/v1/connect/label/creation_eligibility' ),
 			array( 'GET', '/wc/v1/connect/label/(?P<order_id>\d+)/creation_eligibility', '/wc/v1/connect/label/1/creation_eligibility' ),
 		);

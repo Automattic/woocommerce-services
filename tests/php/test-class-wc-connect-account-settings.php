@@ -25,7 +25,7 @@ class WP_Test_WC_Connect_Account_Settings extends WC_REST_Unit_Test_Case {
 	);
 
 	/**
-	 * @inherit
+	 * {@inheritDoc}
 	 */
 	public static function set_up_before_class() {
 		$classes = __DIR__ . '/../../classes/';
@@ -208,6 +208,18 @@ class WP_Test_WC_Connect_Account_Settings extends WC_REST_Unit_Test_Case {
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertSame( '', $response->get_data()['formMeta']['master_user_email'] );
 		$this->assertSame( '', $response->get_data()['formMeta']['master_user_name'] );
+		$this->assertStringNotContainsString( self::OWNER_EMAIL, wp_json_encode( $response->get_data() ) );
+	}
+
+	/**
+	 * @testdox A label-only user's HEAD request on account settings is allowed, like GET.
+	 */
+	public function test_label_only_user_head_request_is_allowed() {
+		$this->set_label_only_user();
+
+		$response = $this->server->dispatch( new WP_REST_Request( 'HEAD', '/wc/v1/connect/account/settings' ) );
+
+		$this->assertSame( 200, $response->get_status() );
 		$this->assertStringNotContainsString( self::OWNER_EMAIL, wp_json_encode( $response->get_data() ) );
 	}
 }
