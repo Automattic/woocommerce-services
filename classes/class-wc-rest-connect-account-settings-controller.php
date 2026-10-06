@@ -78,13 +78,13 @@ class WC_REST_Connect_Account_Settings_Controller extends WC_REST_Connect_Base_C
 	 * affects the whole store and also needs manage_woocommerce.
 	 *
 	 * @param WP_REST_Request $request The request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function check_permission( $request ) {
 		if ( in_array( $request->get_method(), array( 'GET', 'HEAD' ), true ) ) {
 			return parent::check_permission( $request );
 		}
 
-		return parent::check_permission( $request ) && current_user_can( 'manage_woocommerce' );
+		return $this->check_store_permission( $request );
 	}
 }

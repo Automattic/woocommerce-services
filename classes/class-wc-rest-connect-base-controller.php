@@ -152,4 +152,22 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 		return WC_Connect_Functions::user_can_manage_labels();
 	}
 
+	/**
+	 * Validate the requester's permissions for a route that acts on the whole store: the label
+	 * check, then manage_woocommerce. A WP_Error from the label check is returned as is, so
+	 * WordPress still denies the request with it.
+	 *
+	 * @param WP_REST_Request $request The request.
+	 * @return bool|WP_Error
+	 */
+	protected function check_store_permission( $request ) {
+		// self:: so that a subclass that overrides check_permission() with this check does not call itself.
+		$permission = self::check_permission( $request );
+		if ( is_wp_error( $permission ) ) {
+			return $permission;
+		}
+
+		return $permission && current_user_can( 'manage_woocommerce' );
+	}
+
 }

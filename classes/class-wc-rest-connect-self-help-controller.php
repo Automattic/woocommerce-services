@@ -47,9 +47,9 @@ class WC_REST_Connect_Self_Help_Controller extends WC_REST_Connect_Base_Controll
 	 * Debug and logging settings apply to the whole store, so the label capability alone is not enough.
 	 *
 	 * @param WP_REST_Request $request The request.
-	 * @return bool
+	 * @return bool|WP_Error
 	 */
 	public function check_permission( $request ) {
-		return parent::check_permission( $request ) && current_user_can( 'manage_woocommerce' );
+		return $this->check_store_permission( $request );
 	}
 }

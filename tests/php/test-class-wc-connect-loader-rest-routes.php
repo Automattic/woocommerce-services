@@ -281,6 +281,29 @@ class WP_Test_WC_Connect_Loader_REST_Routes extends WC_REST_Unit_Test_Case {
 
 	/**
 	 * Run the permission callback registered for a route and method as the current user.
+	 * A HEAD request uses the GET handler when the route has no HEAD handler, as WordPress does.
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $route  Route pattern as registered.
+	 * @param string $path   A concrete path for the request.
+	 * @return mixed What the permission callback returned.
+	 */
+	private function permission_result( $method, $route, $path ) {
+		$routes = $this->server->get_routes();
+		$this->assertArrayHasKey( $route, $routes );
+
+		foreach ( $routes[ $route ] as $handler ) {
+			$handler_method = 'HEAD' === $method && empty( $handler['methods']['HEAD'] ) ? 'GET' : $method;
+			if ( ! empty( $handler['methods'][ $handler_method ] ) ) {
+				return call_user_func( $handler['permission_callback'], new WP_REST_Request( $method, $path ) );
+			}
+		}
+
+		$this->fail( "No $method handler on $route" );
+	}
+
+	/**
+	 * Whether the permission callback registered for a route and method returns true for the current user.
 	 *
 	 * @param string $method HTTP method.
 	 * @param string $route  Route pattern as registered.
@@ -288,16 +311,7 @@ class WP_Test_WC_Connect_Loader_REST_Routes extends WC_REST_Unit_Test_Case {
 	 * @return bool
 	 */
 	private function can_access( $method, $route, $path ) {
-		$routes = $this->server->get_routes();
-		$this->assertArrayHasKey( $route, $routes );
-
-		foreach ( $routes[ $route ] as $handler ) {
-			if ( ! empty( $handler['methods'][ $method ] ) ) {
-				return true === call_user_func( $handler['permission_callback'], new WP_REST_Request( $method, $path ) );
-			}
-		}
-
-		$this->fail( "No $method handler on $route" );
+		return true === $this->permission_result( $method, $route, $path );
 	}
 
 	/**
@@ -378,6 +392,28 @@ class WP_Test_WC_Connect_Loader_REST_Routes extends WC_REST_Unit_Test_Case {
 			$this->assert_access( self::account_permission_routes(), false );
 		} finally {
 			remove_filter( 'wcship_user_can_manage_labels', '__return_false' );
+		}
+	}
+
+	/**
+	 * @testdox A wcship_user_can_manage_labels callback that denies with a WP_Error still denies the account-wide routes.
+	 */
+	public function test_manage_labels_filter_wp_error_still_denies_account_routes() {
+		$this->register_routes_for_store( false, false );
+		$deny = function () {
+			return new WP_Error( 'denied_by_filter', 'Denied.', array( 'status' => 403 ) );
+		};
+		add_filter( 'wcship_user_can_manage_labels', $deny );
+
+		try {
+			foreach ( self::account_permission_routes() as list( $method, $route, $path ) ) {
+				$permission = $this->permission_result( $method, $route, $path );
+
+				$this->assertWPError( $permission, "$method $route" );
+				$this->assertSame( 'denied_by_filter', $permission->get_error_code(), "$method $route" );
+			}
+		} finally {
+			remove_filter( 'wcship_user_can_manage_labels', $deny );
 		}
 	}
 
