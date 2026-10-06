@@ -1399,9 +1399,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * written; the request body only when debug logging is on, shortened and escaped.
 		 * The admin error notice is not touched.
 		 *
-		 * @param WP_HTTP_Response $response Result to send to the client. Usually a WP_REST_Response.
-		 * @param array            $handler  Route handler used for the request.
-		 * @param WP_REST_Request  $request  Request used to generate the response.
+		 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client. Usually a WP_REST_Response.
+		 * @param array                                            $handler  Route handler used for the request.
+		 * @param WP_REST_Request                                  $request  Request used to generate the response.
 		 *
 		 * @return mixed - pass through value of $response.
 		 */
@@ -1453,8 +1453,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * JSON-encode request text for the log.
 		 *
-		 * Line breaks and control characters are escaped, so the text cannot add lines of
-		 * its own to the log. Invalid UTF-8 is replaced rather than dropping the text.
+		 * ASCII line breaks and control characters are escaped, so the text cannot add lines
+		 * of its own to the log. Invalid UTF-8 is replaced rather than dropping the text.
 		 *
 		 * @param string $text Text taken from the request.
 		 *
