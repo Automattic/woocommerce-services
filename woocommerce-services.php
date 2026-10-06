@@ -97,6 +97,13 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		const DISMISS_SERVER_NOTICE_NONCE_NAME = '_wc_connect_notice_nonce';
 
 		/**
+		 * Most bytes of a request body log_rest_api_errors() writes to the log.
+		 *
+		 * @var int
+		 */
+		private const REST_ERROR_LOG_BODY_LIMIT = 1024;
+
+		/**
 		 * @var WC_Connect_Logger
 		 */
 		protected $logger;
@@ -1386,25 +1393,99 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 *
 		 * Note: intended to be hooked into 'rest_request_before_callbacks'
 		 *
-		 * @param WP_HTTP_Response $response Result to send to the client. Usually a WP_REST_Response.
-		 * @param WP_REST_Server   $handler  ResponseHandler instance (usually WP_REST_Server).
-		 * @param WP_REST_Request  $request  Request used to generate the response.
+		 * WordPress applies that filter before the route's permission check, and skips the
+		 * check when the request already failed (invalid JSON, missing or invalid params).
+		 * So only requests the route itself allows are logged. The error line is always
+		 * written; the request body only when debug logging is on, shortened and escaped.
+		 * The admin error notice is not touched.
+		 *
+		 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client. Usually a WP_REST_Response.
+		 * @param array                                            $handler  Route handler used for the request.
+		 * @param WP_REST_Request                                  $request  Request used to generate the response.
 		 *
 		 * @return mixed - pass through value of $response.
 		 */
 		public function log_rest_api_errors( $response, $handler, $request ) {
-			if ( ! is_wp_error( $response ) ) {
+			if ( ! is_wp_error( $response ) || ! $request instanceof WP_REST_Request ) {
 				return $response;
 			}
 
-			if ( 0 === strpos( $request->get_route(), '/wc/v1/connect/' ) ) {
-				$route_info = $request->get_method() . ' ' . $request->get_route();
+			if ( 0 !== strpos( $request->get_route(), '/wc/v1/connect/' ) || ! $this->rest_route_allows_request( $handler, $request ) ) {
+				return $response;
+			}
 
-				$this->get_logger()->error( $response, $route_info );
-				$this->get_logger()->error( $route_info, $request->get_body() );
+			$logger     = $this->get_logger();
+			$route_info = $request->get_method() . ' ' . $this->encode_for_log( $request->get_route() );
+
+			// log() rather than error(): a REST error must not replace the admin error notice.
+			$logger->log( $response, $route_info, true );
+
+			// A request with no body has nothing to add.
+			if ( $logger->is_logging_enabled() && '' !== (string) $request->get_body() ) {
+				$logger->log( $route_info, $this->format_rest_body_for_log( $request->get_body() ) );
 			}
 
 			return $response;
+		}
+
+		/**
+		 * Whether the route's own permission check allows a request.
+		 *
+		 * WordPress skips its own check for a request that failed validation. It still
+		 * calls the callback afterwards to build the Allow header, which does not decide
+		 * access. A missing or non-callable check counts as denied.
+		 *
+		 * @param array|mixed     $handler Route handler used for the request.
+		 * @param WP_REST_Request $request Request used to generate the response.
+		 *
+		 * @return bool
+		 */
+		private function rest_route_allows_request( $handler, $request ) {
+			if ( ! is_array( $handler ) || empty( $handler['permission_callback'] ) || ! is_callable( $handler['permission_callback'] ) ) {
+				return false;
+			}
+
+			$permission = call_user_func( $handler['permission_callback'], $request );
+
+			return ! is_wp_error( $permission ) && false !== $permission && null !== $permission;
+		}
+
+		/**
+		 * JSON-encode request text for the log.
+		 *
+		 * ASCII line breaks and control characters are escaped, so the text cannot add lines
+		 * of its own to the log. Invalid UTF-8 is replaced rather than dropping the text.
+		 *
+		 * @param string $text Text taken from the request.
+		 *
+		 * @return string The quoted, escaped text.
+		 */
+		private function encode_for_log( $text ) {
+			$encoded = wp_json_encode( (string) $text, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE );
+
+			return false === $encoded ? '""' : $encoded;
+		}
+
+		/**
+		 * Describe a request body for the log: its length and an encoded excerpt.
+		 *
+		 * @param string $body Raw request body.
+		 *
+		 * @return string
+		 */
+		private function format_rest_body_for_log( $body ) {
+			$body    = (string) $body;
+			$length  = strlen( $body );
+			$is_long = $length > self::REST_ERROR_LOG_BODY_LIMIT;
+			$excerpt = $body;
+
+			if ( $is_long ) {
+				$excerpt = function_exists( 'mb_strcut' )
+					? mb_strcut( $body, 0, self::REST_ERROR_LOG_BODY_LIMIT, 'UTF-8' )
+					: substr( $body, 0, self::REST_ERROR_LOG_BODY_LIMIT );
+			}
+
+			return sprintf( 'body, %d bytes: %s%s', $length, $this->encode_for_log( $excerpt ), $is_long ? '...' : '' );
 		}
 
 		/**
