@@ -689,6 +689,43 @@ class WP_Test_WC_REST_Connect_Label_Order_Binding extends WC_REST_Unit_Test_Case
 	}
 
 	/**
+	 * The purchase route works on the order it loaded: the Connect server gets its ID as a
+	 * string, as before, and a product deleted since the order was placed is still named through
+	 * that order. WooCommerce clears the line item's product ID on delete, so the name is the
+	 * deleted-product placeholder.
+	 */
+	public function test_purchase_names_a_deleted_product_from_the_order() {
+		$product    = WC_Helper_Product::create_simple_product();
+		$order      = WC_Helper_Order::create_order( 1, $product );
+		$product_id = $product->get_id();
+		$product->delete( true );
+		$this->api_client->expects( $this->once() )
+			->method( 'send_shipping_label_request' )
+			->with( $this->callback( fn( $body ) => (string) $order->get_id() === $body['order_id'] ) )
+			->willReturn(
+				(object) array(
+					'labels' => array(
+						(object) array(
+							'label' => (object) array(
+								'label_id'          => 334,
+								'tracking_id'       => '',
+								'refundable_amount' => 7.5,
+								'created'           => 1,
+								'carrier_id'        => 'usps',
+								'status'            => 'PURCHASE_IN_PROGRESS',
+							),
+						),
+					),
+				)
+			);
+
+		$response = $this->send( 'POST', '/wc/v1/connect/label/' . $order->get_id(), $this->purchase_body( $product_id ) );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( '#' . $product_id . ' - [Deleted product]' ), $this->labels_of( $order )[0]['product_names'] );
+	}
+
+	/**
 	 * The settings store's order writers return instead of failing when the ID is not an
 	 * order, for any caller that has not checked it first.
 	 *
