@@ -1,0 +1,10 @@
+# QIT installs the package deps and Playwright browsers in place.
+# package-lock.json IS committed (for reproducible, integrity-checked installs
+# locally, in CI, and inside QIT's container), so it is intentionally not ignored.
+node_modules/
+
+# Playwright / QIT run artefacts (results/ holds the CTRF + blob output QIT collects).
+results/
+report/
+test-results/
+.state/

@@ -39,6 +39,7 @@ on:
           - 'PHPStan'
           - 'PHP Compatibility'
           - 'WooCommerce E2E and API tests'
+          - 'Custom Plugin E2E (tests/e2e-playwright)'
           - 'Plugin Checks (for dotOrg metadata)'
           - 'None'
       qit-wait:
@@ -133,6 +134,7 @@ jobs:
       test-phpstan: ${{ contains(inputs.qit-tests, 'PHPStan') && true || false }}
       test-woo-api: ${{ contains(inputs.qit-tests, 'API') && true || false }}
       test-woo-e2e: ${{ contains(inputs.qit-tests, 'WooCommerce E2E') && true || false }}
+      test-e2e: ${{ contains(inputs.qit-tests, 'Custom Plugin E2E') && true || false }}
       test-malware: ${{ contains(inputs.qit-tests, 'Malware') && true || false }}
       test-validation: ${{ contains(inputs.qit-tests, 'Validation') && true || false }}
       test-plugin-check: ${{ contains(inputs.qit-tests, 'dotOrg') && true || false }}
