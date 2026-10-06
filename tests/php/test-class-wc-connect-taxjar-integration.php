@@ -2824,6 +2824,50 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Error notices the integration queued for the shopper.
+	 *
+	 * @return array
+	 */
+	private function queued_error_notices() {
+		$notices = WC()->session->get( Automattic\WCServices\StoreNotices\StoreNoticesNotifier::WC_SESSION_KEY, array() );
+
+		return $notices['error'] ?? array();
+	}
+
+	/**
+	 * A store with no ZIP code must not block checkout with an error about the shopper's ZIP.
+	 *
+	 * The store ZIP is the merchant's setting. The request is still stopped, but the error is
+	 * logged instead of shown, so the order goes through.
+	 */
+	public function test_missing_store_zip_is_logged_and_does_not_block_checkout() {
+		WC()->session->set( Automattic\WCServices\StoreNotices\StoreNoticesNotifier::WC_SESSION_KEY, array() );
+		$store             = $this->default_store_settings();
+		$store['postcode'] = '';
+
+		$body = $this->capture_taxjar_request_json( $this->in_state_options(), null, $store );
+
+		$this->assertNull( $body, 'A store with no ZIP was sent to TaxJar.' );
+		$this->assertSame( array(), $this->queued_error_notices() );
+		$this->assertNotEmpty( preg_grep( '/Country store is set to US but the zip code has incorrect format/', $this->captured_taxjar_errors ) );
+	}
+
+	/**
+	 * A malformed shopper ZIP is still shown to the shopper, not logged.
+	 */
+	public function test_malformed_destination_zip_is_still_shown_to_the_shopper() {
+		WC()->session->set( Automattic\WCServices\StoreNotices\StoreNoticesNotifier::WC_SESSION_KEY, array() );
+		$options           = $this->in_state_options();
+		$options['to_zip'] = '9410A';
+
+		$body = $this->capture_taxjar_request_json( $options );
+
+		$this->assertNull( $body );
+		$this->assertStringContainsString( 'is not formatted correctly', wp_json_encode( $this->queued_error_notices() ) );
+		$this->assertEmpty( preg_grep( '/zip code has incorrect format/', $this->captured_taxjar_errors ) );
+	}
+
+	/**
 	 * A comma-separated store postcode must be reduced to its first segment, exactly
 	 * as the destination postcode already is.
 	 *
