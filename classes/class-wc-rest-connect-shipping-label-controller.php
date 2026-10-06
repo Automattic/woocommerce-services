@@ -42,8 +42,15 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 	}
 
 	public function post( $request ) {
+		// Check the order before a label is bought for it.
+		$order = $this->get_order_for_label_request( $request['order_id'] );
+		if ( is_wp_error( $order ) ) {
+			return $order;
+		}
+
+		// The Connect server has always received the order ID as a string.
 		$settings             = $request->get_json_params();
-		$order_id             = $request['order_id'];
+		$order_id             = (string) $order->get_id();
 		$settings['order_id'] = $order_id;
 
 		if ( empty( $settings['payment_method_id'] ) || ! $this->settings_store->can_user_manage_payment_methods() ) {
@@ -146,7 +153,6 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 				if ( $product ) {
 					$product_names[] = $product->get_title();
 				} else {
-					$order           = wc_get_order( $order_id );
 					$product_names[] = WC_Connect_Utils::get_product_name_from_order( $product_id, $order );
 				}
 			}
@@ -157,7 +163,7 @@ class WC_REST_Connect_Shipping_Label_Controller extends WC_REST_Connect_Base_Con
 			array_unshift( $purchased_labels_meta, $label_meta );
 		}
 
-		$this->settings_store->add_labels_to_order( $order_id, $purchased_labels_meta );
+		$this->settings_store->add_labels_to_order( $order->get_id(), $purchased_labels_meta );
 
 		return array(
 			'labels'  => $purchased_labels_meta,
