@@ -33,14 +33,58 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 	}
 
 	/**
+	 * Whether an address from the request is an array with a street, so saving it cannot blank
+	 * the stored origin or the order's shipping street.
+	 *
+	 * @param mixed $address Address from the request.
+	 *
+	 * @return bool
+	 */
+	private function has_street_address( $address ) {
+		return is_array( $address ) && isset( $address['address'] ) && is_string( $address['address'] ) && '' !== trim( $address['address'] );
+	}
+
+	/**
+	 * Whether an ID is a product on one of the order's line items, as product or variation.
+	 *
+	 * @param WC_Order $order      Order the rates are for.
+	 * @param string   $product_id Product ID from the request.
+	 *
+	 * @return bool
+	 */
+	private function is_product_on_order( WC_Order $order, $product_id ) {
+		if ( ! ctype_digit( $product_id ) || 0 === (int) $product_id || ! wc_get_product( (int) $product_id ) ) {
+			return false;
+		}
+
+		return false !== WC_Connect_Utils::get_line_item_from_order( (int) $product_id, $order );
+	}
+
+	/**
 	 *
 	 * @param WP_REST_Request $request - See WC_Connect_API_Client::get_label_rates()
 	 * @return array|WP_Error
 	 */
 	public function post( $request ) {
-		$payload                      = $request->get_json_params();
+		$order = $this->get_order_for_label_request( $request['order_id'] );
+		if ( is_wp_error( $order ) ) {
+			return $order;
+		}
+
+		$payload = $request->get_json_params();
+
+		// Check the body before anything is saved, so a bad request changes nothing.
+		if ( ! is_array( $payload )
+			|| ! isset( $payload['origin'], $payload['destination'], $payload['packages'] )
+			|| ! $this->has_street_address( $payload['origin'] )
+			|| ! $this->has_street_address( $payload['destination'] )
+			|| ! is_array( $payload['packages'] )
+			|| count( array_filter( $payload['packages'], 'is_array' ) ) !== count( $payload['packages'] ) ) {
+			return new WP_Error( 'bad_request', __( 'Bad request', 'woocommerce-services' ), array( 'status' => 400 ) );
+		}
+
 		$payload['payment_method_id'] = $this->settings_store->get_selected_payment_method_id();
-		$order_id                     = $request['order_id'];
+		$order_id                     = $order->get_id();
 
 		// This is the earliest point in the printing label flow where we are sure that
 		// the merchant wants to ship from this exact address (normalized or otherwise)
@@ -54,10 +98,22 @@ class WC_REST_Connect_Shipping_Rates_Controller extends WC_REST_Connect_Base_Con
 				break;
 			}
 			foreach ( $package['items'] as $index => $item ) {
-				if ( ! isset( $updated_product_ids[ $item['product_id'] ] ) ) {
-					$updated_product_ids[ $item['product_id'] ] = true;
+				$product_id = isset( $item['product_id'] ) && is_scalar( $item['product_id'] ) ? (string) $item['product_id'] : '';
+
+				if ( ! isset( $updated_product_ids[ $product_id ] ) ) {
+					$updated_product_ids[ $product_id ] = true;
+
+					// Only products on this order get customs info; skip any other ID.
+					if ( ! $this->is_product_on_order( $order, $product_id ) ) {
+						$this->logger->log(
+							sprintf( 'Skipped customs info for ID %s: not a product on order %d.', wp_json_encode( $product_id ), $order_id ),
+							__CLASS__
+						);
+						continue;
+					}
+
 					update_post_meta(
-						$item['product_id'],
+						(int) $product_id,
 						'wc_connect_customs_info',
 						array(
 							'description'      => $item['description'],
