@@ -6118,6 +6118,48 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Without a notifier and with debug logging off, a customer-input error is not written at all.
+	 * The log() call must follow the debug logging setting, not force the write.
+	 */
+	public function test_customer_input_error_without_a_notifier_is_not_logged_when_logging_is_off() {
+		require_once __DIR__ . '/../../classes/class-wc-connect-error-notice.php';
+
+		$pending_notice = new WP_Error( 'product_missing_weight', 'Missing weight.', array( 'product_id' => 1 ) );
+		WC_Connect_Options::update_option( 'error_notice', $pending_notice );
+		WC_Connect_Options::update_option( 'debug_logging_enabled', false );
+
+		$written   = array();
+		$wc_logger = $this->getMockBuilder( 'WC_Logger' )->disableOriginalConstructor()->getMock();
+		$wc_logger->method( 'add' )->willReturnCallback(
+			function ( $handle, $message ) use ( &$written ) {
+				$written[] = $message;
+				return true;
+			}
+		);
+
+		// log() also writes to error_log() under WP_DEBUG; keep that out of the test output.
+		$previous_error_log = ini_set( 'error_log', '/dev/null' ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+
+		try {
+			$integration = $this->get_integration_for_notifier_tests( array(), new WC_Connect_Logger( $wc_logger ) );
+			$this->ensure_wc_session();
+
+			$integration->_error( "Error retrieving the tax rates. Received (400): to_zip 1234 isn't a valid postal code for US" );
+
+			$this->assertSame( array(), $written );
+			$this->assertSame( array(), Automattic\WCServices\StoreNotices\StoreNoticesNotifier::get_notices() );
+
+			$notice = WC_Connect_Options::get_option( 'error_notice' );
+			$this->assertInstanceOf( WP_Error::class, $notice );
+			$this->assertSame( 'product_missing_weight', $notice->get_error_code() );
+		} finally {
+			ini_set( 'error_log', (string) $previous_error_log ); // phpcs:ignore WordPress.PHP.IniSet.Risky
+			WC_Connect_Options::delete_option( 'error_notice' );
+			WC_Connect_Options::delete_option( 'debug_logging_enabled' );
+		}
+	}
+
+	/**
 	 * With a notifier, the same error is shown to the customer and not logged, as before.
 	 * log() must not run either: a missing return after the notifier would fall through to it.
 	 */
