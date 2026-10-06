@@ -5,7 +5,7 @@
  * @package WooCommerce_Services
  */
 
-require_once __DIR__ . '/class-wcs-test-jetpack-connection.php';
+require_once __DIR__ . '/../class-wcs-test-jetpack-connection.php';
 
 /**
  * Only a user who may accept the Terms of Service (the connection owner, or anyone in
@@ -40,7 +40,7 @@ class WP_Test_WC_REST_Connect_Tos_Controller extends WC_REST_Unit_Test_Case {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 
-		$classes = __DIR__ . '/../../classes/';
+		$classes = __DIR__ . '/../../../classes/';
 		require_once $classes . 'class-wc-connect-options.php';
 		require_once $classes . 'class-wc-connect-nux.php';
 		require_once $classes . 'class-wc-connect-api-client.php';
@@ -61,8 +61,8 @@ class WP_Test_WC_REST_Connect_Tos_Controller extends WC_REST_Unit_Test_Case {
 	public function setUp(): void {
 		parent::setUp();
 
-		// The base controller sends a no-cache header on every dispatch, which PHPUnit
-		// would report as "headers already sent". Core's spy server records headers instead.
+		// WC_REST_Unit_Test_Case::setUp() already installs a spy server with every route.
+		// This one holds only the route under test.
 		$GLOBALS['wp_rest_server'] = new Spy_REST_Server();
 		$this->server              = $GLOBALS['wp_rest_server'];
 		$this->register_routes();
@@ -93,6 +93,15 @@ class WP_Test_WC_REST_Connect_Tos_Controller extends WC_REST_Unit_Test_Case {
 			$this->createMock( WC_Connect_Service_Settings_Store::class ),
 			$this->createMock( WC_Connect_Logger::class )
 		) )->register_routes();
+	}
+
+	/**
+	 * Skip a test that needs a site administrator to pass the route's capability check.
+	 */
+	private function skip_on_multisite() {
+		if ( is_multisite() ) {
+			$this->markTestSkipped( 'On multisite install_plugins and activate_plugins are super admin capabilities, so a site administrator never passes the capability check on this route.' );
+		}
 	}
 
 	/**
@@ -133,6 +142,7 @@ class WP_Test_WC_REST_Connect_Tos_Controller extends WC_REST_Unit_Test_Case {
 	 * The connection owner can.
 	 */
 	public function test_owner_can_accept() {
+		$this->skip_on_multisite();
 		wp_set_current_user( $this->owner );
 
 		$response = $this->post_acceptance();
@@ -156,6 +166,7 @@ class WP_Test_WC_REST_Connect_Tos_Controller extends WC_REST_Unit_Test_Case {
 	 * The connection owner can read it.
 	 */
 	public function test_owner_can_read() {
+		$this->skip_on_multisite();
 		wp_set_current_user( $this->owner );
 
 		$response = $this->server->dispatch( new WP_REST_Request( 'GET', self::ROUTE ) );
@@ -168,6 +179,7 @@ class WP_Test_WC_REST_Connect_Tos_Controller extends WC_REST_Unit_Test_Case {
 	 * In offline mode there is no owner to wait for, so any administrator may accept.
 	 */
 	public function test_any_admin_can_accept_in_offline_mode() {
+		$this->skip_on_multisite();
 		WCS_Test_Jetpack_Connection::set_offline( true );
 		wp_set_current_user( $this->other_admin );
 

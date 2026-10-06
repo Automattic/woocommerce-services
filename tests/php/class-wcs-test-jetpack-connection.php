@@ -30,13 +30,6 @@ if ( ! class_exists( 'WCS_Test_Jetpack_Connection' ) ) {
 		const OPTIONS = array( 'id', 'blog_token', 'user_tokens', 'master_user' );
 
 		/**
-		 * Manager properties that memoize the connection state for the request.
-		 *
-		 * @var string[]
-		 */
-		const MANAGER_CACHES = array( 'is_connected', 'connection_owner_id' );
-
-		/**
 		 * The jetpack_offline_mode option before connect(), or null when it was not set.
 		 *
 		 * @var array|null
@@ -105,14 +98,9 @@ if ( ! class_exists( 'WCS_Test_Jetpack_Connection' ) ) {
 		 * Drop the connection state the Jetpack packages memoize for the request.
 		 */
 		public static function reset_caches() {
-			foreach ( self::MANAGER_CACHES as $name ) {
-				if ( property_exists( Manager::class, $name ) ) {
-					$property = new ReflectionProperty( Manager::class, $name );
-					$property->setAccessible( true );
-					$property->setValue( null, null );
-				}
-			}
+			( new Manager() )->reset_connection_status();
 
+			// Status memoizes offline mode here and has no public way to reset it.
 			Cache::clear();
 		}
 	}
