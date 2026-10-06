@@ -18,7 +18,9 @@ class WC_Connect_TaxJar_Integration {
 	public $logger;
 
 	/**
-	 * @var StoreNoticesNotifier
+	 * Shows customer-input errors at checkout. Optional: null when none is passed to the constructor.
+	 *
+	 * @var StoreNoticesNotifier|null
 	 */
 	private $notifier;
 
@@ -635,9 +637,9 @@ class WC_Connect_TaxJar_Integration {
 	public function _error( $message ) {
 		$formatted_message = is_scalar( $message ) ? $message : json_encode( $message );
 
-		// Show errors caused by customer input to the customer instead of logging them.
-		// Only where there is a customer to show them to: REST, cron and WP-CLI requests
-		// have no WC session, so those errors are logged.
+		// Show errors caused by customer input to the customer through the notifier, when there is
+		// one, instead of logging them. Only where there is a customer to show them to: REST, cron
+		// and WP-CLI requests have no WC session, so those errors are logged.
 		$state_zip_mismatch = false !== strpos( $formatted_message, 'to_zip' ) && false !== strpos( $formatted_message, 'is not used within to_state' );
 		$invalid_postcode   = false !== strpos( $formatted_message, 'isn\'t a valid postal code for' );
 		// Only the shopper's ZIP. A bad store ZIP is the merchant's to fix, so it is logged and checkout goes on.
