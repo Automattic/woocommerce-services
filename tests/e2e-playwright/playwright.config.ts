@@ -14,7 +14,7 @@ const { BASE_URL, CI } = process.env;
 // QIT vars are the CI fallback ahead of the local wp-env default.
 //
 // `||`, not `??`: these must fall through on an EMPTY string, not only on
-// undefined. `test:e2e:local` resolves the port with `${BASE_URL:-$(node
+// undefined. `test:e2e-playwright:local` resolves the port with `${BASE_URL:-$(node
 // bin/resolve-base-url.js)}`, and that script deliberately THROWS on a
 // malformed .wp-env.json - a throwing command substitution yields '', which
 // `??` would accept. baseURL would then become '/' and every goto() would die
@@ -31,7 +31,7 @@ const resolvedBaseUrl =
 // are gated behind QIT=1 for two reasons: (1) local runs should not emit CTRF /
 // blob artefacts (they exist only for QIT's collector), and (2) the CTRF reporter
 // is a devDependency of THIS test package, so a local run started before
-// `test:e2e:install` has populated tests/e2e/node_modules cannot die on a
+// `test:e2e-playwright:install` has populated tests/e2e-playwright/node_modules cannot die on a
 // "cannot find module 'playwright-ctrf-json-reporter'" load error.
 const isQitRun = process.env.QIT === '1';
 

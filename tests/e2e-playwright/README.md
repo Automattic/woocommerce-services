@@ -74,12 +74,16 @@ In CI: **Actions → Manual Test Runner**, with **QIT Tests** set to
 
 ## Shared utilities
 
-`utils/{paths,wp-login,qit,admin-session,php-errors}.ts`, `fixtures/auth.setup.ts`
-and `bin/resolve-base-url.js` are byte-identical to the sibling extension suites
-(for example `woocommerce-shipping-australia-post`). Keep them that way, so fixes
-carry across repositories.
+`utils/{paths,wp-login,qit,admin-session,php-errors}.ts` and `fixtures/auth.setup.ts`
+are byte-identical to the sibling extension suites (for example
+`woocommerce-shipping-australia-post`). Keep them that way, so fixes carry across
+repositories.
 
-The one exception is `bin/resolve-base-url.js`, which has no `'use strict';` line.
-This repository's pre-commit hook runs `eslint --fix`, which removes it, and the
-script behaves the same without it. When porting a fix from a sibling repository,
-compare the rest of the file.
+`bin/resolve-base-url.js` is shared too, but differs in one line: it has no
+`'use strict';`. This repository's pre-commit hook runs `eslint --fix`, which
+removes it, and the script behaves the same without it. Its comments are kept as
+in the sibling repositories (they mention `pnpm` and a `tests` archive rule) so the
+rest of the file stays identical. Here the scripts are the root `npm run
+test:e2e-playwright:local*`, and `tests/` is kept out of the zip by the whitelist in
+`tasks/release.js`. When porting a fix from a sibling repository, compare the rest
+of the file.
