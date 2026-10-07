@@ -315,6 +315,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		/**
+		 * Whether the current user may accept the Terms of Service.
+		 *
+		 * Only the Jetpack connection owner may, or any user while Jetpack is in offline mode.
+		 * This checks no capability, so in offline mode it is true for every user: callers must
+		 * check capabilities themselves.
+		 *
+		 * @since 3.7.1
+		 *
+		 * @return bool
+		 */
+		public static function current_user_can_accept_tos() {
+			return WC_Connect_Jetpack::is_current_user_connection_owner() || WC_Connect_Jetpack::is_offline_mode();
+		}
+
+		/**
 		 * Whether the WooCommerce Tax connection banner may render on the given screen.
 		 *
 		 * The banner only offers WooCommerce Tax, so it is confined to where WooCommerce
@@ -401,13 +416,15 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			// Admins might not be able to install or activate plugins, but Jetpack might already have been installed by a superadmin.
 			// If this is the case, the admin can connect the site on their own, and should be able to use WCS as ususal
 			$jetpack_install_status = $this->get_jetpack_install_status();
+			$can_accept_tos         = self::current_user_can_accept_tos();
 
 			$banner_to_display = self::get_banner_type_to_display(
 				array(
 					'jetpack_connection_status'       => $jetpack_install_status,
 					'tos_accepted'                    => WC_Connect_Options::get_option( 'tos_accepted' ),
-					'can_accept_tos'                  => WC_Connect_Jetpack::is_current_user_connection_owner() || WC_Connect_Jetpack::is_offline_mode(),
-					'should_display_after_cxn_banner' => WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
+					'can_accept_tos'                  => $can_accept_tos,
+					// The after-connection banner accepts the terms on render, so only a user who may accept gets it.
+					'should_display_after_cxn_banner' => $can_accept_tos && WC_Connect_Options::get_option( self::SHOULD_SHOW_AFTER_CXN_BANNER ),
 					'is_site_only_connection'         => WC_Connect_Jetpack::is_site_only_connection(),
 				)
 			);
@@ -571,6 +588,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				exit;
 			}
 
+			// Only a user who may accept the terms accepts them by seeing this banner.
+			if ( ! self::current_user_can_accept_tos() ) {
+				if ( ! WC_Connect_Options::get_option( 'tos_accepted' ) ) {
+					$this->show_tos_informational_banner();
+				}
+				return;
+			}
+
 			// By going through the connection process, the user has accepted our TOS
 			WC_Connect_Options::update_option( 'tos_accepted', true );
 
@@ -609,6 +634,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			}
 
 			if ( ! $this->should_display_nux_notice_on_screen( get_current_screen() ) ) {
+				return;
+			}
+
+			// Only a user who may accept the terms gets the link that accepts them.
+			if ( ! self::current_user_can_accept_tos() ) {
+				if ( ! WC_Connect_Options::get_option( 'tos_accepted' ) ) {
+					$this->show_tos_informational_banner();
+				}
 				return;
 			}
 
