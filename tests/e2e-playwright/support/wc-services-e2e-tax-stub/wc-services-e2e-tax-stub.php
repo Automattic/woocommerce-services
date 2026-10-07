@@ -139,7 +139,9 @@ add_filter( 'jetpack_offline_mode', 'wc_services_e2e_tax_stub_offline_mode' );
  * @return mixed
  */
 function wc_services_e2e_tax_stub_access_token( $token ) {
-	if ( $token || ! wc_services_e2e_tax_stub_is_armed() ) {
+	// A real token is an object with a secret. Anything else (false by default,
+	// a WP_Error when errors are not suppressed) is not one, so it is replaced.
+	if ( ( is_object( $token ) && ! empty( $token->secret ) ) || ! wc_services_e2e_tax_stub_is_armed() ) {
 		return $token;
 	}
 
