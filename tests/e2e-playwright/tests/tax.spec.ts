@@ -168,5 +168,16 @@ test.describe( 'WooCommerce Tax automated taxes', () => {
 		expect(
 			order.tax_lines.map( ( line ) => Number( line.tax_total ) ).sort( ( a, b ) => a - b )
 		).toEqual( [ Number( CITY_TAX ), Number( STATE_TAX ) ] );
+
+		// The reset in beforeEach removed the rate rows earlier answers wrote, so
+		// the totals above cannot come from core's own rate lookup alone. This
+		// says so directly when the TaxJar path never ran.
+		const status = await getStubStatus( page );
+		expect(
+			status.requests.some(
+				( recorded ) => recorded.path === 'taxjar/v2/taxes'
+			),
+			'no taxjar/v2/taxes request was recorded for this order'
+		).toBe( true );
 	} );
 } );
