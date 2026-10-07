@@ -152,4 +152,41 @@ abstract class WC_REST_Connect_Base_Controller extends WP_REST_Controller {
 		return WC_Connect_Functions::user_can_manage_labels();
 	}
 
+	/**
+	 * Get the order a label route acts on, before anything is written or sent upstream.
+	 *
+	 * Anything that is not an order, such as a page, a product or a refund, is not found.
+	 *
+	 * @param int|string $order_id Order ID from the route.
+	 *
+	 * @return WC_Order|WP_Error
+	 */
+	protected function get_order_for_label_request( $order_id ) {
+		$order_id = (int) $order_id;
+		$order    = $order_id > 0 ? wc_get_order( $order_id ) : false;
+
+		if ( ! $order instanceof WC_Order ) {
+			return new WP_Error( 'not_found', __( 'Order not found', 'woocommerce-services' ), array( 'status' => 404 ) );
+		}
+
+		return $order;
+	}
+
+	/**
+	 * Whether a shipping label is one of the order's own labels.
+	 *
+	 * @param WC_Order   $order    Order from get_order_for_label_request().
+	 * @param int|string $label_id Label ID from the route.
+	 *
+	 * @return bool
+	 */
+	protected function is_label_on_order( WC_Order $order, $label_id ) {
+		foreach ( $this->settings_store->get_label_order_meta_data( $order->get_id() ) as $label ) {
+			if ( is_array( $label ) && isset( $label['label_id'] ) && (int) $label['label_id'] === (int) $label_id ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
 }

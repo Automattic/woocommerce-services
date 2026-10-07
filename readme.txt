@@ -88,6 +88,8 @@ This plugin relies on the following external services:
 * Fix   - Stop REST requests the site would refuse from writing to the WooCommerce Tax log, and stop REST errors from replacing the error notice shown to store managers. Request bodies are shortened and only logged when debug logging is on.
 * Fix   - Prevent a fatal error in the tax calculation when custom code creates the TaxJar integration without a store notices notifier.
 * Fix   - Prevent a rare fatal error when WooCommerce Tax registers its Store API data on incomplete WooCommerce installations.
+* Fix   - Stop store admins other than the Jetpack connection owner from accepting the WooCommerce Tax Terms of Service through the REST API or the banner shown after connecting.
+* Fix   - Check that the order exists, and that a shipping label belongs to it, before buying a label, getting rates, checking a label's status or refunding a label. Customs details are only saved to products on that order.
 * Fix   - Remove the tax rates an earlier lookup saved for a town when the tax service now returns fewer rates for it, for example after a special district tax ends, so orders taxed from the saved rates are no longer charged the old rate on top.
 * Fix   - Stop automated tax lookups from overwriting a tax rate you set up for a list of ZIP codes, a ZIP code pattern such as 49*, or a whole city. The lookup changed its name and rate, so other addresses the rate covered could be charged the wrong tax or none.
 * Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
