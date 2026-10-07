@@ -60,6 +60,15 @@ define( 'WC_SERVICES_E2E_TAX_STUB_REQUESTS_KEY', 'wc_services_e2e_tax_stub_reque
 define( 'WC_SERVICES_E2E_TAX_STUB_REQUESTS_MAX', 20 );
 
 /**
+ * Option holding the IDs of the tax rate rows inserted while armed. The plugin
+ * writes each TaxJar rate into the WooCommerce tax tables, and core keeps
+ * applying a row through its own lookup whenever the TaxJar path yields nothing,
+ * so a row left behind would let a spec pass without the stub being asked and
+ * would keep taxing a developer's store after /disarm.
+ */
+define( 'WC_SERVICES_E2E_TAX_STUB_RATE_IDS_OPTION', 'wc_services_e2e_tax_stub_rate_ids' );
+
+/**
  * Rates the stub quotes for every line item, keyed by the TaxJar breakdown field
  * name. The plugin turns each `*_tax_rate` field into its own WooCommerce tax
  * rate row (get_itemized_tax_rates()), so two components exercise the itemized
@@ -364,6 +373,48 @@ function wc_services_e2e_tax_stub_clear_tax_cache() {
 }
 
 /**
+ * Remember a tax rate row inserted while armed, so /reset and /disarm can
+ * remove it.
+ *
+ * @param int $tax_rate_id Inserted tax rate ID.
+ *
+ * @return void
+ */
+function wc_services_e2e_tax_stub_track_rate( $tax_rate_id ) {
+	if ( ! wc_services_e2e_tax_stub_is_armed() ) {
+		return;
+	}
+
+	$ids = get_option( WC_SERVICES_E2E_TAX_STUB_RATE_IDS_OPTION, array() );
+	$ids = is_array( $ids ) ? $ids : array();
+
+	$ids[] = absint( $tax_rate_id );
+
+	update_option( WC_SERVICES_E2E_TAX_STUB_RATE_IDS_OPTION, array_values( array_unique( $ids ) ), false );
+}
+add_action( 'woocommerce_tax_rate_added', 'wc_services_e2e_tax_stub_track_rate' );
+
+/**
+ * Delete the tax rate rows inserted while armed.
+ *
+ * Only tracked rows are removed, so a store's own rates survive. Rows the
+ * plugin has since updated in place keep their ID and are removed too.
+ *
+ * @return void
+ */
+function wc_services_e2e_tax_stub_delete_rates() {
+	$ids = get_option( WC_SERVICES_E2E_TAX_STUB_RATE_IDS_OPTION, array() );
+
+	if ( is_array( $ids ) && class_exists( 'WC_Tax' ) ) {
+		foreach ( $ids as $id ) {
+			WC_Tax::_delete_tax_rate( absint( $id ) );
+		}
+	}
+
+	delete_option( WC_SERVICES_E2E_TAX_STUB_RATE_IDS_OPTION );
+}
+
+/**
  * Register the E2E-only REST routes.
  *
  * `GET /status` reports the armed state and the recorded requests. It is not
@@ -479,6 +530,7 @@ function wc_services_e2e_tax_stub_disarm() {
 		WC_Connect_Options::delete_option( 'tos_accepted' );
 	}
 
+	wc_services_e2e_tax_stub_delete_rates();
 	delete_option( WC_SERVICES_E2E_TAX_STUB_TOS_OPTION );
 	delete_option( WC_SERVICES_E2E_TAX_STUB_ARMED_OPTION );
 	delete_transient( WC_SERVICES_E2E_TAX_STUB_REQUESTS_KEY );
@@ -491,6 +543,8 @@ function wc_services_e2e_tax_stub_disarm() {
  * REST callback: clear the state that would let a spec skip the stub.
  *
  * - The plugin's cached TaxJar responses.
+ * - The tax rate rows written from earlier stub answers, which core would
+ *   otherwise apply on its own if the TaxJar path broke.
  * - The requests recorded so far, so a spec cannot pass on an earlier capture.
  * - The logged-in admin's persistent cart, so a stray item from an earlier run
  *   does not change the totals a spec asserts.
@@ -506,6 +560,7 @@ function wc_services_e2e_tax_stub_reset() {
 		);
 	}
 
+	wc_services_e2e_tax_stub_delete_rates();
 	wc_services_e2e_tax_stub_clear_tax_cache();
 	delete_transient( WC_SERVICES_E2E_TAX_STUB_REQUESTS_KEY );
 
