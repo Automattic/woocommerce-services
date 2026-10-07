@@ -1206,6 +1206,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				return;
 			}
 
+			// Read once: on a disconnected store this runs an uncached query on every REST request.
+			$has_only_tax_functionality = self::has_only_tax_functionality();
+
 			require_once __DIR__ . '/classes/class-wc-rest-connect-base-controller.php';
 
 			require_once __DIR__ . '/classes/class-wc-rest-connect-account-settings-controller.php';
@@ -1228,7 +1231,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			$rest_service_data_refresh_controller->set_service_schemas_store( $this->get_service_schemas_store() );
 			$rest_service_data_refresh_controller->register_routes();
 
-			if ( ! self::is_wc_shipping_activated() ) {
+			// Same as should_load_shipping_features(), reusing the value read above.
+			if ( ! self::is_wc_shipping_activated() && ! $has_only_tax_functionality ) {
 
 				require_once __DIR__ . '/classes/class-wc-rest-connect-packages-controller.php';
 				$rest_packages_controller = new WC_REST_Connect_Packages_Controller( $this->api_client, $settings_store, $logger, $this->service_schemas_store );
@@ -1295,20 +1299,24 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$this->set_carrier_types_controller( $rest_carrier_types_controller );
 				$rest_carrier_types_controller->register_routes();
 			}
-			require_once __DIR__ . '/classes/class-wc-rest-connect-migration-flag-controller.php';
-			$rest_migration_flag_controller = new WC_REST_Connect_Migration_Flag_Controller( $this->api_client, $settings_store, $logger, $this->tracks );
-			$this->set_rest_migration_flag_controller( $rest_migration_flag_controller );
-			$rest_migration_flag_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-carriers-controller.php';
-			$rest_carriers_controller = new WC_REST_Connect_Shipping_Carriers_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_carriers_controller( $rest_carriers_controller );
-			$rest_carriers_controller->register_routes();
+			// Kept outside the WC Shipping check: the migration posts its flag after it activates WC Shipping.
+			if ( ! $has_only_tax_functionality ) {
+				require_once __DIR__ . '/classes/class-wc-rest-connect-migration-flag-controller.php';
+				$rest_migration_flag_controller = new WC_REST_Connect_Migration_Flag_Controller( $this->api_client, $settings_store, $logger, $this->tracks );
+				$this->set_rest_migration_flag_controller( $rest_migration_flag_controller );
+				$rest_migration_flag_controller->register_routes();
 
-			require_once __DIR__ . '/classes/class-wc-rest-connect-subscriptions-controller.php';
-			$rest_subscriptions_controller = new WC_REST_Connect_Subscriptions_Controller( $this->api_client, $settings_store, $logger );
-			$this->set_rest_subscriptions_controller( $rest_subscriptions_controller );
-			$rest_subscriptions_controller->register_routes();
+				require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-carriers-controller.php';
+				$rest_carriers_controller = new WC_REST_Connect_Shipping_Carriers_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_carriers_controller( $rest_carriers_controller );
+				$rest_carriers_controller->register_routes();
+
+				require_once __DIR__ . '/classes/class-wc-rest-connect-subscriptions-controller.php';
+				$rest_subscriptions_controller = new WC_REST_Connect_Subscriptions_Controller( $this->api_client, $settings_store, $logger );
+				$this->set_rest_subscriptions_controller( $rest_subscriptions_controller );
+				$rest_subscriptions_controller->register_routes();
+			}
 
 			require_once __DIR__ . '/classes/class-wc-rest-connect-shipping-label-eligibility-controller.php';
 			$rest_shipping_label_eligibility_controller = new WC_REST_Connect_Shipping_Label_Eligibility_Controller(
@@ -1317,7 +1325,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 				$logger,
 				$this->shipping_label,
 				$this->payment_methods_store,
-				self::has_only_tax_functionality()
+				$has_only_tax_functionality
 			);
 
 			$rest_shipping_label_eligibility_controller->register_routes();

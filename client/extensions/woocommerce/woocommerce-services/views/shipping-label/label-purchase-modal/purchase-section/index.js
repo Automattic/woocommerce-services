@@ -68,6 +68,11 @@ export const PurchaseSection = props => {
 					disabled={ disablePurchase }
 					busy={ purchaseBusy }
 				/>
+			) : ( ! paymentMethods.length && ! addPaymentMethodURL ) ? (
+				// Users who cannot manage the store get no add-card URL, so there is nothing to open.
+				<div className="purchase-section__explanation">
+					{ translate( 'Ask a store manager to add or choose a credit card before printing this label.' ) }
+				</div>
 			) : ( ! paymentMethods.length ) ? (
 				<CreditCardButton
 					disabled={ disablePurchase }

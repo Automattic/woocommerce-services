@@ -29,6 +29,7 @@ function createPurchaseSectionWrapper( initProps = {} ) {
 		},
 		hasLabelsPaymentMethod: true,
 		paymentMethods: [ { card_digits: "4242", card_type: "visa", expiry: "2025-09-30", name: "Test", payment_method_id: 12345 } ],
+		addPaymentMethodURL: 'https://wordpress.com/me/purchases/add-credit-card',
 		disablePurchase: false,
 		...initProps,
 	};
@@ -97,6 +98,32 @@ describe( 'Purchase Section', () => {
 
 		it( 'renders a CreditCardButton', function () {
             expect( renderedCreditCardButton ).to.have.lengthOf( 1 );
+		} );
+    } );
+
+    describe( 'with no payment method, a selected non-UPS rate and no add-card URL', () => {
+        const uspsFormRates = {
+			available: { default_box: { serviceId: 'Priority', carrierId: 'usps' } },
+			values: { default_box: { serviceId: 'Priority', carrierId: 'usps' } },
+        };
+
+        const { wrapper } = createPurchaseSectionWrapper( {
+            form: {
+                origin: { values: { country: 'US' } },
+                rates: uspsFormRates,
+            },
+            hasLabelsPaymentMethod: false,
+            paymentMethods: [],
+            addPaymentMethodURL: '',
+        } );
+
+		it( 'renders no CreditCardButton or PurchaseButton', function () {
+            expect( wrapper.find( CreditCardButton ) ).to.have.lengthOf( 0 );
+            expect( wrapper.find( PurchaseButton ) ).to.have.lengthOf( 0 );
+		} );
+
+		it( 'asks for a store manager', function () {
+            expect( wrapper.find( '.purchase-section__explanation' ).text() ).to.equal( 'Ask a store manager to add or choose a credit card before printing this label.' );
 		} );
     } );
 

@@ -70,6 +70,10 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.7.2 - 2026-xx-xx =
+* Fix   - Stop registering the shipping REST routes on tax-only stores, and stop users who can only print labels from managing carrier accounts, subscriptions and label settings or seeing the connected WordPress.com account and saved cards.
+* Tweak - Changing shipping label account settings, including the selected credit card, now requires the Manage WooCommerce capability.
+
 = 3.7.1 - 2026-10-07 =
 * Add   - Check a US store address when it changes, and show a notice in the admin when its state or ZIP code looks wrong or is missing, since either can make automated taxes charge the wrong tax or none.
 * Fix   - Stop the classic checkout from jumping to the top of the page and taking focus away from the ZIP code field when an invalid ZIP code is entered, which could loop endlessly with address autocomplete enabled.
