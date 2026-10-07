@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.7.1 - 2026-xx-xx =
+= 3.7.1 - 2026-10-07 =
 * Add   - Check a US store address when it changes, and show a notice in the admin when its state or ZIP code looks wrong or is missing, since either can make automated taxes charge the wrong tax or none.
 * Fix   - Stop the classic checkout from jumping to the top of the page and taking focus away from the ZIP code field when an invalid ZIP code is entered, which could loop endlessly with address autocomplete enabled.
 * Fix   - Stop a store address with a missing or badly formatted ZIP code from blocking checkout with "ZIP Code is not formatted correctly." The order now goes through, but its tax is not looked up: it gets only the tax rates saved by earlier lookups for the same address, or no tax. A notice in the admin asks you to fix the ZIP code.
