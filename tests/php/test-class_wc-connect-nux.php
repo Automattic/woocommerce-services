@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/class-wcs-test-nux-redirect.php';
+require_once __DIR__ . '/class-wcs-test-jetpack-connection.php';
 
 class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 
@@ -71,10 +72,17 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 	/**
 	 * Put an admin on the Plugins page of a US store, where the banners render.
 	 *
+	 * The site is connected with an administrator as the Jetpack connection owner. By default
+	 * the current user is that owner; otherwise it is a second administrator.
+	 *
+	 * @param bool $as_owner Whether the current user is the connection owner.
 	 * @return WC_Connect_Nux
 	 */
-	private function arm_banner() {
-		wp_set_current_user( $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
+	private function arm_banner( $as_owner = true ) {
+		$owner = $this->factory()->user->create( array( 'role' => 'administrator' ) );
+		WCS_Test_Jetpack_Connection::connect( $owner );
+
+		wp_set_current_user( $as_owner ? $owner : $this->factory()->user->create( array( 'role' => 'administrator' ) ) );
 		update_option( 'woocommerce_default_country', 'US:CA' );
 		set_current_screen( 'plugins' );
 
@@ -106,6 +114,32 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		ob_start();
 		try {
 			$nux->$method();
+		} catch ( WCS_Test_Nux_Redirect $e ) {
+			$redirect = $e->getMessage();
+		}
+		$output = ob_get_clean();
+
+		return array(
+			'output'   => $output,
+			'redirect' => $redirect,
+		);
+	}
+
+	/**
+	 * Set the banners up as admin_init does, then render admin_notices.
+	 *
+	 * @param WC_Connect_Nux $nux Instance under test.
+	 * @return array{ output: string, redirect: string|null }
+	 */
+	private function run_admin_notices( $nux ) {
+		remove_all_actions( 'admin_notices' );
+		$nux->set_up_nux_notices();
+
+		$redirect = null;
+
+		ob_start();
+		try {
+			do_action( 'admin_notices' );
 		} catch ( WCS_Test_Nux_Redirect $e ) {
 			$redirect = $e->getMessage();
 		}
@@ -238,6 +272,184 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		$this->assertStringNotContainsString( 'wcs-nux-notice', $result['redirect'] );
 		$this->assertStringNotContainsString( '_wpnonce', $result['redirect'] );
 		$this->assertFalse( WC_Connect_Options::get_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, false ) );
+	}
+
+	/**
+	 * A non-owner admin never gets the accept link, so even a valid accept nonce minted for
+	 * them does not accept the terms.
+	 */
+	public function test_non_owner_cannot_accept_through_the_tos_link() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = wp_create_nonce( WC_Connect_Nux::ACCEPT_TOS_NONCE_ACTION );
+
+		$result = $this->run_admin_notices( $nux );
+
+		$this->assertFalse( has_action( 'admin_notices', array( $nux, 'show_tos_banner' ) ) );
+		$this->assertNotFalse( has_action( 'admin_notices', array( $nux, 'show_tos_informational_banner' ) ) );
+		$this->assertNull( $result['redirect'] );
+		$this->assertFalse( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+	}
+
+	/**
+	 * The connection owner accepts through the same link.
+	 */
+	public function test_owner_accepts_through_the_tos_link() {
+		$nux = $this->arm_banner();
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = wp_create_nonce( WC_Connect_Nux::ACCEPT_TOS_NONCE_ACTION );
+
+		$result = $this->run_admin_notices( $nux );
+
+		$this->assertNotNull( $result['redirect'] );
+		$this->assertTrue( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+	}
+
+	/**
+	 * Called directly for a non-owner admin with a valid nonce, the accept handler does not
+	 * accept the terms and shows the informational banner instead.
+	 */
+	public function test_tos_handler_does_not_accept_for_a_non_owner() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = wp_create_nonce( WC_Connect_Nux::ACCEPT_TOS_NONCE_ACTION );
+
+		$result = $this->run_banner( $nux, 'show_tos_banner' );
+
+		$this->assertNull( $result['redirect'] );
+		$this->assertFalse( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+		$this->assertStringContainsString( 'needs to accept the Terms of Service', $result['output'] );
+	}
+
+	/**
+	 * In offline mode there is no owner to wait for, so any admin gets the link and can accept.
+	 */
+	public function test_offline_mode_lets_any_admin_accept() {
+		$nux = $this->arm_banner( false );
+		WCS_Test_Jetpack_Connection::set_offline( true );
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+
+		$_GET['wcs-nux-tos'] = 'accept';
+		$_GET['_wpnonce']    = wp_create_nonce( WC_Connect_Nux::ACCEPT_TOS_NONCE_ACTION );
+
+		$result = $this->run_admin_notices( $nux );
+
+		$this->assertNotFalse( has_action( 'admin_notices', array( $nux, 'show_tos_banner' ) ) );
+		$this->assertNotNull( $result['redirect'] );
+		$this->assertTrue( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+	}
+
+	/**
+	 * A non-owner admin in the after-connection state gets the informational banner, and
+	 * loading the page does not accept the terms.
+	 */
+	public function test_non_owner_after_connection_gets_the_informational_banner() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$result = $this->run_admin_notices( $nux );
+
+		$this->assertFalse( has_action( 'admin_notices', array( $nux, 'show_banner_after_connection' ) ) );
+		$this->assertNotFalse( has_action( 'admin_notices', array( $nux, 'show_tos_informational_banner' ) ) );
+		$this->assertStringContainsString( 'needs to accept the Terms of Service', $result['output'] );
+		$this->assertFalse( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+		$this->assertTrue( (bool) WC_Connect_Options::get_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER ), 'The owner still gets the banner later.' );
+	}
+
+	/**
+	 * Once the owner accepted, a non-owner admin in the after-connection state gets no banner.
+	 */
+	public function test_non_owner_after_connection_with_terms_accepted_gets_no_banner() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', true );
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$this->run_admin_notices( $nux );
+
+		$this->assertFalse( has_action( 'admin_notices', array( $nux, 'show_banner_after_connection' ) ) );
+		$this->assertFalse( has_action( 'admin_notices', array( $nux, 'show_tos_informational_banner' ) ) );
+		$this->assertFalse( has_action( 'admin_notices', array( $nux, 'show_tos_banner' ) ) );
+	}
+
+	/**
+	 * The connection owner still accepts the terms by seeing the after-connection banner.
+	 */
+	public function test_owner_after_connection_accepts_on_render() {
+		$nux = $this->arm_banner();
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$result = $this->run_admin_notices( $nux );
+
+		$this->assertNotFalse( has_action( 'admin_notices', array( $nux, 'show_banner_after_connection' ) ) );
+		$this->assertNull( $result['redirect'] );
+		$this->assertTrue( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+	}
+
+	/**
+	 * Called directly for a non-owner admin, the after-connection handler does not accept the
+	 * terms and shows the informational banner instead.
+	 */
+	public function test_after_connection_handler_does_not_accept_for_a_non_owner() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$result = $this->run_banner( $nux, 'show_banner_after_connection' );
+
+		$this->assertFalse( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
+		$this->assertStringContainsString( 'needs to accept the Terms of Service', $result['output'] );
+		$this->assertStringNotContainsString( 'Setup complete.', $result['output'] );
+	}
+
+	/**
+	 * Called directly for a non-owner admin once the terms are accepted, the after-connection
+	 * handler renders nothing: no "Setup complete." and no "owner needs to accept" notice.
+	 */
+	public function test_after_connection_handler_is_silent_for_a_non_owner_once_accepted() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', true );
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$result = $this->run_banner( $nux, 'show_banner_after_connection' );
+
+		$this->assertSame( '', trim( $result['output'] ) );
+	}
+
+	/**
+	 * Called directly for a non-owner admin once the terms are accepted, the ToS handler
+	 * renders nothing either, as the after-connection handler does.
+	 */
+	public function test_tos_handler_is_silent_for_a_non_owner_once_accepted() {
+		$nux = $this->arm_banner( false );
+		WC_Connect_Options::update_option( 'tos_accepted', true );
+
+		$result = $this->run_banner( $nux, 'show_tos_banner' );
+
+		$this->assertSame( '', trim( $result['output'] ) );
+	}
+
+	/**
+	 * In offline mode any admin may accept, so a non-owner still gets "Setup complete." and
+	 * accepts the terms by seeing it.
+	 */
+	public function test_offline_mode_non_owner_after_connection_accepts_on_render() {
+		$nux = $this->arm_banner( false );
+		WCS_Test_Jetpack_Connection::set_offline( true );
+		WC_Connect_Options::update_option( 'tos_accepted', false );
+		WC_Connect_Options::update_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER, true );
+
+		$result = $this->run_admin_notices( $nux );
+
+		$this->assertStringContainsString( 'Setup complete.', $result['output'] );
+		$this->assertTrue( (bool) WC_Connect_Options::get_option( 'tos_accepted' ) );
 	}
 
 	public function test_get_banner_type_to_display_dev_jp() {
@@ -579,6 +791,7 @@ class WP_Test_WC_Connect_NUX extends WC_Unit_Test_Case {
 		WC_Connect_Options::delete_option( WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER );
 		$GLOBALS['current_screen'] = null;
 		wp_set_current_user( 0 );
+		WCS_Test_Jetpack_Connection::reset();
 
 		parent::tear_down();
 	}

@@ -41,11 +41,17 @@ class WC_REST_Connect_Tos_Controller extends WC_REST_Connect_Base_Controller {
 	}
 
 	/**
-	 * Validate the requester's permissions
+	 * Validate the requester's permissions: the capabilities below, and only a user who
+	 * may accept the Terms of Service (the connection owner, or anyone in offline mode).
+	 *
+	 * @param WP_REST_Request $request Request being authorized.
+	 * @return bool
 	 */
 	public function check_permission( $request ) {
 		return current_user_can( 'manage_woocommerce' ) &&
 			current_user_can( 'install_plugins' ) &&
-			current_user_can( 'activate_plugins' );
+			current_user_can( 'activate_plugins' ) &&
+			class_exists( 'WC_Connect_Nux' ) &&
+			WC_Connect_Nux::current_user_can_accept_tos();
 	}
 }
