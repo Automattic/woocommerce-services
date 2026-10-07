@@ -70,6 +70,10 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.7.2 - 2026-xx-xx =
+* Fix   - Stop exposing the shipping label, carrier and subscription REST routes on stores that only use tax features. Users who can only print labels can no longer manage carrier accounts, subscriptions, label account settings, live rate settings or debug logging, or see the connected WordPress.com account's name and email, or the store's saved cards.
+* Tweak - Changing shipping label account settings, including the selected credit card, now requires the Manage WooCommerce capability.
+
 = 3.7.1 - 2026-10-07 =
 * Add   - Check a US store address when it changes, and show a notice in the admin when its state or ZIP code looks wrong or is missing, since either can make automated taxes charge the wrong tax or none.
 * Fix   - Stop the classic checkout from jumping to the top of the page and taking focus away from the ZIP code field when an invalid ZIP code is entered, which could loop endlessly with address autocomplete enabled.
@@ -90,8 +94,6 @@ This plugin relies on the following external services:
 * Fix   - Prevent a rare fatal error when WooCommerce Tax registers its Store API data on incomplete WooCommerce installations.
 * Fix   - Stop store admins other than the Jetpack connection owner from accepting the WooCommerce Tax Terms of Service through the REST API or the banner shown after connecting.
 * Fix   - Check that the order exists, and that a shipping label belongs to it, before buying a label, getting rates, checking a label's status or refunding a label. Customs details are only saved to products on that order.
-* Fix   - Stop exposing the shipping label, carrier and subscription REST routes on stores that only use tax features. Users who can only print labels can no longer manage carrier accounts, subscriptions, label account settings, live rate settings or debug logging, or see the connected WordPress.com account's name and email, or the store's saved cards.
-* Tweak - Changing shipping label account settings, including the selected credit card, now requires the Manage WooCommerce capability.
 * Tweak - Block direct access to the remaining class files and declare the license in the plugin header.
 * Tweak - Include composer.json in the plugin package.
 * Tweak - Bind the service IDs in the enabled services query with prepare() instead of escaping them by hand.
