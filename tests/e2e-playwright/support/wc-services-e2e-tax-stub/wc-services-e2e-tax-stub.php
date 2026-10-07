@@ -104,12 +104,15 @@ function wc_services_e2e_tax_stub_is_armed() {
  * Whether the store holds a real WordPress.com connection.
  *
  * Checked through the connection manager directly, not offline mode, so the
- * offline-mode filter below cannot hide a real connection from it.
+ * offline-mode filter below cannot hide a real connection from it. A blog token
+ * alone counts: WC_Connect_Jetpack::is_connected() also requires a connected
+ * owner, and a site-only connection is still a real one that arming would put
+ * into offline mode.
  *
  * @return bool
  */
 function wc_services_e2e_tax_stub_has_real_connection() {
-	return class_exists( 'WC_Connect_Jetpack' ) && WC_Connect_Jetpack::is_connected();
+	return class_exists( 'WC_Connect_Jetpack' ) && WC_Connect_Jetpack::get_connection_manager()->is_connected();
 }
 
 /**
