@@ -380,6 +380,8 @@ jobs:
               id: run-e2e-tests
               if: ${{ !cancelled() && inputs.test-e2e == 'true' }}
               shell: bash --noprofile --norc {0}
+              env:
+                  TEST_ADDITIONAL_PLUGINS: ${{ inputs.test-additional-plugins }}
               run: |
                   # The suite must be registered with --test-package (a positional
                   # path is ignored and yields a green-looking "Packages: 0/0
@@ -401,6 +403,16 @@ jobs:
                   [ "${wp_version}" = "nightly" ] && wp_version="rc"
                   [ "${woo_version}" = "nightly" ] && woo_version="rc"
 
+                  # run:e2e has no --additional_plugins (the shared
+                  # ADDITIONAL_PLUGINS env var); it reuses env:up's repeatable
+                  # --plugin, so map the comma-separated input onto that.
+                  plugin_args=()
+                  IFS=',' read -ra additional_plugins <<< "${TEST_ADDITIONAL_PLUGINS}"
+                  for plugin in "${additional_plugins[@]}"; do
+                      plugin="${plugin//[[:space:]]/}"
+                      [ -n "${plugin}" ] && plugin_args+=( "--plugin=${plugin}" )
+                  done
+
                   # qit resolves relative plugin paths in the env config against
                   # the current working directory, not the config file location,
                   # so run from the sparse checkout (where qit.json and tests/e2e-playwright
@@ -415,7 +427,7 @@ jobs:
                     --wordpress_version="${wp_version}" \
                     --woocommerce_version="${woo_version}" \
                     --php_version="${PHP_VERSION}" \
-                    ${ADDITIONAL_PLUGINS} \
+                    "${plugin_args[@]}" \
                     ${EXTRA_OPTIONS} \
                     -n \
                     > "${GITHUB_WORKSPACE}/qit-results/qit-e2e-results.txt"

@@ -47,7 +47,7 @@ on:
         type: boolean
         default: true
       options:
-        description: 'QIT Additional options for `qit` command, like `--optional_features=hpos`.'
+        description: 'QIT Additional options for `qit` command, like `--optional_features=hpos`. Passed to every selected test; Custom Plugin E2E (run:e2e) rejects options it lacks, including --optional_features.'
         type: string
         default: ''
 
