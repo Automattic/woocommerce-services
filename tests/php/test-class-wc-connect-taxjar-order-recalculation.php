@@ -404,6 +404,198 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox Raising the quantity of an item taxed $0 under the order's rate keeps it at $0.
+	 */
+	public function test_quantity_increase_on_zero_taxed_item_keeps_it_untaxed() {
+		// A carries the rate id with no tax, as TaxJar's exempt lines are stored.
+		$fixture = $this->create_placed_order( array( 'a_tax' => '0' ) );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['b'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 46.50 );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'the tax did not change' );
+	}
+
+	/**
+	 * Give a placed order's item new saved amounts and taxes, as if it had been placed so.
+	 *
+	 * Forgets the amounts it had before, so the next request sees only its own edit.
+	 *
+	 * @param WC_Order_Item $item     Item.
+	 * @param string        $total    Total.
+	 * @param array         $taxes    Taxes array.
+	 * @param string|null   $subtotal Subtotal, for a line item.
+	 */
+	private function place_item_as( $item, $total, array $taxes, $subtotal = null ) {
+		$item->set_total( $total );
+		if ( null !== $subtotal ) {
+			$item->set_subtotal( $subtotal );
+		}
+		$item->set_taxes( $taxes );
+		$item->save();
+
+		$property = new ReflectionProperty( $this->integration, 'order_item_base_before_save' );
+		$property->setAccessible( true );
+		$property->setValue( $this->integration, array() );
+		$this->forget_created_in_request();
+	}
+
+	/**
+	 * Situations where a changed item was charged $0 at its rate for a reason other than
+	 * being exempt, so it is taxed at that rate again once it has an amount.
+	 *
+	 * @return array
+	 */
+	public function provide_zero_tax_that_is_not_exempt() {
+		return array(
+			'line discounted to $0'    => array(
+				'a',
+				'0',
+				'10',
+				array(
+					'total'    => array( 'RATE' => '0' ),
+					'subtotal' => array( 'RATE' => '0.6' ),
+				),
+				array(
+					'line_items' => array(
+						array(
+							'id'       => 'ID',
+							'subtotal' => '10.00',
+							'total'    => '10.00',
+						),
+					),
+				),
+				0.60,
+			),
+			'free shipping now priced' => array(
+				'shipping',
+				'0',
+				null,
+				array( 'total' => array( 'RATE' => '0' ) ),
+				array(
+					'shipping_lines' => array(
+						array(
+							'id'    => 'ID',
+							'total' => '5.00',
+						),
+					),
+				),
+				0.30,
+			),
+		);
+	}
+
+	/**
+	 * @testdox An item charged $0 only because its amount was $0 is taxed at its rate once it has an amount.
+	 * @dataProvider provide_zero_tax_that_is_not_exempt
+	 *
+	 * @param string      $which    Fixture item key.
+	 * @param string      $total    Total it was placed with.
+	 * @param string|null $subtotal Subtotal it was placed with.
+	 * @param array       $taxes    Taxes it was placed with; RATE is replaced by the rate id.
+	 * @param array       $body     REST body; ID is replaced by the item id.
+	 * @param float       $expected Its tax after the edit.
+	 */
+	public function test_zero_tax_that_is_not_exempt_is_taxed_again( $which, $total, $subtotal, $taxes, $body, $expected ) {
+		$fixture = $this->create_placed_order();
+		$order   = $fixture['order'];
+		$item    = 'shipping' === $which ? $order->get_item( $fixture['shipping'] ) : $order->get_item( $fixture[ $which ] );
+
+		$rate_id = $this->rate_id;
+		$taxes   = array_map(
+			static function ( $by_rate ) use ( $rate_id ) {
+				return array( $rate_id => $by_rate['RATE'] );
+			},
+			$taxes
+		);
+		$this->place_item_as( $item, $total, $taxes, $subtotal );
+
+		$type                   = key( $body );
+		$body[ $type ][0]['id'] = $item->get_id();
+		$order                  = $this->rest_update( $order->get_id(), $body );
+
+		$this->assertEqualsWithDelta( $expected, $this->item_tax( $order, $item->get_id() ), 0.001 );
+	}
+
+	/**
+	 * @testdox An exempt line discounted to $0 stays at $0 when the discount is removed.
+	 */
+	public function test_exempt_line_discounted_to_zero_stays_untaxed() {
+		$fixture = $this->create_placed_order( array( 'a_tax' => '0' ) );
+		$order   = $fixture['order'];
+		$this->place_item_as(
+			$order->get_item( $fixture['a'] ),
+			'0',
+			array(
+				'total'    => array( $this->rate_id => '0' ),
+				'subtotal' => array( $this->rate_id => '0' ),
+			),
+			'10'
+		);
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'subtotal' => '10.00',
+						'total'    => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+	}
+
+	/**
+	 * @testdox Next to an item taxed $0, a taxed item in the same class still moves with its quantity.
+	 */
+	public function test_zero_taxed_item_beside_taxed_item_both_changed() {
+		$fixture = $this->create_placed_order( array( 'a_tax' => '0' ) );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+					array(
+						'id'       => $fixture['b'],
+						'quantity' => 2,
+						'subtotal' => '40.00',
+						'total'    => '40.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assertEqualsWithDelta( 2.40, $this->item_tax( $order, $fixture['b'] ), 0.001 );
+		$this->assert_order_tax( $order, 2.40, 0.30, 67.70 );
+		$this->assertCount( 1, $this->tax_notes( $order ) );
+	}
+
+	/**
 	 * @testdox Removing an item over REST removes its tax.
 	 */
 	public function test_item_removal_moves_tax() {
@@ -647,6 +839,204 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001 );
 		$this->assertEqualsWithDelta( 0.30, (float) $order->get_shipping_tax(), 0.001 );
 		$this->assertNotEmpty( $this->tax_notes( $order ), 'a note explains the untaxed item' );
+	}
+
+	/**
+	 * Build a placed order with items in two tax classes and a negative fee:
+	 *
+	 *   Product A (Standard)        $10.00  tax 0.60 (6%)
+	 *   Product R (Reduced rate)    $20.00  tax 0.40 (2%)
+	 *   Discount fee (Standard)     -$6.00  tax -0.12 (6%) and -0.08 (2%)
+	 *   ---------------------------------------------------
+	 *   cart tax 0.80, no shipping, total 24.80
+	 *
+	 * WooCommerce taxes a negative fee by splitting it across the order's tax classes,
+	 * by each class's share of the order: -$2 of it at Standard's 6%, -$4 at Reduced
+	 * rate's 2%. So the fee carries the Reduced rate although its class is Standard.
+	 * Both rows are overwritten to 0% in the table, as in the main fixture.
+	 *
+	 * @return array{order: WC_Order, a: int, r: int, fee: int, reduced_rate_id: int}
+	 */
+	private function create_placed_order_with_negative_fee() {
+		$standard_id = $this->rate_id;
+		$reduced_id  = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '0.0000',
+				'tax_rate_name'     => 'Overwritten',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => 'reduced-rate',
+			)
+		);
+
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+
+		$a_id = $order->add_product( $this->create_product( '10' ), 1 );
+		$r_id = $order->add_product( $this->create_product( '20', 'reduced-rate' ), 1 );
+
+		$order->get_item( $a_id, false )->set_taxes(
+			array(
+				'total'    => array( $standard_id => '0.6' ),
+				'subtotal' => array( $standard_id => '0.6' ),
+			)
+		);
+		$order->get_item( $r_id, false )->set_taxes(
+			array(
+				'total'    => array( $reduced_id => '0.4' ),
+				'subtotal' => array( $reduced_id => '0.4' ),
+			)
+		);
+
+		$fee = new WC_Order_Item_Fee();
+		$fee->set_name( 'Discount' );
+		$fee->set_tax_class( '' );
+		$fee->set_tax_status( 'taxable' );
+		$fee->set_total( '-6' );
+		$fee->set_taxes(
+			array(
+				'total' => array(
+					$standard_id => '-0.12',
+					$reduced_id  => '-0.08',
+				),
+			)
+		);
+		$order->add_item( $fee );
+
+		foreach ( array( array( $standard_id, 'US-CO-CO TAX-1', 'CO Tax', 6.0, 0.48 ), array( $reduced_id, 'US-CO-CO REDUCED-1', 'CO Reduced', 2.0, 0.32 ) ) as $line ) {
+			$tax_line = new WC_Order_Item_Tax();
+			$tax_line->set_rate_id( $line[0] );
+			$tax_line->set_rate_code( $line[1] );
+			$tax_line->set_label( $line[2] );
+			$tax_line->set_rate_percent( $line[3] );
+			$tax_line->set_compound( false );
+			$tax_line->set_tax_total( $line[4] );
+			$tax_line->set_shipping_tax_total( 0 );
+			$order->add_item( $tax_line );
+		}
+
+		$order->set_cart_tax( 0.80 );
+		$order->set_total( 24.80 );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+
+		return array(
+			'order'           => $order,
+			'a'               => $a_id,
+			'r'               => $r_id,
+			'fee'             => $fee->get_id(),
+			'reduced_rate_id' => $reduced_id,
+		);
+	}
+
+	/**
+	 * Per-rate tax on an order item, keyed by rate id.
+	 *
+	 * @param WC_Order $order   Order.
+	 * @param int      $item_id Item id.
+	 * @return float[]
+	 */
+	private function item_taxes_by_rate( WC_Order $order, $item_id ) {
+		$taxes = $order->get_item( $item_id )->get_taxes();
+
+		return array_map( 'floatval', array_filter( $taxes['total'] ) );
+	}
+
+	/**
+	 * The one product line on an order that is not one of the given items.
+	 *
+	 * @param WC_Order $order    Order.
+	 * @param int[]    $item_ids Items to leave out.
+	 * @return int
+	 */
+	private function other_line_item( WC_Order $order, array $item_ids ) {
+		$ids = array_diff( array_keys( $order->get_items() ), $item_ids );
+		$this->assertCount( 1, $ids );
+
+		return (int) reset( $ids );
+	}
+
+	/**
+	 * @testdox A new product replacing the last items of its class, with a negative fee among them, takes only that class's rate.
+	 */
+	public function test_replacing_class_with_negative_fee_keeps_only_its_rate() {
+		$fixture = $this->create_placed_order_with_negative_fee();
+		$c       = $this->create_product( '30' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 0,
+					),
+					array(
+						'product_id' => $c->get_id(),
+						'quantity'   => 1,
+					),
+				),
+				'fee_lines'  => array(
+					array(
+						'id'   => $fixture['fee'],
+						'name' => null,
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $order->get_fees(), 'the fee was removed' );
+		$c_id = $this->other_line_item( $order, array( $fixture['r'] ) );
+
+		// C is Standard: $30 at 6% = 1.80. R keeps its 0.40 (2% of $20).
+		$this->assertEqualsWithDelta( array( $this->rate_id => 1.80 ), $this->item_taxes_by_rate( $order, $c_id ), 0.001, 'C is taxed at the Standard rate only' );
+		$this->assertEqualsWithDelta( array( $fixture['reduced_rate_id'] => 0.40 ), $this->item_taxes_by_rate( $order, $fixture['r'] ), 0.001 );
+		$this->assertEqualsWithDelta( 2.20, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( 52.20, (float) $order->get_total(), 0.001, 'order total: 20 + 30 + 2.20' );
+	}
+
+	/**
+	 * @testdox A new product beside a negative fee of its class takes only that class's rate.
+	 */
+	public function test_new_item_beside_negative_fee_keeps_only_its_class_rate() {
+		$fixture = $this->create_placed_order_with_negative_fee();
+		$c       = $this->create_product( '30' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $c->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$c_id = $this->other_line_item( $order, array( $fixture['a'], $fixture['r'] ) );
+
+		// C is Standard: $30 at 6% = 1.80. Everything else keeps its tax.
+		$this->assertEqualsWithDelta( array( $this->rate_id => 1.80 ), $this->item_taxes_by_rate( $order, $c_id ), 0.001, 'C is taxed at the Standard rate only' );
+		$this->assertEqualsWithDelta(
+			array(
+				$this->rate_id              => -0.12,
+				$fixture['reduced_rate_id'] => -0.08,
+			),
+			$this->item_taxes_by_rate( $order, $fixture['fee'] ),
+			0.001,
+			'the fee keeps its split tax'
+		);
+		$this->assertEqualsWithDelta( 2.60, (float) $order->get_cart_tax(), 0.001, 'cart tax: 0.80 + 1.80' );
+		$this->assertEqualsWithDelta( 56.60, (float) $order->get_total(), 0.001, 'order total: 10 + 20 - 6 + 30 + 2.60' );
 	}
 
 	/**
@@ -898,6 +1288,94 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order = wc_get_order( $order->get_id() );
 		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $item_id ), 0.001 );
 		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+	}
+
+	/**
+	 * @testdox An item removed and saved before calculate_totals() (as the V4 REST route does) takes its tax with it.
+	 */
+	public function test_remove_and_save_before_recalculation_moves_tax() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$order->remove_item( $fixture['b'] );
+		$order->save();
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertCount( 1, $order->get_items(), 'B removed' );
+		$this->assert_order_tax( $order, 0.60, 0.30, 15.90 );
+		$this->assertCount( 1, $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox An item deleted with wc_delete_order_item() before a recalculation takes its tax with it.
+	 */
+	public function test_deleted_item_before_recalculation_moves_tax() {
+		$fixture = $this->create_placed_order();
+
+		wc_delete_order_item( $fixture['b'] );
+		$order = wc_get_order( $fixture['order']->get_id() );
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assert_order_tax( $order, 0.60, 0.30, 15.90 );
+	}
+
+	/**
+	 * @testdox Replacing every item of a class, saved before the recalculation, taxes the new item at the removed items' rate.
+	 */
+	public function test_replacing_items_saved_before_recalculation_keeps_their_rate() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$order->remove_item( $fixture['a'] );
+		$order->remove_item( $fixture['b'] );
+		$c = new WC_Order_Item_Product();
+		$c->set_product( $this->create_product( '30' ) );
+		$c->set_quantity( 1 );
+		$c->set_subtotal( '30' );
+		$c->set_total( '30' );
+		$order->add_item( $c );
+		$order->save();
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 1.80, $this->item_tax( $order, $c->get_id() ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+	}
+
+	/**
+	 * @testdox An item retyped off the order (Subscriptions' remove) loses its tax, and gets it back when retyped onto it (Undo).
+	 */
+	public function test_retyped_item_is_removed_and_restored() {
+		$fixture  = $this->create_placed_order();
+		$order_id = $fixture['order']->get_id();
+		// Subscriptions maps its removed-item type to a product item class.
+		$classname = static function ( $classname, $item_type ) {
+			return 'line_item_removed' === $item_type ? 'WC_Order_Item_Product' : $classname;
+		};
+		add_filter( 'woocommerce_get_order_item_classname', $classname, 10, 2 );
+
+		try {
+			// What wcs_update_order_item_type() does, then WCS_Remove_Item recalculates.
+			wc_update_order_item( $fixture['b'], array( 'order_item_type' => 'line_item_removed' ) );
+			wp_cache_delete( 'order-items-' . $order_id, 'orders' );
+			wc_get_order( $order_id )->calculate_totals();
+
+			$order = wc_get_order( $order_id );
+			$this->assertCount( 1, $order->get_items(), 'B is off the order' );
+			$this->assert_order_tax( $order, 0.60, 0.30, 15.90 );
+
+			wc_update_order_item( $fixture['b'], array( 'order_item_type' => 'line_item' ) );
+			wp_cache_delete( 'order-items-' . $order_id, 'orders' );
+			wc_get_order( $order_id )->calculate_totals();
+		} finally {
+			remove_filter( 'woocommerce_get_order_item_classname', $classname, 10 );
+		}
+
+		$order = wc_get_order( $order_id );
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['b'] ), 0.001, 'B comes back with its own tax' );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
 	}
 
 	// -------------------------------------------------------------------------
