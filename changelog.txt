@@ -1,6 +1,6 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.7.2 - 2026-xx-xx =
+= 3.7.2 - 2026-10-08 =
 * Fix   - Improve handling of shipping features on tax-only stores.
 * Fix   - Improve reliability during plugin updates.
 * Tweak - Changing shipping label account settings, including the selected credit card, now requires the Manage WooCommerce capability.
