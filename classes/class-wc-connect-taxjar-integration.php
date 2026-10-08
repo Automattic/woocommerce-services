@@ -354,9 +354,14 @@ class WC_Connect_TaxJar_Integration {
 		$this->configure_tax_settings();
 
 		// Check the store address with TaxJar when it changes, and tell the merchant when it looks wrong.
-		$store_address_verifier = new StoreAddressVerifier( $this->api_client, $this );
-		$store_address_verifier->init();
-		( new StoreAddressNotice( $store_address_verifier ) )->init();
+		// Guarded because plugin updates are not atomic: a request served mid-update can run this
+		// file against the previous version's autoloader manifest, which does not know classes that
+		// are new in this release. Skipping the check there beats fataling the whole request.
+		if ( class_exists( StoreAddressVerifier::class ) && class_exists( StoreAddressNotice::class ) ) {
+			$store_address_verifier = new StoreAddressVerifier( $this->api_client, $this );
+			$store_address_verifier->init();
+			( new StoreAddressNotice( $store_address_verifier ) )->init();
+		}
 
 		// Calculate Taxes at Cart / Checkout
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+

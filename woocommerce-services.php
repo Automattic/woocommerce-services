@@ -10,12 +10,12 @@
  * Domain Path: /i18n/languages/
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Version: 3.7.1
+ * Version: 3.7.2
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 7.0
  * Tested up to: 7.1
- * WC requires at least: 10.9
+ * WC requires at least: 11.0
  * WC tested up to: 11.2
  *
  * Copyright (c) 2017-2023 Automattic
