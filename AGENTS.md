@@ -36,7 +36,14 @@ npm run eslint
 composer test          # PHPUnit; auto-checks the test env and repairs only what's broken
 composer test:setup    # one-shot: bring up the Dockerized DB + install WP/WC test deps
 composer check-all     # PHPCS (see Linting below)
+npm run env:start && npm run test:e2e-playwright:local   # Playwright E2E (see below)
 ```
+
+### Playwright E2E suite (`tests/e2e-playwright/`)
+- A QIT custom E2E test package covering smoke, the automated-taxes setting, and tax at cart and checkout. It runs on the weekly Cron QIT workflow and on the Manual Test Runner (`Custom Plugin E2E (tests/e2e-playwright)`), not per PR. See `tests/e2e-playwright/README.md`.
+- It is a separate npm package with its own committed `package-lock.json`. Do not move its dependencies to the root `package.json`. wp-env runs through `npx` (`npm run env:*`), so it adds nothing to `npm-shrinkwrap.json`.
+- TaxJar and the WordPress.com connection are stubbed by the test-only plugin in `tests/e2e-playwright/support/wc-services-e2e-tax-stub/`. When the tax path calls a new Connect server endpoint, add it to the stub; the armed stub fails any endpoint it does not know.
+- It does not replace the legacy Puppeteer suite in `tests/e2e/`, which still covers the grandfathered shipping-label flow.
 
 ### PHPUnit test environment
 - `composer test` is the single entry point. It runs `tests/bin/run-tests.sh`, which

@@ -67,6 +67,9 @@
 		"qit:woo-api": [
 			"npm run build && composer install && ./vendor/bin/qit run:woo-api woocommerce-services --zip=woocommerce-services.zip"
 		],
+		"qit:e2e": [
+			"npm run build && composer install && ./vendor/bin/qit run:e2e woocommerce-services --zip=woocommerce-services.zip --config=./qit.json --test-package=./tests/e2e-playwright"
+		],
 		"test": [
 			"./tests/bin/run-tests.sh"
 		],

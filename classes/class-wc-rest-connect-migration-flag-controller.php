@@ -85,4 +85,14 @@ class WC_REST_Connect_Migration_Flag_Controller extends WC_REST_Connect_Base_Con
 		$this->logger->log( $error, __CLASS__ );
 		return $error;
 	}
+
+	/**
+	 * The migration state applies to the whole store, so the label capability alone is not enough.
+	 *
+	 * @param WP_REST_Request $request The request.
+	 * @return bool|WP_Error
+	 */
+	public function check_permission( $request ) {
+		return $this->check_store_permission( $request );
+	}
 }
