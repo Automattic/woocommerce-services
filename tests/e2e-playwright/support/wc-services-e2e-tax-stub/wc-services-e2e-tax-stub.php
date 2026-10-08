@@ -116,19 +116,35 @@ function wc_services_e2e_tax_stub_has_real_connection() {
 }
 
 /**
- * Turn on Jetpack offline mode while armed.
+ * Whether the stub should act: armed, and not on a store with a real
+ * connection.
+ *
+ * /arm refuses a connected store, but a store can be connected after arming,
+ * for example while the stub is deactivated. The behavioral filters check this
+ * so they stand down on such a store. It is kept out of is_armed() on purpose:
+ * /disarm and /reset are armed-gated, and would otherwise refuse to clean up
+ * the very store this protects.
+ *
+ * @return bool
+ */
+function wc_services_e2e_tax_stub_is_active() {
+	return wc_services_e2e_tax_stub_is_armed() && ! wc_services_e2e_tax_stub_has_real_connection();
+}
+
+/**
+ * Turn on Jetpack offline mode while active.
  *
  * @param bool $offline_mode Whether offline mode is active.
  *
  * @return bool
  */
 function wc_services_e2e_tax_stub_offline_mode( $offline_mode ) {
-	return wc_services_e2e_tax_stub_is_armed() ? true : $offline_mode;
+	return wc_services_e2e_tax_stub_is_active() ? true : $offline_mode;
 }
 add_filter( 'jetpack_offline_mode', 'wc_services_e2e_tax_stub_offline_mode' );
 
 /**
- * Supply a sentinel blog token while armed and no real token exists.
+ * Supply a sentinel blog token while active and no real token exists.
  *
  * The secret only has to have the `key.secret` shape authorization_header()
  * splits on. Nothing verifies the signature: the stub answers the request it
@@ -141,7 +157,7 @@ add_filter( 'jetpack_offline_mode', 'wc_services_e2e_tax_stub_offline_mode' );
 function wc_services_e2e_tax_stub_access_token( $token ) {
 	// A real token is an object with a secret. Anything else (false by default,
 	// a WP_Error when errors are not suppressed) is not one, so it is replaced.
-	if ( ( is_object( $token ) && ! empty( $token->secret ) ) || ! wc_services_e2e_tax_stub_is_armed() ) {
+	if ( ( is_object( $token ) && ! empty( $token->secret ) ) || ! wc_services_e2e_tax_stub_is_active() ) {
 		return $token;
 	}
 
@@ -291,7 +307,7 @@ function wc_services_e2e_tax_stub_pre_http_request( $preempt, $parsed_args, $url
 	$server = trailingslashit( WOOCOMMERCE_CONNECT_SERVER_URL );
 
 	// Cheapest test first: this filter runs on every outbound request on the site.
-	if ( 0 !== strpos( (string) $url, $server ) || ! wc_services_e2e_tax_stub_is_armed() ) {
+	if ( 0 !== strpos( (string) $url, $server ) || ! wc_services_e2e_tax_stub_is_active() ) {
 		return $preempt;
 	}
 
@@ -408,9 +424,15 @@ add_action( 'woocommerce_tax_rate_added', 'wc_services_e2e_tax_stub_track_rate' 
  * @return void
  */
 function wc_services_e2e_tax_stub_delete_rates() {
+	// Without WooCommerce the rows cannot be deleted, so keep the IDs for a
+	// later /disarm rather than forgetting them.
+	if ( ! class_exists( 'WC_Tax' ) ) {
+		return;
+	}
+
 	$ids = get_option( WC_SERVICES_E2E_TAX_STUB_RATE_IDS_OPTION, array() );
 
-	if ( is_array( $ids ) && class_exists( 'WC_Tax' ) ) {
+	if ( is_array( $ids ) ) {
 		foreach ( $ids as $id ) {
 			WC_Tax::_delete_tax_rate( absint( $id ) );
 		}
@@ -420,14 +442,63 @@ function wc_services_e2e_tax_stub_delete_rates() {
 }
 
 /**
+ * Whether an earlier disarm left cleanup undone: a terms acceptance or tax rate
+ * rows the stub made, recorded because WooCommerce Tax or WooCommerce was
+ * inactive at the time.
+ *
+ * @return bool
+ */
+function wc_services_e2e_tax_stub_has_pending_cleanup() {
+	return 'yes' === get_option( WC_SERVICES_E2E_TAX_STUB_TOS_OPTION )
+		|| false !== get_option( WC_SERVICES_E2E_TAX_STUB_RATE_IDS_OPTION );
+}
+
+/**
+ * Disarm and undo what arming changed.
+ *
+ * Each piece of cleanup forgets its record only once it has run, so a disarm
+ * while WooCommerce Tax or WooCommerce is inactive leaves the rest for the next
+ * one.
+ *
+ * @return void
+ */
+function wc_services_e2e_tax_stub_undo_arming() {
+	if ( 'yes' === get_option( WC_SERVICES_E2E_TAX_STUB_TOS_OPTION ) && class_exists( 'WC_Connect_Options' ) ) {
+		WC_Connect_Options::delete_option( 'tos_accepted' );
+		delete_option( WC_SERVICES_E2E_TAX_STUB_TOS_OPTION );
+	}
+
+	wc_services_e2e_tax_stub_delete_rates();
+	delete_option( WC_SERVICES_E2E_TAX_STUB_ARMED_OPTION );
+	delete_transient( WC_SERVICES_E2E_TAX_STUB_REQUESTS_KEY );
+	wc_services_e2e_tax_stub_clear_tax_cache();
+}
+
+/**
+ * Disarm when the stub is deactivated.
+ *
+ * Otherwise the armed flag survives deactivation, and reactivating the stub
+ * later would bring it back armed without anyone calling /arm.
+ *
+ * @return void
+ */
+function wc_services_e2e_tax_stub_deactivate() {
+	if ( wc_services_e2e_tax_stub_is_armed() || wc_services_e2e_tax_stub_has_pending_cleanup() ) {
+		wc_services_e2e_tax_stub_undo_arming();
+	}
+}
+register_deactivation_hook( __FILE__, 'wc_services_e2e_tax_stub_deactivate' );
+
+/**
  * Register the E2E-only REST routes.
  *
  * `GET /status` reports the armed state and the recorded requests. It is not
  * armed-gated: provisioning calls it to find out whether the stub is armed.
  *
  * `POST /arm` cannot be armed-gated, so it refuses instead on a store with a
- * real WordPress.com connection. `POST /reset` and `POST /disarm` are
- * armed-gated, so a disarmed stub never touches a store's caches or cart.
+ * real WordPress.com connection. `POST /reset` is armed-gated, and `POST
+ * /disarm` acts only when armed or when an earlier disarm left cleanup undone,
+ * so a disarmed stub never touches a store's caches or cart.
  *
  * All routes require `manage_woocommerce`, which WooCommerce also grants to
  * shop managers. That is accepted: the routes only exist on wp-env checkouts and
@@ -522,24 +593,15 @@ function wc_services_e2e_tax_stub_arm() {
  * REST callback: disarm the stub and undo what /arm changed.
  *
  * Called from the Playwright global teardown so a developer's wp-env store is
- * not left on fabricated tax amounts after a run.
+ * not left on fabricated tax amounts after a run. Also finishes cleanup an
+ * earlier disarm had to leave undone.
  *
  * @return WP_REST_Response
  */
 function wc_services_e2e_tax_stub_disarm() {
-	if ( ! wc_services_e2e_tax_stub_is_armed() ) {
-		return rest_ensure_response( array( 'armed' => false ) );
+	if ( wc_services_e2e_tax_stub_is_armed() || wc_services_e2e_tax_stub_has_pending_cleanup() ) {
+		wc_services_e2e_tax_stub_undo_arming();
 	}
-
-	if ( 'yes' === get_option( WC_SERVICES_E2E_TAX_STUB_TOS_OPTION ) && class_exists( 'WC_Connect_Options' ) ) {
-		WC_Connect_Options::delete_option( 'tos_accepted' );
-	}
-
-	wc_services_e2e_tax_stub_delete_rates();
-	delete_option( WC_SERVICES_E2E_TAX_STUB_TOS_OPTION );
-	delete_option( WC_SERVICES_E2E_TAX_STUB_ARMED_OPTION );
-	delete_transient( WC_SERVICES_E2E_TAX_STUB_REQUESTS_KEY );
-	wc_services_e2e_tax_stub_clear_tax_cache();
 
 	return rest_ensure_response( array( 'armed' => false ) );
 }
