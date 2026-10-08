@@ -73,9 +73,9 @@ const setupProjects = [
 		// timeouts to serve its first response (containers still warming up),
 		// which fails this login-and-store-session setup once before wp-env is
 		// fully up - then passes in ~1-2s on every following run. Give this
-		// project its own retry (on top of the global `retries` above, which
-		// stays 0 locally) so a single cold-start flake here doesn't fail every
-		// spec that depends on it.
+		// project its own retries, which replace the global `retries` below
+		// (0 locally, 1 in CI) for this project only, so a single cold-start
+		// flake here doesn't fail every spec that depends on it.
 		retries: isCi ? 2 : 1,
 	},
 ];
