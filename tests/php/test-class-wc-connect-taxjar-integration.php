@@ -4392,10 +4392,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * so a line TaxJar answered at 0% on the first pass is sent as exempt on the second.
 	 * The order is then built from the cart and totalled.
 	 *
-	 * @param WC_Connect_TaxJar_Integration $integration Integration under test.
+	 * @param WC_Connect_TaxJar_Integration $integration  Integration under test.
+	 * @param bool                          $reload_items Total the order as loaded from the database, as a
+	 *                                                    draft order whose items an earlier request created.
 	 * @return WC_Order
 	 */
-	private function store_api_checkout( $integration ) {
+	private function store_api_checkout( $integration, $reload_items = false ) {
 		$saved_route = $GLOBALS['wp']->query_vars['rest_route'] ?? null;
 
 		$GLOBALS['wp']->query_vars['rest_route'] = '/wc/store/v1/checkout';
@@ -4404,6 +4406,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		// The hooks init() registers for this path.
 		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $integration, 'override_cart_item_tax_rates' ), 10, 3 );
+		add_action( 'woocommerce_checkout_create_order_line_item', array( $integration, 'remember_order_item_cart_item_key' ), 10, 2 );
 		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $integration, 'override_order_item_taxes' ), 10, 2 );
 
 		try {
@@ -4424,10 +4427,15 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			$order->set_billing_address( $address );
 			$order->set_shipping_address( $address );
 			WC()->checkout->create_order_line_items( $order, WC()->cart );
+			if ( $reload_items ) {
+				$order->save();
+				$order = wc_get_order( $order->get_id() );
+			}
 			$order->calculate_totals();
 			$order->save();
 		} finally {
 			remove_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $integration, 'override_cart_item_tax_rates' ), 10 );
+			remove_action( 'woocommerce_checkout_create_order_line_item', array( $integration, 'remember_order_item_cart_item_key' ), 10 );
 			remove_action( 'woocommerce_order_item_after_calculate_taxes', array( $integration, 'override_order_item_taxes' ), 10 );
 			$GLOBALS['wp']->query_vars['rest_route'] = $saved_route;
 		}
@@ -4511,6 +4519,81 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 0.0, $taxed['50'], 0.001, 'TaxJar answered the $50 line as exempt' );
 		$this->assertEqualsWithDelta( 7.2, $taxed['120'], 0.001, '$120 at 6%' );
 		$this->assertEqualsWithDelta( (float) WC()->cart->get_cart_contents_tax(), (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
+	}
+
+	/**
+	 * At checkout, each line of one product finds its own answer by the cart item it
+	 * was created from, though its amounts no longer match that cart line.
+	 */
+	public function test_checkout_finds_each_line_of_one_product_by_its_cart_item() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$add_on_key = WC()->cart->add_to_cart( $this->product->get_id(), 1, 0, array(), array( 'add_on' => 'gift wrap' ) );
+		WC()->cart->cart_contents[ $add_on_key ]['data']->set_price( 120 );
+
+		$discount = self::take_a_dollar_off_each_order_item();
+		try {
+			$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ) );
+		} finally {
+			remove_action( 'woocommerce_checkout_create_order_line_item', $discount );
+		}
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ (string) (float) $item->get_total() ] = self::item_tax( $item );
+		}
+		$this->assertEqualsWithDelta( 0.0, $taxed['49'], 0.001, 'TaxJar answered the $50 cart line as exempt' );
+		$this->assertEqualsWithDelta( 7.14, $taxed['119'], 0.001, '$119 at 6%' );
+	}
+
+	/**
+	 * An order item with no record of its cart item, whose amounts match no cart line,
+	 * is taxed at the answer of a line TaxJar taxed rather than cleared as exempt.
+	 */
+	public function test_checkout_without_a_matching_cart_line_keeps_a_taxed_line_taxed() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$add_on_key = WC()->cart->add_to_cart( $this->product->get_id(), 1, 0, array(), array( 'add_on' => 'gift wrap' ) );
+		WC()->cart->cart_contents[ $add_on_key ]['data']->set_price( 120 );
+
+		$discount = self::take_a_dollar_off_each_order_item();
+		try {
+			$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ), true );
+		} finally {
+			remove_action( 'woocommerce_checkout_create_order_line_item', $discount );
+		}
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ (string) (float) $item->get_total() ] = self::item_tax( $item );
+		}
+		// Neither item can be told apart, so both take the taxed line's 6%.
+		$this->assertEqualsWithDelta( 2.94, $taxed['49'], 0.001, '$49 at 6%' );
+		$this->assertEqualsWithDelta( 7.14, $taxed['119'], 0.001, '$119 at 6%' );
+	}
+
+	/**
+	 * Take $1 off each order item as checkout creates it, so no item matches its cart
+	 * line on amounts.
+	 *
+	 * @return callable The hooked callback, to remove.
+	 */
+	private static function take_a_dollar_off_each_order_item() {
+		$discount = function ( $item ) {
+			$item->set_subtotal( (float) $item->get_subtotal() - 1 );
+			$item->set_total( (float) $item->get_total() - 1 );
+		};
+		add_action( 'woocommerce_checkout_create_order_line_item', $discount );
+
+		return $discount;
 	}
 
 	/**
