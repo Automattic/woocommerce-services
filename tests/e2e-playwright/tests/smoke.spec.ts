@@ -5,8 +5,10 @@ import { TAX_SETTINGS_URL } from '../utils/automated-taxes';
 
 // The plugin's Plugins-screen row handle: WordPress core sets data-plugin to
 // "<dir>/<file>.php", which is stable across locales and across the plugin's own
-// display-name rewrite (WC_Connect_Loader::maybe_rename_plugin()).
-const PLUGIN_MAIN_FILE = 'woocommerce-services/woocommerce-services.php';
+// display-name rewrite (WC_Connect_Loader::maybe_rename_plugin()). Matched on the
+// file name only, because wp-env names <dir> after the checkout folder, which
+// differs in a worktree or a renamed clone.
+const PLUGIN_MAIN_FILE = '/woocommerce-services.php';
 
 test.describe( 'WooCommerce Tax smoke', () => {
 	test( 'wp-admin dashboard loads without fatal PHP errors', async ( {
@@ -27,7 +29,7 @@ test.describe( 'WooCommerce Tax smoke', () => {
 		// The Deactivate row action ([id^="deactivate-"]) is present only when
 		// the plugin is active, and is locale-independent.
 		const pluginRow = page.locator(
-			`tr[data-plugin="${ PLUGIN_MAIN_FILE }"]`
+			`tr[data-plugin$="${ PLUGIN_MAIN_FILE }"]`
 		);
 		await expect( pluginRow ).toBeVisible();
 		await expect(
