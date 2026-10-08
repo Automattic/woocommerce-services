@@ -2,6 +2,7 @@
 
 = 3.7.2 - 2026-xx-xx =
 * Fix   - Stop registering the shipping REST routes on tax-only stores, and stop users who can only print labels from managing carrier accounts, subscriptions and label settings or seeing the connected WordPress.com account and saved cards.
+* Fix   - Stop charging tax on an item the tax service answered as tax-exempt, such as clothing under New York's price threshold, when another item in the same tax class is taxed. This affected orders placed at checkout and orders recalculated in the admin. The cart now also shows the tax the order charges when items in one tax class are taxed differently, including product variations and the same product added twice at different prices.
 * Tweak - Changing shipping label account settings, including the selected credit card, now requires the Manage WooCommerce capability.
 
 = 3.7.1 - 2026-10-07 =
@@ -19,7 +20,6 @@
 * Fix   - Unslash and sanitize request values in the label reports, settings, migration survey and tracking code, and stop using print_r in log messages.
 * Fix   - Require a nonce on the setup banner's Terms of Service and dismiss links, so they cannot be triggered by loading a crafted URL.
 * Fix   - Stop Recalculate and saving an order's items in the admin from logging a PHP notice for every item and saving an extra tax line with no name, which other plugins could see before it was removed again.
-* Fix   - Stop charging tax on an item the tax service answered as tax-exempt, such as clothing under New York's price threshold, when another item in the same tax class is taxed. This affected orders placed at checkout and orders recalculated in the admin. The cart now also shows the tax the order charges when items in one tax class are taxed differently, including product variations and the same product added twice at different prices.
 * Fix   - Stop REST requests the site would refuse from writing to the WooCommerce Tax log, and stop REST errors from replacing the error notice shown to store managers. Request bodies are shortened and only logged when debug logging is on.
 * Fix   - Prevent a fatal error in the tax calculation when custom code creates the TaxJar integration without a store notices notifier.
 * Fix   - Prevent a rare fatal error when WooCommerce Tax registers its Store API data on incomplete WooCommerce installations.
