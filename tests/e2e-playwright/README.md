@@ -36,12 +36,28 @@ stands in for one:
 
 It records each TaxJar request it answers, so specs can assert on what the plugin
 sent. The stub arms only through its REST route (`POST /arm`), and refuses to arm on
-a store with a real WordPress.com connection. The Playwright global teardown
-disarms it and undoes the terms acceptance it made.
+a store with a real WordPress.com connection. If a store is connected after arming,
+the stub stops acting on it. The Playwright global teardown disarms it and undoes
+the terms acceptance it made; deactivating the stub does the same.
 
-Provisioning (`utils/provisioning.ts`) rewrites the store address, enables taxes and
-the Check payments gateway, and overwrites the logged-in admin's billing and
-shipping address. Run the suite only against wp-env or a disposable QIT site.
+While armed, the stub records every tax rate row inserted, and `/reset` and
+`/disarm` delete those rows. That tracking goes by row ID only: a rate you add by
+hand while the stub is armed is deleted too, and an existing row the plugin
+updates in place is not tracked, so it keeps the stub's rate.
+
+## What a run changes on the store
+
+Run the suite only against wp-env or a disposable QIT site. A run:
+
+- **deletes the store's own tax rates.** Turning automated taxes on, which
+  `settings.spec.ts` does, empties the WooCommerce tax rate tables. That is the
+  plugin's own behavior, not the stub's; it keeps only a CSV backup, in
+  `wp-content/uploads/woocommerce_uploads/taxes/`;
+- rewrites the store address and enables taxes and the Check payments gateway
+  (`utils/provisioning.ts`);
+- overwrites the logged-in admin's billing and shipping address;
+- adds a product and two pages (`e2e-tax-cart`, `e2e-tax-checkout`), and places
+  orders.
 
 ## Running locally
 
@@ -59,6 +75,18 @@ RESET_E2E_SESSION=1 npm run test:e2e-playwright:local
 `npm run test:e2e-playwright:local:show` runs it headed. If something else holds
 port 8888, add a `.wp-env.override.json` with a different `port`. It is gitignored,
 and `bin/resolve-base-url.js` prefers it.
+
+If `env:start` fails:
+
+- **Port 8888 is taken.** The repository's own `docker-compose.yml` (`npm run up`)
+  publishes 8888 for the webpack dev server, so stop it or use a different port as
+  above.
+- **It hangs while getting WordPress.** wp-env clones WordPress from GitHub. If your
+  global git config rewrites `https://github.com/` to SSH (`url.git@github.com:.insteadOf`),
+  run `GIT_CONFIG_GLOBAL=/dev/null npm run env:start`, or set `core` to a
+  wordpress.org zip in `.wp-env.override.json`.
+- **The first start fails on a database error.** The database container can still be
+  starting up. Run `npm run env:start` again.
 
 The suite is its own npm package with a committed `package-lock.json`. QIT installs
 it in place. Do not add its dependencies to the root `package.json`.
