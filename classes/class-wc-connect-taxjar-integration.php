@@ -1724,7 +1724,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @param WC_Order_Item_Product $item          The order item being created.
 	 * @param string                $cart_item_key The key of the cart item it was copied from.
 	 *
-	 * @since 3.7.2
+	 * @since 3.7.3
 	 */
 	public function remember_order_item_cart_item_key( $item, $cart_item_key ) {
 		if ( ! $item instanceof WC_Order_Item_Product || ! is_string( $cart_item_key ) || '' === $cart_item_key ) {
