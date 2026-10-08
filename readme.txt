@@ -5,7 +5,7 @@ Requires PHP: 7.4
 Requires at least: 7.0
 Requires Plugins: woocommerce
 Tested up to: 7.1
-WC requires at least: 10.9
+WC requires at least: 11.0
 WC tested up to: 11.2
 Stable tag: 3.7.1
 License: GPLv2 or later
