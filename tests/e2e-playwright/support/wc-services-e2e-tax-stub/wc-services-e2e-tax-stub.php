@@ -353,7 +353,6 @@ add_filter( 'pre_http_request', 'wc_services_e2e_tax_stub_pre_http_request', 10,
  * @return void
  */
 function wc_services_e2e_tax_stub_admin_notice() {
-	// phpcs:ignore WordPress.WP.Capabilities.Unknown -- WooCommerce core capability.
 	if ( ! wc_services_e2e_tax_stub_is_armed() || ! current_user_can( 'manage_woocommerce' ) ) {
 		return;
 	}
@@ -509,7 +508,6 @@ register_deactivation_hook( __FILE__, 'wc_services_e2e_tax_stub_deactivate' );
  */
 function wc_services_e2e_tax_stub_register_routes() {
 	$can_manage = function () {
-		// phpcs:ignore WordPress.WP.Capabilities.Unknown -- WooCommerce core capability.
 		return current_user_can( 'manage_woocommerce' );
 	};
 
