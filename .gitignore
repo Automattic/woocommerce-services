@@ -36,3 +36,6 @@ docker/logs
 docker/bin/jt
 .idea
 docker-compose.override.yml
+
+# Local wp-env port override for the Playwright E2E suite (tests/e2e-playwright)
+.wp-env.override.json

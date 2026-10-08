@@ -1,0 +1,15 @@
+{
+	"name": "woocommerce-services-e2e",
+	"private": true,
+	"description": "QIT E2E test package for woocommerce-services (WooCommerce Tax).",
+	"devDependencies": {
+		"@playwright/test": "1.57.0",
+		"@types/node": "^22.14.0",
+		"playwright-ctrf-json-reporter": "^0.0.29",
+		"typescript": "^5.7.3"
+	},
+	"scripts": {
+		"test:e2e": "playwright test",
+		"typecheck": "tsc --noEmit"
+	}
+}

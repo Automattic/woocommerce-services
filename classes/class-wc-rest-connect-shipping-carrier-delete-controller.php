@@ -28,4 +28,14 @@ class WC_REST_Connect_Shipping_Carrier_Delete_Controller extends WC_REST_Connect
 		do_action( 'wc_connect_fetch_service_schemas' );
 		return array( 'success' => true );
 	}
+
+	/**
+	 * Carrier accounts belong to the whole store, so the label capability alone is not enough.
+	 *
+	 * @param WP_REST_Request $request The request.
+	 * @return bool|WP_Error
+	 */
+	public function check_permission( $request ) {
+		return $this->check_store_permission( $request );
+	}
 }

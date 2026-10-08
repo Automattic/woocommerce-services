@@ -144,6 +144,58 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Test that init() wires up the store address verifier and its admin notice (WOOTAX-392).
+	 *
+	 * Their instantiation sits behind a class_exists() guard against requests served mid-update,
+	 * so this pins that the guard resolves true in a complete install and the feature stays wired.
+	 */
+	public function test_store_address_verifier_registered_after_init() {
+		// Arrange: enable automated taxes option so init() does not bail early.
+		update_option( WC_Connect_TaxJar_Integration::OPTION_NAME, 'yes' );
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		// Act.
+		$this->integration->init();
+
+		// Assert.
+		$this->assertTrue(
+			$this->hook_has_callback_on( Automattic\WCServices\Tax\StoreAddressVerifier::CRON_HOOK, Automattic\WCServices\Tax\StoreAddressVerifier::class ),
+			'init() should register the store address verifier cron hook'
+		);
+		$this->assertTrue(
+			$this->hook_has_callback_on( 'admin_notices', Automattic\WCServices\Tax\StoreAddressNotice::class ),
+			'init() should register the store address notice renderer'
+		);
+
+		// Clean up.
+		remove_all_actions( Automattic\WCServices\Tax\StoreAddressVerifier::CRON_HOOK );
+		remove_all_actions( 'admin_notices' );
+		delete_option( WC_Connect_TaxJar_Integration::OPTION_NAME );
+		delete_option( 'woocommerce_calc_taxes' );
+	}
+
+	/**
+	 * Whether any callback registered on a hook is a method of an instance of the given class.
+	 *
+	 * @param string $hook_name  Hook to inspect.
+	 * @param string $class_name Expected receiver class of a registered callback.
+	 * @return bool
+	 */
+	private function hook_has_callback_on( $hook_name, $class_name ) {
+		if ( empty( $GLOBALS['wp_filter'][ $hook_name ] ) ) {
+			return false;
+		}
+		foreach ( $GLOBALS['wp_filter'][ $hook_name ]->callbacks as $callbacks ) {
+			foreach ( $callbacks as $callback ) {
+				if ( is_array( $callback['function'] ) && $callback['function'][0] instanceof $class_name ) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	/**
 	 * Helper to invoke protected methods via reflection.
 	 *
 	 * @param string $method_name Method name.

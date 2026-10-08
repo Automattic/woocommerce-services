@@ -8,8 +8,9 @@
 #   release candidates is available; otherwise it tracks the latest stable minor.
 # - "WC tested up to" moves to the next WooCommerce minor as soon as beta 2 (or a
 #   later prerelease) is published; otherwise it tracks the latest stable minor.
-# - "Requires at least" (WP) = latest stable WordPress minor - 1.
-# - "WC requires at least" = latest stable WooCommerce minor - 2.
+# - "Requires at least" (WP) = "Tested up to" - 1, so the floor moves in the same
+#   PR as the compatibility bump instead of one release later.
+# - "WC requires at least" = "WC tested up to" - 2, for the same reason.
 # - "Requires PHP" mirrors WooCommerce core's own requirement.
 # All updates are upgrade-only; headers are never downgraded.
 #
@@ -91,7 +92,6 @@ jobs:
 
           # WordPress minors roll over from X.9 to (X+1).0.
           if [ "$wp_minor" -eq 9 ]; then wp_next="$((wp_major + 1)).0"; else wp_next="$wp_major.$((wp_minor + 1))"; fi
-          if [ "$wp_minor" -eq 0 ]; then wp_requires="$((wp_major - 1)).9"; else wp_requires="$wp_major.$((wp_minor - 1))"; fi
 
           # Tested up to: the next minor once one of its release candidates exists.
           wp_tested=$wp_stable
@@ -101,6 +101,12 @@ jobs:
               break
             fi
           done
+
+          # Requires at least follows "Tested up to", one minor behind, so both
+          # headers move in the same run and the same PR.
+          wp_tested_major=${wp_tested%%.*}
+          wp_tested_minor=${wp_tested#*.}
+          if [ "$wp_tested_minor" -eq 0 ]; then wp_requires="$((wp_tested_major - 1)).9"; else wp_requires="$wp_tested_major.$((wp_tested_minor - 1))"; fi
 
           # WooCommerce releases, fetched once. Assigning the API call to its own
           # variable lets set -e stop the run when the API fails, instead of the
@@ -131,12 +137,16 @@ jobs:
             } | sort -uV | tail -n 1
           )
 
-          # WooCommerce minors roll over from X.9 to (X+1).0, so borrow when subtracting.
-          wc_requires_minor=$((wc_minor - 2))
+          # WC requires at least follows "WC tested up to", two minors behind, so the
+          # floor is raised in the same PR as the compatibility bump. WooCommerce
+          # minors roll over from X.9 to (X+1).0, so borrow when subtracting.
+          wc_tested_major=${wc_tested%%.*}
+          wc_tested_minor=${wc_tested#*.}
+          wc_requires_minor=$((wc_tested_minor - 2))
           if [ "$wc_requires_minor" -lt 0 ]; then
-            wc_requires="$((wc_major - 1)).$((wc_requires_minor + 10))"
+            wc_requires="$((wc_tested_major - 1)).$((wc_requires_minor + 10))"
           else
-            wc_requires="$wc_major.$wc_requires_minor"
+            wc_requires="$wc_tested_major.$wc_requires_minor"
           fi
 
           # PHP: mirror WooCommerce core's requirement at the stable tag.
@@ -331,30 +341,9 @@ jobs:
               append_note "WooCommerce $WC_TESTED Compatibility."
             fi
 
-            # Raised minimums get their own entry, and they get it even when a
-            # "tested up to" bump happened in the same run. They decide who keeps
-            # receiving updates from WordPress.org, so they are the entry a
-            # merchant most needs to see. Name the versions rather than saying
-            # "minimum requirements changed" and leaving the reader to diff.
-            # All three are named even when only one moved: a later run in the
-            # same cycle supersedes this line wholesale, so it has to carry the
-            # whole floor or the earlier run's raise goes undocumented.
-            min_raised=""
-            min_parts=""
-            add_min_part() {
-              if changed_key "$1"; then min_raised=1; fi
-              if [ -n "$min_parts" ]; then min_parts="$min_parts, $2 $3"; else min_parts="$2 $3"; fi
-            }
-            add_min_part "Requires at least" "WordPress" "$WP_REQUIRES"
-            add_min_part "WC requires at least" "WooCommerce" "$WC_REQUIRES"
-            add_min_part "Requires PHP" "PHP" "$PHP_REQUIRES"
-            if [ -n "$min_raised" ]; then
-              append_note "Raise minimum requirements to ${min_parts}."
-            fi
-
-            if [ -z "$notes" ]; then
-              notes="Update minimum required versions."
-            fi
+            # Raised minimums get no changelog entry: the floor moves together with
+            # the compatibility bump, and the compatibility line is the one the
+            # merchant reads. The headers carry the exact floor.
 
             plugin_version=$(sed -n 's/^[[:space:]]*\*[[:space:]]*Version:[[:space:]]*//p' "$plugin_file" | head -n 1 | tr -d ' \t\r')
             next_version=$(echo "$plugin_version" | awk -F. '{ $NF = $NF + 1; print }' OFS=.)
@@ -452,6 +441,11 @@ jobs:
             # be parsed, write no changelog entries at all rather than letting the
             # other two files drift out of sync with it.
             write_changelogs=1
+            # Only a compatibility bump writes a changelog entry. A run that moved
+            # the minimums alone (PHP mirrors WooCommerce core) writes none.
+            if [ -z "$notes" ]; then
+              write_changelogs=0
+            fi
             if [ -f changelog.txt ]; then
               a_re='^[0-9]{4}-[0-9xX]{2}-[0-9xX]{2} - version [0-9.]+'
               b_re='^= [0-9.]+ - [0-9]{4}-[0-9xX]{2}-[0-9xX]{2} =$'
@@ -605,7 +599,7 @@ jobs:
           if [ -n "$tested" ]; then title="$title ($tested)"; fi
 
           {
-            echo "Updates the WordPress, WooCommerce, and PHP version requirement headers, and adds matching changelog entries."
+            echo "Updates the WordPress, WooCommerce, and PHP version requirement headers. The minimums move together with the tested-up-to headers, and a compatibility changelog entry is added when a tested-up-to header moves."
             echo
             echo "### Headers"
             echo
