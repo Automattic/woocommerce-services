@@ -169,15 +169,17 @@ test.describe( 'WooCommerce Tax automated taxes', () => {
 			order.tax_lines.map( ( line ) => Number( line.tax_total ) ).sort( ( a, b ) => a - b )
 		).toEqual( [ Number( CITY_TAX ), Number( STATE_TAX ) ] );
 
-		// The reset in beforeEach removed the rate rows earlier answers wrote, so
-		// the totals above cannot come from core's own rate lookup alone. This
-		// says so directly when the TaxJar path never ran.
+		// The reset in beforeEach removed the rate rows earlier tests and runs
+		// wrote, so the tax above came from rows written during this test, and
+		// this says so directly when the TaxJar path never ran. It does not prove
+		// that placing the order asked TaxJar again: loading the checkout page
+		// already asked the stub and wrote the rows the order can reuse.
 		const status = await getStubStatus( page );
 		expect(
 			status.requests.some(
 				( recorded ) => recorded.path === 'taxjar/v2/taxes'
 			),
-			'no taxjar/v2/taxes request was recorded for this order'
+			'no taxjar/v2/taxes request was recorded during this test'
 		).toBe( true );
 	} );
 } );
