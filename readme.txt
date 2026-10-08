@@ -71,7 +71,6 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.2 - 2026-xx-xx =
-* Tweak - Raise minimum requirements to WordPress 7.0, WooCommerce 11.0, PHP 7.4.
 * Fix   - Stop registering the shipping REST routes on tax-only stores, and stop users who can only print labels from managing carrier accounts, subscriptions and label settings or seeing the connected WordPress.com account and saved cards.
 * Tweak - Changing shipping label account settings, including the selected credit card, now requires the Manage WooCommerce capability.
 
