@@ -337,3 +337,149 @@ jobs:
               run: |
                   cat ${{ github.workspace }}/qit-results/qit-woo-e2e-results.txt
                   exit ${{ steps.run-woo-e2e-tests.outputs.exitcode == 1 && 1 || 0 }}                  
+
+            ##############################
+            # Custom Plugin E2E Tests (tests/e2e-playwright, QIT run:e2e).
+            ##############################
+            - name: Checkout repository (custom e2e tests only)
+              if: ${{ !cancelled() && inputs.test-e2e == 'true' }}
+              uses: actions/checkout@v4
+              with:
+                  # Cone mode only takes directory prefixes; it is disabled so the
+                  # qit.json file pattern is honoured. The checkout is read-only
+                  # and feeds npm installs, so the token is not persisted.
+                  sparse-checkout: |
+                      tests/e2e-playwright
+                      qit.json
+                  sparse-checkout-cone-mode: false
+                  persist-credentials: false
+                  path: custom-tests
+
+            - name: Typecheck Custom E2E Tests
+              if: ${{ !cancelled() && inputs.test-e2e == 'true' }}
+              shell: bash
+              working-directory: ${{ github.workspace }}/custom-tests/tests/e2e-playwright
+              run: |
+                  # Playwright's TS transform strips types WITHOUT checking them,
+                  # so a type error in the suite surfaces only as a runtime failure
+                  # in whichever spec happens to hit it - or not at all. This step
+                  # is the only thing that makes tsconfig.json enforce anything.
+                  #
+                  # Placed before the suite so the type error is reported as its own
+                  # red step rather than buried in a spec failure. It does not SKIP
+                  # the run below - that step carries !cancelled(), so both report
+                  # independently, matching the sibling steps in this job.
+                  #
+                  # `npm ci` (not `install`) so the committed lockfile is honoured;
+                  # it also warms node_modules for the `npm install` that QIT's
+                  # run:e2e does next in this same directory.
+                  npm ci
+                  npm run typecheck
+
+            - name: Run Custom E2E Tests
+              id: run-e2e-tests
+              if: ${{ !cancelled() && inputs.test-e2e == 'true' }}
+              shell: bash --noprofile --norc {0}
+              env:
+                  TEST_ADDITIONAL_PLUGINS: ${{ inputs.test-additional-plugins }}
+              run: |
+                  # The suite must be registered with --test-package (a positional
+                  # path is ignored and yields a green-looking "Packages: 0/0
+                  # executed"). --config points at the sparse-checked-out qit.json
+                  # so run:e2e installs WooCommerce and the tax API stub plugin (--woo
+                  # is only a version pin; it does not install WooCommerce).
+                  # The version options are named --wordpress_version /
+                  # --woocommerce_version (RunE2ECommand::configureMainOptions()
+                  # reuses them from env:up). The shorter --wp / --woo spellings
+                  # exist ONLY as qit.json config keys and as help text
+                  # ("Alias: --wp" is appended to the description in
+                  # DynamicCommandCreator); no argv rewriting maps them, and
+                  # run:e2e is the static RunE2ECommand, so passing --wp aborts
+                  # the run with "The \"--wp\" option does not exist."
+                  # nightly is not a valid version value; map it to rc like the
+                  # woo-e2e step.
+                  wp_version="${WP_VERSION}"
+                  woo_version="${WC_VERSION}"
+                  [ "${wp_version}" = "nightly" ] && wp_version="rc"
+                  [ "${woo_version}" = "nightly" ] && woo_version="rc"
+
+                  # run:e2e has no --additional_plugins (the shared
+                  # ADDITIONAL_PLUGINS env var); it reuses env:up's repeatable
+                  # --plugin, so map the comma-separated input onto that.
+                  plugin_args=()
+                  IFS=',' read -ra additional_plugins <<< "${TEST_ADDITIONAL_PLUGINS}"
+                  for plugin in "${additional_plugins[@]}"; do
+                      plugin="${plugin//[[:space:]]/}"
+                      [ -n "${plugin}" ] && plugin_args+=( "--plugin=${plugin}" )
+                  done
+
+                  # qit resolves relative plugin paths in the env config against
+                  # the current working directory, not the config file location,
+                  # so run from the sparse checkout (where qit.json and tests/e2e-playwright
+                  # live); the binary, zip, and results stay addressed absolutely.
+                  cd "${GITHUB_WORKSPACE}/custom-tests" || exit 1
+
+                  "${GITHUB_WORKSPACE}/vendor/bin/qit" run:e2e \
+                    "${EXTENSION_SLUG}" \
+                    --zip="${ZIP_FILE_PATH}" \
+                    --config="${GITHUB_WORKSPACE}/custom-tests/qit.json" \
+                    --test-package="${GITHUB_WORKSPACE}/custom-tests/tests/e2e-playwright" \
+                    --wordpress_version="${wp_version}" \
+                    --woocommerce_version="${woo_version}" \
+                    --php_version="${PHP_VERSION}" \
+                    "${plugin_args[@]}" \
+                    ${EXTRA_OPTIONS} \
+                    -n \
+                    > "${GITHUB_WORKSPACE}/qit-results/qit-e2e-results.txt"
+                  echo "exitcode=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+
+            - name: Echo Custom E2E results
+              if: ${{ !cancelled() && inputs.test-e2e == 'true' }}
+              shell: bash --noprofile --norc {0}
+              run: |
+                  results_file="${{ github.workspace }}/qit-results/qit-e2e-results.txt"
+                  cat "${results_file}"
+
+                  # Surface per-test failures from the merged CTRF report: the
+                  # QIT summary only carries pass/fail counts, and the full HTML
+                  # report lives on the QIT dashboard, so without this a red run
+                  # gives no failure detail in the job log or artifacts.
+                  ctrf_file=$(find "${RUNNER_TEMP}" /tmp -path '*qit-e2e-artifacts-*/final/ctrf/ctrf-report.json' 2>/dev/null | head -1)
+                  if [ -n "${ctrf_file}" ]; then
+                      cp "${ctrf_file}" "${{ github.workspace }}/qit-results/qit-e2e-ctrf.json"
+                      jq -r '.results.tests[] | select(.status != "passed") | "--- FAILED: \(.name)\n\(.message // "(no message)")\n\(.trace // "")"' "${ctrf_file}" || true
+                  fi
+
+                  # Fail on a silently-empty run: run:e2e reports "Packages:  0/0
+                  # executed" (and exits 0) when --test-package was not picked up.
+                  # Defence-in-depth only: in the currently-vendored qit-cli, the
+                  # "--test-package not picked up" case actually returns
+                  # Command::FAILURE (RunE2ECommand.php), which the exit-code case
+                  # statement below already catches — this guards a version that
+                  # instead exits 0 on an empty run.
+                  if grep -qiE 'Packages:[[:space:]]+0/0[[:space:]]+executed' "${results_file}"; then
+                      echo "::error::Custom E2E run executed no tests (0/0)."
+                      exit 1
+                  fi
+
+                  # Exit 1 == test failures. Exit 3 is a non-fatal QIT WARNING
+                  # (benign debug.log notices, common on rc/nightly) and, like
+                  # every sibling step, must not fail the job. Any other non-zero
+                  # (bad args, timeout) is a real failure - fail closed.
+                  exitcode="${{ steps.run-e2e-tests.outputs.exitcode }}"
+                  case "${exitcode}" in
+                      0 | 3 ) exit 0 ;;
+                      * ) exit 1 ;;
+                  esac
+
+            - name: Upload Custom E2E results
+              if: ${{ always() && inputs.test-e2e == 'true' }}
+              uses: actions/upload-artifact@v4
+              with:
+                  # The shared "Upload results" step runs before this step writes
+                  # its results file, so the E2E output gets its own artifact.
+                  name: qit-e2e-results
+                  path: |
+                      ${{ github.workspace }}/qit-results/qit-e2e-results.txt
+                      ${{ github.workspace }}/qit-results/qit-e2e-ctrf.json
+                  if-no-files-found: warn

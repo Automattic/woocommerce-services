@@ -30,6 +30,7 @@ jobs:
       test-phpstan: false # TODO: Enable this once we've fixed the PHPStan issues.
       test-woo-api: true
       test-woo-e2e: true
+      test-e2e: true # Custom plugin E2E suite under tests/e2e-playwright (QIT run:e2e).
       test-malware: true
       test-plugin-check: false # Plugin Check runs through .github/workflows/plugin_check.yml instead.
 
