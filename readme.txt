@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.7.2 - 2026-xx-xx =
 * Fix   - Stop registering the shipping REST routes on tax-only stores, and stop users who can only print labels from managing carrier accounts, subscriptions and label settings or seeing the connected WordPress.com account and saved cards.
+* Fix   - Improve reliability during plugin updates.
 * Tweak - Changing shipping label account settings, including the selected credit card, now requires the Manage WooCommerce capability.
 
 = 3.7.1 - 2026-10-07 =
