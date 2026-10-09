@@ -30,6 +30,7 @@ import {
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_PACKAGE_SIGNATURE,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_UPDATE_PACKAGE_WEIGHT,
 	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SHOW_PRINT_CONFIRMATION,
+	WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
 } from '../../action-types';
 
 const orderId = 1;
@@ -544,5 +545,72 @@ describe( 'Label purchase form reducer', () => {
 		expect( state[ orderId ].form.needsPrintConfirmation ).to.equal( true );
 		expect( state[ orderId ].form.fileData ).to.equal( action.fileData );
 		expect( initialState[ orderId ].labels ).to.deep.equal( state[ orderId ].labels );
+	} );
+
+	it( 'SET_DEFAULT_RATE only selects a service for the package it names', () => {
+		const action = {
+			type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
+			orderId,
+			siteId,
+			packageId: 'weight_0_custom1',
+			serviceId: 'Priority',
+			carrierId: 'usps',
+		};
+		const state = reducer( initialState, action );
+
+		expect( state[ orderId ].form.rates.values.weight_0_custom1 ).to.eql( {
+			serviceId: 'Priority',
+			carrierId: 'usps',
+		} );
+		// The other package is offered its own rates, which need not carry this service.
+		expect( state[ orderId ].form.rates.values.weight_1_custom1 ).to.equal( '' );
+	} );
+
+	it( 'SET_DEFAULT_RATE leaves a package that already has a selection alone', () => {
+		const stateWithSelection = cloneDeep( initialState );
+		stateWithSelection[ orderId ].form.rates.values.weight_0_custom1 = {
+			serviceId: 'Express',
+			carrierId: 'usps',
+			signatureRequired: false,
+		};
+
+		const action = {
+			type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
+			orderId,
+			siteId,
+			packageId: 'weight_0_custom1',
+			serviceId: 'Priority',
+			carrierId: 'usps',
+		};
+		const state = reducer( stateWithSelection, action );
+
+		expect( state[ orderId ].form.rates.values.weight_0_custom1 ).to.eql( {
+			serviceId: 'Express',
+			carrierId: 'usps',
+			signatureRequired: false,
+		} );
+	} );
+
+	it( 'SET_DEFAULT_RATE replaces an empty selection object', () => {
+		const stateWithEmptySelection = cloneDeep( initialState );
+		stateWithEmptySelection[ orderId ].form.rates.values.weight_0_custom1 = {
+			serviceId: '',
+			carrierId: '',
+			signatureRequired: false,
+		};
+
+		const state = reducer( stateWithEmptySelection, {
+			type: WOOCOMMERCE_SERVICES_SHIPPING_LABEL_SET_DEFAULT_RATE,
+			orderId,
+			siteId,
+			packageId: 'weight_0_custom1',
+			serviceId: 'Priority',
+			carrierId: 'usps',
+		} );
+
+		expect( state[ orderId ].form.rates.values.weight_0_custom1 ).to.eql( {
+			serviceId: 'Priority',
+			carrierId: 'usps',
+		} );
 	} );
 } );
