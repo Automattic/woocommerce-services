@@ -116,6 +116,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		remove_all_filters( 'woocommerce_get_order_item_classname' );
 		delete_option( WC_Connect_TaxJar_Integration::OPTION_NAME );
 		delete_option( 'woocommerce_calc_taxes' );
+		wc_get_container()->reset_replacement( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class );
 
 		parent::tear_down();
 	}
@@ -158,6 +159,19 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 					'ids'     => array(),
 				)
 			);
+		}
+	}
+
+	/**
+	 * Forget what this PHP request created and the rate rows WooCommerce read, as the
+	 * next request would.
+	 */
+	private function start_new_request() {
+		$this->forget_created_in_request();
+
+		// A fresh store has an empty rate cache. WooCommerce 11.0 has no cache to forget.
+		if ( class_exists( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class ) ) {
+			wc_get_container()->replace( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class, new Automattic\WooCommerce\Internal\Tax\TaxRateDataStore() );
 		}
 	}
 
@@ -898,6 +912,54 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order = wc_get_order( $order->get_id() );
 		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $item_id ), 0.001 );
 		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+	}
+
+	/**
+	 * @testdox Two REST quantity edits after a lookup removed the order's rate row keep taxing at the rate it was sold at.
+	 *
+	 * WooCommerce drops the tax line of a rate it cannot find, the recorded rates put it
+	 * back and update_taxes() saves it as "Tax" at 0% before the recorded name and
+	 * percent are set. The second edit re-applies whatever the first one left on the line.
+	 */
+	public function test_rest_edits_after_rate_row_removed_keep_recorded_rate() {
+		$fixture = $this->create_placed_order();
+		WC_Tax::_delete_tax_rate( $this->rate_id );
+
+		$this->start_new_request();
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+				),
+			)
+		);
+		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+		$this->assertSame( 'US-CO-CO TAX-1', current( $order->get_taxes() )->get_rate_code() );
+
+		$this->start_new_request();
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['b'],
+						'quantity' => 2,
+						'subtotal' => '40.00',
+						'total'    => '40.00',
+					),
+				),
+			)
+		);
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assertEqualsWithDelta( 2.40, $this->item_tax( $order, $fixture['b'] ), 0.001 );
+		$this->assert_order_tax( $order, 3.60, 0.30, 68.90 );
+		$this->assertSame( 'US-CO-CO TAX-1', current( $order->get_taxes() )->get_rate_code() );
 	}
 
 	// -------------------------------------------------------------------------

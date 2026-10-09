@@ -70,6 +70,11 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.7.3 - 2026-xx-xx =
+* Fix   - Remove the tax rates an earlier lookup saved for a town when the tax service now returns fewer rates for it, for example after a special district tax ends, so orders taxed from the saved rates are no longer charged the old rate on top.
+* Fix   - Stop automated tax lookups from overwriting a tax rate you set up for a list of ZIP codes, a ZIP code pattern such as 49*, or a whole city. The lookup changed its name and rate, so other addresses the rate covered could be charged the wrong tax or none.
+* Fix   - Remove the 0% "Manual Rate Nullified (Automated Taxes)" tax rate added for a town once the state-wide rate it stood beside is deleted or moved to another priority, so orders taxed from the saved rates no longer carry extra $0 tax lines.
+
 = 3.7.2 - 2026-10-08 =
 * Fix   - Improve handling of shipping features on tax-only stores.
 * Fix   - Improve reliability during plugin updates.
