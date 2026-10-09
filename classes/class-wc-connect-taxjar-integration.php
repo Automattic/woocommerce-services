@@ -71,12 +71,29 @@ class WC_Connect_TaxJar_Integration {
 	private $response_line_items;
 
 	/**
+	 * The TaxJar line id each cart item was sent as, keyed by cart item key. Set with
+	 * $response_rate_ids, so each cart and order line can find its own answer.
+	 *
+	 * @var array<string, string>
+	 */
+	private $response_cart_item_keys = array();
+
+	/**
+	 * The cart item each order item was created from at checkout, keyed by
+	 * spl_object_id() of the order item. Only set in the request that creates the
+	 * items: an order item loaded from the database carries no cart item key.
+	 *
+	 * @var array<int, string>
+	 */
+	private $order_item_cart_item_keys = array();
+
+	/**
 	 * Rate ids TaxJar returned for an admin recalculation, keyed by order id, then by
 	 * order item id. Kept apart from $response_rate_ids, which other code reads as
 	 * "this request is the cart flow". Each entry is used once, see
 	 * take_admin_recalculation_rate_ids().
 	 *
-	 * @var array<int, array<int, int[]>>
+	 * @var array<int, array<int, array{rate_ids: int[], line: object|null}>>
 	 */
 	private $admin_recalculation_rate_ids = array();
 
@@ -376,6 +393,7 @@ class WC_Connect_TaxJar_Integration {
 		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
 		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this, 'override_cart_item_tax_rates' ), 10, 3 );
+		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'remember_order_item_cart_item_key' ), 10, 2 );
 		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this, 'override_order_item_taxes' ), 10, 2 );
 
 		add_filter( 'woocommerce_rate_label', array( $this, 'cleanup_tax_label' ) );
@@ -752,8 +770,9 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$this->response_rate_ids   = $taxes['rate_ids'];
-		$this->response_line_items = $taxes['line_items'];
+		$this->response_rate_ids       = $taxes['rate_ids'];
+		$this->response_line_items     = $taxes['line_items'];
+		$this->response_cart_item_keys = wp_list_pluck( $line_items, 'id' );
 
 		if ( isset( $this->response_line_items ) ) {
 			foreach ( $this->response_line_items as $response_line_item_key => $response_line_item ) {
@@ -839,7 +858,10 @@ class WC_Connect_TaxJar_Integration {
 			foreach ( $line_items as $item_key => $line_item ) {
 				$rate_ids = $taxes['rate_ids'][ $line_item['id'] ?? '' ] ?? null;
 				if ( is_array( $rate_ids ) && $rate_ids ) {
-					$this->admin_recalculation_rate_ids[ (int) $order_id ][ (int) $item_key ] = $rate_ids;
+					$this->admin_recalculation_rate_ids[ (int) $order_id ][ (int) $item_key ] = array(
+						'rate_ids' => $rate_ids,
+						'line'     => $taxes['line_items'][ $line_item['id'] ] ?? null,
+					);
 				}
 			}
 		}
@@ -1614,42 +1636,29 @@ class WC_Connect_TaxJar_Integration {
 
 		$product_id = $product->get_id();
 
-		// Find the matching line_item_key in response_rate_ids.
-		// Format is "product_id-fingerprint-occurrence". The trailing "-" delimiter prevents
-		// false prefix matches (e.g. product ID 1 won't match "10-xyz" because "1-" != "10").
-		// First-match-wins is safe: if the same product ID appears multiple times (e.g.
-		// two bookings), they share the same tax_location and thus the same tax rates.
-		$matching_rate_ids = null;
-		foreach ( $this->response_rate_ids as $line_item_key => $rate_ids ) {
-			if ( strpos( $line_item_key, $product_id . '-' ) === 0 ) {
-				$matching_rate_ids = $rate_ids;
-				break;
+		// The line this cart item was sent as. Without a record of it, fall back to the
+		// first line for the product: format is "product_id-fingerprint-occurrence", and
+		// the trailing "-" keeps product 1 from matching "10-xyz".
+		$cart_item_key = isset( $item->key ) && is_scalar( $item->key ) ? (string) $item->key : '';
+		$line_item_key = $this->response_cart_item_keys[ $cart_item_key ] ?? null;
+		if ( null === $line_item_key ) {
+			foreach ( array_keys( $this->response_rate_ids ) as $response_key ) {
+				if ( strpos( (string) $response_key, $product_id . '-' ) === 0 ) {
+					$line_item_key = (string) $response_key;
+					break;
+				}
 			}
 		}
+
+		$matching_rate_ids = null === $line_item_key ? null : ( $this->response_rate_ids[ $line_item_key ] ?? null );
 
 		if ( empty( $matching_rate_ids ) || ! is_array( $matching_rate_ids ) ) {
 			return $item_tax_rates;
 		}
 
-		// Fetch the tax rates from the database using the rate IDs.
-		$tax_rates = array();
-		foreach ( $matching_rate_ids as $rate_id ) {
-			$rate_id = absint( $rate_id );
-			if ( ! $rate_id ) {
-				continue;
-			}
-
-			// Get rate data from WooCommerce.
-			$rate_data = WC_Tax::_get_tax_rate( $rate_id );
-			if ( $rate_data ) {
-				$tax_rates[ $rate_id ] = array(
-					'rate'     => (float) $rate_data['tax_rate'],
-					'label'    => $rate_data['tax_rate_name'],
-					'shipping' => 'yes' === $rate_data['tax_rate_shipping'] ? 'yes' : 'no',
-					'compound' => 'yes' === $rate_data['tax_rate_compound'] ? 'yes' : 'no',
-				);
-			}
-		}
+		// The line's own percentages, as the order uses: rows are shared by every product
+		// in a tax class and hold whichever line was stored last.
+		$tax_rates = $this->get_looked_up_rates( $matching_rate_ids, $this->response_line_items[ $line_item_key ] ?? null );
 
 		// Return our rates if we found any, otherwise fall back to WooCommerce's.
 		return ! empty( $tax_rates ) ? $tax_rates : $item_tax_rates;
@@ -1668,9 +1677,9 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	public function override_order_item_taxes( $item, $calculate_tax_for ) {
 		// An admin recalculation looked this item up in calculate_backend_totals().
-		$admin_rate_ids = $this->take_admin_recalculation_rate_ids( $item );
-		if ( null !== $admin_rate_ids ) {
-			$this->set_order_item_taxes_from_rate_ids( $item, $admin_rate_ids );
+		$admin_lookup = $this->take_admin_recalculation_rate_ids( $item );
+		if ( null !== $admin_lookup ) {
+			$this->set_order_item_taxes_from_rate_ids( $item, $admin_lookup['rate_ids'], $admin_lookup['line'] );
 			return;
 		}
 
@@ -1684,28 +1693,111 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$product_id = $item->get_product_id();
-		if ( ! $product_id ) {
+		$line_item_key = $this->find_order_item_line_key( $item );
+
+		// No match means this item wasn't TaxJar-calculated (e.g. cross-state) — leave as-is.
+		if ( null === $line_item_key ) {
 			return;
 		}
 
-		// Find matching rate_ids by product_id prefix (format: "product_id-fingerprint-occurrence").
-		// The trailing "-" delimiter prevents false prefix matches between IDs (e.g. 1 vs 10).
-		// First-match-wins is safe: same product always shares the same tax_location and rates.
-		$matching_rate_ids = null;
-		foreach ( $this->response_rate_ids as $line_item_key => $rate_ids ) {
+		$matching_rate_ids = $this->response_rate_ids[ $line_item_key ] ?? null;
+		$matching_line     = $this->response_line_items[ $line_item_key ] ?? null;
+
+		if ( empty( $matching_rate_ids ) || ! is_array( $matching_rate_ids ) ) {
+			// A line sent as exempt writes no rows, so WooCommerce taxed it from rows another
+			// line wrote. That includes a line checkout sends as exempt on its second pass,
+			// because TaxJar answered 0% for it on the first.
+			if ( is_object( $matching_line ) && isset( $matching_line->combined_tax_rate ) && 0.0 === (float) $matching_line->combined_tax_rate ) {
+				$item->set_taxes( false );
+			}
+			return;
+		}
+
+		$this->set_order_item_taxes_from_rate_ids( $item, $matching_rate_ids, $matching_line );
+	}
+
+	/**
+	 * Remember the cart item an order item was created from.
+	 *
+	 * @internal Hooked to woocommerce_checkout_create_order_line_item.
+	 *
+	 * @param WC_Order_Item_Product $item          The order item being created.
+	 * @param string                $cart_item_key The key of the cart item it was copied from.
+	 *
+	 * @since 3.7.3
+	 */
+	public function remember_order_item_cart_item_key( $item, $cart_item_key ) {
+		if ( ! $item instanceof WC_Order_Item_Product || ! is_string( $cart_item_key ) || '' === $cart_item_key ) {
+			return;
+		}
+
+		$this->order_item_cart_item_keys[ spl_object_id( $item ) ] = $cart_item_key;
+	}
+
+	/**
+	 * Find the TaxJar line an order item was sent as at checkout.
+	 *
+	 * Lines are matched on the product, the variation when there is one. When the cart
+	 * holds that product on more than one line, the order item is matched to the cart
+	 * line it was created from: the same product can be on two lines at different
+	 * prices, and TaxJar can answer them differently. That is the cart item key
+	 * WooCommerce passed when it created the item, or else the cart line with the same
+	 * quantity and amounts. Without either, a line TaxJar taxed is used.
+	 *
+	 * @param WC_Order_Item_Product $item Order item.
+	 * @return string|null The line id, or null when the product was not sent.
+	 */
+	private function find_order_item_line_key( $item ) {
+		$product_id = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();
+		if ( ! $product_id ) {
+			return null;
+		}
+
+		// An exempt line has a breakdown line but no rate ids, so look in both.
+		$candidates = array();
+		foreach ( array_merge( array_keys( (array) $this->response_line_items ), array_keys( $this->response_rate_ids ) ) as $line_item_key ) {
+			$line_item_key = (string) $line_item_key;
 			if ( strpos( $line_item_key, $product_id . '-' ) === 0 ) {
-				$matching_rate_ids = $rate_ids;
-				break;
+				$candidates[ $line_item_key ] = true;
+			}
+		}
+		$candidates = array_keys( $candidates );
+
+		if ( count( $candidates ) < 2 ) {
+			return $candidates[0] ?? null;
+		}
+
+		$cart_item_key = $this->order_item_cart_item_keys[ spl_object_id( $item ) ] ?? null;
+		$line_item_key = null === $cart_item_key ? null : ( $this->response_cart_item_keys[ $cart_item_key ] ?? null );
+		if ( null !== $line_item_key && in_array( (string) $line_item_key, $candidates, true ) ) {
+			return (string) $line_item_key;
+		}
+
+		if ( function_exists( 'WC' ) && WC()->cart instanceof WC_Cart ) {
+			foreach ( $candidates as $line_item_key ) {
+				$cart_item_key = array_search( $line_item_key, $this->response_cart_item_keys, true );
+				$cart_item     = false === $cart_item_key ? array() : WC()->cart->get_cart_item( $cart_item_key );
+
+				if (
+					! empty( $cart_item )
+					&& (float) $cart_item['quantity'] === (float) $item->get_quantity()
+					&& abs( (float) $cart_item['line_subtotal'] - (float) $item->get_subtotal() ) < 0.01
+					&& abs( (float) $cart_item['line_total'] - (float) $item->get_total() ) < 0.01
+				) {
+					return $line_item_key;
+				}
 			}
 		}
 
-		// No match means this item wasn't TaxJar-calculated (e.g. cross-state) — leave as-is.
-		if ( empty( $matching_rate_ids ) || ! is_array( $matching_rate_ids ) ) {
-			return;
+		// Still no match: an exempt line would clear the tax of a taxed item, so prefer a
+		// line TaxJar taxed. That charges what was charged before lines were told apart.
+		foreach ( $candidates as $line_item_key ) {
+			if ( ! empty( $this->response_rate_ids[ $line_item_key ] ) ) {
+				return $line_item_key;
+			}
 		}
 
-		$this->set_order_item_taxes_from_rate_ids( $item, $matching_rate_ids );
+		return $candidates[0];
 	}
 
 	/**
@@ -1715,7 +1807,9 @@ class WC_Connect_TaxJar_Integration {
 	 * looked up for and not to a later one in the same request.
 	 *
 	 * @param WC_Order_Item $item The order item being taxed.
-	 * @return int[]|null Rate ids, or null when the item was not looked up.
+	 * @return array{rate_ids: int[], line: object|null}|null Rate ids and TaxJar's answer
+	 *                                                       line, or null when the item
+	 *                                                       was not looked up.
 	 */
 	private function take_admin_recalculation_rate_ids( $item ) {
 		if ( ! ( $item instanceof \WC_Order_Item_Product ) ) {
@@ -1738,28 +1832,18 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Tax an order item at the given rate rows, replacing what WooCommerce found.
 	 *
-	 * @param WC_Order_Item_Product $item     The order item.
-	 * @param array                 $rate_ids Tax rate ids.
+	 * The percentages come from TaxJar's answer for the item when it is given. Rows are
+	 * shared by every product in a tax class, so they hold whichever line was stored
+	 * last: an item TaxJar answered as exempt would otherwise pay the rate of a taxed
+	 * item beside it.
+	 *
+	 * @param WC_Order_Item_Product $item          The order item.
+	 * @param array                 $rate_ids      Tax rate ids.
+	 * @param object|null           $response_line TaxJar's breakdown line for the item.
 	 */
-	private function set_order_item_taxes_from_rate_ids( $item, array $rate_ids ) {
-		// Build tax rates array from the stored rate IDs.
-		$tax_rates = array();
-		foreach ( $rate_ids as $rate_id ) {
-			$rate_id = absint( $rate_id );
-			if ( ! $rate_id ) {
-				continue;
-			}
-
-			$rate_data = \WC_Tax::_get_tax_rate( $rate_id );
-			if ( $rate_data ) {
-				$tax_rates[ $rate_id ] = array(
-					'rate'     => (float) $rate_data['tax_rate'],
-					'label'    => $rate_data['tax_rate_name'],
-					'shipping' => 'yes' === $rate_data['tax_rate_shipping'] ? 'yes' : 'no',
-					'compound' => 'yes' === $rate_data['tax_rate_compound'] ? 'yes' : 'no',
-				);
-			}
-		}
+	private function set_order_item_taxes_from_rate_ids( $item, array $rate_ids, $response_line = null ) {
+		// Positions matter: the answer's components were stored in this order.
+		$tax_rates = $this->get_looked_up_rates( $rate_ids, $response_line );
 
 		if ( empty( $tax_rates ) ) {
 			return;
