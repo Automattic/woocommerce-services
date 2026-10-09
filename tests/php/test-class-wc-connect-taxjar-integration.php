@@ -4603,6 +4603,31 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * An order item loaded from the database has no record of its cart item, so each
+	 * line of one product finds its own answer by the cart line with the same amounts.
+	 */
+	public function test_checkout_finds_each_reloaded_line_of_one_product_by_its_amounts() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$add_on_key = WC()->cart->add_to_cart( $this->product->get_id(), 1, 0, array(), array( 'add_on' => 'gift wrap' ) );
+		WC()->cart->cart_contents[ $add_on_key ]['data']->set_price( 120 );
+
+		$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ), true );
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ (string) (float) $item->get_total() ] = self::item_tax( $item );
+		}
+		$this->assertEqualsWithDelta( 0.0, $taxed['50'], 0.001, 'TaxJar answered the $50 line as exempt' );
+		$this->assertEqualsWithDelta( 7.2, $taxed['120'], 0.001, '$120 at 6%' );
+		$this->assertEqualsWithDelta( (float) WC()->cart->get_cart_contents_tax(), (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
+	}
+
+	/**
 	 * An order item with no record of its cart item, whose amounts match no cart line,
 	 * is taxed at the answer of a line TaxJar taxed rather than cleared as exempt.
 	 */
