@@ -30,4 +30,13 @@ class WC_REST_Connect_Shipping_Carrier_Controller extends WC_REST_Connect_Base_C
 		return $response;
 	}
 
+	/**
+	 * Carrier accounts belong to the whole store, so the label capability alone is not enough.
+	 *
+	 * @param WP_REST_Request $request The request.
+	 * @return bool|WP_Error
+	 */
+	public function check_permission( $request ) {
+		return $this->check_store_permission( $request );
+	}
 }

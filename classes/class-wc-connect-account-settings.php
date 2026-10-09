@@ -41,7 +41,7 @@ class WC_Connect_Account_Settings {
 		$last_carrier_id             = get_user_meta( get_current_user_id(), 'wc_connect_last_carrier_id', true );
 		$wcshipping_migration_state  = intval( get_option( 'wcshipping_migration_state' ) );
 
-		return array(
+		$settings = array(
 			'storeOptions' => $this->settings_store->get_store_options(),
 			'formData'     => $this->settings_store->get_account_settings(),
 			'formMeta'     => array(
@@ -63,5 +63,17 @@ class WC_Connect_Account_Settings {
 				'last_carrier_id' => $last_carrier_id,
 			),
 		);
+
+		// Users who can only print labels do not need the connection owner's identity or the store's cards.
+		if ( ! current_user_can( 'manage_woocommerce' ) ) {
+			$settings['formMeta']['master_user_name']        = '';
+			$settings['formMeta']['master_user_login']       = '';
+			$settings['formMeta']['master_user_wpcom_login'] = '';
+			$settings['formMeta']['master_user_email']       = '';
+			$settings['formMeta']['payment_methods']         = array();
+			$settings['formMeta']['add_payment_method_url']  = '';
+		}
+
+		return $settings;
 	}
 }

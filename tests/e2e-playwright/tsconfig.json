@@ -1,0 +1,14 @@
+{
+	"compilerOptions": {
+		"target": "ES2021",
+		"module": "CommonJS",
+		"moduleResolution": "Node",
+		"lib": [ "ES2021", "DOM" ],
+		"types": [ "node", "@playwright/test" ],
+		"strict": true,
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		"noEmit": true
+	},
+	"include": [ "./**/*.ts" ]
+}

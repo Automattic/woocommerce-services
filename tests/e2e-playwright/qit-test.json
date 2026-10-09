@@ -1,0 +1,21 @@
+{
+	"$schema": "https://raw.githubusercontent.com/woocommerce/qit-cli/trunk/src/src/PreCommand/Schemas/test-package-manifest-schema.json",
+	"package": "woocommerce-services/e2e",
+	"package_type": "test",
+	"test_type": "e2e",
+	"description": "Smoke, automated-taxes settings, and tax-at-cart/checkout E2E coverage for woocommerce-services (WooCommerce Tax).",
+	"requires": {
+		"network": false
+	},
+	"test": {
+		"phases": {
+			"run": [
+				"npx playwright test"
+			]
+		},
+		"results": {
+			"ctrf-json": "./results/ctrf.json",
+			"blob-dir": "./results/blob"
+		}
+	}
+}

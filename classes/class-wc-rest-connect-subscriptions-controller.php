@@ -25,4 +25,14 @@ class WC_REST_Connect_Subscriptions_Controller extends WC_REST_Connect_Base_Cont
 			)
 		);
 	}
+
+	/**
+	 * Subscriptions belong to the whole store, so the label capability alone is not enough.
+	 *
+	 * @param WP_REST_Request $request The request.
+	 * @return bool|WP_Error
+	 */
+	public function check_permission( $request ) {
+		return $this->check_store_permission( $request );
+	}
 }
