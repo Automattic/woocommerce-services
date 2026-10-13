@@ -403,6 +403,7 @@ class WC_Connect_TaxJar_Integration {
 		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'remember_order_item_base_before_save' ), 10, 1 );
 		add_action( 'woocommerce_after_order_item_object_save', array( $this, 'remember_order_item_created' ), 10, 1 );
 		add_action( 'woocommerce_before_delete_order_item', array( $this, 'remember_order_item_before_delete' ), 10, 1 );
+		add_action( 'woocommerce_remove_order_items', array( $this, 'remember_order_items_before_remove' ), 10, 2 );
 		add_action( 'woocommerce_update_order_item', array( $this, 'remember_order_item_type_change' ), 10, 2 );
 		add_action( 'woocommerce_before_order_object_save', array( $this, 'remember_order_before_save' ), 10, 1 );
 		add_action( 'woocommerce_after_order_object_save', array( $this, 'remember_order_created' ), 10, 1 );
@@ -3483,6 +3484,38 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( $item instanceof WC_Order_Item && in_array( $item->get_type(), array( 'line_item', 'fee', 'shipping' ), true ) ) {
 			$this->remember_order_item_removed( $item );
+		}
+	}
+
+	/**
+	 * Remember the saved line items, fees and shipping lines an order is about to drop.
+	 *
+	 * WooCommerce's remove_order_items() deletes them with direct SQL (on save() since
+	 * WC 11.1), so woocommerce_before_delete_order_item never fires for them.
+	 *
+	 * @internal Hooked to woocommerce_remove_order_items.
+	 *
+	 * @param WC_Abstract_Order $order The order losing the items.
+	 * @param mixed             $type  The item type removed, or null for every type.
+	 *
+	 * @since 3.7.3
+	 */
+	public function remember_order_items_before_remove( $order, $type = null ) {
+		if ( ! $order instanceof WC_Abstract_Order || ! $order->get_id() ) {
+			return;
+		}
+
+		$types = array( 'line_item', 'fee', 'shipping' );
+		if ( null !== $type ) {
+			$types = array_intersect( $types, array( $type ) );
+		}
+
+		foreach ( $types as $item_type ) {
+			foreach ( (array) $order->get_data_store()->read_items( $order, $item_type ) as $item ) {
+				if ( $item instanceof WC_Order_Item ) {
+					$this->remember_order_item_removed( $item );
+				}
+			}
 		}
 	}
 

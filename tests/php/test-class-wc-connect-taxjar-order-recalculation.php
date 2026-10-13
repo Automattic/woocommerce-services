@@ -1486,6 +1486,46 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
 	}
 
+	/**
+	 * @testdox Items removed by type with remove_order_items() and saved before the recalculation take their tax with them.
+	 */
+	public function test_remove_order_items_and_save_before_recalculation_moves_tax() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		// Core deletes these on save() with direct SQL, without the per-item delete hook.
+		$order->remove_order_items( 'shipping' );
+		$order->save();
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertCount( 0, $order->get_shipping_methods(), 'shipping removed' );
+		$this->assert_order_tax( $order, 1.80, 0.00, 31.80 );
+	}
+
+	/**
+	 * @testdox Replacing every line item with remove_order_items(), saved before the recalculation, taxes the new item at the removed items' rate.
+	 */
+	public function test_replacing_items_with_remove_order_items_keeps_their_rate() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$order->remove_order_items( 'line_item' );
+		$c = new WC_Order_Item_Product();
+		$c->set_product( $this->create_product( '30' ) );
+		$c->set_quantity( 1 );
+		$c->set_subtotal( '30' );
+		$c->set_total( '30' );
+		$order->add_item( $c );
+		$order->save();
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 1.80, $this->item_tax( $order, $c->get_id() ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( array(), preg_grep( '/no tax was added/i', $this->tax_notes( $order ) ), 'no untaxed-item note' );
+	}
+
 	// -------------------------------------------------------------------------
 	// Edges.
 	// -------------------------------------------------------------------------
