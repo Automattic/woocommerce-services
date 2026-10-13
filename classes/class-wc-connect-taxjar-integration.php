@@ -3477,7 +3477,7 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @param int $item_id The item about to be deleted.
 	 *
-	 * @since 3.7.1
+	 * @since 3.7.3
 	 */
 	public function remember_order_item_before_delete( $item_id ) {
 		$item = WC_Order_Factory::get_order_item( absint( $item_id ) );
@@ -3533,7 +3533,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @param int   $item_id The updated item.
 	 * @param mixed $args    The changed columns.
 	 *
-	 * @since 3.7.1
+	 * @since 3.7.3
 	 */
 	public function remember_order_item_type_change( $item_id, $args = null ) {
 		if ( ! is_array( $args ) || empty( $args['order_item_type'] ) || ! is_string( $args['order_item_type'] ) ) {
@@ -4268,7 +4268,7 @@ class WC_Connect_TaxJar_Integration {
 		 * Filters the location an order is taxed at. A WooCommerce core filter, applied
 		 * here as WC_Abstract_Order::get_tax_location() applies it.
 		 *
-		 * @since 3.7.1 Applied by this plugin.
+		 * @since 3.7.3 Applied by this plugin.
 		 *
 		 * @param array    $location Country, state, postcode and city.
 		 * @param WC_Order $order    The order.
