@@ -3839,7 +3839,7 @@ class WC_Connect_TaxJar_Integration {
 	 * Re-apply an order's recorded rates to the items whose amounts changed.
 	 *
 	 * Items that did not change keep the tax they had. A changed item is taxed at the
-	 * rates it was charged at (a rate it paid nothing under is left out); a new item or
+	 * rates it was charged at (a rate it paid nothing under stays at $0); a new item or
 	 * fee at the rates of an existing item in the same tax class; a new shipping line at
 	 * the rates of the existing shipping.
 	 * If the edit removed the last item of that class (or all the shipping), the rates
@@ -3921,6 +3921,7 @@ class WC_Connect_TaxJar_Integration {
 				continue;
 			}
 
+			$zero_rates = array();
 			if ( 'taxable' !== $item->get_tax_status() ) {
 				$item_rate_ids = array();
 			} elseif ( $is_known ) {
@@ -3940,6 +3941,16 @@ class WC_Connect_TaxJar_Integration {
 						ARRAY_FILTER_USE_BOTH
 					)
 				);
+
+				// The rates left out stay on it at $0. If every item paid $0, the order
+				// would otherwise lose its tax lines, and its next edit would look the tax
+				// up again as for a new order.
+				if ( ! empty( $item_taxes['total'] ) ) {
+					$zero_rates = array_intersect_key(
+						array_fill_keys( array_diff( array_map( 'intval', array_keys( $item_taxes['total'] ) ), array_map( 'intval', $item_rate_ids ) ), 0.0 ),
+						$rates
+					);
+				}
 			} elseif ( $is_shipping ) {
 				$item_rate_ids = $shipping_rate_ids;
 			} else {
@@ -3948,7 +3959,7 @@ class WC_Connect_TaxJar_Integration {
 
 			$item_rates = array_intersect_key( $rates, array_flip( array_map( 'intval', $item_rate_ids ) ) );
 
-			if ( empty( $item_rates ) ) {
+			if ( empty( $item_rates ) && empty( $zero_rates ) ) {
 				if ( ! $is_known && 'taxable' === $item->get_tax_status() && ! ( $is_shipping && $untaxed_shipping ) ) {
 					$untaxed[] = $item->get_name();
 				}
@@ -3957,9 +3968,9 @@ class WC_Connect_TaxJar_Integration {
 				continue;
 			}
 
-			$taxes = array( 'total' => WC_Tax::calc_tax( $item->get_total(), $item_rates, false ) );
+			$taxes = array( 'total' => ( $item_rates ? WC_Tax::calc_tax( $item->get_total(), $item_rates, false ) : array() ) + $zero_rates );
 			if ( is_callable( array( $item, 'get_subtotal' ) ) ) {
-				$taxes['subtotal'] = WC_Tax::calc_tax( $item->get_subtotal(), $item_rates, false );
+				$taxes['subtotal'] = ( $item_rates ? WC_Tax::calc_tax( $item->get_subtotal(), $item_rates, false ) : array() ) + $zero_rates;
 			}
 			$item->set_taxes( $taxes );
 			$this->run_order_item_tax_hook( $item );

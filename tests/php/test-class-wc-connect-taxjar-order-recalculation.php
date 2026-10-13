@@ -431,6 +431,114 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A $0 rate an item carries without a tax line on the order is not added as a new tax line.
+	 */
+	public function test_zero_rate_without_tax_line_is_not_added() {
+		$fixture = $this->create_placed_order( array( 'a_tax' => '0' ) );
+		$order   = $fixture['order'];
+		$other   = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '1.0000',
+				'tax_rate_name'     => 'Table only',
+				'tax_rate_priority' => 2,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+		$zeros   = array(
+			$this->rate_id => '0',
+			$other         => '0',
+		);
+		$this->place_item_as(
+			$order->get_item( $fixture['a'] ),
+			'10',
+			array(
+				'total'    => $zeros,
+				'subtotal' => $zeros,
+			),
+			'10'
+		);
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( array( $this->rate_id ), array_keys( $order->get_item( $fixture['a'] )->get_taxes()['total'] ) );
+		$this->assert_order_tax( $order, 1.20, 0.30, 46.50 );
+	}
+
+	/**
+	 * @testdox An order whose only item is taxed $0, with no shipping, keeps the $0 over two edits.
+	 */
+	public function test_only_item_taxed_zero_stays_untaxed_over_two_edits() {
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+		$item_id = $order->add_product( $this->create_product( '18' ), 1 );
+		$order->get_item( $item_id, false )->set_taxes(
+			array(
+				'total'    => array( $this->rate_id => '0' ),
+				'subtotal' => array( $this->rate_id => '0' ),
+			)
+		);
+
+		$tax_line = new WC_Order_Item_Tax();
+		$tax_line->set_rate_id( $this->rate_id );
+		$tax_line->set_rate_code( 'US-CO-CO TAX-1' );
+		$tax_line->set_label( 'CO Tax' );
+		$tax_line->set_rate_percent( 6.0 );
+		$tax_line->set_compound( false );
+		$tax_line->set_tax_total( '0' );
+		$tax_line->set_shipping_tax_total( '0' );
+		$order->add_item( $tax_line );
+
+		$order->set_total( '18' );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+
+		// Without its tax line, the second edit would be treated as the order's first tax calculation.
+		foreach ( array( 2, 3 ) as $quantity ) {
+			$amount = (string) ( 18 * $quantity );
+			$order  = $this->rest_update(
+				$order->get_id(),
+				array(
+					'line_items' => array(
+						array(
+							'id'       => $item_id,
+							'quantity' => $quantity,
+							'subtotal' => $amount,
+							'total'    => $amount,
+						),
+					),
+				)
+			);
+
+			$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $item_id ), 0.001, "item tax at quantity $quantity" );
+			$this->assertCount( 1, $order->get_taxes(), "tax line kept at quantity $quantity" );
+			$this->assertEqualsWithDelta( (float) $amount, (float) $order->get_total(), 0.001, "order total at quantity $quantity" );
+		}
+
+		$this->assertSame( array(), $this->tax_notes( $order ), 'the tax did not change' );
+	}
+
+	/**
 	 * Give a placed order's item new saved amounts and taxes, as if it had been placed so.
 	 *
 	 * Forgets the amounts it had before, so the next request sees only its own edit.
