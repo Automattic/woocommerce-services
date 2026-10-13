@@ -4784,8 +4784,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * A line priced differently in the recurring cart, as a sign-up fee makes it, is
-	 * taxed by each cart's own answer: the recurring cart's and the order's.
+	 * A line priced differently in the recurring cart is taxed by each cart's own answer:
+	 * the recurring cart's and the order's.
+	 *
+	 * The recurring cart gets a product of its own here. Subscriptions shares the product
+	 * objects between the carts, which this test leaves out.
 	 */
 	public function test_checkout_with_a_recurring_cart_taxes_each_cart_by_its_own_answer() {
 		update_option( 'woocommerce_calc_taxes', 'yes' );
