@@ -2859,13 +2859,20 @@ class WC_Connect_TaxJar_Integration {
 		$address = $this->get_rate_table_address( $location, false );
 		$top     = max( $priorities );
 
-		// The name generate_itemized_tax_rate_name() gives any component here.
-		$placeholder = '###';
-		$name        = self::generate_itemized_tax_rate_name( $placeholder . '_tax_rate', $address->country(), $jurisdictions );
-		$pattern     = '/^' . str_replace( preg_quote( $placeholder, '/' ), '.+', preg_quote( $name, '/' ) ) . '$/u';
+		// The exact names a lookup gives the components TaxJar returns here. A component
+		// missing from the list only leaves its row in place once it stops being returned.
+		$names = array();
+		foreach ( array( 'city', 'county', 'special', 'state_sales', 'state', 'country', 'gst', 'pst', 'qst' ) as $component ) {
+			$name = self::generate_itemized_tax_rate_name( $component . '_tax_rate', $address->country(), $jurisdictions );
+
+			// VAT rows are country-wide, never an address's own.
+			if ( 'VAT' !== $name ) {
+				$names[] = $name;
+			}
+		}
 
 		foreach ( $this->get_rates_scoped_to_address( $address, $tax_class ) as $row ) {
-			if ( $row['tax_rate_priority'] <= $top || ! preg_match( $pattern, $row['tax_rate_name'] ) ) {
+			if ( $row['tax_rate_priority'] <= $top || ! in_array( $row['tax_rate_name'], $names, true ) ) {
 				continue;
 			}
 

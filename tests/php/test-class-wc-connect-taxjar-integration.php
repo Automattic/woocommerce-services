@@ -5812,6 +5812,73 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Rows limited to exactly the looked-up postcode and city, above the components,
+	 * and whether a lookup wrote a row with that name for the address.
+	 *
+	 * @return array
+	 */
+	public function rows_above_the_components_by_name() {
+		$gwinn  = array( 'US', 'MI', '49841', 'Gwinn' );
+		$ottawa = array( 'CA', 'ON', 'K1A 0B1', 'Ottawa' );
+		$named  = array(
+			'county' => 'MARQUETTE',
+			'city'   => 'GWINN',
+		);
+		$none   = array(
+			'county' => null,
+			'city'   => null,
+		);
+
+		return array(
+			'US, special component'                   => array( $gwinn, $named, 'MARQUETTE GWINN : Special Tax', true ),
+			'US, state component'                     => array( $gwinn, $named, 'MARQUETTE GWINN : State Sales Tax', true ),
+			'US, county only in the name'             => array( $gwinn, array( 'county' => 'MARQUETTE' ), 'MARQUETTE : County Tax', true ),
+			'US, merchant name with the prefix'       => array( $gwinn, $named, 'MARQUETTE GWINN : Local Tax', false ),
+			'US, component name without the prefix'   => array( $gwinn, $named, 'Special Tax', false ),
+			'US, another town\'s prefix'              => array( $gwinn, $named, 'MARQUETTE SANDS : Special Tax', false ),
+			'US, 0% row beside a state-wide rate'     => array( $gwinn, $named, 'MARQUETTE GWINN : Manual Rate Nullified (Automated Taxes)', false ),
+			'US no jurisdictions, special component'  => array( $gwinn, $none, 'Special Tax', true ),
+			'US no jurisdictions, merchant Local Tax' => array( $gwinn, $none, 'Gwinn Local Tax', false ),
+			'US no jurisdictions, merchant Sales Tax' => array( $gwinn, $none, 'Sales Tax', false ),
+			'Canada, PST component'                   => array( $ottawa, $none, 'PST TAX', true ),
+			'Canada, GST component'                   => array( $ottawa, $none, 'GST TAX', true ),
+			'Canada, merchant LOCAL TAX'              => array( $ottawa, $none, 'LOCAL TAX', false ),
+			'Canada, merchant name in mixed case'     => array( $ottawa, $none, 'Pst Tax', false ),
+		);
+	}
+
+	/**
+	 * Only a row named as a lookup names a component for the address is removed. Any
+	 * other name ending in "Tax" is a merchant's.
+	 *
+	 * @dataProvider rows_above_the_components_by_name
+	 *
+	 * @param array  $place         Country, state, postcode and city looked up.
+	 * @param array  $jurisdictions County and city names TaxJar returned.
+	 * @param string $name          Name of the row at priority 5.
+	 * @param bool   $removed       Whether the row is removed.
+	 */
+	public function test_rows_above_the_components_are_removed_by_component_name( $place, $jurisdictions, $name, $removed ) {
+		$this->reset_tax_rate_tables();
+
+		$location = array(
+			'from_country' => $place[0],
+			'from_state'   => $place[1],
+			'to_country'   => $place[0],
+			'to_state'     => $place[1],
+			'to_zip'       => $place[2],
+			'to_city'      => $place[3],
+		);
+
+		// Written the way a lookup writes a row, so it is limited to exactly the address.
+		$row_id = (int) $this->integration->create_or_update_tax_rate( $location, 1.0, '', 1, 5, $name );
+
+		$this->invoke_protected_method( 'remove_stale_components', array( $location, '', array( 1, 2, 3, 4 ), $jurisdictions ) );
+
+		$this->assertSame( ! $removed, (bool) WC_Tax::_get_tax_rate( $row_id ) );
+	}
+
+	/**
 	 * Ids of the 0% rows added beside a state-wide rate, at any priority.
 	 *
 	 * @return int[]
