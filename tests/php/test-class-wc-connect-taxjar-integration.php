@@ -4706,6 +4706,143 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Total a recurring cart inside every total of the main cart, as WooCommerce
+	 * Subscriptions does: it filters woocommerce_calculated_total, copies the cart, keeps
+	 * the subscription lines and totals the copy. TaxJar answers the copy after the main
+	 * cart.
+	 *
+	 * @param WC_Connect_TaxJar_Integration $integration     Integration under test.
+	 * @param string                        $cart_item_key   The subscription line.
+	 * @param float|null                    $recurring_price Its price in the recurring cart, when a sign-up fee
+	 *                                                       makes the first payment differ.
+	 * @param WC_Cart|null                  $recurring_cart  Set to the last recurring cart totalled.
+	 * @return callable The hooked callback, to remove.
+	 */
+	private static function total_a_recurring_cart( $integration, $cart_item_key, $recurring_price = null, &$recurring_cart = null ) {
+		$callback = function ( $total, $cart ) use ( $integration, $cart_item_key, $recurring_price, &$recurring_cart ) {
+			if ( WC()->cart !== $cart ) {
+				return $total;
+			}
+
+			$recurring_cart = clone $cart;
+			foreach ( array_keys( $recurring_cart->cart_contents ) as $key ) {
+				if ( $key !== $cart_item_key ) {
+					unset( $recurring_cart->cart_contents[ $key ] );
+				}
+			}
+			if ( null !== $recurring_price ) {
+				// A product of its own, so the price stays out of the main cart.
+				$recurring_cart->cart_contents[ $cart_item_key ]['data'] = clone $recurring_cart->cart_contents[ $cart_item_key ]['data'];
+				$recurring_cart->cart_contents[ $cart_item_key ]['data']->set_price( $recurring_price );
+			}
+
+			$recurring_cart->calculate_totals();
+			$integration->calculate_totals( $recurring_cart );
+
+			return $total;
+		};
+		add_filter( 'woocommerce_calculated_total', $callback, 10, 2 );
+
+		return $callback;
+	}
+
+	/**
+	 * With a subscription in the cart, the order still taxes each line by the main
+	 * cart's answer, though the recurring cart was answered after it.
+	 */
+	public function test_checkout_with_a_recurring_cart_keeps_an_exempt_line_untaxed() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$shirt         = $this->priced_product( 50 );
+		$this->product = $this->priced_product( 100 );
+		$box           = $this->priced_product( 100 );
+		WC()->cart->add_to_cart( $shirt->get_id(), 1 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$box_key = WC()->cart->add_to_cart( $box->get_id(), 1 );
+
+		$integration = $this->michigan_integration( true, false, 60 );
+		$recurring   = self::total_a_recurring_cart( $integration, $box_key );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ $item->get_product_id() ] = self::item_tax( $item );
+		}
+		$this->assertEqualsWithDelta( 0.0, $taxed[ $shirt->get_id() ], 0.001, 'TaxJar answered the $50 line as exempt' );
+		$this->assertEqualsWithDelta( 6.0, $taxed[ $this->product->get_id() ], 0.001 );
+		$this->assertEqualsWithDelta( 6.0, $taxed[ $box->get_id() ], 0.001 );
+		$this->assertEqualsWithDelta( (float) WC()->cart->get_cart_contents_tax(), (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
+
+		$shirt->delete( true );
+		$box->delete( true );
+	}
+
+	/**
+	 * A line priced differently in the recurring cart, as a sign-up fee makes it, is
+	 * taxed by each cart's own answer: the recurring cart's and the order's.
+	 */
+	public function test_checkout_with_a_recurring_cart_taxes_each_cart_by_its_own_answer() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 100 );
+		$box_key       = WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$integration    = $this->michigan_integration( true, false, 60 );
+		$recurring_cart = null;
+		$recurring      = self::total_a_recurring_cart( $integration, $box_key, 50, $recurring_cart );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		$this->assertInstanceOf( WC_Cart::class, $recurring_cart );
+		$this->assertEqualsWithDelta( 0.0, (float) $recurring_cart->get_cart_contents_tax(), 0.001, 'TaxJar answered the $50 renewal as exempt' );
+		// $100 first payment at 6%.
+		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart tax' );
+		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001, 'Order tax' );
+	}
+
+	/**
+	 * A product bought once and on subscription in the same cart: each order line still
+	 * finds the main cart's answer by the cart item it was created from, though the
+	 * recurring cart holds only the subscription line.
+	 */
+	public function test_checkout_with_a_recurring_cart_finds_each_line_of_one_product_by_its_cart_item() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$subscription_key = WC()->cart->add_to_cart( $this->product->get_id(), 1, 0, array(), array( 'subscription' => 'monthly' ) );
+		WC()->cart->cart_contents[ $subscription_key ]['data']->set_price( 120 );
+
+		$integration = $this->michigan_integration( true, false, 60 );
+		$recurring   = self::total_a_recurring_cart( $integration, $subscription_key );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ (string) (float) $item->get_total() ] = self::item_tax( $item );
+		}
+		$this->assertEqualsWithDelta( 0.0, $taxed['50'], 0.001, 'TaxJar answered the $50 cart line as exempt' );
+		$this->assertEqualsWithDelta( 7.2, $taxed['120'], 0.001, '$120 at 6%' );
+	}
+
+	/**
 	 * The cart shows the tax the order charges for a line TaxJar answered as partly
 	 * exempt, though its rows were last written by a line taxed at other components.
 	 */
