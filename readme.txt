@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.3 - 2026-xx-xx =
+* Fix   - Stop charging tax on an item the tax service answered as tax-exempt, such as clothing under New York's price threshold, when another item in the same tax class is taxed. This affected orders placed at checkout and orders recalculated in the admin. The cart now also shows the tax the order charges when items in one tax class are taxed differently, including product variations and the same product added twice at different prices.
 * Fix   - Keep an item that the tax service answered as tax-free at $0 tax when its quantity or price changes through the REST API or the WooCommerce app. It was charged the full tax rate of its tax class.
 * Fix   - Take a removed item's tax off the order when the item is removed through some REST API routes, custom code, or the Remove link in WooCommerce Subscriptions' My Account. The order kept the removed item's tax.
 * Fix   - Look up tax again when an order edited through the REST API or the WooCommerce app switches between local pickup and delivery, so pickup orders are taxed at the store address and delivered orders at the customer's address.
