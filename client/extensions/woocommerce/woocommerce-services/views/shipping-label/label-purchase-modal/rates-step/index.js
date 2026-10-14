@@ -148,7 +148,7 @@ const showCheckoutShippingInfo = props => {
 	}
 };
 
-const RatesStep = props => {
+export const RatesStep = props => {
 	const {
 		siteId,
 		orderId,
@@ -175,8 +175,8 @@ const RatesStep = props => {
 
 		if ( ( ! isEmpty( available ) ) && ( pckgId in available ) && ( 1 === available[ pckgId ].default.rates.length ) ) {
 			const signatureRequired = false; // Don't preselect signature.
-			const { service_id } = available[ pckgId ].default.rates[ 0 ];
-			updateRateHandler( pckgId, service_id, signatureRequired );
+			const { service_id, carrier_id } = available[ pckgId ].default.rates[ 0 ];
+			updateRateHandler( pckgId, service_id, carrier_id, signatureRequired );
 		}
 	} );
 
