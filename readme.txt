@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.7.3 - 2026-10-14 =
 * Fix   - Stop charging tax on an item the tax service answered as tax-exempt, such as clothing under New York's price threshold, when another item in the same tax class is taxed. This affected orders placed at checkout and orders recalculated in the admin. The cart now also shows the tax the order charges when items in one tax class are taxed differently, including product variations and the same product added twice at different prices.
+* Fix   - Stop taxing an item at another item's rate on orders that include a WooCommerce Subscriptions product, so the order charges the tax the checkout showed.
 
 = 3.7.2 - 2026-10-08 =
 * Fix   - Improve handling of shipping features on tax-only stores.

@@ -770,6 +770,14 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		// Checkout creates the order from WC()->cart. Another cart totalled in the same
+		// request, like each recurring cart WooCommerce Subscriptions totals after the main
+		// one, uses its answers for its own totals below and then gives the main cart's back.
+		$main_cart_answers = null;
+		if ( WC()->cart instanceof WC_Cart && WC()->cart !== $wc_cart_object ) {
+			$main_cart_answers = array( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys );
+		}
+
 		$this->response_rate_ids       = $taxes['rate_ids'];
 		$this->response_line_items     = $taxes['line_items'];
 		$this->response_cart_item_keys = wp_list_pluck( $line_items, 'id' );
@@ -813,6 +821,10 @@ class WC_Connect_TaxJar_Integration {
 			remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
 			$wc_cart_object->calculate_totals();
 			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+		}
+
+		if ( null !== $main_cart_answers ) {
+			list( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys ) = $main_cart_answers;
 		}
 	}
 
