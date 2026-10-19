@@ -740,11 +740,41 @@ class WC_Connect_TaxJar_Integration {
 	 * @param $wc_cart_object
 	 */
 	public function maybe_calculate_totals( $wc_cart_object ) {
-		if ( ! WC_Connect_Functions::should_send_cart_api_request() ) {
+		if ( ! WC_Connect_Functions::should_send_cart_api_request() && ! $this->is_opted_in_admin_ajax_cart( $wc_cart_object ) ) {
 			return;
 		}
 
 		$this->calculate_totals( $wc_cart_object );
+	}
+
+	/**
+	 * Whether a cart totalled in an admin AJAX request is opted in to tax calculation.
+	 *
+	 * WordPress reports is_admin() for admin-ajax.php, so the checks that keep dashboard
+	 * carts away from TaxJar also skip the carts phone and manual order plugins build
+	 * there. Such a plugin opts its cart in with the filter below. Only a user who can
+	 * edit orders gets this far, so a wp_ajax_nopriv_ action cannot send requests.
+	 *
+	 * @param WC_Cart $wc_cart_object The cart being totalled.
+	 * @return bool
+	 */
+	private function is_opted_in_admin_ajax_cart( $wc_cart_object ) {
+		if ( ! is_admin() || ! wp_doing_ajax() || ! current_user_can( 'edit_shop_orders' ) ) {
+			return false;
+		}
+
+		/**
+		 * Filters whether a cart totalled in an admin AJAX request is sent to TaxJar.
+		 *
+		 * Phone and manual order plugins build the customer's cart in admin-ajax.php.
+		 * Return true for such a cart to tax it as checkout does. Only true opts in.
+		 *
+		 * @since 3.7.4
+		 *
+		 * @param bool    $calculate      Whether to calculate tax for the cart. Default false.
+		 * @param WC_Cart $wc_cart_object The cart being totalled.
+		 */
+		return true === apply_filters( 'woocommerce_services_calculate_admin_ajax_cart_tax', false, $wc_cart_object );
 	}
 	/**
 	 * Calculate tax / totals using TaxJar at checkout
@@ -760,6 +790,7 @@ class WC_Connect_TaxJar_Integration {
 		 * Don't calculate if we are outside cart and checkout page, or pages with WooCommerce Cart and Checkout blocks.
 		 * Don't calculate if we are inside mini-cart.
 		 * If this is an API call don't calculate unless this is store/cart request.
+		 * Do calculate an admin AJAX cart a plugin opted in.
 		 */
 		if (
 			! WC_Connect_Functions::has_cart_or_checkout_block() &&
@@ -767,7 +798,8 @@ class WC_Connect_TaxJar_Integration {
 			(
 				( ! is_cart() && ! is_checkout() ) ||
 				( is_cart() && is_ajax() )
-			)
+			) &&
+			! $this->is_opted_in_admin_ajax_cart( $wc_cart_object )
 		) {
 			return;
 		}
