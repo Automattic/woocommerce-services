@@ -406,6 +406,23 @@ class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * The lookup for an order edited over REST or in the WooCommerce app builds its
+	 * lines in the same function as Recalculate, so it writes a variation's answer to
+	 * the variation's own tax class too.
+	 */
+	public function test_order_edit_lookup_writes_a_variation_to_its_own_tax_class() {
+		$standard  = $this->simple_product();
+		$variation = $this->variations( array( $this->clothing_slug ) )[0];
+
+		// The variation is the order's last line, so its answer is written last.
+		$lookup = self::call( $this->taxjar(), 'lookup_order_taxes', array( $this->order( array( $standard, $variation ) ) ) );
+
+		$this->assertIsArray( $lookup, 'The lookup did not complete.' );
+		$this->assertSame( '6', $this->state_rate( '' ), 'Standard rows hold the simple product\'s 6%.' );
+		$this->assertSame( '5', $this->state_rate( $this->clothing_slug ), 'Clothing rows hold the variation\'s 5%.' );
+	}
+
+	/**
 	 * Two variations of one product in different tax classes each write their own
 	 * class, so the second does not overwrite the first.
 	 */
