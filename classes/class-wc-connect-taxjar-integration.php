@@ -196,6 +196,16 @@ class WC_Connect_TaxJar_Integration {
 	private $non_taxable_line_items = array();
 
 	/**
+	 * The user who sent the current admin request, recorded on admin_init.
+	 *
+	 * Phone order plugins can log in as the customer before they total the cart, so the
+	 * admin AJAX opt-in checks this user instead of the current one. Null until recorded.
+	 *
+	 * @var int|null
+	 */
+	private $admin_ajax_user_id = null;
+
+	/**
 	 * Tracks instance.
 	 *
 	 * @var WC_Connect_Tracks
@@ -398,6 +408,9 @@ class WC_Connect_TaxJar_Integration {
 		} else {
 			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
 		}
+
+		// admin-ajax.php fires admin_init before any wp_ajax_ handler can switch the user.
+		add_action( 'admin_init', array( $this, 'record_admin_ajax_user' ), PHP_INT_MIN );
 
 		// Calculate Taxes for Backend Orders (Woo 2.6+)
 		add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
@@ -748,6 +761,15 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Record the user who sent the request, before a wp_ajax_ handler can switch it.
+	 *
+	 * Only for the admin AJAX opt-in. Customer-facing checks must use the current user.
+	 */
+	public function record_admin_ajax_user() {
+		$this->admin_ajax_user_id = get_current_user_id();
+	}
+
+	/**
 	 * Whether a cart totalled in an admin AJAX request is opted in to tax calculation.
 	 *
 	 * WordPress reports is_admin() for admin-ajax.php, so the checks that keep dashboard
@@ -755,11 +777,15 @@ class WC_Connect_TaxJar_Integration {
 	 * there. Such a plugin opts its cart in with the filter below. Only a user who can
 	 * edit orders gets this far, so a wp_ajax_nopriv_ action cannot send requests.
 	 *
+	 * The user is the one who sent the request, so a plugin that logs in as the customer
+	 * to total the cart is still opted in, and a customer it logs in as a shop manager is not.
+	 *
 	 * @param WC_Cart $wc_cart_object The cart being totalled.
 	 * @return bool
 	 */
 	private function is_opted_in_admin_ajax_cart( $wc_cart_object ) {
-		if ( ! is_admin() || ! wp_doing_ajax() || ! current_user_can( 'edit_shop_orders' ) ) {
+		$user_id = $this->admin_ajax_user_id ?? get_current_user_id();
+		if ( ! is_admin() || ! wp_doing_ajax() || ! user_can( $user_id, 'edit_shop_orders' ) ) {
 			return false;
 		}
 
@@ -768,6 +794,11 @@ class WC_Connect_TaxJar_Integration {
 		 *
 		 * Phone and manual order plugins build the customer's cart in admin-ajax.php.
 		 * Return true for such a cart to tax it as checkout does. Only true opts in.
+		 *
+		 * Check that the request is your plugin's own AJAX action before returning true.
+		 * Returning true every time also opts in any other cart totalled in admin-ajax.php
+		 * by a user who can edit orders, such as a theme's mini-cart while a shop manager
+		 * browses the store.
 		 *
 		 * @since 3.7.4
 		 *

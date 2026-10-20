@@ -38,6 +38,13 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 	private $product;
 
 	/**
+	 * REST route the request had before the test, restored after it.
+	 *
+	 * @var string|null
+	 */
+	private $rest_route;
+
+	/**
 	 * Load required classes before running tests.
 	 */
 	public static function set_up_before_class() {
@@ -56,6 +63,7 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 		update_option( 'woocommerce_calc_taxes', 'yes' );
 		$this->reset_tax_rate_tables();
 
+		$this->rest_route  = $GLOBALS['wp']->query_vars['rest_route'] ?? null;
 		$this->integration = $this->counting_integration();
 		add_action( 'woocommerce_after_calculate_totals', array( $this->integration, 'maybe_calculate_totals' ), 20 );
 		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this->integration, 'override_cart_item_tax_rates' ), 10, 3 );
@@ -79,6 +87,12 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 		remove_all_filters( self::OPT_IN_FILTER );
 		remove_all_filters( 'wp_doing_ajax' );
 		remove_all_filters( 'woocommerce_is_cart' );
+		remove_all_filters( 'woocommerce_is_checkout' );
+		if ( null === $this->rest_route ) {
+			unset( $GLOBALS['wp']->query_vars['rest_route'] );
+		} else {
+			$GLOBALS['wp']->query_vars['rest_route'] = $this->rest_route;
+		}
 
 		WC()->cart->empty_cart();
 		WC_Helper_Product::delete_product( $this->product->get_id() );
@@ -168,7 +182,8 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 
 	/**
 	 * Serve the request as admin-ajax.php does for a phone order plugin: an admin
-	 * screen, an AJAX request, a cart loaded from the session, and the given user.
+	 * screen, an AJAX request, a cart loaded from the session, and the given user,
+	 * recorded as admin_init records them before any wp_ajax_ handler runs.
 	 *
 	 * @param string|null $role Role of the logged-in user, or null for a logged-out visitor.
 	 */
@@ -177,7 +192,18 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 		add_filter( 'wp_doing_ajax', '__return_true' );
 		do_action( 'woocommerce_cart_loaded_from_session', WC()->cart );
 
-		wp_set_current_user( null === $role ? 0 : self::factory()->user->create( array( 'role' => $role ) ) );
+		wp_set_current_user( $this->user_id( $role ) );
+		$this->integration->record_admin_ajax_user();
+	}
+
+	/**
+	 * A new user with the given role.
+	 *
+	 * @param string|null $role Role of the user, or null for a logged-out visitor.
+	 * @return int
+	 */
+	private function user_id( $role ) {
+		return null === $role ? 0 : self::factory()->user->create( array( 'role' => $role ) );
 	}
 
 	/**
@@ -230,10 +256,12 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * The filter receives the cart being totalled.
+	 * The filter receives the cart being totalled, which need not be WC()->cart.
 	 */
 	public function test_opt_in_filter_receives_the_cart() {
 		$this->as_admin_ajax();
+		$cart = new WC_Cart();
+		$cart->add_to_cart( $this->product->get_id(), 1 );
 		$received = null;
 		add_filter(
 			self::OPT_IN_FILTER,
@@ -246,9 +274,10 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 			2
 		);
 
-		WC()->cart->calculate_totals();
+		$cart->calculate_totals();
 
-		$this->assertSame( WC()->cart, $received );
+		$this->assertNotSame( WC()->cart, $cart );
+		$this->assertSame( $cart, $received );
 	}
 
 	/**
@@ -341,6 +370,34 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Phone Orders' "Switch customer" logs in as the customer before it totals the cart.
+	 * The shop manager who sent the request is still the one checked.
+	 */
+	public function test_opt_in_checks_the_user_who_sent_the_request_not_the_switched_customer() {
+		$this->as_admin_ajax( 'shop_manager' );
+		$this->opt_in();
+		wp_set_current_user( $this->user_id( 'customer' ) );
+
+		WC()->cart->calculate_totals();
+
+		$this->assertSame( 1, $this->taxjar_requests );
+		$this->assertEqualsWithDelta( 6.0, $this->cart_tax(), 0.001 );
+	}
+
+	/**
+	 * A customer's request a handler switches to a shop manager is still refused.
+	 */
+	public function test_opt_in_refuses_a_customer_switched_to_a_shop_manager() {
+		$this->as_admin_ajax( 'customer' );
+		$this->opt_in();
+		wp_set_current_user( $this->user_id( 'shop_manager' ) );
+
+		WC()->cart->calculate_totals();
+
+		$this->assertSame( 0, $this->taxjar_requests );
+	}
+
+	/**
 	 * The opt-in is for admin-ajax.php. A cart loaded on a dashboard page stays skipped.
 	 */
 	public function test_opt_in_does_not_reach_admin_page_loads() {
@@ -365,5 +422,45 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 		WC()->cart->calculate_totals();
 
 		$this->assertSame( 0, $this->taxjar_requests );
+	}
+
+	/**
+	 * Classic and block checkout, each with the opt-in filter off and on.
+	 *
+	 * @return array
+	 */
+	public function provide_checkouts() {
+		return array(
+			'classic checkout, filter off' => array( 'classic', false ),
+			'classic checkout, filter on'  => array( 'classic', true ),
+			'block checkout, filter off'   => array( 'block', false ),
+			'block checkout, filter on'    => array( 'block', true ),
+		);
+	}
+
+	/**
+	 * Checkout is taxed the same with the filter on: one lookup and the same tax. The
+	 * shopper is a shop manager, so only the admin AJAX checks keep the opt-in out.
+	 *
+	 * @dataProvider provide_checkouts
+	 *
+	 * @param string $checkout 'classic' for the checkout page, 'block' for the Store API.
+	 * @param bool   $filter   Whether the opt-in filter returns true.
+	 */
+	public function test_checkout_is_taxed_the_same_with_the_filter_on( $checkout, $filter ) {
+		if ( 'classic' === $checkout ) {
+			add_filter( 'woocommerce_is_checkout', '__return_true' );
+		} else {
+			$GLOBALS['wp']->query_vars['rest_route'] = '/wc/store/v1/checkout';
+		}
+		wp_set_current_user( $this->user_id( 'shop_manager' ) );
+		if ( $filter ) {
+			$this->opt_in();
+		}
+
+		WC()->cart->calculate_totals();
+
+		$this->assertSame( 1, $this->taxjar_requests );
+		$this->assertEqualsWithDelta( 6.0, $this->cart_tax(), 0.001 );
 	}
 }
