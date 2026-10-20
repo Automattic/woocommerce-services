@@ -78,6 +78,7 @@ This plugin relies on the following external services:
 * Fix   - Take a removed item's tax off the order when the item is removed through some REST API routes, custom code, or the Remove link in WooCommerce Subscriptions' My Account. The order kept the removed item's tax.
 * Fix   - Look up tax again when an order edited through the REST API or the WooCommerce app switches between local pickup and delivery, so pickup orders are taxed at the store address and delivered orders at the customer's address.
 * Fix   - Stop a negative fee, such as a discount added as a fee, from adding a second tax rate to items added to the order later through the REST API or the WooCommerce app.
+* Fix   - When the tax service is down or slow, ask it once per page request instead of again each time the cart total updates, so checkout and phone order screens wait less during an outage.
 * Dev   - Apply the woocommerce_order_get_tax_location filter when looking up tax for orders edited through the REST API, as WooCommerce does.
 
 = 3.7.3 - 2026-10-14 =
