@@ -196,6 +196,16 @@ class WC_Connect_TaxJar_Integration {
 	private $non_taxable_line_items = array();
 
 	/**
+	 * The user who sent the current admin request, recorded on admin_init.
+	 *
+	 * Phone order plugins can log in as the customer before they total the cart, so the
+	 * admin AJAX opt-in checks this user instead of the current one. Null until recorded.
+	 *
+	 * @var int|null
+	 */
+	private $admin_ajax_user_id = null;
+
+	/**
 	 * Tracks instance.
 	 *
 	 * @var WC_Connect_Tracks
@@ -398,6 +408,9 @@ class WC_Connect_TaxJar_Integration {
 		} else {
 			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
 		}
+
+		// admin-ajax.php fires admin_init before any wp_ajax_ handler can switch the user.
+		add_action( 'admin_init', array( $this, 'record_admin_ajax_user' ), PHP_INT_MIN );
 
 		// Calculate Taxes for Backend Orders (Woo 2.6+)
 		add_action( 'woocommerce_before_save_order_items', array( $this, 'calculate_backend_totals' ), 20 );
@@ -740,12 +753,62 @@ class WC_Connect_TaxJar_Integration {
 	 * @param $wc_cart_object
 	 */
 	public function maybe_calculate_totals( $wc_cart_object ) {
-		if ( ! WC_Connect_Functions::should_send_cart_api_request() ) {
+		if ( ! WC_Connect_Functions::should_send_cart_api_request() && ! $this->is_opted_in_admin_ajax_cart( $wc_cart_object ) ) {
 			return;
 		}
 
 		$this->calculate_totals( $wc_cart_object );
 	}
+
+	/**
+	 * Record the user who sent the request, before a wp_ajax_ handler can switch it.
+	 *
+	 * Only for the admin AJAX opt-in. Customer-facing checks must use the current user.
+	 */
+	public function record_admin_ajax_user() {
+		$this->admin_ajax_user_id = get_current_user_id();
+	}
+
+	/**
+	 * Whether a cart totalled in an admin AJAX request is opted in to tax calculation.
+	 *
+	 * Checks the user who sent the request, recorded on admin_init, because a phone order
+	 * plugin can log in as the customer before it totals the cart.
+	 *
+	 * @param WC_Cart $wc_cart_object The cart being totalled.
+	 * @return bool
+	 */
+	private function is_opted_in_admin_ajax_cart( $wc_cart_object ) {
+		$user_id = $this->admin_ajax_user_id ?? get_current_user_id();
+		if ( ! is_admin() || ! wp_doing_ajax() || ! user_can( $user_id, 'edit_shop_orders' ) ) {
+			return false;
+		}
+
+		/**
+		 * Filters whether a cart totalled in an admin AJAX request is sent to TaxJar.
+		 *
+		 * Phone and manual order plugins build the customer's cart in admin-ajax.php.
+		 * Return true for such a cart to tax it as checkout does. Only true opts in, and
+		 * only for a request sent by a user with the edit_shop_orders capability.
+		 *
+		 * Check that the request is your plugin's own AJAX action before returning true,
+		 * and return $calculate unchanged otherwise so another plugin's opt-in stands.
+		 * Returning true every time also opts in any other cart totalled in admin-ajax.php
+		 * by a user who can edit orders, such as a theme's mini-cart while a shop manager
+		 * browses the store.
+		 *
+		 * The filter can run more than once per cart total. As at checkout, an opted-in
+		 * total fires woocommerce_before_calculate_totals and woocommerce_after_calculate_totals
+		 * again and clears the saved shipping rates, so their callbacks run twice.
+		 *
+		 * @since 3.7.4
+		 *
+		 * @param bool    $calculate      Whether to calculate tax for the cart. Default false.
+		 * @param WC_Cart $wc_cart_object The cart being totalled.
+		 */
+		return true === apply_filters( 'woocommerce_services_calculate_admin_ajax_cart_tax', false, $wc_cart_object );
+	}
+
 	/**
 	 * Calculate tax / totals using TaxJar at checkout
 	 *
@@ -760,6 +823,7 @@ class WC_Connect_TaxJar_Integration {
 		 * Don't calculate if we are outside cart and checkout page, or pages with WooCommerce Cart and Checkout blocks.
 		 * Don't calculate if we are inside mini-cart.
 		 * If this is an API call don't calculate unless this is store/cart request.
+		 * Do calculate an admin AJAX cart a plugin opted in.
 		 */
 		if (
 			! WC_Connect_Functions::has_cart_or_checkout_block() &&
@@ -767,7 +831,8 @@ class WC_Connect_TaxJar_Integration {
 			(
 				( ! is_cart() && ! is_checkout() ) ||
 				( is_cart() && is_ajax() )
-			)
+			) &&
+			! $this->is_opted_in_admin_ajax_cart( $wc_cart_object )
 		) {
 			return;
 		}
@@ -1370,7 +1435,10 @@ class WC_Connect_TaxJar_Integration {
 
 		foreach ( $order->get_items() as $item_key => $item ) {
 			if ( is_object( $item ) ) { // Woo 3.0+
-				$id             = $item->get_product_id();
+				// A variation is sent under its own id, as the cart sends it: its tax class
+				// can differ from its parent's, and get_itemized_tax_rates() reads the class
+				// from the product this id names.
+				$id             = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();
 				$quantity       = $item->get_quantity();
 				$unit_price     = empty( $quantity ) ? $item->get_subtotal() : wc_format_decimal( $item->get_subtotal() / $quantity );
 				$discount       = wc_format_decimal( $item->get_subtotal() - $item->get_total() );
