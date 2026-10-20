@@ -1373,6 +1373,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertStringContainsString( '2.10', $notes[0], 'old tax' );
 		$this->assertStringContainsString( '2.70', $notes[0], 'new tax' );
 		$this->assertStringContainsString( 'already saved on the order were used', $notes[0] );
+		$this->assertMatchesRegularExpression( '/updated from .*2\.10.* to .*2\.70.* because the order changed/', $notes[0], 'old tax first, in words' );
 		$this->assertStringNotContainsString( 'when the order was placed', $notes[0] );
 	}
 

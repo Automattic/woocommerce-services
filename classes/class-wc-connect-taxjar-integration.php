@@ -3637,7 +3637,7 @@ class WC_Connect_TaxJar_Integration {
 		} elseif ( null !== $reapplied && $reapplied['moved'] ) {
 			$notes[] = sprintf(
 				/* translators: 1: tax before the order changed, 2: tax after. */
-				__( 'Tax updated because the order changed: %1$s → %2$s. The tax rates already saved on the order were used.', 'woocommerce-services' ),
+				__( 'Tax updated from %1$s to %2$s because the order changed. The tax rates already saved on the order were used.', 'woocommerce-services' ),
 				wc_price( $reapplied['old_tax'], array( 'currency' => $order->get_currency() ) ),
 				wc_price( $reapplied['new_tax'], array( 'currency' => $order->get_currency() ) )
 			);
@@ -4519,7 +4519,7 @@ class WC_Connect_TaxJar_Integration {
 		} elseif ( $reapplied['moved'] ) {
 			$done = sprintf(
 				/* translators: 1: tax before the order changed, 2: tax after. */
-				__( 'The tax rates already saved on the order were used instead: %1$s → %2$s.', 'woocommerce-services' ),
+				__( 'The tax rates already saved on the order were used instead, and the tax went from %1$s to %2$s.', 'woocommerce-services' ),
 				wc_price( $reapplied['old_tax'], array( 'currency' => $order->get_currency() ) ),
 				wc_price( $reapplied['new_tax'], array( 'currency' => $order->get_currency() ) )
 			);
@@ -5021,7 +5021,7 @@ class WC_Connect_TaxJar_Integration {
 			return array(
 				sprintf(
 					/* translators: 1: address the tax was calculated for, 2: tax before, 3: tax after. */
-					__( 'Tax updated for %1$s from the store\'s tax rates: %2$s → %3$s.', 'woocommerce-services' ),
+					__( 'Tax updated from %2$s to %3$s for %1$s, using the store\'s tax rates.', 'woocommerce-services' ),
 					$this->format_order_tax_address( $lookup['address'] ),
 					wc_price( (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'], array( 'currency' => $order->get_currency() ) ),
 					wc_price( (float) $order->get_cart_tax() + (float) $order->get_shipping_tax(), array( 'currency' => $order->get_currency() ) )
@@ -5101,7 +5101,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( null !== $snapshot['address_before'] || ( ! empty( $snapshot['tax_lines'] ) && abs( $old_tax - $new_tax ) >= 0.000001 ) ) {
 			$notes[] = sprintf(
 				/* translators: 1: address the tax was calculated for, 2: tax before, 3: tax after. */
-				__( 'Tax recalculated with today\'s rates for %1$s: %2$s → %3$s.', 'woocommerce-services' ),
+				__( 'Tax recalculated from %2$s to %3$s with today\'s rates for %1$s.', 'woocommerce-services' ),
 				$this->format_order_tax_address( $lookup['address'] ),
 				wc_price( $old_tax, array( 'currency' => $order->get_currency() ) ),
 				wc_price( $new_tax, array( 'currency' => $order->get_currency() ) )

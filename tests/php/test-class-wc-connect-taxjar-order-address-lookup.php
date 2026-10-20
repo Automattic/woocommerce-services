@@ -512,6 +512,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertStringContainsString( '80301', $notes[0], 'the note names the address' );
 		$this->assertStringContainsString( '2.40', $notes[0], 'old tax' );
 		$this->assertStringContainsString( '3.20', $notes[0], 'new tax' );
+		$this->assertMatchesRegularExpression( '/recalculated from .*2\.40.* to .*3\.20.* with today\'s rates/', $notes[0], 'old tax first, in words' );
 	}
 
 	/**
@@ -542,7 +543,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertCount( 0, $this->requests, 'no nexus, no request' );
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'from the store\'s tax rates', $notes[0] );
+		$this->assertStringContainsString( 'using the store\'s tax rates', $notes[0] );
+		$this->assertMatchesRegularExpression( '/updated from .*2\.40.* to .*0\.00/', $notes[0], 'old tax first, in words' );
 		$this->assertStringNotContainsString( 'today\'s rates', $notes[0], 'TaxJar was not asked' );
 	}
 
@@ -582,7 +584,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'Columbus', $notes[0] );
-		$this->assertStringContainsString( 'from the store\'s tax rates', $notes[0] );
+		$this->assertStringContainsString( 'using the store\'s tax rates', $notes[0] );
 	}
 
 	/**
@@ -767,9 +769,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertStringContainsString( 'already saved on the order were used instead', $notes[0] );
 		$this->assertStringContainsString( '2.40', $notes[0], 'old tax: 1.80 + 0.60' );
 		$this->assertStringContainsString( '3.00', $notes[0], 'new tax: 2.40 + 0.60' );
+		$this->assertMatchesRegularExpression( '/went from .*2\.40.* to .*3\.00/', $notes[0], 'old tax first, in words' );
 		$this->assertStringNotContainsString( 'when the order was placed', $notes[0] );
 		$this->assertStringNotContainsString( 'was kept', $notes[0], 'The tax changed, so the note must not say it was kept.' );
-		$this->assertStringNotContainsString( 'Tax updated because the order changed', $notes[0], 'the change is told once' );
+		$this->assertStringNotContainsString( 'because the order changed', $notes[0], 'the change is told once' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -854,7 +857,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertStringContainsString( '3.00', $notes[0], 'new tax: 2.40 + 0.60' );
 		$this->assertStringNotContainsString( 'when the order was placed', $notes[0] );
 		$this->assertStringNotContainsString( 'was kept', $notes[0], 'The tax changed, so the note must not say it was kept.' );
-		$this->assertStringNotContainsString( 'Tax updated because the order changed', $notes[0], 'the change is told once' );
+		$this->assertStringNotContainsString( 'because the order changed', $notes[0], 'the change is told once' );
 	}
 
 	/**
