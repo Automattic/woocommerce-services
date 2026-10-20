@@ -1435,7 +1435,10 @@ class WC_Connect_TaxJar_Integration {
 
 		foreach ( $order->get_items() as $item_key => $item ) {
 			if ( is_object( $item ) ) { // Woo 3.0+
-				$id             = $item->get_product_id();
+				// A variation is sent under its own id, as the cart sends it: its tax class
+				// can differ from its parent's, and get_itemized_tax_rates() reads the class
+				// from the product this id names.
+				$id             = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();
 				$quantity       = $item->get_quantity();
 				$unit_price     = empty( $quantity ) ? $item->get_subtotal() : wc_format_decimal( $item->get_subtotal() / $quantity );
 				$discount       = wc_format_decimal( $item->get_subtotal() - $item->get_total() );
