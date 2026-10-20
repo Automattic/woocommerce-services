@@ -71,6 +71,8 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.4 - 2026-xx-xx =
+* Add   - Let phone and manual order plugins get automated tax for carts they build in the dashboard, through the new woocommerce_services_calculate_admin_ajax_cart_tax filter. Before, these carts showed $0 tax for an address that had not been through checkout yet.
+* Fix   - When you click Recalculate on an order with a product variation that has its own tax class, save its tax rates under that tax class instead of the main product's, so the main product's tax rates are no longer overwritten.
 * Fix   - Remove the tax rates an earlier lookup saved for a town when the tax service now returns fewer rates for it, for example after a special district tax ends, so orders taxed from the saved rates are no longer charged the old rate on top.
 * Fix   - Stop automated tax lookups from overwriting a tax rate you set up for a list of ZIP codes, a ZIP code pattern such as 49*, or a whole city. The lookup changed its name and rate, so other addresses the rate covered could be charged the wrong tax or none.
 * Fix   - Remove the 0% "Manual Rate Nullified (Automated Taxes)" tax rate added for a town once the state-wide rate it stood beside is deleted or moved to another priority, so orders taxed from the saved rates no longer carry extra $0 tax lines.
