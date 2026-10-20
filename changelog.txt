@@ -1,6 +1,16 @@
 *** WooCommerce Tax Changelog ***
 
-= 3.7.3 - 2026-xx-xx =
+= 3.7.4 - 2026-xx-xx =
+* Fix   - Remove the tax rates an earlier lookup saved for a town when the tax service now returns fewer rates for it, for example after a special district tax ends, so orders taxed from the saved rates are no longer charged the old rate on top.
+* Fix   - Stop automated tax lookups from overwriting a tax rate you set up for a list of ZIP codes, a ZIP code pattern such as 49*, or a whole city. The lookup changed its name and rate, so other addresses the rate covered could be charged the wrong tax or none.
+* Fix   - Remove the 0% "Manual Rate Nullified (Automated Taxes)" tax rate added for a town once the state-wide rate it stood beside is deleted or moved to another priority, so orders taxed from the saved rates no longer carry extra $0 tax lines.
+* Fix   - Keep an item that the tax service answered as tax-free at $0 tax when its quantity or price changes through the REST API or the WooCommerce app. It was charged the full tax rate of its tax class.
+* Fix   - Take a removed item's tax off the order when the item is removed through some REST API routes, custom code, or the Remove link in WooCommerce Subscriptions' My Account. The order kept the removed item's tax.
+* Fix   - Look up tax again when an order edited through the REST API or the WooCommerce app switches between local pickup and delivery, so pickup orders are taxed at the store address and delivered orders at the customer's address.
+* Fix   - Stop a negative fee, such as a discount added as a fee, from adding a second tax rate to items added to the order later through the REST API or the WooCommerce app.
+* Dev   - Apply the woocommerce_order_get_tax_location filter when looking up tax for orders edited through the REST API, as WooCommerce does.
+
+= 3.7.3 - 2026-10-14 =
 * Fix   - Stop charging tax on an item the tax service answered as tax-exempt, such as clothing under New York's price threshold, when another item in the same tax class is taxed. This affected orders placed at checkout and orders recalculated in the admin. The cart now also shows the tax the order charges when items in one tax class are taxed differently, including product variations and the same product added twice at different prices.
 * Fix   - When you click Recalculate on an order with a product variation that has its own tax class, save its tax rates under that tax class instead of the main product's. Shipping on such an order is no longer left untaxed after Recalculate.
 
