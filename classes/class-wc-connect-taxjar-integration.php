@@ -3257,7 +3257,10 @@ class WC_Connect_TaxJar_Integration {
 				if ( ! $transient_set ) {
 					set_transient( $cache_key, $response, $this->error_cache_time );
 				}
-			} else {
+			} elseif ( false !== $response ) {
+				// Only a lookup that actually went out is worth skipping. Our own validation
+				// stopping a request costs no round trip, and re-running it is what re-adds
+				// the shopper's notice after clear_notices() above.
 				$this->failed_lookups_in_request[ $cache_key ] = $response;
 			}
 		}

@@ -38,6 +38,13 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 	private $product;
 
 	/**
+	 * WC()->session before a test set one up, put back in tear_down(). False when untouched.
+	 *
+	 * @var WC_Session|null|false
+	 */
+	private $saved_wc_session = false;
+
+	/**
 	 * Load required classes before running tests.
 	 */
 	public static function set_up_before_class() {
@@ -58,6 +65,12 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 			WC()->cart->empty_cart();
 			WC_Helper_Product::delete_product( $this->product->get_id() );
 			delete_option( 'woocommerce_calc_taxes' );
+		}
+
+		if ( false !== $this->saved_wc_session ) {
+			StoreNoticesNotifier::clear_notices();
+			WC()->session           = $this->saved_wc_session;
+			$this->saved_wc_session = false;
 		}
 
 		parent::tear_down();
@@ -262,6 +275,30 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 		$this->new_integration()->smartcalcs_cache_request( $this->request_body(), 'MI' );
 
 		$this->assertSame( 1, $this->proxy_requests );
+	}
+
+	/**
+	 * A lookup our own validation stopped sent nothing, so it is checked again every
+	 * time. Each total clears the shopper's notices first, and checking again is what
+	 * shows the notice about their ZIP code again, so it stays on the page.
+	 */
+	public function test_lookup_stopped_by_validation_shows_its_notice_after_every_total() {
+		$this->saved_wc_session = WC()->session;
+		if ( empty( WC()->session ) ) {
+			WC()->initialize_session();
+		}
+		WC()->session->set( StoreNoticesNotifier::WC_SESSION_KEY, array() );
+
+		$this->proxy_answers_with( 503 );
+		$integration = $this->new_integration();
+
+		$integration->smartcalcs_cache_request( $this->request_body( 'ABCDE' ), 'MI' );
+		$this->assertNotEmpty( StoreNoticesNotifier::get_notices()['error'] ?? array(), 'The first total showed no notice, so this test proves nothing.' );
+
+		$integration->smartcalcs_cache_request( $this->request_body( 'ABCDE' ), 'MI' );
+
+		$this->assertNotEmpty( StoreNoticesNotifier::get_notices()['error'] ?? array(), 'The second total cleared the notice and did not show it again.' );
+		$this->assertSame( 0, $this->proxy_requests );
 	}
 
 	/**
