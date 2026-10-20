@@ -772,13 +772,8 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Whether a cart totalled in an admin AJAX request is opted in to tax calculation.
 	 *
-	 * WordPress reports is_admin() for admin-ajax.php, so the checks that keep dashboard
-	 * carts away from TaxJar also skip the carts phone and manual order plugins build
-	 * there. Such a plugin opts its cart in with the filter below. Only a user who can
-	 * edit orders gets this far, so a wp_ajax_nopriv_ action cannot send requests.
-	 *
-	 * The user is the one who sent the request, so a plugin that logs in as the customer
-	 * to total the cart is still opted in, and a customer it logs in as a shop manager is not.
+	 * Checks the user who sent the request, recorded on admin_init, because a phone order
+	 * plugin can log in as the customer before it totals the cart.
 	 *
 	 * @param WC_Cart $wc_cart_object The cart being totalled.
 	 * @return bool
@@ -793,12 +788,18 @@ class WC_Connect_TaxJar_Integration {
 		 * Filters whether a cart totalled in an admin AJAX request is sent to TaxJar.
 		 *
 		 * Phone and manual order plugins build the customer's cart in admin-ajax.php.
-		 * Return true for such a cart to tax it as checkout does. Only true opts in.
+		 * Return true for such a cart to tax it as checkout does. Only true opts in, and
+		 * only for a request sent by a user with the edit_shop_orders capability.
 		 *
-		 * Check that the request is your plugin's own AJAX action before returning true.
+		 * Check that the request is your plugin's own AJAX action before returning true,
+		 * and return $calculate unchanged otherwise so another plugin's opt-in stands.
 		 * Returning true every time also opts in any other cart totalled in admin-ajax.php
 		 * by a user who can edit orders, such as a theme's mini-cart while a shop manager
 		 * browses the store.
+		 *
+		 * The filter can run more than once per cart total. As at checkout, an opted-in
+		 * total fires woocommerce_before_calculate_totals and woocommerce_after_calculate_totals
+		 * again and clears the saved shipping rates, so their callbacks run twice.
 		 *
 		 * @since 3.7.4
 		 *
@@ -807,6 +808,7 @@ class WC_Connect_TaxJar_Integration {
 		 */
 		return true === apply_filters( 'woocommerce_services_calculate_admin_ajax_cart_tax', false, $wc_cart_object );
 	}
+
 	/**
 	 * Calculate tax / totals using TaxJar at checkout
 	 *
