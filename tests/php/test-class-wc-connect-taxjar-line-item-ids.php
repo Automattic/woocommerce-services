@@ -541,4 +541,75 @@ class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 
 		$this->assertSame( $own_key, self::call( $integration, 'find_order_item_line_key', array( $item ) ) );
 	}
+
+	/**
+	 * Move a product to the clothing tax class, after an order already holds it.
+	 *
+	 * @param WC_Product $product Product.
+	 */
+	private function move_to_clothing( $product ) {
+		$product->set_tax_class( $this->clothing_slug );
+		$product->save();
+		$this->assertSame( $this->clothing_slug, wc_get_product( $product->get_id() )->get_tax_class(), 'Product tax class was not saved.' );
+	}
+
+	/**
+	 * A line keeps the tax class it was added in when the product moves to another
+	 * class later, and is sent to TaxJar in it. The answer is written to that class,
+	 * not to the product's new one, which the answer is not about.
+	 */
+	public function test_order_edit_lookup_writes_a_line_to_the_tax_class_it_was_sent_in() {
+		$product = $this->simple_product();
+		$order   = $this->order( array( $product ) );
+		$this->move_to_clothing( $product );
+
+		$lookup = self::call( $this->taxjar(), 'lookup_order_taxes', array( wc_get_order( $order->get_id() ) ) );
+
+		$this->assertIsArray( $lookup, 'The lookup did not complete.' );
+		$this->assertSame( '6', $this->state_rate( '' ), 'Standard rows hold the Standard line\'s 6%.' );
+		$this->assertNull( $this->state_rate( $this->clothing_slug ), 'The Standard line\'s answer was written to the product\'s new class.' );
+	}
+
+	/**
+	 * One product on two lines in different tax classes, the first added before the
+	 * product moved to clothing and the second after. Each line's answer is written to
+	 * its own line's class.
+	 */
+	public function test_order_edit_lookup_writes_each_line_of_one_product_to_its_own_tax_class() {
+		$product = $this->simple_product();
+		$order   = $this->order( array( $product ) );
+		$this->move_to_clothing( $product );
+		$order->add_product( wc_get_product( $product->get_id() ), 1 );
+		$order->save();
+
+		$classes = array();
+		foreach ( wc_get_order( $order->get_id() )->get_items() as $item ) {
+			$classes[] = $item->get_tax_class();
+		}
+		$this->assertSame( array( '', $this->clothing_slug ), $classes, 'The two lines are not in the two classes.' );
+
+		self::call( $this->taxjar(), 'lookup_order_taxes', array( wc_get_order( $order->get_id() ) ) );
+
+		$this->assertSame( '6', $this->state_rate( '' ), 'Standard rows hold the first line\'s 6%.' );
+		$this->assertSame( '5', $this->state_rate( $this->clothing_slug ), 'Clothing rows hold the second line\'s 5%.' );
+	}
+
+	/**
+	 * Recalculate on a paid order whose product moved to another tax class since: the
+	 * line is still taxed in the class it was paid in, from the rows the lookup writes.
+	 */
+	public function test_recalculate_taxes_a_line_in_the_tax_class_it_was_sent_in() {
+		$product = $this->simple_product();
+		$order   = $this->order( array( $product ) );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->move_to_clothing( $product );
+
+		$order = $this->admin_recalculate( $order, $this->taxjar() );
+
+		$item = current( $order->get_items() );
+		$this->assertSame( '', $item->get_tax_class(), 'The line left its class.' );
+		$this->assertEqualsWithDelta( 6.0, self::item_tax( $item ), 0.001, '$100 at 6%' );
+		$this->assertNull( $this->state_rate( $this->clothing_slug ), 'The line\'s answer was written to the product\'s new class.' );
+	}
 }
