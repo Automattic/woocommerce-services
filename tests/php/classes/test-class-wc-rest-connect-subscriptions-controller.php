@@ -50,9 +50,9 @@ class WP_Test_WC_REST_Connect_Subscriptions_Controller extends WC_Unit_Test_Case
 		$api_response        = '{
 			"subscriptions": [
 				{
-					"product_key": "W00-5705e69b-4cbe-85ae-bb62bf204675",
+					"product_key": "W00-00000000-0000-0000-000000000001",
 					"product_keys_all": [
-						"W00-5705e69b-4cbe-85ae-bb62bf204675"
+						"W00-00000000-0000-0000-000000000001"
 					],
 					"product_id": 1770503,
 					"product_name": "UPS Live Rates",
@@ -78,9 +78,9 @@ class WP_Test_WC_REST_Connect_Subscriptions_Controller extends WC_Unit_Test_Case
 					"usage_count": 8
 				},
 				{
-					"product_key": "W00-5705e69b-4cbe-85ae-bb62bf204675",
+					"product_key": "W00-00000000-0000-0000-000000000001",
 					"product_keys_all": [
-						"W00-5705e69b-4cbe-85ae-bb62bf204675"
+						"W00-00000000-0000-0000-000000000001"
 					],
 					"product_id": 1770504,
 					"product_name": "DHL Express Live Rates",
