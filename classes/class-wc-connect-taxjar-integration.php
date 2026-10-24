@@ -2727,7 +2727,11 @@ class WC_Connect_TaxJar_Integration {
 			$this->_log( $tax_rate );
 			if ( $wc_rate[ $rate_id ]['label'] !== $tax_rate_name || (float) $wc_rate[ $rate_id ]['rate'] !== (float) $rate ) {
 				// Allow to manually change is Shipping taxable, won't be overwritten automatically.
-				$tax_rate['tax_rate_shipping'] = wc_string_to_bool( $wc_rate[ $rate_id ]['shipping'] );
+				// A 0% row added beside a state-wide rate is never marked for shipping, so a
+				// component written in its place takes TaxJar's answer instead.
+				if ( ! self::is_nullified_rate( $wc_rate[ $rate_id ]['rate'], $wc_rate[ $rate_id ]['label'] ) ) {
+					$tax_rate['tax_rate_shipping'] = wc_string_to_bool( $wc_rate[ $rate_id ]['shipping'] );
+				}
 				WC_Tax::_update_tax_rate( $rate_id, $tax_rate );
 			}
 		} else {
@@ -3031,15 +3035,10 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private function remove_unneeded_nullified_rates( $location, $tax_class ) {
 		$address = $this->get_rate_table_address( $location, false );
-		$label   = self::get_nullified_rate_label();
 		$needed  = $this->get_unscoped_rate_priorities( $address, $tax_class );
 
 		foreach ( $this->get_rates_scoped_to_address( $address, $tax_class ) as $row ) {
-			if (
-				0.0 !== (float) $row['tax_rate'] ||
-				substr( $row['tax_rate_name'], -strlen( $label ) ) !== $label ||
-				in_array( $row['tax_rate_priority'], $needed, true )
-			) {
+			if ( ! self::is_nullified_rate( $row['tax_rate'], $row['tax_rate_name'] ) || in_array( $row['tax_rate_priority'], $needed, true ) ) {
 				continue;
 			}
 
@@ -3047,6 +3046,23 @@ class WC_Connect_TaxJar_Integration {
 
 			WC_Tax::_delete_tax_rate( $row['tax_rate_id'] );
 		}
+	}
+
+	/**
+	 * Whether a rate row is one of the 0% rows added beside a state-wide rate.
+	 *
+	 * Such a row is 0% and its name ends with the label it is given. A merchant's own
+	 * 0% row has another name, and a row of ours the merchant set to a rate is theirs.
+	 *
+	 * @param string|float $rate Rate percentage.
+	 * @param string       $name Row name.
+	 *
+	 * @return bool
+	 */
+	private static function is_nullified_rate( $rate, $name ) {
+		$label = self::get_nullified_rate_label();
+
+		return 0.0 === (float) $rate && substr( (string) $name, -strlen( $label ) ) === $label;
 	}
 
 	/**

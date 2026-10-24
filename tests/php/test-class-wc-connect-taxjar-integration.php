@@ -6026,6 +6026,94 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * What WooCommerce taxes shipping to Gwinn at, read from the table as checkout does.
+	 *
+	 * @return float Percentage.
+	 */
+	private function gwinn_shipping_tax_percent() {
+		$rates = WC_Tax::find_shipping_rates(
+			array(
+				'country'   => 'US',
+				'state'     => 'MI',
+				'postcode'  => '49841',
+				'city'      => 'GWINN',
+				'tax_class' => '',
+			)
+		);
+
+		return (float) array_sum( wp_list_pluck( $rates, 'rate' ) );
+	}
+
+	/**
+	 * When a town gains a component, the component at the highest priority takes the
+	 * 0% row added there beside a state-wide rate. That row is not marked for shipping,
+	 * so the component must take TaxJar's answer for shipping instead of keeping the
+	 * row's. Kept, it would drop out of shipping tax, and every order shipped to the
+	 * town would under-collect it until the merchant ticked Shipping by hand.
+	 *
+	 * @testWith [true, "1", 7.0]
+	 *           [false, "0", 0.0]
+	 *
+	 * @param bool   $freight_taxable   Whether TaxJar taxes shipping.
+	 * @param string $expected_shipping Expected Shipping flag of the row.
+	 * @param float  $expected_percent  Expected shipping tax percentage.
+	 */
+	public function test_component_written_over_the_rate_beside_a_state_wide_rate_takes_the_looked_up_shipping( $freight_taxable, $expected_shipping, $expected_percent ) {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 4 ) );
+
+		list( $with_special, $without_special ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		// City, County and State at 1 to 3, and a 0% row beside the merchant's at 4.
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, $freight_taxable, null, $without_special ), '49841', 'Gwinn', 10 );
+		$nullified = $this->nullified_rate_ids();
+		$this->assertCount( 1, $nullified );
+		$this->assertSame( array( $catch_all_id, $nullified[0] ), $this->tax_rate_ids_at_priority( 4 ) );
+
+		// A special district starts: City, County, Special and State at 1 to 4.
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, $freight_taxable, null, $with_special ), '49841', 'Gwinn', 10 );
+
+		$row = WC_Tax::_get_tax_rate( $nullified[0] );
+		$this->assertSame( 'MARQUETTE GWINN : State Sales Tax', $row['tax_rate_name'], 'Expected the State component in the 0% row.' );
+		$this->assertSame( $expected_shipping, (string) $row['tax_rate_shipping'] );
+		// 0% + 0% + 1% + 6%, the merchant's row still outranked.
+		$this->assertEqualsWithDelta( $expected_percent, $this->gwinn_shipping_tax_percent(), 0.0001 );
+	}
+
+	/**
+	 * Rows the lookup reuses that are not one of its 0% rows keep the merchant's
+	 * Shipping setting: a merchant's own 0% row, one of ours the merchant set to a
+	 * rate, and a component the merchant took off shipping.
+	 *
+	 * @testWith ["0.0000", "Gwinn Exempt"]
+	 *           ["1.0000", "MARQUETTE GWINN : Manual Rate Nullified (Automated Taxes)"]
+	 *           ["5.0000", "MARQUETTE GWINN : State Sales Tax"]
+	 *
+	 * @param string $rate Rate of the row at priority 4.
+	 * @param string $name Name of the row at priority 4.
+	 */
+	public function test_reused_row_that_is_not_a_rate_beside_a_state_wide_rate_keeps_its_shipping( $rate, $name ) {
+		$this->reset_tax_rate_tables();
+
+		list( $with_special, $without_special ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		// City, County and State at 1 to 3, so the row at 4 is the one matched there.
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, true, null, $without_special ), '49841', 'Gwinn', 10 );
+
+		$row_id = $this->insert_michigan_rate( 4, $rate, $name, '49841', 'GWINN' );
+		WC_Tax::_update_tax_rate( $row_id, array( 'tax_rate_shipping' => 0 ) );
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, true, null, $with_special ), '49841', 'Gwinn', 10 );
+
+		$row = WC_Tax::_get_tax_rate( $row_id );
+		$this->assertSame( 'MARQUETTE GWINN : State Sales Tax', $row['tax_rate_name'], 'Expected the State component in the row.' );
+		$this->assertSame( '6.0000', $row['tax_rate'] );
+		$this->assertSame( '0', (string) $row['tax_rate_shipping'], "The merchant's Shipping setting was overwritten." );
+	}
+
+	/**
 	 * The write and the read are two different methods, and they have to agree.
 	 *
 	 * `create_or_update_tax_rate()` persists the row; `allow_street_address_for_matched_rates()`
