@@ -512,6 +512,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertStringContainsString( '80301', $notes[0], 'the note names the address' );
 		$this->assertStringContainsString( '2.40', $notes[0], 'old tax' );
 		$this->assertStringContainsString( '3.20', $notes[0], 'new tax' );
+		$this->assertMatchesRegularExpression( '/recalculated from .*2\.40.* to .*3\.20.* with today\'s rates/', $notes[0], 'old tax first, in words' );
 	}
 
 	/**
@@ -542,7 +543,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertCount( 0, $this->requests, 'no nexus, no request' );
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'from the store\'s tax rates', $notes[0] );
+		$this->assertStringContainsString( 'using the store\'s tax rates', $notes[0] );
+		$this->assertMatchesRegularExpression( '/updated from .*2\.40.* to .*0\.00/', $notes[0], 'old tax first, in words' );
 		$this->assertStringNotContainsString( 'today\'s rates', $notes[0], 'TaxJar was not asked' );
 	}
 
@@ -582,7 +584,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'Columbus', $notes[0] );
-		$this->assertStringContainsString( 'from the store\'s tax rates', $notes[0] );
+		$this->assertStringContainsString( 'using the store\'s tax rates', $notes[0] );
 	}
 
 	/**
@@ -761,11 +763,16 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		// 6% recorded: A $20 1.20, B 1.20, shipping 0.60.
 		$this->assert_order_tax( $order, 2.40, 0.60, 53.00 );
 		$notes = $this->tax_notes( $order );
-		$this->assertCount( 2, $notes, 'the re-apply note and the failure note' );
-		$failure_note = implode( "\n", preg_grep( '/could not be updated/', $notes ) );
-		$this->assertStringContainsString( 'the tax service did not answer', $failure_note );
-		$this->assertStringContainsString( 'recorded when the order was placed were used instead', $failure_note );
-		$this->assertStringNotContainsString( 'was kept', $failure_note, 'The tax changed, so the note must not say it was kept.' );
+		$this->assertCount( 1, $notes, 'one note for one update' );
+		$this->assertStringContainsString( 'could not be updated', $notes[0] );
+		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
+		$this->assertStringContainsString( 'already saved on the order were used instead', $notes[0] );
+		$this->assertStringContainsString( '2.40', $notes[0], 'old tax: 1.80 + 0.60' );
+		$this->assertStringContainsString( '3.00', $notes[0], 'new tax: 2.40 + 0.60' );
+		$this->assertMatchesRegularExpression( '/went from .*2\.40.* to .*3\.00/', $notes[0], 'old tax first, in words' );
+		$this->assertStringNotContainsString( 'when the order was placed', $notes[0] );
+		$this->assertStringNotContainsString( 'was kept', $notes[0], 'The tax changed, so the note must not say it was kept.' );
+		$this->assertStringNotContainsString( 'because the order changed', $notes[0], 'the change is told once' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -843,10 +850,14 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 0.60, $order->get_tax_refunded_for_item( $fixture['a'], $this->rate_id ), 0.001 );
 
 		$notes = $this->tax_notes( $order );
-		$this->assertCount( 2, $notes, 'the re-apply note and the refund note' );
-		$refund_note = implode( "\n", preg_grep( '/refunded tax/', $notes ) );
-		$this->assertStringContainsString( 'recorded when the order was placed were used instead', $refund_note );
-		$this->assertStringNotContainsString( 'was kept', $refund_note, 'The tax changed, so the note must not say it was kept.' );
+		$this->assertCount( 1, $notes, 'one note for one update' );
+		$this->assertStringContainsString( 'refunded tax', $notes[0] );
+		$this->assertStringContainsString( 'already saved on the order were used instead', $notes[0] );
+		$this->assertStringContainsString( '2.40', $notes[0], 'old tax: 1.80 + 0.60' );
+		$this->assertStringContainsString( '3.00', $notes[0], 'new tax: 2.40 + 0.60' );
+		$this->assertStringNotContainsString( 'when the order was placed', $notes[0] );
+		$this->assertStringNotContainsString( 'was kept', $notes[0], 'The tax changed, so the note must not say it was kept.' );
+		$this->assertStringNotContainsString( 'because the order changed', $notes[0], 'the change is told once' );
 	}
 
 	/**
@@ -1497,6 +1508,42 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'No tax was added for Custom amount', $notes[0] );
+		$this->assertStringContainsString( 'no product in the same tax class was looked up', $notes[0] );
+		$this->assertStringNotContainsString( 'recorded tax rate', $notes[0], 'nothing here came from recorded rates' );
+	}
+
+	/**
+	 * @testdox An address change that leaves a fee untaxed writes one note with the new tax and the untaxed fee.
+	 */
+	public function test_address_change_with_untaxed_fee_writes_one_note() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping'  => self::address( '80301', 'Boulder' ),
+				'fee_lines' => array(
+					array(
+						'name'       => 'Custom amount',
+						'total'      => '10.00',
+						'tax_status' => 'taxable',
+						'tax_class'  => 'reduced-rate',
+					),
+				),
+			)
+		);
+
+		$fees = $order->get_fees();
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, reset( $fees )->get_id() ), 0.001, 'no product in the fee\'s class was looked up' );
+		// 8%: A 0.80, B 1.60, shipping 0.80; 30 + 10 + 10 + 2.40 + 0.80.
+		$this->assert_order_tax( $order, 2.40, 0.80, 53.20 );
+
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes, 'one note for one update' );
+		$this->assertStringContainsString( '80301', $notes[0], 'the address' );
+		$this->assertStringContainsString( '3.20', $notes[0], 'new tax' );
+		$this->assertStringContainsString( 'No tax was added for Custom amount', $notes[0] );
+		$this->assertStringContainsString( 'no product in the same tax class was looked up', $notes[0] );
 	}
 
 	/**
@@ -1793,10 +1840,14 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		);
 
 		$this->assert_order_tax( $order, 2.40, 0.60, 53.00 );
-		$failure_note = implode( "\n", preg_grep( '/could not be updated/', $this->tax_notes( $order ) ) );
-		$this->assertStringContainsString( 'the store address has no country', $failure_note );
-		$this->assertStringContainsString( 'recorded when the order was placed were used instead', $failure_note );
-		$this->assertStringNotContainsString( 'was kept', $failure_note );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes, 'one note for one update' );
+		$this->assertStringContainsString( 'could not be updated', $notes[0] );
+		$this->assertStringContainsString( 'the store address has no country', $notes[0] );
+		$this->assertStringContainsString( 'already saved on the order were used instead', $notes[0] );
+		$this->assertStringContainsString( '3.00', $notes[0], 'new tax: 2.40 + 0.60' );
+		$this->assertStringNotContainsString( 'when the order was placed', $notes[0] );
+		$this->assertStringNotContainsString( 'was kept', $notes[0] );
 	}
 
 	/**
