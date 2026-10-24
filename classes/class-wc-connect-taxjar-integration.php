@@ -206,6 +206,15 @@ class WC_Connect_TaxJar_Integration {
 	private $admin_ajax_user_id = null;
 
 	/**
+	 * Words in rate row names, translated into the site's language, by site locale.
+	 *
+	 * Filled only by a request that had to switch to the site's language to build them.
+	 *
+	 * @var array<string, array{tax: string, nullified: string}>
+	 */
+	private static $rate_name_words = array();
+
+	/**
 	 * Tracks instance.
 	 *
 	 * @var WC_Connect_Tracks
@@ -278,13 +287,13 @@ class WC_Connect_TaxJar_Integration {
 	 * @param string $to_country       The destination country for the tax calculation.
 	 * @param array  $jurisdictions    Tax jurisdictions.
 	 *
-	 * @return string The formatted and localized tax rate name.
+	 * @return string The formatted tax rate name, in the site's language.
 	 */
 	private static function generate_itemized_tax_rate_name( string $taxjar_rate_name, string $to_country, array $jurisdictions ) {
 		// Normalize the base key by stripping the trailing "_tax_rate" and converting underscores to spaces.
 		$base_key   = str_replace( '_tax_rate', '', $taxjar_rate_name );
 		$label_core = ucwords( str_replace( '_', ' ', $base_key ) );
-		$rate_name  = $label_core . ' ' . __( 'Tax', 'woocommerce-services' );
+		$rate_name  = $label_core . ' ' . self::get_rate_name_words()['tax'];
 
 		// Handle VAT countries where country-level tax should be labeled as VAT.
 		$is_vat_country = false;
@@ -344,8 +353,46 @@ class WC_Connect_TaxJar_Integration {
 	 * @return string
 	 */
 	private static function get_nullified_rate_label() {
-		/* translators: Name of a 0% tax rate added when automated taxes replace a store's manual rate for one town. */
-		return __( 'Manual Rate Nullified (Automated Taxes)', 'woocommerce-services' );
+		return self::get_rate_name_words()['nullified'];
+	}
+
+	/**
+	 * The translated words in the names of the rate rows a lookup writes, in the site's language.
+	 *
+	 * Later lookups find these rows again by name. Checkout runs in the site's language,
+	 * but the admin (Recalculate, saving an order) runs in the user's, so names built in
+	 * the request's language gave the same row a name in each. A lookup in one language
+	 * then never found the rows written in the other to remove them, and renamed every
+	 * row it reused.
+	 *
+	 * Switching the locale reloads every loaded text domain, so it happens only when the
+	 * request is not in the site's language, and once per request.
+	 *
+	 * @return array{tax: string, nullified: string}
+	 */
+	private static function get_rate_name_words() {
+		$site_locale = get_locale();
+
+		if ( isset( self::$rate_name_words[ $site_locale ] ) ) {
+			return self::$rate_name_words[ $site_locale ];
+		}
+
+		$switched = function_exists( 'switch_to_locale' ) && switch_to_locale( $site_locale );
+
+		$words = array(
+			/* translators: Last word of the name of a tax rate saved by automated taxes, as in "State Sales Tax". */
+			'tax'       => __( 'Tax', 'woocommerce-services' ),
+			/* translators: Name of a 0% tax rate added when automated taxes replace a store's manual rate for one town. */
+			'nullified' => __( 'Manual Rate Nullified (Automated Taxes)', 'woocommerce-services' ),
+		);
+
+		if ( $switched ) {
+			restore_previous_locale();
+
+			self::$rate_name_words[ $site_locale ] = $words;
+		}
+
+		return $words;
 	}
 
 	public function init() {
