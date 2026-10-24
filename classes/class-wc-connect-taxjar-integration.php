@@ -206,6 +206,18 @@ class WC_Connect_TaxJar_Integration {
 	private $admin_ajax_user_id = null;
 
 	/**
+	 * Lookups that failed in this request without an answer that is cached.
+	 *
+	 * A server error, a rate limit or a timeout is not cached, so a cart totalled
+	 * several times in one request would ask TaxJar again each time. Keyed by cache
+	 * key, values are what smartcalcs_request() returned. Kept for this request only,
+	 * so the next request asks again.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private $failed_lookups_in_request = array();
+
+	/**
 	 * Tracks instance.
 	 *
 	 * @var WC_Connect_Tracks
@@ -3273,6 +3285,12 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( false === $response ) {
+			if ( array_key_exists( $cache_key, $this->failed_lookups_in_request ) ) {
+				$this->_log( 'Not requesting again: this lookup already failed in this request.' );
+
+				return $this->failed_lookups_in_request[ $cache_key ];
+			}
+
 			$response      = $this->smartcalcs_request( $json );
 			$response_code = wp_remote_retrieve_response_code( $response );
 			$body          = json_decode( wp_remote_retrieve_body( $response ) );
@@ -3307,6 +3325,11 @@ class WC_Connect_TaxJar_Integration {
 				if ( ! $transient_set ) {
 					set_transient( $cache_key, $response, $this->error_cache_time );
 				}
+			} elseif ( false !== $response ) {
+				// Only a lookup that actually went out is worth skipping. Our own validation
+				// stopping a request costs no round trip, and re-running it is what re-adds
+				// the shopper's notice after clear_notices() above.
+				$this->failed_lookups_in_request[ $cache_key ] = $response;
 			}
 		}
 
