@@ -1363,8 +1363,12 @@ class WC_Connect_TaxJar_Integration {
 				$this->non_taxable_line_items[ $id . '-' . $cart_item_key ] = true;
 			}
 
-			// Get WC Subscription sign-up fees for calculations
-			if ( class_exists( 'WC_Subscriptions_Cart' ) ) {
+			// Get WC Subscription sign-up fees for calculations. Only the initial cart is priced
+			// this way. Subscriptions sets the calculation type back to 'none' before this hook
+			// runs for a recurring cart, so check the cart's own key as well. Pricing a recurring
+			// cart here would also unset the free trial Subscriptions gives a synced product while
+			// it totals its recurring carts, and the initial order would then charge shipping.
+			if ( class_exists( 'WC_Subscriptions_Cart' ) && empty( $wc_cart_object->recurring_cart_key ) ) {
 				if ( 'none' == WC_Subscriptions_Cart::get_calculation_type() ) {
 					if ( class_exists( 'WC_Subscriptions_Synchroniser' ) ) {
 						WC_Subscriptions_Synchroniser::maybe_set_free_trial();
