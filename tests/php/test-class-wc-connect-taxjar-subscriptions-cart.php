@@ -41,6 +41,9 @@ class WP_Test_WC_Connect_TaxJar_Subscriptions_Cart extends WC_Unit_Test_Case {
 	public static function set_up_before_class() {
 		parent::set_up_before_class();
 		require_once __DIR__ . '/../../classes/class-wc-connect-taxjar-integration.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-api-client.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-logger.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-tracks.php';
 		require_once __DIR__ . '/class-wc-subscriptions-synchroniser-test-double.php';
 		require_once __DIR__ . '/class-wc-subscriptions-cart-test-double.php';
 	}
@@ -71,6 +74,7 @@ class WP_Test_WC_Connect_TaxJar_Subscriptions_Cart extends WC_Unit_Test_Case {
 	 * Tear down after each test.
 	 */
 	public function tear_down() {
+		remove_filter( 'woocommerce_is_checkout', '__return_true' );
 		WC_Subscriptions_Synchroniser::reset();
 		WC_Subscriptions_Cart::$calculation_type = 'none';
 
@@ -127,6 +131,47 @@ class WP_Test_WC_Connect_TaxJar_Subscriptions_Cart extends WC_Unit_Test_Case {
 		WC_Subscriptions_Synchroniser::$free_trial = true;
 
 		$this->assertSame( '10', $this->line_item( $this->recurring_cart() )['unit_price'] );
+	}
+
+	/**
+	 * When the lookup fails, nothing totals the recurring cart again, so nothing puts a
+	 * removed free trial back. That is so even for a customer in the store's own state,
+	 * whose lookup did reach TaxJar.
+	 */
+	public function test_recurring_cart_keeps_the_free_trial_when_the_lookup_fails() {
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
+		$api_client->expects( $this->once() )
+			->method( 'proxy_request' )
+			->willReturn( new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' ) );
+
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->setConstructorArgs(
+				array(
+					$api_client,
+					$this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock(),
+					'https://example.com',
+					$this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock(),
+				)
+			)
+			->onlyMethods( array( 'get_store_settings', '_log' ) )
+			->getMock();
+		$integration->method( 'get_store_settings' )->willReturn(
+			array(
+				'country'  => 'US',
+				'state'    => 'CO',
+				'postcode' => '80202',
+				'city'     => 'Denver',
+				'street'   => '1 Main St',
+			)
+		);
+
+		WC()->customer->set_shipping_location( 'US', 'CO', '80202', 'Denver' );
+		add_filter( 'woocommerce_is_checkout', '__return_true' );
+		WC_Subscriptions_Synchroniser::$free_trial = true;
+
+		$integration->calculate_totals( $this->recurring_cart() );
+
+		$this->assertTrue( WC_Subscriptions_Synchroniser::$free_trial );
 	}
 
 	/**
