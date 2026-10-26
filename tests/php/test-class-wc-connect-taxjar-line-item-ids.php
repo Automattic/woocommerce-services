@@ -9,10 +9,12 @@
  * Class WP_Test_WC_Connect_TaxJar_Line_Item_Ids
  *
  * A line item is sent to TaxJar as `<product_id>-<fingerprint>-<occurrence>`. The
- * product id in front is how get_itemized_tax_rates() picks the tax class whose rows
- * the answer is written to, and how the cart and checkout find a product's line in
- * the answer. These tests drive the admin Recalculate through the hooks init()
- * registers, with TaxJar mocked, and call the matching directly.
+ * product id in front is how the cart and checkout find a product's line in the
+ * answer, and how get_itemized_tax_rates() picks the tax class a cart line's answer
+ * is written to. An order line's answer is written to the line's own class, recorded
+ * when the request is built, because a line keeps the class it was added in after its
+ * product moves to another class. These tests drive the admin Recalculate through the
+ * hooks init() registers, with TaxJar mocked, and call the matching directly.
  */
 class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 
@@ -595,10 +597,57 @@ class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Recalculate on a paid order whose product moved to another tax class since: the
-	 * line is still taxed in the class it was paid in, from the rows the lookup writes.
+	 * One product on two lines, one in Standard and one in Reduced rate, and then moved
+	 * to clothing. Neither line's class has a tax code, so the two lines are sent alike
+	 * and their ids differ only in the occurrence count at the end. Each line's answer
+	 * is still written to its own line's class, and none to the product's class.
 	 */
-	public function test_recalculate_taxes_a_line_in_the_tax_class_it_was_sent_in() {
+	public function test_order_edit_lookup_writes_two_lines_sent_alike_to_their_own_tax_classes() {
+		$product = $this->simple_product();
+		$order   = $this->order( array( $product ) );
+		$product->set_tax_class( 'reduced-rate' );
+		$product->save();
+		$order->add_product( wc_get_product( $product->get_id() ), 1 );
+		$order->save();
+		$this->move_to_clothing( $product );
+
+		$lookup = self::call( $this->taxjar(), 'lookup_order_taxes', array( wc_get_order( $order->get_id() ) ) );
+		$this->assertIsArray( $lookup, 'The lookup did not complete.' );
+
+		$line_ids = array();
+		foreach ( wc_get_order( $order->get_id() )->get_items() as $item_id => $item ) {
+			$line_ids[ $item->get_tax_class() ] = $lookup['line_items'][ $item_id ]['id'];
+		}
+		$this->assertSame( array( '', 'reduced-rate' ), array_keys( $line_ids ), 'The two lines are not in the two classes.' );
+		$this->assertNotSame( $line_ids[''], $line_ids['reduced-rate'], 'The two lines share one id.' );
+		$this->assertSame(
+			preg_replace( '/-[0-9]+$/', '', $line_ids[''] ),
+			preg_replace( '/-[0-9]+$/', '', $line_ids['reduced-rate'] ),
+			'The two lines no longer differ only in the occurrence count, so this test no longer covers it.'
+		);
+
+		foreach ( $line_ids as $tax_class => $line_id ) {
+			$this->assertNotEmpty( $lookup['rate_ids'][ $line_id ] ?? array(), "No rows were written for the line in '$tax_class'." );
+			foreach ( $lookup['rate_ids'][ $line_id ] as $rate_id ) {
+				$this->assertSame( $tax_class, WC_Tax::_get_tax_rate( $rate_id )['tax_rate_class'], "The answer for the line in '$tax_class' was written to another class." );
+			}
+		}
+		$this->assertSame( '6', $this->state_rate( '' ), 'Standard rows hold the first line\'s 6%.' );
+		$this->assertSame( '6', $this->state_rate( 'reduced-rate' ), 'Reduced rate rows hold the second line\'s 6%.' );
+		$this->assertNull( $this->state_rate( $this->clothing_slug ), 'A line\'s answer was written to the product\'s class.' );
+	}
+
+	/**
+	 * Recalculate on an order whose product moved to another tax class after the line
+	 * was added: the line's tax doesn't change, and the product's new class gets no
+	 * row. Only the last check needs the fix. The line was taxed $6 before it too,
+	 * because Recalculate applies TaxJar's rate ids to the line directly.
+	 *
+	 * The order is processing, where a line must keep the class it was paid in. The
+	 * admin shows Recalculate only on editable orders, so a merchant can't reach this
+	 * from the order screen; the test calls the handler directly.
+	 */
+	public function test_recalculate_keeps_line_tax_and_writes_no_row_to_the_product_new_class() {
 		$product = $this->simple_product();
 		$order   = $this->order( array( $product ) );
 		$order->set_status( 'processing' );
@@ -609,7 +658,7 @@ class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 
 		$item = current( $order->get_items() );
 		$this->assertSame( '', $item->get_tax_class(), 'The line left its class.' );
-		$this->assertEqualsWithDelta( 6.0, self::item_tax( $item ), 0.001, '$100 at 6%' );
-		$this->assertNull( $this->state_rate( $this->clothing_slug ), 'The line\'s answer was written to the product\'s new class.' );
+		$this->assertEqualsWithDelta( 6.0, self::item_tax( $item ), 0.001, 'The line\'s tax changed: $100 at 6%' );
+		$this->assertNull( $this->state_rate( $this->clothing_slug ), 'The product\'s new class got a row from the line\'s answer.' );
 	}
 }

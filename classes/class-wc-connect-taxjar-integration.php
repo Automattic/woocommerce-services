@@ -1424,7 +1424,8 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		// Re-keys $non_taxable_line_items onto the canonical ids as it goes.
+		// Re-keys $non_taxable_line_items and $line_item_tax_classes onto the
+		// canonical ids as it goes.
 		$line_items = $this->assign_canonical_line_item_ids( $line_items );
 
 		return $line_items;
@@ -1450,9 +1451,10 @@ class WC_Connect_TaxJar_Integration {
 
 		foreach ( $order->get_items() as $item_key => $item ) {
 			if ( is_object( $item ) ) { // Woo 3.0+
-				// A variation is sent under its own id, as the cart sends it: its tax class
-				// can differ from its parent's, and get_itemized_tax_rates() reads the class
-				// from the product this id names.
+				// A variation is sent under its own id, as the cart sends it, and its order
+				// item is matched back to its line by that id. The class its answer is
+				// written to is the line's own, recorded below: a line keeps the class it
+				// was added in, which can differ from its product's class today.
 				$id             = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();
 				$quantity       = $item->get_quantity();
 				$unit_price     = empty( $quantity ) ? $item->get_subtotal() : wc_format_decimal( $item->get_subtotal() / $quantity );
@@ -1504,7 +1506,8 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		// Re-keys $non_taxable_line_items onto the canonical ids as it goes.
+		// Re-keys $non_taxable_line_items and $line_item_tax_classes onto the
+		// canonical ids as it goes.
 		$line_items = $this->assign_canonical_line_item_ids( $line_items );
 
 		return $line_items;
