@@ -36,6 +36,13 @@ class WP_Test_WC_Connect_TaxJar_Subscriptions_Cart extends WC_Unit_Test_Case {
 	private $product;
 
 	/**
+	 * The customer's shipping location before the test, put back afterwards.
+	 *
+	 * @var array
+	 */
+	private $shipping_location;
+
+	/**
 	 * Load required classes before running tests.
 	 */
 	public static function set_up_before_class() {
@@ -63,6 +70,13 @@ class WP_Test_WC_Connect_TaxJar_Subscriptions_Cart extends WC_Unit_Test_Case {
 		$this->product->set_regular_price( 10 );
 		$this->product->save();
 
+		$this->shipping_location = array(
+			WC()->customer->get_shipping_country(),
+			WC()->customer->get_shipping_state(),
+			WC()->customer->get_shipping_postcode(),
+			WC()->customer->get_shipping_city(),
+		);
+
 		WC()->cart->empty_cart();
 		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
 
@@ -77,6 +91,7 @@ class WP_Test_WC_Connect_TaxJar_Subscriptions_Cart extends WC_Unit_Test_Case {
 		remove_filter( 'woocommerce_is_checkout', '__return_true' );
 		WC_Subscriptions_Synchroniser::reset();
 		WC_Subscriptions_Cart::$calculation_type = 'none';
+		WC()->customer->set_shipping_location( ...$this->shipping_location );
 
 		WC()->cart->empty_cart();
 		WC_Helper_Product::delete_product( $this->product->get_id() );
