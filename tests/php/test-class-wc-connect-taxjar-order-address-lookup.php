@@ -1508,7 +1508,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'No tax was added for Custom amount', $notes[0] );
-		$this->assertStringContainsString( 'no product in the same tax class was looked up', $notes[0] );
+		$this->assertStringContainsString( 'no product in its tax class has a tax rate from the tax service', $notes[0] );
 		$this->assertStringNotContainsString( 'recorded tax rate', $notes[0], 'nothing here came from recorded rates' );
 	}
 
@@ -1543,7 +1543,54 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertStringContainsString( '80301', $notes[0], 'the address' );
 		$this->assertStringContainsString( '3.20', $notes[0], 'new tax' );
 		$this->assertStringContainsString( 'No tax was added for Custom amount', $notes[0] );
-		$this->assertStringContainsString( 'no product in the same tax class was looked up', $notes[0] );
+		$this->assertStringContainsString( 'no product in its tax class has a tax rate from the tax service', $notes[0] );
+	}
+
+	/**
+	 * @testdox A fee whose tax class has only a non-taxable product is noted as untaxed, though the product was looked up.
+	 */
+	public function test_untaxed_fee_with_non_taxable_product_in_its_class_is_noted() {
+		$product = $this->create_product( '10' );
+		$product->set_tax_class( 'reduced-rate' );
+		$product->set_tax_status( 'none' );
+		$product->save();
+
+		$order = $this->rest_create(
+			array(
+				'billing'        => self::address(),
+				'shipping'       => self::address(),
+				'line_items'     => array(
+					array(
+						'product_id' => $this->create_product( '10' )->get_id(),
+						'quantity'   => 1,
+					),
+					array(
+						'product_id' => $product->get_id(),
+						'quantity'   => 1,
+					),
+				),
+				'fee_lines'      => array(
+					array(
+						'name'       => 'Custom amount',
+						'total'      => '10.00',
+						'tax_status' => 'taxable',
+						'tax_class'  => 'reduced-rate',
+					),
+				),
+				'shipping_lines' => array(),
+			)
+		);
+
+		$this->assertSame( '99999', $this->requests[0]['line_items'][1]['product_tax_code'], 'the product was sent as exempt' );
+		$fees = $order->get_fees();
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, reset( $fees )->get_id() ), 0.001, 'fee' );
+		// 6% on the standard $10 product only.
+		$this->assert_order_tax( $order, 0.60, 0.0, 30.60 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'No tax was added for Custom amount', $notes[0] );
+		$this->assertStringContainsString( 'no product in its tax class has a tax rate from the tax service', $notes[0] );
+		$this->assertStringNotContainsString( 'looked up', $notes[0], 'the product was looked up' );
 	}
 
 	/**

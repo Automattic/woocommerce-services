@@ -5066,8 +5066,8 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * Every line is re-taxed: the old rates belonged to the old address, or there were
 	 * none. A fee is taxed at the rates of a product in its tax class, or keeps the tax
-	 * WC gave it when no such product was looked up. The address and
-	 * the change are recorded in a note when the address changed or the tax moved.
+	 * WC gave it when no product in that class has rates from the lookup. The address
+	 * and the change are recorded in a note when the address changed or the tax moved.
 	 *
 	 * An answer without rates means the store has no nexus at the address. The tax WC
 	 * calculated from the rate table is kept then, as checkout and the admin Recalculate
@@ -5127,8 +5127,9 @@ class WC_Connect_TaxJar_Integration {
 			} elseif ( 'fee' === $item->get_type() ) {
 				$rates = $rates_by_class[ $item->get_tax_class() ] ?? array();
 
-				// No product in the fee's tax class was looked up: keep the tax WC gave it
-				// from the rate table, as checkout and the admin Recalculate do for fees.
+				// No product in the fee's tax class has rates from the lookup (there is
+				// none, or none of them is taxable): keep the tax WC gave it from the rate
+				// table, as checkout and the admin Recalculate do for fees.
 				if ( ! $rates ) {
 					$fee_taxes = $item->get_taxes();
 					if ( empty( $fee_taxes['total'] ) || ! array_filter( $fee_taxes['total'] ) ) {
@@ -5179,7 +5180,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( $untaxed ) {
 			$notes[] = sprintf(
 				/* translators: %s: comma-separated names of order items. */
-				__( 'No tax was added for %s, because no product in the same tax class was looked up. Check the tax on this order.', 'woocommerce-services' ),
+				__( 'No tax was added for %s, because no product in its tax class has a tax rate from the tax service. Check the tax on this order.', 'woocommerce-services' ),
 				implode( ', ', array_map( 'wp_strip_all_tags', $untaxed ) )
 			);
 		}
