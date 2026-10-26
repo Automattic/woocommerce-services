@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 7.1
 WC requires at least: 11.0
 WC tested up to: 11.2
-Stable tag: 3.7.3
+Stable tag: 3.7.4
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.7.4 - 2026-xx-xx =
+= 3.7.4 - 2026-10-26 =
 * Add   - Let phone and manual order plugins get automated tax for carts they build in the dashboard, through the new woocommerce_services_calculate_admin_ajax_cart_tax filter. Before, these carts showed $0 tax for an address that had not been through checkout yet.
 * Fix   - When you click Recalculate on an order with a product variation that has its own tax class, save its tax rates under that tax class instead of the main product's, so the main product's tax rates are no longer overwritten.
 * Fix   - Write one order note, not two or three, when an order edited through the REST API or the WooCommerce app has its tax updated. The note now says the tax rates already saved on the order were used, instead of the rates recorded when the order was placed, which is not true after an address change.
