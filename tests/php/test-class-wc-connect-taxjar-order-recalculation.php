@@ -2014,6 +2014,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertCount( 1, $notes, 'one note for one update' );
 		$this->assertStringContainsString( 'could not be updated', $notes[0] );
 		$this->assertStringContainsString( 'No tax was added', $notes[0] );
+		$this->assertStringContainsString( 'no recorded tax rate', $notes[0], 'the reason for the saved-rates path' );
 	}
 
 	/**
