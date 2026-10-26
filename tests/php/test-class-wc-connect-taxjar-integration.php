@@ -4858,21 +4858,20 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$recurring   = self::total_a_recurring_cart( $integration, $box_key );
 		try {
 			$order = $this->store_api_checkout( $integration );
+
+			$taxed = array();
+			foreach ( $order->get_items() as $item ) {
+				$taxed[ $item->get_product_id() ] = self::item_tax( $item );
+			}
+			$this->assertEqualsWithDelta( 0.0, $taxed[ $shirt->get_id() ], 0.001, 'TaxJar answered the $50 line as exempt' );
+			$this->assertEqualsWithDelta( 6.0, $taxed[ $this->product->get_id() ], 0.001 );
+			$this->assertEqualsWithDelta( 6.0, $taxed[ $box->get_id() ], 0.001 );
+			$this->assertEqualsWithDelta( (float) WC()->cart->get_cart_contents_tax(), (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
 		} finally {
 			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+			$shirt->delete( true );
+			$box->delete( true );
 		}
-
-		$taxed = array();
-		foreach ( $order->get_items() as $item ) {
-			$taxed[ $item->get_product_id() ] = self::item_tax( $item );
-		}
-		$this->assertEqualsWithDelta( 0.0, $taxed[ $shirt->get_id() ], 0.001, 'TaxJar answered the $50 line as exempt' );
-		$this->assertEqualsWithDelta( 6.0, $taxed[ $this->product->get_id() ], 0.001 );
-		$this->assertEqualsWithDelta( 6.0, $taxed[ $box->get_id() ], 0.001 );
-		$this->assertEqualsWithDelta( (float) WC()->cart->get_cart_contents_tax(), (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
-
-		$shirt->delete( true );
-		$box->delete( true );
 	}
 
 	/**
