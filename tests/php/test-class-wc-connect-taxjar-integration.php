@@ -7403,6 +7403,190 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Translate the words in rate names into German when the language __() is answering
+	 * in is German: the request's language, or the one switched to.
+	 *
+	 * The test install has no translations of this plugin, so this stands in for them.
+	 *
+	 * @param string $translation Translation so far.
+	 * @param string $text        Text to translate.
+	 * @param string $domain      Text domain.
+	 * @return string
+	 */
+	public function translate_rate_name_words_into_german( $translation, $text, $domain ) {
+		$german = array(
+			'Tax'                                     => 'Steuer',
+			'Manual Rate Nullified (Automated Taxes)' => 'Manueller Satz aufgehoben (Automatische Steuern)',
+		);
+
+		$language = is_locale_switched() ? get_locale() : determine_locale();
+
+		if ( 'woocommerce-services' !== $domain || 'de_DE' !== $language || ! isset( $german[ $text ] ) ) {
+			return $translation;
+		}
+
+		return $german[ $text ];
+	}
+
+	/**
+	 * Run a callback in an admin request by a user whose language is German, as
+	 * Recalculate runs, on a site in English. Translations come from
+	 * translate_rate_name_words_into_german().
+	 *
+	 * @param callable $callback Callback.
+	 * @return mixed What the callback returns.
+	 */
+	private function as_german_admin( callable $callback ) {
+		$previous_user = get_current_user_id();
+
+		wp_set_current_user(
+			self::factory()->user->create(
+				array(
+					'role'   => 'administrator',
+					'locale' => 'de_DE',
+				)
+			)
+		);
+		set_current_screen( 'dashboard' );
+
+		try {
+			return $callback();
+		} finally {
+			set_current_screen( 'front' );
+			wp_set_current_user( $previous_user );
+		}
+	}
+
+	/**
+	 * Start a test with no rate name words kept from an earlier one.
+	 */
+	private function forget_rate_name_words() {
+		$property = new ReflectionProperty( WC_Connect_TaxJar_Integration::class, 'rate_name_words' );
+		$property->setAccessible( true );
+		$property->setValue( null, array() );
+	}
+
+	/**
+	 * Names of every rate row, oldest first.
+	 *
+	 * @return string[]
+	 */
+	private function tax_rate_names() {
+		global $wpdb;
+
+		return $wpdb->get_col( "SELECT tax_rate_name FROM {$wpdb->prefix}woocommerce_tax_rates ORDER BY tax_rate_id" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+
+	/**
+	 * Recalculate runs in the admin's language, checkout in the site's. When TaxJar
+	 * returns fewer rates for a town, a Recalculate by an admin whose language is not
+	 * the site's still removes the rows checkout wrote above the new ones, and leaves
+	 * the names of the rows it reuses in the site's language.
+	 */
+	public function test_lookup_in_the_admins_language_removes_the_rows_checkout_wrote() {
+		$this->reset_tax_rate_tables();
+		$this->forget_rate_name_words();
+		add_filter( 'gettext', array( $this, 'translate_rate_name_words_into_german' ), 10, 3 );
+
+		$this->assertSame(
+			'Steuer',
+			$this->as_german_admin(
+				function () {
+					return __( 'Tax', 'woocommerce-services' );
+				}
+			),
+			'The admin request is not in German, so this test proves nothing.'
+		);
+
+		list( $before, $after ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '49841', 'Gwinn' );
+		$this->assertSame( 4, $this->count_tax_rate_rows() );
+
+		$integration = $this->michigan_integration( true, false, null, $after );
+		$taxes       = $this->as_german_admin(
+			function () use ( $integration ) {
+				return $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+			}
+		);
+
+		$this->assertSame( array(), $this->tax_rate_ids_at_priority( 4 ), 'The row the lookup no longer returns stayed.' );
+		$this->assertSame(
+			array(
+				'MARQUETTE GWINN : City Tax',
+				'MARQUETTE GWINN : County Tax',
+				'MARQUETTE GWINN : State Sales Tax',
+			),
+			$this->tax_rate_names()
+		);
+		$this->assertSame( $this->looked_up_rate_ids( $taxes ), $this->michigan_rates_from_table( '49841', 'Gwinn' )['ids'] );
+	}
+
+	/**
+	 * Once the merchant deletes their state-wide rate, a Recalculate by an admin whose
+	 * language is not the site's removes the 0% row checkout added beside it.
+	 */
+	public function test_lookup_in_the_admins_language_removes_the_rate_checkout_added_beside_a_state_wide_rate() {
+		$this->reset_tax_rate_tables();
+		$this->forget_rate_name_words();
+		add_filter( 'gettext', array( $this, 'translate_rate_name_words_into_german' ), 10, 3 );
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$this->assertCount( 1, $this->nullified_rate_ids() );
+
+		WC_Tax::_delete_tax_rate( $catch_all_id );
+
+		$this->as_german_admin(
+			function () use ( $integration ) {
+				$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+			}
+		);
+
+		$this->assertSame( 4, $this->count_tax_rate_rows(), 'Expected only the four components.' );
+		$this->assertSame( array(), $this->tax_rate_ids_at_priority( 5 ) );
+	}
+
+	/**
+	 * Switching the locale reloads every text domain, so a lookup in the site's
+	 * language does not switch at all, and one in another language switches once,
+	 * however many names it builds.
+	 */
+	public function test_rate_names_switch_the_locale_only_once_and_only_when_needed() {
+		$this->reset_tax_rate_tables();
+		$this->forget_rate_name_words();
+
+		$switches = 0;
+		add_action(
+			'switch_locale',
+			function () use ( &$switches ) {
+				++$switches;
+			}
+		);
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$this->assertSame( 0, $switches, 'A lookup in the site language switched the locale.' );
+
+		// A new request.
+		$this->forget_rate_name_words();
+		$this->as_german_admin(
+			function () use ( $integration ) {
+				$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+				$this->lookup_michigan_taxes( $integration, '48226', 'Detroit' );
+				$this->assertFalse( is_locale_switched(), 'The locale was left switched.' );
+			}
+		);
+		$this->assertSame( 1, $switches );
+	}
+
+	/**
 	 * Build an integration without a notifier, as the optional constructor argument allows.
 	 *
 	 * @param array|WP_Error $api_response What the API client returns for every request.
