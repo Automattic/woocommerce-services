@@ -3761,6 +3761,8 @@ class WC_Connect_TaxJar_Integration {
 	 *   so the refunds keep matching the order's rates. The cases above apply, and a
 	 *   note says why the tax was not updated.
 	 *
+	 * Everything said about one recalculation goes in a single order note.
+	 *
 	 * @internal Hooked to woocommerce_order_after_calculate_totals.
 	 *
 	 * @param bool     $and_taxes Whether taxes were recalculated. Unused.
@@ -3784,40 +3786,59 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$lookup    = $snapshot['lookup'] ? $this->lookup_order_taxes( $order ) : null;
-		$reapplied = false;
+		$reapplied = null;
+		// Everything to say about this recalculation goes in one note.
+		$notes = array();
 
 		if ( is_array( $lookup ) ) {
-			$this->apply_looked_up_order_taxes( $order, $lookup, $snapshot );
+			$notes = $this->apply_looked_up_order_taxes( $order, $lookup, $snapshot );
 		} elseif ( empty( $snapshot['tax_lines'] ) ) {
 			// Nothing to keep: what WC calculated stands, as it did before the lookup existed.
 			if ( self::ORDER_TAX_LOOKUP_BAD_ADDRESS === $lookup ) {
-				$this->add_order_tax_note( $order, __( 'Tax could not be calculated for this order, because its address is incomplete or has a state or ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' ) );
+				$notes[] = __( 'Tax could not be calculated for this order, because its address is incomplete or has a state or ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' );
 			} elseif ( self::ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS === $lookup ) {
-				$this->add_order_tax_note( $order, __( 'Tax could not be calculated for this order, because the store address has no country or has a ZIP code that is not valid. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' ) );
+				$notes[] = __( 'Tax could not be calculated for this order, because the store address has no country or has a ZIP code that is not valid. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' );
 			} elseif ( false === $lookup ) {
-				$this->add_order_tax_note( $order, __( 'Tax could not be calculated for this order, because the tax service did not answer or did not accept the order\'s address. Check the order\'s address and its tax.', 'woocommerce-services' ) );
+				$notes[] = __( 'Tax could not be calculated for this order, because the tax service did not answer or did not accept the order\'s address. Check the order\'s address and its tax.', 'woocommerce-services' );
 			}
 		} elseif ( empty( $snapshot['base_changes']['has_changes'] ) ) {
 			$this->restore_order_taxes( $order, $snapshot );
 		} elseif ( ! $this->snapshot_records_tax_rates( $snapshot ) ) {
 			$this->restore_order_taxes( $order, $snapshot );
-			$order->add_order_note( __( 'Tax was not updated after this order changed, because the order does not record the tax rates it was placed with. Check the tax on this order.', 'woocommerce-services' ) );
+			$notes[] = __( 'Tax was not updated after this order changed, because the order does not record the tax rates it was placed with. Check the tax on this order.', 'woocommerce-services' );
 		} else {
-			$this->reapply_order_tax_rates( $order, $snapshot );
-			$reapplied = true;
+			$reapplied = $this->reapply_order_tax_rates( $order, $snapshot );
 		}
 
+		// A note about the new address says what was done instead, with the tax change.
 		if ( ! is_array( $lookup ) && null !== $lookup && ! empty( $snapshot['tax_lines'] ) ) {
-			$this->add_order_tax_note( $order, $this->get_failed_order_tax_update_note( $lookup, $reapplied ) );
+			$notes[] = $this->get_failed_order_tax_update_note( $order, $lookup, $reapplied );
+		} elseif ( ! empty( $snapshot['kept_for_refunds'] ) ) {
+			$notes[] = $this->get_kept_order_tax_note(
+				$order,
+				__( 'Tax was not updated for the new address, because this order has refunded tax.', 'woocommerce-services' ),
+				__( 'Check the order\'s address and its tax.', 'woocommerce-services' ),
+				$reapplied
+			);
+		} elseif ( null !== $reapplied && $reapplied['moved'] ) {
+			$notes[] = sprintf(
+				/* translators: 1: tax before the order changed, 2: tax after. */
+				__( 'Tax updated from %1$s to %2$s because the order changed. The tax rates already saved on the order were used.', 'woocommerce-services' ),
+				wc_price( $reapplied['old_tax'], array( 'currency' => $order->get_currency() ) ),
+				wc_price( $reapplied['new_tax'], array( 'currency' => $order->get_currency() ) )
+			);
 		}
 
-		if ( ! empty( $snapshot['kept_for_refunds'] ) ) {
-			$this->add_order_tax_note(
-				$order,
-				$reapplied
-					? __( 'Tax was not updated for the new address, because this order has refunded tax. The tax rates recorded when the order was placed were used instead. Check the order\'s address and its tax.', 'woocommerce-services' )
-					: __( 'Tax was not updated for the new address, because this order has refunded tax. The tax this order already had was kept. Check the order\'s address and its tax.', 'woocommerce-services' )
+		if ( ! empty( $reapplied['untaxed'] ) ) {
+			$notes[] = sprintf(
+				/* translators: %s: comma-separated names of order items. */
+				__( 'No tax was added for %s, because the order has no recorded tax rate for it. Check the tax on this order.', 'woocommerce-services' ),
+				implode( ', ', array_map( 'wp_strip_all_tags', $reapplied['untaxed'] ) )
 			);
+		}
+
+		if ( $notes ) {
+			$this->add_order_tax_note( $order, implode( ' ', $notes ) );
 		}
 
 		// The old amounts and address have been used; a later recalculation of the same
@@ -4409,8 +4430,16 @@ class WC_Connect_TaxJar_Integration {
 	 * Percentages, labels and codes come from the order's tax lines, never from the
 	 * rate table, which may have changed since the order was placed.
 	 *
+	 * Writes no note: the caller writes one note for the whole recalculation.
+	 *
 	 * @param WC_Order $order    The recalculated order.
 	 * @param array    $snapshot Snapshot taken before the recalculation.
+	 * @return array {
+	 *   @type float    $old_tax Tax before the order changed.
+	 *   @type float    $new_tax Tax after.
+	 *   @type bool     $moved   Whether the tax changed.
+	 *   @type string[] $untaxed Names of new items left untaxed for want of a rate.
+	 * }
 	 */
 	private function reapply_order_tax_rates( $order, $snapshot ) {
 		$tax_lines_by_rate = array();
@@ -4545,28 +4574,13 @@ class WC_Connect_TaxJar_Integration {
 
 		$old_tax = (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'];
 		$new_tax = (float) $order->get_cart_tax() + (float) $order->get_shipping_tax();
-		$notes   = array();
 
-		if ( abs( $old_tax - $new_tax ) > 0.000001 ) {
-			$notes[] = sprintf(
-				/* translators: 1: tax before the order changed, 2: tax after. */
-				__( 'Tax updated because the order changed: %1$s → %2$s. The tax rates recorded when the order was placed were used.', 'woocommerce-services' ),
-				wc_price( $old_tax, array( 'currency' => $order->get_currency() ) ),
-				wc_price( $new_tax, array( 'currency' => $order->get_currency() ) )
-			);
-		}
-
-		if ( $untaxed ) {
-			$notes[] = sprintf(
-				/* translators: %s: comma-separated names of order items. */
-				__( 'No tax was added for %s, because the order has no recorded tax rate for it. Check the tax on this order.', 'woocommerce-services' ),
-				implode( ', ', array_map( 'wp_strip_all_tags', $untaxed ) )
-			);
-		}
-
-		if ( $notes ) {
-			$this->add_order_tax_note( $order, implode( ' ', $notes ) );
-		}
+		return array(
+			'old_tax' => $old_tax,
+			'new_tax' => $new_tax,
+			'moved'   => abs( $old_tax - $new_tax ) > 0.000001,
+			'untaxed' => $untaxed,
+		);
 	}
 
 	/**
@@ -4637,30 +4651,69 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * The note for an address change whose lookup failed on an order that had tax.
 	 *
-	 * Says why the lookup failed and what was done instead: the order's tax was kept,
-	 * or, when other changes were made in the same edit, the recorded rates were
-	 * re-applied to them.
+	 * Says why the lookup failed, then what was done instead (see get_kept_order_tax_note()).
 	 *
+	 * @param WC_Order     $order     The order.
 	 * @param string|false $lookup    Failed result of lookup_order_taxes().
-	 * @param bool         $reapplied Whether the recorded rates were re-applied.
+	 * @param array|null   $reapplied What reapply_order_tax_rates() returned, or null when the order's tax was kept.
 	 * @return string
 	 */
-	private function get_failed_order_tax_update_note( $lookup, $reapplied ) {
+	private function get_failed_order_tax_update_note( $order, $lookup, $reapplied ) {
 		if ( self::ORDER_TAX_LOOKUP_BAD_ADDRESS === $lookup ) {
-			return $reapplied
-				? __( 'Tax could not be updated for the new address, because it is incomplete or has a state or ZIP code that is not valid. The tax rates recorded when the order was placed were used instead. Check the order\'s address and its tax.', 'woocommerce-services' )
-				: __( 'Tax could not be updated for the new address, because it is incomplete or has a state or ZIP code that is not valid. The tax this order already had was kept. Check the order\'s address and its tax.', 'woocommerce-services' );
+			return $this->get_kept_order_tax_note(
+				$order,
+				__( 'Tax could not be updated for the new address, because it is incomplete or has a state or ZIP code that is not valid.', 'woocommerce-services' ),
+				__( 'Check the order\'s address and its tax.', 'woocommerce-services' ),
+				$reapplied
+			);
 		}
 
 		if ( self::ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS === $lookup ) {
-			return $reapplied
-				? __( 'Tax could not be updated for the new address, because the store address has no country or has a ZIP code that is not valid. The tax rates recorded when the order was placed were used instead. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' )
-				: __( 'Tax could not be updated for the new address, because the store address has no country or has a ZIP code that is not valid. The tax this order already had was kept. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' );
+			return $this->get_kept_order_tax_note(
+				$order,
+				__( 'Tax could not be updated for the new address, because the store address has no country or has a ZIP code that is not valid.', 'woocommerce-services' ),
+				__( 'Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' ),
+				$reapplied
+			);
 		}
 
-		return $reapplied
-			? __( 'Tax could not be updated for the new address, because the tax service did not answer or did not accept the address. The tax rates recorded when the order was placed were used instead. Check the order\'s address and its tax.', 'woocommerce-services' )
-			: __( 'Tax could not be updated for the new address, because the tax service did not answer or did not accept the address. The tax this order already had was kept. Check the order\'s address and its tax.', 'woocommerce-services' );
+		return $this->get_kept_order_tax_note(
+			$order,
+			__( 'Tax could not be updated for the new address, because the tax service did not answer or did not accept the address.', 'woocommerce-services' ),
+			__( 'Check the order\'s address and its tax.', 'woocommerce-services' ),
+			$reapplied
+		);
+	}
+
+	/**
+	 * A note for an address change the order's tax was not updated for.
+	 *
+	 * Says why, what was done instead, and what to check. The order's tax was kept, or,
+	 * when other changes were made in the same edit, the rates already saved on the order
+	 * were applied to them. Those rates came from the last time the order was taxed for
+	 * an address, which is not always when it was placed.
+	 *
+	 * @param WC_Order   $order     The order.
+	 * @param string     $reason    Why the tax was not updated, as one sentence.
+	 * @param string     $check     What to check, as one sentence.
+	 * @param array|null $reapplied What reapply_order_tax_rates() returned, or null when the order's tax was kept.
+	 * @return string
+	 */
+	private function get_kept_order_tax_note( $order, $reason, $check, $reapplied ) {
+		if ( null === $reapplied ) {
+			$done = __( 'The tax this order already had was kept.', 'woocommerce-services' );
+		} elseif ( $reapplied['moved'] ) {
+			$done = sprintf(
+				/* translators: 1: tax before the order changed, 2: tax after. */
+				__( 'The tax rates already saved on the order were used instead, and the tax went from %1$s to %2$s.', 'woocommerce-services' ),
+				wc_price( $reapplied['old_tax'], array( 'currency' => $order->get_currency() ) ),
+				wc_price( $reapplied['new_tax'], array( 'currency' => $order->get_currency() ) )
+			);
+		} else {
+			$done = __( 'The tax rates already saved on the order were used instead.', 'woocommerce-services' );
+		}
+
+		return implode( ' ', array( $reason, $done, $check ) );
 	}
 
 	/**
@@ -5131,32 +5184,35 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * Every line is re-taxed: the old rates belonged to the old address, or there were
 	 * none. A fee is taxed at the rates of a product in its tax class, or keeps the tax
-	 * WC gave it when no such product was looked up. The address and
-	 * the change are recorded in a note when the address changed or the tax moved.
+	 * WC gave it when no product in that class has rates from the lookup. The address
+	 * and the change are recorded in a note when the address changed or the tax moved.
 	 *
 	 * An answer without rates means the store has no nexus at the address. The tax WC
 	 * calculated from the rate table is kept then, as checkout and the admin Recalculate
 	 * keep it, so a rate the merchant added for that state is still charged.
 	 *
+	 * Writes no note: the caller writes one note for the whole recalculation.
+	 *
 	 * @param WC_Order $order    The recalculated order.
 	 * @param array    $lookup   Result of lookup_order_taxes().
 	 * @param array    $snapshot Snapshot taken before the recalculation.
+	 * @return string[] Sentences for the order note.
 	 */
 	private function apply_looked_up_order_taxes( $order, array $lookup, array $snapshot ) {
 		if ( empty( $lookup['rate_ids'] ) ) {
-			if ( null !== $snapshot['address_before'] ) {
-				$this->add_order_tax_note(
-					$order,
-					sprintf(
-						/* translators: 1: address the tax was calculated for, 2: tax before, 3: tax after. */
-						__( 'Tax updated for %1$s from the store\'s tax rates: %2$s → %3$s.', 'woocommerce-services' ),
-						$this->format_order_tax_address( $lookup['address'] ),
-						wc_price( (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'], array( 'currency' => $order->get_currency() ) ),
-						wc_price( (float) $order->get_cart_tax() + (float) $order->get_shipping_tax(), array( 'currency' => $order->get_currency() ) )
-					)
-				);
+			if ( null === $snapshot['address_before'] ) {
+				return array();
 			}
-			return;
+
+			return array(
+				sprintf(
+					/* translators: 1: address the tax was calculated for, 2: tax before, 3: tax after. */
+					__( 'Tax updated from %2$s to %3$s for %1$s, using the store\'s tax rates.', 'woocommerce-services' ),
+					$this->format_order_tax_address( $lookup['address'] ),
+					wc_price( (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'], array( 'currency' => $order->get_currency() ) ),
+					wc_price( (float) $order->get_cart_tax() + (float) $order->get_shipping_tax(), array( 'currency' => $order->get_currency() ) )
+				),
+			);
 		}
 
 		$line_rates     = array();
@@ -5189,8 +5245,9 @@ class WC_Connect_TaxJar_Integration {
 			} elseif ( 'fee' === $item->get_type() ) {
 				$rates = $rates_by_class[ $item->get_tax_class() ] ?? array();
 
-				// No product in the fee's tax class was looked up: keep the tax WC gave it
-				// from the rate table, as checkout and the admin Recalculate do for fees.
+				// No product in the fee's tax class has rates from the lookup (there is
+				// none, or none of them is taxable): keep the tax WC gave it from the rate
+				// table, as checkout and the admin Recalculate do for fees.
 				if ( ! $rates ) {
 					$fee_taxes = $item->get_taxes();
 					if ( empty( $fee_taxes['total'] ) || ! array_filter( $fee_taxes['total'] ) ) {
@@ -5224,34 +5281,29 @@ class WC_Connect_TaxJar_Integration {
 		// different rates share a row; the tax line shows the rate TaxJar returned.
 		$this->rebuild_order_tax_totals( $order, $percents );
 
-		if ( $untaxed ) {
-			$this->add_order_tax_note(
-				$order,
-				sprintf(
-					/* translators: %s: comma-separated names of order items. */
-					__( 'No tax was added for %s, because the order has no recorded tax rate for it. Check the tax on this order.', 'woocommerce-services' ),
-					implode( ', ', array_map( 'wp_strip_all_tags', $untaxed ) )
-				)
-			);
-		}
-
+		$notes   = array();
 		$old_tax = (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'];
 		$new_tax = (float) $order->get_cart_tax() + (float) $order->get_shipping_tax();
 
-		if ( null === $snapshot['address_before'] && ( empty( $snapshot['tax_lines'] ) || abs( $old_tax - $new_tax ) < 0.000001 ) ) {
-			return;
-		}
-
-		$this->add_order_tax_note(
-			$order,
-			sprintf(
+		if ( null !== $snapshot['address_before'] || ( ! empty( $snapshot['tax_lines'] ) && abs( $old_tax - $new_tax ) >= 0.000001 ) ) {
+			$notes[] = sprintf(
 				/* translators: 1: address the tax was calculated for, 2: tax before, 3: tax after. */
-				__( 'Tax recalculated with today\'s rates for %1$s: %2$s → %3$s.', 'woocommerce-services' ),
+				__( 'Tax recalculated from %2$s to %3$s with today\'s rates for %1$s.', 'woocommerce-services' ),
 				$this->format_order_tax_address( $lookup['address'] ),
 				wc_price( $old_tax, array( 'currency' => $order->get_currency() ) ),
 				wc_price( $new_tax, array( 'currency' => $order->get_currency() ) )
-			)
-		);
+			);
+		}
+
+		if ( $untaxed ) {
+			$notes[] = sprintf(
+				/* translators: %s: comma-separated names of order items. */
+				__( 'No tax was added for %s, because no product in its tax class has a tax rate from the tax service. Check the tax on this order.', 'woocommerce-services' ),
+				implode( ', ', array_map( 'wp_strip_all_tags', $untaxed ) )
+			);
+		}
+
+		return $notes;
 	}
 
 	/**
