@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.7.5 - 2026-xx-xx =
 * Fix   - Stop taxing an item at another item's rate on orders that include a WooCommerce Subscriptions product, so the order charges the tax the checkout showed.
+* Fix   - When the tax service is down or slow, ask it once per page request instead of again each time the cart total updates, so checkout and phone order screens wait less during an outage.
 
 = 3.7.4 - 2026-10-26 =
 * Add   - Let phone and manual order plugins get automated tax for carts they build in the dashboard, through the new woocommerce_services_calculate_admin_ajax_cart_tax filter. Before, these carts showed $0 tax for an address that had not been through checkout yet.
