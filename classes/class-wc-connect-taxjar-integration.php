@@ -523,6 +523,7 @@ class WC_Connect_TaxJar_Integration {
 		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'remember_order_item_base_before_save' ), 10, 1 );
 		add_action( 'woocommerce_before_order_item_object_save', array( $this, 'keep_details_of_removed_tax_rate' ), 10, 1 );
 		add_action( 'woocommerce_rest_set_order_item', array( $this, 'remember_order_item_tax_class_requested' ), 10, 2 );
+		add_action( 'woocommerce_rest_set_order_item', array( $this, 'keep_saved_tax_class_on_locked_order' ), 10, 2 );
 		add_action( 'woocommerce_after_order_item_object_save', array( $this, 'remember_order_item_created' ), 10, 1 );
 		add_action( 'woocommerce_before_delete_order_item', array( $this, 'remember_order_item_before_delete' ), 10, 1 );
 		add_action( 'woocommerce_remove_order_items', array( $this, 'remember_order_items_before_remove' ), 10, 2 );
@@ -3966,6 +3967,54 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * Put back a line's saved tax class when a REST request resets it on an order that
+	 * can no longer be edited.
+	 *
+	 * A request that sends product_id, variation_id or sku for an existing line makes
+	 * WooCommerce call set_product(), which gives the line its product's current tax
+	 * class. The WooCommerce apps send product_id for every line on every update. On a
+	 * locked order the amounts must stay in line with what was paid, so the line keeps
+	 * the class it was sold in. A class the request sends, or one that came with another
+	 * product, is left as set. To use the product's new class, the line is removed and
+	 * the product added again. Orders that can be edited keep WooCommerce's reset.
+	 *
+	 * @internal Hooked to woocommerce_rest_set_order_item.
+	 *
+	 * @param WC_Order_Item $item   The item about to be saved.
+	 * @param mixed         $posted The item's data in the request.
+	 *
+	 * @since 3.7.5
+	 */
+	public function keep_saved_tax_class_on_locked_order( $item, $posted = null ) {
+		if ( ! $item instanceof WC_Order_Item_Product || ! $item->get_id() || ( is_array( $posted ) && isset( $posted['tax_class'] ) ) ) {
+			return;
+		}
+
+		// get_data() still holds the saved values until the save applies the changes.
+		$saved = $item->get_data();
+
+		if ( ! array_key_exists( 'tax_class', $item->get_changes() ) || (string) $saved['tax_class'] === (string) $item->get_tax_class()
+			|| (int) $saved['product_id'] !== (int) $item->get_product_id() || (int) $saved['variation_id'] !== (int) $item->get_variation_id()
+		) {
+			return;
+		}
+
+		$order = $item->get_order();
+		if ( ! $order instanceof WC_Order || $order->is_editable() ) {
+			return;
+		}
+
+		try {
+			$item->set_tax_class( $saved['tax_class'] );
+		} catch ( WC_Data_Exception $e ) {
+			// The saved class was deleted in this request (WooCommerce reads one deleted
+			// earlier back as Standard). The line keeps the product's class, and
+			// order_item_tax_class_follows_product() keeps its tax.
+			return;
+		}
+	}
+
+	/**
 	 * Remember the location WooCommerce taxed an order item for.
 	 *
 	 * @internal Hooked to woocommerce_order_item_after_calculate_taxes and its fee and
@@ -4299,7 +4348,7 @@ class WC_Connect_TaxJar_Integration {
 
 			$known_ids[] = $item_id;
 
-			$moved = $this->order_item_tax_base_moved( $item );
+			$moved = $this->order_item_tax_base_moved( $item, $order );
 			if ( $moved ) {
 				$changed_ids[] = $item_id;
 			}
@@ -4368,7 +4417,7 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * The amounts a saved order item was taxed on, before this request changed them.
+	 * What a saved order item was taxed on, before this request changed it.
 	 *
 	 * @param WC_Order_Item $item A saved line item, fee or shipping item.
 	 * @return array What get_order_item_tax_base() gives for the item as it was saved.
@@ -4431,14 +4480,15 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * Amounts are compared as numbers: a caller that re-sends "10.00" for a stored "10"
 	 * has not changed anything. A shipping line never shows a tax class or status
-	 * change: both come from the store's shipping settings, not from the item. A line's
-	 * tax class that only followed its product is not a change, see
-	 * order_item_tax_class_follows_product().
+	 * change: both come from the store's shipping settings, not from the item. On an
+	 * order that can't be edited, a line's tax class that only followed its product is
+	 * not a change, see order_item_tax_class_follows_product().
 	 *
-	 * @param WC_Order_Item $item A saved line item, fee or shipping item.
+	 * @param WC_Order_Item $item  A saved line item, fee or shipping item.
+	 * @param WC_Order      $order The order being recalculated.
 	 * @return array The props that moved (see ORDER_ITEM_TAX_BASE_PROPS), with the value each was taxed with.
 	 */
-	private function order_item_tax_base_moved( $item ) {
+	private function order_item_tax_base_moved( $item, $order ) {
 		if ( ! isset( $this->order_item_base_before_save[ (int) $item->get_id() ] ) ) {
 			if ( ! array_intersect_key( $item->get_changes(), array_flip( self::ORDER_ITEM_TAX_BASE_PROPS ) ) ) {
 				return array();
@@ -4469,7 +4519,7 @@ class WC_Connect_TaxJar_Integration {
 			$moved['tax_status'] = $before['tax_status'];
 		}
 
-		if ( $before['tax_class'] !== $after['tax_class'] && ! $this->order_item_tax_class_follows_product( $item, $before ) ) {
+		if ( $before['tax_class'] !== $after['tax_class'] && ! $this->order_item_tax_class_follows_product( $item, $before, $order ) ) {
 			$moved['tax_class'] = $before['tax_class'];
 		}
 
@@ -4480,17 +4530,21 @@ class WC_Connect_TaxJar_Integration {
 	 * Whether a line item's new tax class only follows its product.
 	 *
 	 * WooCommerce's set_product() gives a line its product's current tax class, and the
-	 * REST API calls it whenever a request sends product_id for an existing line. The
-	 * order was taxed in the class the line was sold in, so editing the product after
-	 * the sale must not move the order's tax. A class the request set on the line, one
-	 * that came with another product, or one the product does not have, does count.
+	 * REST API calls it whenever a request sends product_id for an existing line. While
+	 * the order can be edited, the line follows its product, so that counts as a change.
+	 * Once it can't, the order was taxed in the class the line was sold in, and editing
+	 * the product after the sale must not move the order's tax. REST requests have the
+	 * class put back already (keep_saved_tax_class_on_locked_order()); this covers other
+	 * callers. A class the request set on the line, one that came with another product,
+	 * or one the product does not have, does count.
 	 *
 	 * @param WC_Order_Item $item   A saved item whose tax class changed.
 	 * @param array         $before What get_order_item_tax_base() gave for it before the change.
+	 * @param WC_Order      $order  The order being recalculated.
 	 * @return bool
 	 */
-	private function order_item_tax_class_follows_product( $item, array $before ) {
-		if ( ! $item instanceof WC_Order_Item_Product || isset( $this->order_item_tax_class_requested[ (int) $item->get_id() ] ) ) {
+	private function order_item_tax_class_follows_product( $item, array $before, $order ) {
+		if ( ! $item instanceof WC_Order_Item_Product || isset( $this->order_item_tax_class_requested[ (int) $item->get_id() ] ) || $order->is_editable() ) {
 			return false;
 		}
 

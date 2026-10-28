@@ -1005,9 +1005,9 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox Re-sending product_id for a line whose product changed tax class since the sale keeps the order's tax.
+	 * @testdox On an order that can't be edited, re-sending product_id for a line whose product changed tax class keeps the line's class and tax.
 	 */
-	public function test_resent_product_id_keeps_tax_after_product_class_change() {
+	public function test_resent_product_id_keeps_class_and_tax_on_locked_order() {
 		$fixture = $this->create_placed_order();
 		$product = $this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
 
@@ -1024,7 +1024,73 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 			)
 		);
 
-		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class(), 'WooCommerce reset the line to the product\'s class' );
+		$this->assertSame( '', $order->get_item( $fixture['a'] )->get_tax_class(), 'The line keeps the class it was sold in' );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+
+	/**
+	 * @testdox On an order that can still be edited, re-sending product_id for a line whose product changed tax class taxes the line by its new class.
+	 */
+	public function test_resent_product_id_moves_tax_to_product_class_on_editable_order() {
+		$fixture = $this->create_placed_order();
+		$fixture['order']->set_status( 'on-hold' );
+		$fixture['order']->save();
+		$product = $this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'         => $fixture['a'],
+						'product_id' => $product->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		// The order has no Reduced rate, so the line is untaxed and the note says so.
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+		$this->assertTrue( $this->has_untaxed_note( $order ) );
+	}
+
+	/**
+	 * @testdox On an order that can't be edited, a line whose saved tax class was deleted keeps its tax on a re-send.
+	 */
+	public function test_resent_product_id_keeps_tax_when_saved_class_was_deleted() {
+		$fixture = $this->create_placed_order();
+		WC_Tax::create_tax_class( 'Gift wrap', 'gift-wrap' );
+		$item = $fixture['order']->get_item( $fixture['a'] );
+		$item->set_tax_class( 'gift-wrap' );
+		$taxes = array(
+			'total'    => array( $this->rate_id => '0.6' ),
+			'subtotal' => array( $this->rate_id => '0.6' ),
+		);
+		$this->place_item_as( $item, '10', $taxes, '10' );
+		WC_Tax::delete_tax_class_by( 'slug', 'gift-wrap' );
+		$product = $this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'         => $fixture['a'],
+						'product_id' => $product->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		// WooCommerce reads a deleted class back as Standard, so that is the class kept.
+		$this->assertSame( '', $order->get_item( $fixture['a'] )->get_tax_class() );
 		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
 		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
 		$this->assertSame( array(), $this->tax_notes( $order ) );
@@ -1101,6 +1167,24 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order = wc_get_order( $order->get_id() );
 		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
 		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+	}
+
+	/**
+	 * @testdox On an order that can't be edited, code that gives a line its product's new tax class keeps the order's tax.
+	 */
+	public function test_programmatic_product_reset_keeps_tax_on_locked_order() {
+		$fixture = $this->create_placed_order();
+		$product = $this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		// Not a REST request, so the class is not put back before the recalculation.
+		$order->get_item( $fixture['a'], false )->set_product( $product );
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
 	}
 
 	/**
