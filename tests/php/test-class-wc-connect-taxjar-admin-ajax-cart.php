@@ -38,6 +38,13 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 	private $product;
 
 	/**
+	 * Product TaxJar answers as exempt, or 0 for none.
+	 *
+	 * @var int
+	 */
+	private $exempt_product_id = 0;
+
+	/**
 	 * REST route the request had before the test, restored after it.
 	 *
 	 * @var string|null
@@ -103,7 +110,7 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 
 	/**
 	 * An integration whose TaxJar request is stubbed and counted. It answers 6% for
-	 * every line, from a store in Marquette, MI.
+	 * every line but the exempt product's, from a store in Marquette, MI.
 	 *
 	 * @return WC_Connect_TaxJar_Integration
 	 */
@@ -138,7 +145,11 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 				$body  = json_decode( $json, true );
 				$lines = array();
 				foreach ( $body['line_items'] ?? array() as $line_item ) {
-					$lines[] = array_merge( array( 'id' => $line_item['id'] ), $components );
+					$exempt  = 0 !== $this->exempt_product_id && 0 === strpos( (string) $line_item['id'], $this->exempt_product_id . '-' );
+					$lines[] = array_merge(
+						array( 'id' => $line_item['id'] ),
+						$exempt ? array_fill_keys( array_keys( $components ), 0.0 ) : $components
+					);
 				}
 
 				return array(
@@ -278,6 +289,64 @@ class WP_Test_WC_Connect_TaxJar_Admin_Ajax_Cart extends WC_Unit_Test_Case {
 
 		$this->assertNotSame( WC()->cart, $cart );
 		$this->assertSame( $cart, $received );
+	}
+
+	/**
+	 * An opted-in cart that is not WC()->cart keeps its own answer for the order built
+	 * from it, though WC()->cart was answered in the same request.
+	 */
+	public function test_order_from_an_opted_in_cart_that_is_not_the_main_cart_is_taxed_by_its_answer() {
+		$this->as_admin_ajax();
+		$this->opt_in();
+		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this->integration, 'override_order_item_taxes' ), 10, 2 );
+
+		$exempt = WC_Helper_Product::create_simple_product();
+		$exempt->set_regular_price( 100 );
+		$exempt->save();
+		$this->exempt_product_id = $exempt->get_id();
+
+		try {
+			// Adding to any cart also totals WC()->cart, which TaxJar answers at 6%. The
+			// taxed line comes last, so the shared rate rows hold its 6%.
+			$cart = new WC_Cart();
+			$cart->add_to_cart( $exempt->get_id(), 1 );
+			$cart->add_to_cart( $this->product->get_id(), 1 );
+			$cart->calculate_totals();
+
+			$order = wc_create_order();
+			$order->set_billing_address(
+				array(
+					'country'  => 'US',
+					'state'    => 'MI',
+					'postcode' => '49841',
+					'city'     => 'Gwinn',
+				)
+			);
+			$order->set_shipping_address(
+				array(
+					'country'  => 'US',
+					'state'    => 'MI',
+					'postcode' => '49841',
+					'city'     => 'Gwinn',
+				)
+			);
+			$order->add_product( $exempt, 1 );
+			$order->add_product( $this->product, 1 );
+			$order->calculate_totals();
+
+			$taxed = array();
+			foreach ( $order->get_items() as $item ) {
+				$taxed[ $item->get_product_id() ] = (float) $item->get_total_tax();
+			}
+
+			// $100 at 6%.
+			$this->assertEqualsWithDelta( 6.0, (float) $cart->get_cart_contents_tax(), 0.001, 'Cart tax' );
+			$this->assertEqualsWithDelta( 0.0, $taxed[ $exempt->get_id() ], 0.001, 'TaxJar answered this line as exempt' );
+			$this->assertEqualsWithDelta( 6.0, $taxed[ $this->product->get_id() ], 0.001 );
+		} finally {
+			remove_action( 'woocommerce_order_item_after_calculate_taxes', array( $this->integration, 'override_order_item_taxes' ), 10 );
+			WC_Helper_Product::delete_product( $exempt->get_id() );
+		}
 	}
 
 	/**

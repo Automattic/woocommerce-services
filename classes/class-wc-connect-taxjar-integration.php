@@ -79,6 +79,15 @@ class WC_Connect_TaxJar_Integration {
 	private $response_cart_item_keys = array();
 
 	/**
+	 * How many totals of WC()->cart are running. Another cart totalled during one, like
+	 * each recurring cart WooCommerce Subscriptions totals, gives the main cart's answers
+	 * back once it is done.
+	 *
+	 * @var int
+	 */
+	private $main_cart_total_depth = 0;
+
+	/**
 	 * The cart item each order item was created from at checkout, keyed by
 	 * spl_object_id() of the order item. Only set in the request that creates the
 	 * items: an order item loaded from the database carries no cart item key.
@@ -880,49 +889,72 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$this->response_rate_ids       = $taxes['rate_ids'];
-		$this->response_line_items     = $taxes['line_items'];
-		$this->response_cart_item_keys = wp_list_pluck( $line_items, 'id' );
+		// Checkout creates the order from WC()->cart. Another cart totalled during its total,
+		// like each recurring cart WooCommerce Subscriptions totals, uses its answers for its
+		// own totals below and then gives the main cart's back. A cart totalled on its own,
+		// like one a plugin builds in admin-ajax.php, keeps its answers for its order.
+		$is_main_cart      = WC()->cart instanceof WC_Cart && WC()->cart === $wc_cart_object;
+		$main_cart_answers = null;
+		if ( ! $is_main_cart && 0 < $this->main_cart_total_depth ) {
+			$main_cart_answers = array( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys );
+		}
+		if ( $is_main_cart ) {
+			++$this->main_cart_total_depth;
+		}
 
-		if ( isset( $this->response_line_items ) ) {
-			foreach ( $this->response_line_items as $response_line_item_key => $response_line_item ) {
-				$line_item = $this->get_line_item( $response_line_item_key, $line_items );
-				if ( isset( $line_item ) ) {
-					$this->response_line_items[ $response_line_item_key ]->line_total = ( $line_item['unit_price'] * $line_item['quantity'] ) - $line_item['discount'];
+		try {
+			$this->response_rate_ids       = $taxes['rate_ids'];
+			$this->response_line_items     = $taxes['line_items'];
+			$this->response_cart_item_keys = wp_list_pluck( $line_items, 'id' );
+
+			if ( isset( $this->response_line_items ) ) {
+				foreach ( $this->response_line_items as $response_line_item_key => $response_line_item ) {
+					$line_item = $this->get_line_item( $response_line_item_key, $line_items );
+					if ( isset( $line_item ) ) {
+						$this->response_line_items[ $response_line_item_key ]->line_total = ( $line_item['unit_price'] * $line_item['quantity'] ) - $line_item['discount'];
+					}
 				}
 			}
-		}
 
-		foreach ( $wc_cart_object->get_cart() as $cart_item_key => $cart_item ) {
-			$product = $cart_item['data'];
-			// get_line_items() keys by cart item key and stores the canonical TaxJar ID
-			// under 'id'; the response is keyed by that canonical ID.
-			$line_item_key = $line_items[ $cart_item_key ]['id'] ?? null;
-			if ( null !== $line_item_key && isset( $taxes['line_items'][ $line_item_key ] ) && ! $taxes['line_items'][ $line_item_key ]->combined_tax_rate ) {
-				if ( method_exists( $product, 'set_tax_status' ) ) {
-					$product->set_tax_status( 'none' ); // Woo 3.0+
-				} else {
-					$product->tax_status = 'none'; // Woo 2.6
+			foreach ( $wc_cart_object->get_cart() as $cart_item_key => $cart_item ) {
+				$product = $cart_item['data'];
+				// get_line_items() keys by cart item key and stores the canonical TaxJar ID
+				// under 'id'; the response is keyed by that canonical ID.
+				$line_item_key = $line_items[ $cart_item_key ]['id'] ?? null;
+				if ( null !== $line_item_key && isset( $taxes['line_items'][ $line_item_key ] ) && ! $taxes['line_items'][ $line_item_key ]->combined_tax_rate ) {
+					if ( method_exists( $product, 'set_tax_status' ) ) {
+						$product->set_tax_status( 'none' ); // Woo 3.0+
+					} else {
+						$product->tax_status = 'none'; // Woo 2.6
+					}
 				}
 			}
-		}
 
-		// Recalculate shipping package rates
-		foreach ( $wc_cart_object->get_shipping_packages() as $package_key => $package ) {
-			WC()->session->set( 'shipping_for_package_' . $package_key, null );
-		}
+			// Recalculate shipping package rates
+			foreach ( $wc_cart_object->get_shipping_packages() as $package_key => $package ) {
+				WC()->session->set( 'shipping_for_package_' . $package_key, null );
+			}
 
-		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
-			do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
-			do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
-			new WC_Cart_Totals( $wc_cart_object );
-			remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-			do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
-			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-		} else {
-			remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-			$wc_cart_object->calculate_totals();
-			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
+				do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
+				do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
+				new WC_Cart_Totals( $wc_cart_object );
+				remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+				do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
+				add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			} else {
+				remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+				$wc_cart_object->calculate_totals();
+				add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			}
+		} finally {
+			// Also when a callback throws, so the count and the answers stay right.
+			if ( $is_main_cart ) {
+				--$this->main_cart_total_depth;
+			}
+			if ( null !== $main_cart_answers ) {
+				list( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys ) = $main_cart_answers;
+			}
 		}
 	}
 

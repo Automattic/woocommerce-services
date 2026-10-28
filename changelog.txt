@@ -1,6 +1,7 @@
 *** WooCommerce Tax Changelog ***
 
 = 3.7.5 - 2026-xx-xx =
+* Fix   - Stop taxing an item at another item's rate on orders that include a WooCommerce Subscriptions product, so the order charges the tax the checkout showed.
 * Fix   - When the tax service is down or slow, ask it once per page request instead of again each time the cart total updates, so checkout and phone order screens wait less during an outage.
 
 = 3.7.4 - 2026-10-26 =
