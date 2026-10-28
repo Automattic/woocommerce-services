@@ -4798,6 +4798,145 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Total a recurring cart inside every total of the main cart, as WooCommerce
+	 * Subscriptions does: it filters woocommerce_calculated_total, copies the cart, keeps
+	 * the subscription lines and totals the copy. TaxJar answers the copy after the main
+	 * cart.
+	 *
+	 * @param WC_Connect_TaxJar_Integration $integration     Integration under test.
+	 * @param string                        $cart_item_key   The subscription line.
+	 * @param float|null                    $recurring_price Its price in the recurring cart, when a sign-up fee
+	 *                                                       makes the first payment differ.
+	 * @param WC_Cart|null                  $recurring_cart  Set to the last recurring cart totalled.
+	 * @return callable The hooked callback, to remove.
+	 */
+	private static function total_a_recurring_cart( $integration, $cart_item_key, $recurring_price = null, &$recurring_cart = null ) {
+		$callback = function ( $total, $cart ) use ( $integration, $cart_item_key, $recurring_price, &$recurring_cart ) {
+			if ( WC()->cart !== $cart ) {
+				return $total;
+			}
+
+			$recurring_cart = clone $cart;
+			foreach ( array_keys( $recurring_cart->cart_contents ) as $key ) {
+				if ( $key !== $cart_item_key ) {
+					unset( $recurring_cart->cart_contents[ $key ] );
+				}
+			}
+			if ( null !== $recurring_price ) {
+				// A product of its own, so the price stays out of the main cart.
+				$recurring_cart->cart_contents[ $cart_item_key ]['data'] = clone $recurring_cart->cart_contents[ $cart_item_key ]['data'];
+				$recurring_cart->cart_contents[ $cart_item_key ]['data']->set_price( $recurring_price );
+			}
+
+			$recurring_cart->calculate_totals();
+			$integration->calculate_totals( $recurring_cart );
+
+			return $total;
+		};
+		add_filter( 'woocommerce_calculated_total', $callback, 10, 2 );
+
+		return $callback;
+	}
+
+	/**
+	 * With a subscription in the cart, the order still taxes each line by the main
+	 * cart's answer, though the recurring cart was answered after it.
+	 */
+	public function test_checkout_with_a_recurring_cart_keeps_an_exempt_line_untaxed() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$shirt         = $this->priced_product( 50 );
+		$this->product = $this->priced_product( 100 );
+		$box           = $this->priced_product( 100 );
+		WC()->cart->add_to_cart( $shirt->get_id(), 1 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$box_key = WC()->cart->add_to_cart( $box->get_id(), 1 );
+
+		$integration = $this->michigan_integration( true, false, 60 );
+		$recurring   = self::total_a_recurring_cart( $integration, $box_key );
+		try {
+			$order = $this->store_api_checkout( $integration );
+
+			$taxed = array();
+			foreach ( $order->get_items() as $item ) {
+				$taxed[ $item->get_product_id() ] = self::item_tax( $item );
+			}
+			$this->assertEqualsWithDelta( 0.0, $taxed[ $shirt->get_id() ], 0.001, 'TaxJar answered the $50 line as exempt' );
+			$this->assertEqualsWithDelta( 6.0, $taxed[ $this->product->get_id() ], 0.001 );
+			$this->assertEqualsWithDelta( 6.0, $taxed[ $box->get_id() ], 0.001 );
+			$this->assertEqualsWithDelta( (float) WC()->cart->get_cart_contents_tax(), (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+			$shirt->delete( true );
+			$box->delete( true );
+		}
+	}
+
+	/**
+	 * A line priced differently in the recurring cart is taxed by each cart's own answer:
+	 * the recurring cart's and the order's.
+	 *
+	 * The recurring cart gets a product of its own here. Subscriptions shares the product
+	 * objects between the carts, which this test leaves out.
+	 */
+	public function test_checkout_with_a_recurring_cart_taxes_each_cart_by_its_own_answer() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 100 );
+		$box_key       = WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$integration    = $this->michigan_integration( true, false, 60 );
+		$recurring_cart = null;
+		$recurring      = self::total_a_recurring_cart( $integration, $box_key, 50, $recurring_cart );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		$this->assertInstanceOf( WC_Cart::class, $recurring_cart );
+		$this->assertEqualsWithDelta( 0.0, (float) $recurring_cart->get_cart_contents_tax(), 0.001, 'TaxJar answered the $50 renewal as exempt' );
+		// $100 first payment at 6%.
+		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart tax' );
+		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001, 'Order tax' );
+	}
+
+	/**
+	 * A product bought once and on subscription in the same cart: each order line still
+	 * finds the main cart's answer by the cart item it was created from, though the
+	 * recurring cart holds only the subscription line.
+	 */
+	public function test_checkout_with_a_recurring_cart_finds_each_line_of_one_product_by_its_cart_item() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$subscription_key = WC()->cart->add_to_cart( $this->product->get_id(), 1, 0, array(), array( 'subscription' => 'monthly' ) );
+		WC()->cart->cart_contents[ $subscription_key ]['data']->set_price( 120 );
+
+		$integration = $this->michigan_integration( true, false, 60 );
+		$recurring   = self::total_a_recurring_cart( $integration, $subscription_key );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ (string) (float) $item->get_total() ] = self::item_tax( $item );
+		}
+		$this->assertEqualsWithDelta( 0.0, $taxed['50'], 0.001, 'TaxJar answered the $50 cart line as exempt' );
+		$this->assertEqualsWithDelta( 7.2, $taxed['120'], 0.001, '$120 at 6%' );
+	}
+
+	/**
 	 * The cart shows the tax the order charges for a line TaxJar answered as partly
 	 * exempt, though its rows were last written by a line taxed at other components.
 	 */
@@ -6023,6 +6162,94 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertNotContains( $gwinn_nullified[0], $this->nullified_rate_ids(), "Gwinn's own 0% row stayed." );
 		// Detroit's four components and 0% row, Gwinn's four components and the four kept rows.
 		$this->assertSame( 13, $this->count_tax_rate_rows() );
+	}
+
+	/**
+	 * What WooCommerce taxes shipping to Gwinn at, read from the table as checkout does.
+	 *
+	 * @return float Percentage.
+	 */
+	private function gwinn_shipping_tax_percent() {
+		$rates = WC_Tax::find_shipping_rates(
+			array(
+				'country'   => 'US',
+				'state'     => 'MI',
+				'postcode'  => '49841',
+				'city'      => 'GWINN',
+				'tax_class' => '',
+			)
+		);
+
+		return (float) array_sum( wp_list_pluck( $rates, 'rate' ) );
+	}
+
+	/**
+	 * When a town gains a component, the component at the highest priority takes the
+	 * 0% row added there beside a state-wide rate. That row is not marked for shipping,
+	 * so the component must take TaxJar's answer for shipping instead of keeping the
+	 * row's. Kept, it would drop out of shipping tax, and every order shipped to the
+	 * town would under-collect it until the merchant ticked Shipping by hand.
+	 *
+	 * @testWith [true, "1", 7.0]
+	 *           [false, "0", 0.0]
+	 *
+	 * @param bool   $freight_taxable   Whether TaxJar taxes shipping.
+	 * @param string $expected_shipping Expected Shipping flag of the row.
+	 * @param float  $expected_percent  Expected shipping tax percentage.
+	 */
+	public function test_component_written_over_the_rate_beside_a_state_wide_rate_takes_the_looked_up_shipping( $freight_taxable, $expected_shipping, $expected_percent ) {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 4 ) );
+
+		list( $with_special, $without_special ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		// City, County and State at 1 to 3, and a 0% row beside the merchant's at 4.
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, $freight_taxable, null, $without_special ), '49841', 'Gwinn', 10 );
+		$nullified = $this->nullified_rate_ids();
+		$this->assertCount( 1, $nullified );
+		$this->assertSame( array( $catch_all_id, $nullified[0] ), $this->tax_rate_ids_at_priority( 4 ) );
+
+		// A special district starts: City, County, Special and State at 1 to 4.
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, $freight_taxable, null, $with_special ), '49841', 'Gwinn', 10 );
+
+		$row = WC_Tax::_get_tax_rate( $nullified[0] );
+		$this->assertSame( 'MARQUETTE GWINN : State Sales Tax', $row['tax_rate_name'], 'Expected the State component in the 0% row.' );
+		$this->assertSame( $expected_shipping, (string) $row['tax_rate_shipping'] );
+		// 0% + 0% + 1% + 6%, the merchant's row still outranked.
+		$this->assertEqualsWithDelta( $expected_percent, $this->gwinn_shipping_tax_percent(), 0.0001 );
+	}
+
+	/**
+	 * Rows the lookup reuses that are not one of its 0% rows keep the merchant's
+	 * Shipping setting: a merchant's own 0% row, one of ours the merchant set to a
+	 * rate, and a component the merchant took off shipping.
+	 *
+	 * @testWith ["0.0000", "Gwinn Exempt"]
+	 *           ["1.0000", "MARQUETTE GWINN : Manual Rate Nullified (Automated Taxes)"]
+	 *           ["5.0000", "MARQUETTE GWINN : State Sales Tax"]
+	 *
+	 * @param string $rate Rate of the row at priority 4.
+	 * @param string $name Name of the row at priority 4.
+	 */
+	public function test_reused_row_that_is_not_a_rate_beside_a_state_wide_rate_keeps_its_shipping( $rate, $name ) {
+		$this->reset_tax_rate_tables();
+
+		list( $with_special, $without_special ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		// City, County and State at 1 to 3, so the row at 4 is the one matched there.
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, true, null, $without_special ), '49841', 'Gwinn', 10 );
+
+		$row_id = $this->insert_michigan_rate( 4, $rate, $name, '49841', 'GWINN' );
+		WC_Tax::_update_tax_rate( $row_id, array( 'tax_rate_shipping' => 0 ) );
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, true, null, $with_special ), '49841', 'Gwinn', 10 );
+
+		$row = WC_Tax::_get_tax_rate( $row_id );
+		$this->assertSame( 'MARQUETTE GWINN : State Sales Tax', $row['tax_rate_name'], 'Expected the State component in the row.' );
+		$this->assertSame( '6.0000', $row['tax_rate'] );
+		$this->assertSame( '0', (string) $row['tax_rate_shipping'], "The merchant's Shipping setting was overwritten." );
 	}
 
 	/**

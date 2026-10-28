@@ -79,6 +79,15 @@ class WC_Connect_TaxJar_Integration {
 	private $response_cart_item_keys = array();
 
 	/**
+	 * How many totals of WC()->cart are running. Another cart totalled during one, like
+	 * each recurring cart WooCommerce Subscriptions totals, gives the main cart's answers
+	 * back once it is done.
+	 *
+	 * @var int
+	 */
+	private $main_cart_total_depth = 0;
+
+	/**
 	 * The cart item each order item was created from at checkout, keyed by
 	 * spl_object_id() of the order item. Only set in the request that creates the
 	 * items: an order item loaded from the database carries no cart item key.
@@ -204,6 +213,18 @@ class WC_Connect_TaxJar_Integration {
 	 * @var int|null
 	 */
 	private $admin_ajax_user_id = null;
+
+	/**
+	 * Lookups that failed in this request without an answer that is cached.
+	 *
+	 * A server error, a rate limit or a timeout is not cached, so a cart totalled
+	 * several times in one request would ask TaxJar again each time. Keyed by cache
+	 * key, values are what smartcalcs_request() returned. Kept for this request only,
+	 * so the next request asks again.
+	 *
+	 * @var array<string, mixed>
+	 */
+	private $failed_lookups_in_request = array();
 
 	/**
 	 * Words in rate row names, translated into the site's language, by site locale.
@@ -915,49 +936,72 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$this->response_rate_ids       = $taxes['rate_ids'];
-		$this->response_line_items     = $taxes['line_items'];
-		$this->response_cart_item_keys = wp_list_pluck( $line_items, 'id' );
+		// Checkout creates the order from WC()->cart. Another cart totalled during its total,
+		// like each recurring cart WooCommerce Subscriptions totals, uses its answers for its
+		// own totals below and then gives the main cart's back. A cart totalled on its own,
+		// like one a plugin builds in admin-ajax.php, keeps its answers for its order.
+		$is_main_cart      = WC()->cart instanceof WC_Cart && WC()->cart === $wc_cart_object;
+		$main_cart_answers = null;
+		if ( ! $is_main_cart && 0 < $this->main_cart_total_depth ) {
+			$main_cart_answers = array( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys );
+		}
+		if ( $is_main_cart ) {
+			++$this->main_cart_total_depth;
+		}
 
-		if ( isset( $this->response_line_items ) ) {
-			foreach ( $this->response_line_items as $response_line_item_key => $response_line_item ) {
-				$line_item = $this->get_line_item( $response_line_item_key, $line_items );
-				if ( isset( $line_item ) ) {
-					$this->response_line_items[ $response_line_item_key ]->line_total = ( $line_item['unit_price'] * $line_item['quantity'] ) - $line_item['discount'];
+		try {
+			$this->response_rate_ids       = $taxes['rate_ids'];
+			$this->response_line_items     = $taxes['line_items'];
+			$this->response_cart_item_keys = wp_list_pluck( $line_items, 'id' );
+
+			if ( isset( $this->response_line_items ) ) {
+				foreach ( $this->response_line_items as $response_line_item_key => $response_line_item ) {
+					$line_item = $this->get_line_item( $response_line_item_key, $line_items );
+					if ( isset( $line_item ) ) {
+						$this->response_line_items[ $response_line_item_key ]->line_total = ( $line_item['unit_price'] * $line_item['quantity'] ) - $line_item['discount'];
+					}
 				}
 			}
-		}
 
-		foreach ( $wc_cart_object->get_cart() as $cart_item_key => $cart_item ) {
-			$product = $cart_item['data'];
-			// get_line_items() keys by cart item key and stores the canonical TaxJar ID
-			// under 'id'; the response is keyed by that canonical ID.
-			$line_item_key = $line_items[ $cart_item_key ]['id'] ?? null;
-			if ( null !== $line_item_key && isset( $taxes['line_items'][ $line_item_key ] ) && ! $taxes['line_items'][ $line_item_key ]->combined_tax_rate ) {
-				if ( method_exists( $product, 'set_tax_status' ) ) {
-					$product->set_tax_status( 'none' ); // Woo 3.0+
-				} else {
-					$product->tax_status = 'none'; // Woo 2.6
+			foreach ( $wc_cart_object->get_cart() as $cart_item_key => $cart_item ) {
+				$product = $cart_item['data'];
+				// get_line_items() keys by cart item key and stores the canonical TaxJar ID
+				// under 'id'; the response is keyed by that canonical ID.
+				$line_item_key = $line_items[ $cart_item_key ]['id'] ?? null;
+				if ( null !== $line_item_key && isset( $taxes['line_items'][ $line_item_key ] ) && ! $taxes['line_items'][ $line_item_key ]->combined_tax_rate ) {
+					if ( method_exists( $product, 'set_tax_status' ) ) {
+						$product->set_tax_status( 'none' ); // Woo 3.0+
+					} else {
+						$product->tax_status = 'none'; // Woo 2.6
+					}
 				}
 			}
-		}
 
-		// Recalculate shipping package rates
-		foreach ( $wc_cart_object->get_shipping_packages() as $package_key => $package ) {
-			WC()->session->set( 'shipping_for_package_' . $package_key, null );
-		}
+			// Recalculate shipping package rates
+			foreach ( $wc_cart_object->get_shipping_packages() as $package_key => $package ) {
+				WC()->session->set( 'shipping_for_package_' . $package_key, null );
+			}
 
-		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
-			do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
-			do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
-			new WC_Cart_Totals( $wc_cart_object );
-			remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-			do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
-			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-		} else {
-			remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-			$wc_cart_object->calculate_totals();
-			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
+				do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
+				do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
+				new WC_Cart_Totals( $wc_cart_object );
+				remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+				do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
+				add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			} else {
+				remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+				$wc_cart_object->calculate_totals();
+				add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			}
+		} finally {
+			// Also when a callback throws, so the count and the answers stay right.
+			if ( $is_main_cart ) {
+				--$this->main_cart_total_depth;
+			}
+			if ( null !== $main_cart_answers ) {
+				list( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys ) = $main_cart_answers;
+			}
 		}
 	}
 
@@ -2774,7 +2818,11 @@ class WC_Connect_TaxJar_Integration {
 			$this->_log( $tax_rate );
 			if ( $wc_rate[ $rate_id ]['label'] !== $tax_rate_name || (float) $wc_rate[ $rate_id ]['rate'] !== (float) $rate ) {
 				// Allow to manually change is Shipping taxable, won't be overwritten automatically.
-				$tax_rate['tax_rate_shipping'] = wc_string_to_bool( $wc_rate[ $rate_id ]['shipping'] );
+				// A 0% row added beside a state-wide rate is never marked for shipping, so a
+				// component written in its place takes TaxJar's answer instead.
+				if ( ! self::is_nullified_rate( $wc_rate[ $rate_id ]['rate'], $wc_rate[ $rate_id ]['label'] ) ) {
+					$tax_rate['tax_rate_shipping'] = wc_string_to_bool( $wc_rate[ $rate_id ]['shipping'] );
+				}
 				WC_Tax::_update_tax_rate( $rate_id, $tax_rate );
 			}
 		} else {
@@ -3078,15 +3126,10 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private function remove_unneeded_nullified_rates( $location, $tax_class ) {
 		$address = $this->get_rate_table_address( $location, false );
-		$label   = self::get_nullified_rate_label();
 		$needed  = $this->get_unscoped_rate_priorities( $address, $tax_class );
 
 		foreach ( $this->get_rates_scoped_to_address( $address, $tax_class ) as $row ) {
-			if (
-				0.0 !== (float) $row['tax_rate'] ||
-				substr( $row['tax_rate_name'], -strlen( $label ) ) !== $label ||
-				in_array( $row['tax_rate_priority'], $needed, true )
-			) {
+			if ( ! self::is_nullified_rate( $row['tax_rate'], $row['tax_rate_name'] ) || in_array( $row['tax_rate_priority'], $needed, true ) ) {
 				continue;
 			}
 
@@ -3094,6 +3137,23 @@ class WC_Connect_TaxJar_Integration {
 
 			WC_Tax::_delete_tax_rate( $row['tax_rate_id'] );
 		}
+	}
+
+	/**
+	 * Whether a rate row is one of the 0% rows added beside a state-wide rate.
+	 *
+	 * Such a row is 0% and its name ends with the label it is given. A merchant's own
+	 * 0% row has another name, and a row of ours the merchant set to a rate is theirs.
+	 *
+	 * @param string|float $rate Rate percentage.
+	 * @param string       $name Row name.
+	 *
+	 * @return bool
+	 */
+	private static function is_nullified_rate( $rate, $name ) {
+		$label = self::get_nullified_rate_label();
+
+		return 0.0 === (float) $rate && substr( (string) $name, -strlen( $label ) ) === $label;
 	}
 
 	/**
@@ -3320,6 +3380,12 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( false === $response ) {
+			if ( array_key_exists( $cache_key, $this->failed_lookups_in_request ) ) {
+				$this->_log( 'Not requesting again: this lookup already failed in this request.' );
+
+				return $this->failed_lookups_in_request[ $cache_key ];
+			}
+
 			$response      = $this->smartcalcs_request( $json );
 			$response_code = wp_remote_retrieve_response_code( $response );
 			$body          = json_decode( wp_remote_retrieve_body( $response ) );
@@ -3354,6 +3420,11 @@ class WC_Connect_TaxJar_Integration {
 				if ( ! $transient_set ) {
 					set_transient( $cache_key, $response, $this->error_cache_time );
 				}
+			} elseif ( false !== $response ) {
+				// Only a lookup that actually went out is worth skipping. Our own validation
+				// stopping a request costs no round trip, and re-running it is what re-adds
+				// the shopper's notice after clear_notices() above.
+				$this->failed_lookups_in_request[ $cache_key ] = $response;
 			}
 		}
 
