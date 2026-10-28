@@ -981,7 +981,10 @@ class WC_Connect_TaxJar_Integration {
 				// get_line_items() keys by cart item key and stores the canonical TaxJar ID
 				// under 'id'; the response is keyed by that canonical ID.
 				$line_item_key = $line_items[ $cart_item_key ]['id'] ?? null;
-				if ( null !== $line_item_key && isset( $taxes['line_items'][ $line_item_key ] ) && ! $taxes['line_items'][ $line_item_key ]->combined_tax_rate ) {
+				// A recurring cart shares its product objects with the main cart, and goes to
+				// TaxJar at the renewal price. Marking an exempt renewal would send the sign-up
+				// line as exempt too. Its own answer's 0% rates keep the renewal untaxed.
+				if ( empty( $wc_cart_object->recurring_cart_key ) && null !== $line_item_key && isset( $taxes['line_items'][ $line_item_key ] ) && ! $taxes['line_items'][ $line_item_key ]->combined_tax_rate ) {
 					if ( method_exists( $product, 'set_tax_status' ) ) {
 						$product->set_tax_status( 'none' ); // Woo 3.0+
 					} else {

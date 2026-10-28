@@ -91,6 +91,9 @@ class WP_Test_WC_Connect_TaxJar_Subscriptions_Cart extends WC_Unit_Test_Case {
 		remove_filter( 'woocommerce_is_checkout', '__return_true' );
 		WC_Subscriptions_Synchroniser::reset();
 		WC_Subscriptions_Cart::$calculation_type = 'none';
+		WC_Subscriptions_Cart::$sign_up_fee      = 0.0;
+		remove_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this->integration, 'override_cart_item_tax_rates' ), 10 );
+		delete_option( 'woocommerce_calc_taxes' );
 		WC()->customer->set_shipping_location( ...$this->shipping_location );
 
 		WC()->cart->empty_cart();
@@ -187,6 +190,85 @@ class WP_Test_WC_Connect_TaxJar_Subscriptions_Cart extends WC_Unit_Test_Case {
 		$integration->calculate_totals( $this->recurring_cart() );
 
 		$this->assertTrue( WC_Subscriptions_Synchroniser::$free_trial );
+	}
+
+	/**
+	 * A renewal under a price threshold leaves the sign-up order taxed.
+	 *
+	 * A $50 plan with a $100 sign-up fee, where clothing under $110 is exempt. Subscriptions
+	 * totals the recurring cart first, and it shares its product objects with the main
+	 * cart. The recurring cart's $50 line comes back exempt, and its tax status must not
+	 * carry over to the $150 sign-up line.
+	 */
+	public function test_an_exempt_renewal_leaves_the_sign_up_order_taxed() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		$this->integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'smartcalcs_cache_request', 'get_store_settings', '_log' ) )
+			->getMock();
+		$this->integration->method( 'get_store_settings' )->willReturn(
+			array(
+				'country'  => 'US',
+				'state'    => 'CO',
+				'postcode' => '80202',
+				'city'     => 'Denver',
+				'street'   => '1 Main St',
+			)
+		);
+		// 2.9% state tax, and 0% for a line sent as exempt or priced under $110.
+		$this->integration->method( 'smartcalcs_cache_request' )->willReturnCallback(
+			function ( $json ) {
+				$body  = json_decode( $json, true );
+				$lines = array();
+				foreach ( $body['line_items'] ?? array() as $line_item ) {
+					$rate    = '99999' === (string) $line_item['product_tax_code'] || (float) $line_item['unit_price'] < 110 ? 0.0 : 0.029;
+					$lines[] = array(
+						'id'                   => $line_item['id'],
+						'combined_tax_rate'    => $rate,
+						'state_sales_tax_rate' => $rate,
+					);
+				}
+
+				return array(
+					'body' => wp_json_encode(
+						array(
+							'tax' => array(
+								'rate'            => 0.029,
+								'freight_taxable' => false,
+								'has_nexus'       => true,
+								'jurisdictions'   => array(
+									'county' => 'DENVER',
+									'city'   => 'DENVER',
+								),
+								'breakdown'       => array( 'line_items' => $lines ),
+							),
+						)
+					),
+				);
+			}
+		);
+		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this->integration, 'override_cart_item_tax_rates' ), 10, 3 );
+
+		$this->product->set_regular_price( 50 );
+		$this->product->save();
+		WC()->cart->empty_cart();
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		WC()->customer->set_shipping_location( 'US', 'CO', '80202', 'Denver' );
+		add_filter( 'woocommerce_is_checkout', '__return_true' );
+		WC_Subscriptions_Synchroniser::$deferred_first_payment = false;
+		WC_Subscriptions_Cart::$sign_up_fee                    = 100.0;
+
+		WC()->cart->calculate_totals();
+		$recurring_cart = $this->recurring_cart();
+		$recurring_cart->calculate_totals();
+		$this->integration->calculate_totals( $recurring_cart );
+		$this->integration->calculate_totals( WC()->cart );
+
+		$this->assertEqualsWithDelta( 0.0, (float) $recurring_cart->get_cart_contents_tax(), 0.001, 'TaxJar answered the $50 renewal as exempt' );
+		$this->assertNotSame( '99999', $this->line_item( WC()->cart )['product_tax_code'], 'The sign-up line is sent as taxable' );
+		// $150 sign-up order at 2.9%. WooCommerce taxes the cart line at its $50 price.
+		$this->assertEqualsWithDelta( 1.45, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Sign-up order tax' );
 	}
 
 	/**
