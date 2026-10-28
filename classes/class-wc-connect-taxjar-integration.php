@@ -205,6 +205,19 @@ class WC_Connect_TaxJar_Integration {
 	private $non_taxable_line_items = array();
 
 	/**
+	 * The tax class each order line item was sent to TaxJar in.
+	 *
+	 * Recorded while the TaxJar request for an order is built and read back when the
+	 * response is turned into tax rate rows, so the answer is written to the class it
+	 * is about. An order line keeps the class it was added in, which is not always its
+	 * product's class today. A cart line's class is its product's, so the cart records
+	 * none. Keyed by TaxJar line item id.
+	 *
+	 * @var array<string, string>
+	 */
+	private $line_item_tax_classes = array();
+
+	/**
 	 * The user who sent the current admin request, recorded on admin_init.
 	 *
 	 * Phone order plugins can log in as the customer before they total the cart, so the
@@ -1416,6 +1429,7 @@ class WC_Connect_TaxJar_Integration {
 	protected function get_line_items( $wc_cart_object ) {
 		$line_items                   = array();
 		$this->non_taxable_line_items = array();
+		$this->line_item_tax_classes  = array();
 		$default_location             = get_option( 'woocommerce_tax_based_on', 'shipping' );
 
 		foreach ( $wc_cart_object->get_cart() as $cart_item_key => $cart_item ) {
@@ -1501,7 +1515,8 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		// Re-keys $non_taxable_line_items onto the canonical ids as it goes.
+		// Re-keys $non_taxable_line_items and $line_item_tax_classes onto the
+		// canonical ids as it goes.
 		$line_items = $this->assign_canonical_line_item_ids( $line_items );
 
 		return $line_items;
@@ -1522,13 +1537,15 @@ class WC_Connect_TaxJar_Integration {
 		$line_items                   = array();
 		$this->backend_tax_classes    = array();
 		$this->non_taxable_line_items = array();
+		$this->line_item_tax_classes  = array();
 		$default_location             = get_option( 'woocommerce_tax_based_on', 'shipping' );
 
 		foreach ( $order->get_items() as $item_key => $item ) {
 			if ( is_object( $item ) ) { // Woo 3.0+
-				// A variation is sent under its own id, as the cart sends it: its tax class
-				// can differ from its parent's, and get_itemized_tax_rates() reads the class
-				// from the product this id names.
+				// A variation is sent under its own id, as the cart sends it, and its order
+				// item is matched back to its line by that id. The class its answer is
+				// written to is the line's own, recorded below: a line keeps the class it
+				// was added in, which can differ from its product's class today.
 				$id             = $item->get_variation_id() ? $item->get_variation_id() : $item->get_product_id();
 				$quantity       = $item->get_quantity();
 				$unit_price     = empty( $quantity ) ? $item->get_subtotal() : wc_format_decimal( $item->get_subtotal() / $quantity );
@@ -1545,8 +1562,9 @@ class WC_Connect_TaxJar_Integration {
 				$product        = $order->get_product_from_item( $item );
 				$tax_status     = $product ? $product->get_tax_status() : 'taxable';
 			}
-			$this->backend_tax_classes[ $id ] = $tax_class_name;
-			$tax_code                         = self::get_product_tax_code_from_tax_class( $tax_class_name );
+			$this->backend_tax_classes[ $id ]                     = $tax_class_name;
+			$this->line_item_tax_classes[ $id . '-' . $item_key ] = $tax_class_name;
+			$tax_code = self::get_product_tax_code_from_tax_class( $tax_class_name );
 			if ( 'taxable' !== $tax_status ) {
 				$tax_code = '99999';
 
@@ -1579,7 +1597,8 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		// Re-keys $non_taxable_line_items onto the canonical ids as it goes.
+		// Re-keys $non_taxable_line_items and $line_item_tax_classes onto the
+		// canonical ids as it goes.
 		$line_items = $this->assign_canonical_line_item_ids( $line_items );
 
 		return $line_items;
@@ -1618,7 +1637,8 @@ class WC_Connect_TaxJar_Integration {
 	 * stale keying, and a future caller inherits the invariant instead of having to
 	 * remember it. Callers reset the map before building, so replacing it wholesale
 	 * here is safe — an entry whose line item did not survive into $line_items (the
-	 * order path skips zero-priced lines) is dropped, exactly as before.
+	 * order path skips zero-priced lines) is dropped, exactly as before. The same goes
+	 * for `$line_item_tax_classes`.
 	 *
 	 * @since 3.6.12
 	 *
@@ -1629,6 +1649,7 @@ class WC_Connect_TaxJar_Integration {
 	private function assign_canonical_line_item_ids( array $line_items ): array {
 		$occurrences = array();
 		$non_taxable = array();
+		$tax_classes = array();
 
 		foreach ( $line_items as $key => $line_item ) {
 			$product_id = $line_item['id'];
@@ -1654,11 +1675,15 @@ class WC_Connect_TaxJar_Integration {
 			if ( isset( $this->non_taxable_line_items[ $product_id . '-' . $key ] ) ) {
 				$non_taxable[ $canonical_id ] = true;
 			}
+			if ( isset( $this->line_item_tax_classes[ $product_id . '-' . $key ] ) ) {
+				$tax_classes[ $canonical_id ] = $this->line_item_tax_classes[ $product_id . '-' . $key ];
+			}
 
 			$line_items[ $key ]['id'] = $canonical_id;
 		}
 
 		$this->non_taxable_line_items = $non_taxable;
+		$this->line_item_tax_classes  = $tax_classes;
 
 		return $line_items;
 	}
@@ -2601,8 +2626,14 @@ class WC_Connect_TaxJar_Integration {
 				$product_id           = $line_item_key_chunks[0];
 				$product              = wc_get_product( $product_id );
 
+				// The class the line was sent in. An order line keeps the class it was
+				// added in when its product moves to another class later, and the answer
+				// is about that class. A cart line, or an order line from a subclass's own
+				// get_backend_line_items(), is in its product's class.
 				$tax_class = '';
-				if ( $product ) {
+				if ( isset( $this->line_item_tax_classes[ $line_item_key ] ) ) {
+					$tax_class = $this->line_item_tax_classes[ $line_item_key ];
+				} elseif ( $product ) {
 					$tax_class = $product->get_tax_class();
 				} elseif ( isset( $this->backend_tax_classes[ $product_id ] ) ) {
 					$tax_class = $this->backend_tax_classes[ $product_id ];
