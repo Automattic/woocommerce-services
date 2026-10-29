@@ -512,6 +512,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertStringContainsString( '80301', $notes[0], 'the note names the address' );
 		$this->assertStringContainsString( '2.40', $notes[0], 'old tax' );
 		$this->assertStringContainsString( '3.20', $notes[0], 'new tax' );
+		$this->assertMatchesRegularExpression( '/recalculated from .*2\.40.* to .*3\.20.* with today\'s rates/', $notes[0], 'old tax first, in words' );
 	}
 
 	/**
@@ -542,7 +543,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertCount( 0, $this->requests, 'no nexus, no request' );
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'from the store\'s tax rates', $notes[0] );
+		$this->assertStringContainsString( 'using the store\'s tax rates', $notes[0] );
+		$this->assertMatchesRegularExpression( '/updated from .*2\.40.* to .*0\.00/', $notes[0], 'old tax first, in words' );
 		$this->assertStringNotContainsString( 'today\'s rates', $notes[0], 'TaxJar was not asked' );
 	}
 
@@ -582,7 +584,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'Columbus', $notes[0] );
-		$this->assertStringContainsString( 'from the store\'s tax rates', $notes[0] );
+		$this->assertStringContainsString( 'using the store\'s tax rates', $notes[0] );
 	}
 
 	/**
@@ -761,11 +763,16 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		// 6% recorded: A $20 1.20, B 1.20, shipping 0.60.
 		$this->assert_order_tax( $order, 2.40, 0.60, 53.00 );
 		$notes = $this->tax_notes( $order );
-		$this->assertCount( 2, $notes, 'the re-apply note and the failure note' );
-		$failure_note = implode( "\n", preg_grep( '/could not be updated/', $notes ) );
-		$this->assertStringContainsString( 'the tax service did not answer', $failure_note );
-		$this->assertStringContainsString( 'recorded when the order was placed were used instead', $failure_note );
-		$this->assertStringNotContainsString( 'was kept', $failure_note, 'The tax changed, so the note must not say it was kept.' );
+		$this->assertCount( 1, $notes, 'one note for one update' );
+		$this->assertStringContainsString( 'could not be updated', $notes[0] );
+		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
+		$this->assertStringContainsString( 'already saved on the order were used instead', $notes[0] );
+		$this->assertStringContainsString( '2.40', $notes[0], 'old tax: 1.80 + 0.60' );
+		$this->assertStringContainsString( '3.00', $notes[0], 'new tax: 2.40 + 0.60' );
+		$this->assertMatchesRegularExpression( '/went from .*2\.40.* to .*3\.00/', $notes[0], 'old tax first, in words' );
+		$this->assertStringNotContainsString( 'when the order was placed', $notes[0] );
+		$this->assertStringNotContainsString( 'was kept', $notes[0], 'The tax changed, so the note must not say it was kept.' );
+		$this->assertStringNotContainsString( 'because the order changed', $notes[0], 'the change is told once' );
 	}
 
 	// -------------------------------------------------------------------------
@@ -843,10 +850,14 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 0.60, $order->get_tax_refunded_for_item( $fixture['a'], $this->rate_id ), 0.001 );
 
 		$notes = $this->tax_notes( $order );
-		$this->assertCount( 2, $notes, 'the re-apply note and the refund note' );
-		$refund_note = implode( "\n", preg_grep( '/refunded tax/', $notes ) );
-		$this->assertStringContainsString( 'recorded when the order was placed were used instead', $refund_note );
-		$this->assertStringNotContainsString( 'was kept', $refund_note, 'The tax changed, so the note must not say it was kept.' );
+		$this->assertCount( 1, $notes, 'one note for one update' );
+		$this->assertStringContainsString( 'refunded tax', $notes[0] );
+		$this->assertStringContainsString( 'already saved on the order were used instead', $notes[0] );
+		$this->assertStringContainsString( '2.40', $notes[0], 'old tax: 1.80 + 0.60' );
+		$this->assertStringContainsString( '3.00', $notes[0], 'new tax: 2.40 + 0.60' );
+		$this->assertStringNotContainsString( 'when the order was placed', $notes[0] );
+		$this->assertStringNotContainsString( 'was kept', $notes[0], 'The tax changed, so the note must not say it was kept.' );
+		$this->assertStringNotContainsString( 'because the order changed', $notes[0], 'the change is told once' );
 	}
 
 	/**
@@ -964,6 +975,148 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 
 		$this->assertCount( 0, $this->requests );
 		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+	}
+
+	/**
+	 * Move the store to Boulder, so the store address and the fixture's Denver customer differ in rate.
+	 */
+	private function move_store_to_boulder() {
+		update_option( 'woocommerce_store_city', 'Boulder' );
+		update_option( 'woocommerce_store_postcode', '80301' );
+	}
+
+	/**
+	 * Change the fixture order's shipping method over REST, keeping its amount.
+	 *
+	 * @param WC_Order $order     Fixture order.
+	 * @param string   $method_id New method id.
+	 * @return WC_Order
+	 */
+	private function rest_switch_shipping_method( WC_Order $order, $method_id ) {
+		$shipping_ids = array_keys( $order->get_shipping_methods() );
+
+		return $this->rest_update(
+			$order->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'id'           => reset( $shipping_ids ),
+						'method_id'    => $method_id,
+						'method_title' => $method_id,
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * @testdox Switching a delivery order to local pickup taxes it at the store address.
+	 */
+	public function test_switch_to_local_pickup_asks_at_store_address() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_switch_shipping_method( $fixture['order'], 'local_pickup' );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'], 'asked at the store' );
+		// 8%: A 0.80, B 1.60, shipping 0.80.
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+		$this->assertCount( 1, $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox Switching a local pickup order to delivery taxes it at the customer's address.
+	 */
+	public function test_switch_to_delivery_asks_at_customer_address() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order( array( 'shipping_method' => 'local_pickup' ) );
+
+		$order = $this->rest_switch_shipping_method( $fixture['order'], 'flat_rate' );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80202', $this->requests[0]['to_zip'], 'asked at the customer' );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+		$this->assertCount( 1, $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox With base tax for local pickup turned off, switching to local pickup is not a change.
+	 */
+	public function test_switch_to_local_pickup_without_base_tax_makes_no_request() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order();
+		add_filter( 'woocommerce_apply_base_tax_for_local_pickup', '__return_false' );
+
+		try {
+			$order = $this->rest_switch_shipping_method( $fixture['order'], 'local_pickup' );
+		} finally {
+			remove_filter( 'woocommerce_apply_base_tax_for_local_pickup', '__return_false' );
+		}
+
+		$this->assertCount( 0, $this->requests );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+	}
+
+	/**
+	 * @testdox A REST order created with local pickup is taxed at the store and gets no note.
+	 */
+	public function test_rest_created_local_pickup_order_is_taxed_at_store() {
+		$this->move_store_to_boulder();
+
+		$order = $this->rest_create(
+			array(
+				'billing'        => self::address(),
+				'shipping'       => self::address(),
+				'shipping_lines' => array(
+					array(
+						'method_id'    => 'local_pickup',
+						'method_title' => 'Pickup',
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'] );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'a new order gets no tax note' );
+	}
+
+	/**
+	 * @testdox A woocommerce_order_get_tax_location filter decides where the order is taxed, as in core.
+	 */
+	public function test_order_tax_location_filter_is_honoured() {
+		$fixture  = $this->create_placed_order();
+		$location = static function ( $location ) {
+			return array_merge(
+				$location,
+				array(
+					'postcode' => '80301',
+					'city'     => 'Boulder',
+				)
+			);
+		};
+		add_filter( 'woocommerce_order_get_tax_location', $location );
+
+		try {
+			// Pinned to one place: a customer address change does not move it.
+			$unchanged = $this->rest_update( $fixture['order']->get_id(), array( 'shipping' => self::address( '80203', 'Denver', '2 Other St' ) ) );
+			$this->assertCount( 0, $this->requests, 'the filtered location did not move' );
+			$this->assert_order_tax( $unchanged, 1.80, 0.60, 42.40 );
+
+			// A new order is looked up at the filtered location, with no street.
+			$order = $this->rest_create( array( 'shipping' => self::address() ) );
+		} finally {
+			remove_filter( 'woocommerce_order_get_tax_location', $location );
+		}
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'] );
+		$this->assertEmpty( $this->requests[0]['to_street'] ?? '' );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
 	}
 
 	/**
@@ -1355,6 +1508,89 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'No tax was added for Custom amount', $notes[0] );
+		$this->assertStringContainsString( 'no product in its tax class has a tax rate from the tax service', $notes[0] );
+		$this->assertStringNotContainsString( 'recorded tax rate', $notes[0], 'nothing here came from recorded rates' );
+	}
+
+	/**
+	 * @testdox An address change that leaves a fee untaxed writes one note with the new tax and the untaxed fee.
+	 */
+	public function test_address_change_with_untaxed_fee_writes_one_note() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping'  => self::address( '80301', 'Boulder' ),
+				'fee_lines' => array(
+					array(
+						'name'       => 'Custom amount',
+						'total'      => '10.00',
+						'tax_status' => 'taxable',
+						'tax_class'  => 'reduced-rate',
+					),
+				),
+			)
+		);
+
+		$fees = $order->get_fees();
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, reset( $fees )->get_id() ), 0.001, 'no product in the fee\'s class was looked up' );
+		// 8%: A 0.80, B 1.60, shipping 0.80; 30 + 10 + 10 + 2.40 + 0.80.
+		$this->assert_order_tax( $order, 2.40, 0.80, 53.20 );
+
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes, 'one note for one update' );
+		$this->assertStringContainsString( '80301', $notes[0], 'the address' );
+		$this->assertStringContainsString( '3.20', $notes[0], 'new tax' );
+		$this->assertStringContainsString( 'No tax was added for Custom amount', $notes[0] );
+		$this->assertStringContainsString( 'no product in its tax class has a tax rate from the tax service', $notes[0] );
+	}
+
+	/**
+	 * @testdox A fee whose tax class has only a non-taxable product is noted as untaxed, though the product was looked up.
+	 */
+	public function test_untaxed_fee_with_non_taxable_product_in_its_class_is_noted() {
+		$product = $this->create_product( '10' );
+		$product->set_tax_class( 'reduced-rate' );
+		$product->set_tax_status( 'none' );
+		$product->save();
+
+		$order = $this->rest_create(
+			array(
+				'billing'        => self::address(),
+				'shipping'       => self::address(),
+				'line_items'     => array(
+					array(
+						'product_id' => $this->create_product( '10' )->get_id(),
+						'quantity'   => 1,
+					),
+					array(
+						'product_id' => $product->get_id(),
+						'quantity'   => 1,
+					),
+				),
+				'fee_lines'      => array(
+					array(
+						'name'       => 'Custom amount',
+						'total'      => '10.00',
+						'tax_status' => 'taxable',
+						'tax_class'  => 'reduced-rate',
+					),
+				),
+				'shipping_lines' => array(),
+			)
+		);
+
+		$this->assertSame( '99999', $this->requests[0]['line_items'][1]['product_tax_code'], 'the product was sent as exempt' );
+		$fees = $order->get_fees();
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, reset( $fees )->get_id() ), 0.001, 'fee' );
+		// 6% on the standard $10 product only.
+		$this->assert_order_tax( $order, 0.60, 0.0, 30.60 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'No tax was added for Custom amount', $notes[0] );
+		$this->assertStringContainsString( 'no product in its tax class has a tax rate from the tax service', $notes[0] );
+		$this->assertStringNotContainsString( 'looked up', $notes[0], 'the product was looked up' );
 	}
 
 	/**
@@ -1651,10 +1887,14 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		);
 
 		$this->assert_order_tax( $order, 2.40, 0.60, 53.00 );
-		$failure_note = implode( "\n", preg_grep( '/could not be updated/', $this->tax_notes( $order ) ) );
-		$this->assertStringContainsString( 'the store address has no country', $failure_note );
-		$this->assertStringContainsString( 'recorded when the order was placed were used instead', $failure_note );
-		$this->assertStringNotContainsString( 'was kept', $failure_note );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes, 'one note for one update' );
+		$this->assertStringContainsString( 'could not be updated', $notes[0] );
+		$this->assertStringContainsString( 'the store address has no country', $notes[0] );
+		$this->assertStringContainsString( 'already saved on the order were used instead', $notes[0] );
+		$this->assertStringContainsString( '3.00', $notes[0], 'new tax: 2.40 + 0.60' );
+		$this->assertStringNotContainsString( 'when the order was placed', $notes[0] );
+		$this->assertStringNotContainsString( 'was kept', $notes[0] );
 	}
 
 	/**

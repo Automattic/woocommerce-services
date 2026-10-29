@@ -115,6 +115,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			$this->saved_wc_session = false;
 		}
 
+		wc_get_container()->reset_replacement( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class );
+
 		parent::tear_down();
 	}
 
@@ -4183,6 +4185,96 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Merchant rows limited to more than one town, and the towns a lookup and a
+	 * table-only order go to.
+	 *
+	 * A row limited to one ZIP pattern and one city ranks the same as a row a lookup
+	 * writes for one ZIP and one city, and WooCommerce then prefers the older row, so
+	 * the merchant's row keeps coming first for the looked-up town. So does a row for
+	 * the town's ZIP alone. A row at a priority above the first makes the lookup's
+	 * position-based match land on it for a later component.
+	 *
+	 * @return array
+	 */
+	public function merchant_rows_covering_more_than_the_looked_up_town() {
+		return array(
+			'ZIP list'               => array( '49855;49841', '', '49841', 'Gwinn', '49855', 'Marquette' ),
+			'ZIP wildcard'           => array( '49*', '', '49841', 'Gwinn', '49855', 'Marquette' ),
+			'city only'              => array( '', 'MARQUETTE', '49855', 'Marquette', '49856', 'Marquette' ),
+			'ZIP wildcard + city'    => array( '49*', 'GWINN', '49841', 'Gwinn', '49899', 'Gwinn' ),
+			'ZIP only'               => array( '49841', '', '49841', 'Gwinn', '49841', 'Sands' ),
+			'ZIP list + city'        => array( '49855;49841', 'GWINN', '49841', 'Gwinn', '49855', 'Gwinn' ),
+			'ZIP list at priority 3' => array( '49855;49841', '', '49841', 'Gwinn', '49855', 'Marquette', 3 ),
+		);
+	}
+
+	/**
+	 * A lookup must not rewrite a merchant's row that covers more than the looked-up
+	 * town into one of the town's components.
+	 *
+	 * Matching is by position, so the City component (priority 1) used to land on the
+	 * merchant's priority 1 row, rename it and set it to 0% while it kept covering
+	 * every place it did. Every other address it covered was then taxed at 0% by
+	 * anything that taxes from the rate table. The lookup has to write its own row
+	 * beside it, and find that row again on the next lookup rather than add another.
+	 *
+	 * @dataProvider merchant_rows_covering_more_than_the_looked_up_town
+	 *
+	 * @param string $postcodes  Merchant row postcodes.
+	 * @param string $cities     Merchant row cities.
+	 * @param string $zip        Looked-up postcode.
+	 * @param string $city       Looked-up city.
+	 * @param string $other_zip  Postcode of another address the merchant row covers.
+	 * @param string $other_city City of that address.
+	 * @param int    $priority   Merchant row priority.
+	 */
+	public function test_lookup_leaves_a_merchant_row_covering_more_than_the_town_untouched( $postcodes, $cities, $zip, $city, $other_zip, $other_city, $priority = 1 ) {
+		$this->reset_tax_rate_tables();
+
+		$merchant_id = $this->insert_michigan_rate( $priority, '6.0000', 'Tax', $postcodes, $cities );
+		$merchant    = $this->tax_rate_snapshot( $merchant_id );
+
+		$integration = $this->michigan_integration();
+		$first       = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $integration, $zip, $city ) );
+
+		$this->assertSame( $merchant, $this->tax_rate_snapshot( $merchant_id ), 'The merchant row changed.' );
+		$this->assertNotContains( $merchant_id, $first );
+		$this->assertSame( 5, $this->count_tax_rate_rows(), 'Expected the merchant row and four components.' );
+
+		foreach ( $first as $index => $rate_id ) {
+			$snapshot = $this->tax_rate_snapshot( $rate_id );
+			$this->assertSame( $index + 1, $snapshot['priority'] );
+			$this->assertSame( array( $zip ), $snapshot['postcodes'] );
+			$this->assertSame( array( strtoupper( $city ) ), $snapshot['cities'] );
+		}
+
+		// The next lookup for the town finds the same rows.
+		$this->assertSame( $first, $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $integration, $zip, $city ) ) );
+		$this->assertSame( 5, $this->count_tax_rate_rows(), 'A repeat lookup added rows.' );
+
+		// Another address the merchant row covers is still taxed at the merchant's rate.
+		$other = $this->michigan_rates_from_table( $other_zip, $other_city );
+		$this->assertSame( array( $merchant_id ), $other['ids'] );
+		$this->assertEqualsWithDelta( 6.0, $other['percent'], 0.0001 );
+	}
+
+	/**
+	 * A row limited to exactly the looked-up ZIP and city is the town's own, and is
+	 * reused in place, as before.
+	 */
+	public function test_lookup_reuses_a_row_limited_to_exactly_the_town() {
+		$this->reset_tax_rate_tables();
+
+		$row_id = $this->insert_michigan_rate( 1, '6.0000', 'Tax', '49841', 'GWINN' );
+
+		$looked_up = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' ) );
+
+		$this->assertSame( $row_id, $looked_up[0] );
+		$this->assertSame( 'MARQUETTE GWINN : City Tax', $this->tax_rate_snapshot( $row_id )['name'] );
+		$this->assertSame( 4, $this->count_tax_rate_rows() );
+	}
+
+	/**
 	 * An integration whose TaxJar answer for any Michigan request is 6% state tax and
 	 * 0% for the other three components, for a store in Marquette, MI.
 	 *
@@ -4703,6 +4795,145 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 6.0, $taxed[ $this->product->get_id() ], 0.001 );
 
 		$tee->delete( true );
+	}
+
+	/**
+	 * Total a recurring cart inside every total of the main cart, as WooCommerce
+	 * Subscriptions does: it filters woocommerce_calculated_total, copies the cart, keeps
+	 * the subscription lines and totals the copy. TaxJar answers the copy after the main
+	 * cart.
+	 *
+	 * @param WC_Connect_TaxJar_Integration $integration     Integration under test.
+	 * @param string                        $cart_item_key   The subscription line.
+	 * @param float|null                    $recurring_price Its price in the recurring cart, when a sign-up fee
+	 *                                                       makes the first payment differ.
+	 * @param WC_Cart|null                  $recurring_cart  Set to the last recurring cart totalled.
+	 * @return callable The hooked callback, to remove.
+	 */
+	private static function total_a_recurring_cart( $integration, $cart_item_key, $recurring_price = null, &$recurring_cart = null ) {
+		$callback = function ( $total, $cart ) use ( $integration, $cart_item_key, $recurring_price, &$recurring_cart ) {
+			if ( WC()->cart !== $cart ) {
+				return $total;
+			}
+
+			$recurring_cart = clone $cart;
+			foreach ( array_keys( $recurring_cart->cart_contents ) as $key ) {
+				if ( $key !== $cart_item_key ) {
+					unset( $recurring_cart->cart_contents[ $key ] );
+				}
+			}
+			if ( null !== $recurring_price ) {
+				// A product of its own, so the price stays out of the main cart.
+				$recurring_cart->cart_contents[ $cart_item_key ]['data'] = clone $recurring_cart->cart_contents[ $cart_item_key ]['data'];
+				$recurring_cart->cart_contents[ $cart_item_key ]['data']->set_price( $recurring_price );
+			}
+
+			$recurring_cart->calculate_totals();
+			$integration->calculate_totals( $recurring_cart );
+
+			return $total;
+		};
+		add_filter( 'woocommerce_calculated_total', $callback, 10, 2 );
+
+		return $callback;
+	}
+
+	/**
+	 * With a subscription in the cart, the order still taxes each line by the main
+	 * cart's answer, though the recurring cart was answered after it.
+	 */
+	public function test_checkout_with_a_recurring_cart_keeps_an_exempt_line_untaxed() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$shirt         = $this->priced_product( 50 );
+		$this->product = $this->priced_product( 100 );
+		$box           = $this->priced_product( 100 );
+		WC()->cart->add_to_cart( $shirt->get_id(), 1 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$box_key = WC()->cart->add_to_cart( $box->get_id(), 1 );
+
+		$integration = $this->michigan_integration( true, false, 60 );
+		$recurring   = self::total_a_recurring_cart( $integration, $box_key );
+		try {
+			$order = $this->store_api_checkout( $integration );
+
+			$taxed = array();
+			foreach ( $order->get_items() as $item ) {
+				$taxed[ $item->get_product_id() ] = self::item_tax( $item );
+			}
+			$this->assertEqualsWithDelta( 0.0, $taxed[ $shirt->get_id() ], 0.001, 'TaxJar answered the $50 line as exempt' );
+			$this->assertEqualsWithDelta( 6.0, $taxed[ $this->product->get_id() ], 0.001 );
+			$this->assertEqualsWithDelta( 6.0, $taxed[ $box->get_id() ], 0.001 );
+			$this->assertEqualsWithDelta( (float) WC()->cart->get_cart_contents_tax(), (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+			$shirt->delete( true );
+			$box->delete( true );
+		}
+	}
+
+	/**
+	 * A line priced differently in the recurring cart is taxed by each cart's own answer:
+	 * the recurring cart's and the order's.
+	 *
+	 * The recurring cart gets a product of its own here. Subscriptions shares the product
+	 * objects between the carts, which this test leaves out.
+	 */
+	public function test_checkout_with_a_recurring_cart_taxes_each_cart_by_its_own_answer() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 100 );
+		$box_key       = WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$integration    = $this->michigan_integration( true, false, 60 );
+		$recurring_cart = null;
+		$recurring      = self::total_a_recurring_cart( $integration, $box_key, 50, $recurring_cart );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		$this->assertInstanceOf( WC_Cart::class, $recurring_cart );
+		$this->assertEqualsWithDelta( 0.0, (float) $recurring_cart->get_cart_contents_tax(), 0.001, 'TaxJar answered the $50 renewal as exempt' );
+		// $100 first payment at 6%.
+		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart tax' );
+		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001, 'Order tax' );
+	}
+
+	/**
+	 * A product bought once and on subscription in the same cart: each order line still
+	 * finds the main cart's answer by the cart item it was created from, though the
+	 * recurring cart holds only the subscription line.
+	 */
+	public function test_checkout_with_a_recurring_cart_finds_each_line_of_one_product_by_its_cart_item() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$subscription_key = WC()->cart->add_to_cart( $this->product->get_id(), 1, 0, array(), array( 'subscription' => 'monthly' ) );
+		WC()->cart->cart_contents[ $subscription_key ]['data']->set_price( 120 );
+
+		$integration = $this->michigan_integration( true, false, 60 );
+		$recurring   = self::total_a_recurring_cart( $integration, $subscription_key );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		$taxed = array();
+		foreach ( $order->get_items() as $item ) {
+			$taxed[ (string) (float) $item->get_total() ] = self::item_tax( $item );
+		}
+		$this->assertEqualsWithDelta( 0.0, $taxed['50'], 0.001, 'TaxJar answered the $50 cart line as exempt' );
+		$this->assertEqualsWithDelta( 7.2, $taxed['120'], 0.001, '$120 at 6%' );
 	}
 
 	/**
@@ -5407,6 +5638,618 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$this->assertSame( array( $catch_all_id ), $this->tax_rate_ids_at_priority( 5 ) );
 		$this->assertSame( 1, $this->count_tax_rate_rows() );
+	}
+
+	/**
+	 * Insert a Michigan rate row the way a merchant would, limited to the given
+	 * postcodes and cities.
+	 *
+	 * @param int    $priority  Priority.
+	 * @param float  $rate      Rate percentage.
+	 * @param string $name      Row name.
+	 * @param string $postcodes Postcodes, `;`-separated, or empty.
+	 * @param string $cities    Cities, `;`-separated, or empty.
+	 * @param string $tax_class Tax class slug.
+	 * @return int Tax rate id.
+	 */
+	private function insert_michigan_rate( $priority, $rate, $name, $postcodes = '', $cities = '', $tax_class = '' ) {
+		$rate_id = (int) WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'MI',
+				'tax_rate_name'     => $name,
+				'tax_rate_priority' => $priority,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate'          => $rate,
+				'tax_rate_class'    => $tax_class,
+			)
+		);
+
+		WC_Tax::_update_tax_rate_postcodes( $rate_id, $postcodes );
+		WC_Tax::_update_tax_rate_cities( $rate_id, $cities );
+
+		return $rate_id;
+	}
+
+	/**
+	 * TaxJar's answer for Gwinn with a 1% special district, then without one.
+	 *
+	 * @return array{0: array, 1: array} Components by TaxJar key: before, after.
+	 */
+	private function gwinn_answers_before_and_after_a_special_district_ends() {
+		return array(
+			array(
+				'combined_tax_rate'    => 0.07,
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.01,
+				'state_sales_tax_rate' => 0.06,
+			),
+			array(
+				'combined_tax_rate'    => 0.06,
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'state_sales_tax_rate' => 0.06,
+			),
+		);
+	}
+
+	/**
+	 * When TaxJar returns fewer rates for a town than it did before, the rows the
+	 * earlier lookup wrote above the new ones go.
+	 *
+	 * The first lookup writes City, County, Special and State at priorities 1 to 4.
+	 * The second writes City, County and State at 1 to 3, reusing the rows at those
+	 * priorities. Left in place, the old State row at priority 4 would still match the
+	 * town, and anything taxed from the table would charge the state rate twice.
+	 */
+	public function test_lookup_with_fewer_rates_removes_the_rows_it_no_longer_returns() {
+		$this->reset_tax_rate_tables();
+
+		list( $before, $after ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '49841', 'Gwinn' );
+		$this->assertSame( 4, $this->count_tax_rate_rows() );
+		// 0% + 0% + 1% + 6%.
+		$this->assertEqualsWithDelta( 7.0, $this->michigan_rates_from_table( '49841', 'Gwinn' )['percent'], 0.0001 );
+
+		$taxes = $this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $after ), '49841', 'Gwinn' );
+
+		$this->assertSame( 3, $this->count_tax_rate_rows() );
+		$this->assertSame( array(), $this->tax_rate_ids_at_priority( 4 ) );
+
+		// 0% + 0% + 6%, from exactly the rows checkout applies.
+		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
+		$this->assertSame( $this->looked_up_rate_ids( $taxes ), $gwinn['ids'] );
+		$this->assertEqualsWithDelta( 6.0, $gwinn['percent'], 0.0001 );
+	}
+
+	/**
+	 * An order taxed at a row a later lookup removed keeps that tax line's name, code
+	 * and percent when its items are saved again.
+	 *
+	 * WooCommerce's update_taxes() reads them back from the rate table, which no longer
+	 * has the row, so the line would turn into "Tax" at 0% with its amount kept. A later
+	 * REST edit re-applies the percent recorded on the line, so it would charge 0%.
+	 */
+	public function test_order_keeps_the_details_of_a_rate_a_lookup_removed() {
+		$this->reset_tax_rate_tables();
+		add_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10, 1 );
+
+		list( $before, $after ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+		$rate_ids               = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '49841', 'Gwinn' ) );
+
+		// The $100 item taxed at City, County, Special (1%) and State (6%), as checkout records it.
+		$order = $this->create_michigan_order( '49841', 'Gwinn' );
+		$item  = current( $order->get_items() );
+		$taxes = array_combine( $rate_ids, array( '0', '0', '1', '6' ) );
+		$item->set_taxes(
+			array(
+				'total'    => $taxes,
+				'subtotal' => $taxes,
+			)
+		);
+		$item->save();
+		$order->update_taxes();
+
+		// The second lookup reuses the rows at priorities 1 to 3 and removes State's at 4.
+		$removed_id = $rate_ids[3];
+		$recorded   = $this->tax_line_details( $order, $removed_id );
+		$this->assertEqualsWithDelta( 6.0, $recorded['rate_percent'], 0.0001 );
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $after ), '49841', 'Gwinn' );
+		$this->assertEmpty( WC_Tax::_get_tax_rate( $removed_id ), 'The second lookup removed the row at priority 4.' );
+
+		// What saving the order's items in the admin does, in a later request.
+		$this->forget_cached_tax_rates();
+		$order = wc_get_order( $order->get_id() );
+		$order->update_taxes();
+
+		$this->assertSame( $recorded, $this->tax_line_details( wc_get_order( $order->get_id() ), $removed_id ) );
+
+		remove_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10 );
+	}
+
+	/**
+	 * A row that still exists still gives the tax line its current details.
+	 */
+	public function test_order_tax_line_follows_a_rate_that_still_exists() {
+		$this->reset_tax_rate_tables();
+		add_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10, 1 );
+
+		$rate_id = $this->insert_michigan_rate( 1, '6.0000', 'MI Tax' );
+		$order   = $this->create_michigan_order( '49841', 'Gwinn' );
+		$item    = current( $order->get_items() );
+		$item->set_taxes(
+			array(
+				'total'    => array( $rate_id => '6' ),
+				'subtotal' => array( $rate_id => '6' ),
+			)
+		);
+		$item->save();
+		$order->update_taxes();
+
+		WC_Tax::_update_tax_rate( $rate_id, array( 'tax_rate_name' => 'Michigan Sales Tax' ) );
+		$this->forget_cached_tax_rates();
+		$order = wc_get_order( $order->get_id() );
+		$order->update_taxes();
+
+		$this->assertSame( 'Michigan Sales Tax', $this->tax_line_details( wc_get_order( $order->get_id() ), $rate_id )['label'] );
+
+		remove_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10 );
+	}
+
+	/**
+	 * Changes to a tax line whose row is gone, other than what the rate table gives for
+	 * a missing row.
+	 *
+	 * @return array
+	 */
+	public function provider_deliberate_changes_to_a_removed_rate_line() {
+		return array(
+			'renamed'                     => array( 'MI Tax', true, 'label', 'Michigan Tax' ),
+			'renamed, saved with no code' => array( 'MI Tax', false, 'label', 'Michigan Tax' ),
+			'new percent, named Tax'      => array( 'Tax', true, 'rate_percent', 7.0 ),
+			'set to 0%, still named Tax'  => array( 'Tax', true, 'rate_percent', 0.0 ),
+		);
+	}
+
+	/**
+	 * A change made on purpose to a tax line whose row is gone is saved, even when part
+	 * of it matches what the rate table gives for a missing row.
+	 *
+	 * @dataProvider provider_deliberate_changes_to_a_removed_rate_line
+	 *
+	 * @param string $label    Name the line was saved with.
+	 * @param bool   $has_code Whether the line was saved with its rate's code.
+	 * @param string $field    Detail changed.
+	 * @param mixed  $value    New value.
+	 */
+	public function test_deliberate_change_to_a_removed_rate_line_is_kept( $label, $has_code, $field, $value ) {
+		$this->reset_tax_rate_tables();
+		add_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10, 1 );
+
+		$rate_id  = $this->insert_michigan_rate( 1, '6.0000', $label );
+		$order    = $this->create_michigan_order( '49841', 'Gwinn' );
+		$tax_line = new WC_Order_Item_Tax();
+		$tax_line->set_rate_id( $rate_id );
+		$tax_line->set_rate_code( $has_code ? WC_Tax::get_rate_code( $rate_id ) : '' );
+		$tax_line->set_label( $label );
+		$tax_line->set_rate_percent( 6.0 );
+		$tax_line->set_compound( false );
+		$tax_line->set_tax_total( 6 );
+		$order->add_item( $tax_line );
+		$order->save();
+
+		WC_Tax::_delete_tax_rate( $rate_id );
+		$this->forget_cached_tax_rates();
+
+		$tax_line = current( wc_get_order( $order->get_id() )->get_taxes() );
+		$tax_line->{'set_' . $field}( $value );
+		$tax_line->save();
+
+		$this->assertSame( $value, $this->tax_line_details( wc_get_order( $order->get_id() ), $rate_id )[ $field ] );
+
+		remove_action( 'woocommerce_before_order_item_object_save', array( $this->integration, 'keep_details_of_removed_tax_rate' ), 10 );
+	}
+
+	/**
+	 * Forget the rate rows WooCommerce read in this process, as a new request would.
+	 */
+	private function forget_cached_tax_rates() {
+		// A fresh store has an empty cache. WooCommerce 11.0 has no cache to forget.
+		if ( class_exists( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class ) ) {
+			wc_get_container()->replace( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class, new Automattic\WooCommerce\Internal\Tax\TaxRateDataStore() );
+		}
+	}
+
+	/**
+	 * The details an order's tax line holds for a rate.
+	 *
+	 * @param WC_Order $order   Order.
+	 * @param int      $rate_id Rate id.
+	 * @return array|null
+	 */
+	private function tax_line_details( $order, $rate_id ) {
+		foreach ( $order->get_taxes() as $tax_line ) {
+			if ( (int) $tax_line->get_rate_id() === (int) $rate_id ) {
+				return array(
+					'rate_code'    => $tax_line->get_rate_code(),
+					'label'        => $tax_line->get_label(),
+					'rate_percent' => (float) $tax_line->get_rate_percent(),
+					'compound'     => $tax_line->get_compound(),
+					'tax_total'    => (float) $tax_line->get_tax_total(),
+				);
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Only the rows a lookup wrote for exactly this town, in this tax class, go.
+	 *
+	 * Left alone: a merchant's row for exactly the same ZIP and city (its name is not
+	 * one a lookup writes), a merchant's row for the ZIP alone that carries a lookup's
+	 * name, the same town's rows in another tax class, and another town's rows.
+	 */
+	public function test_lookup_with_fewer_rates_keeps_rows_it_did_not_write_for_the_town() {
+		$this->reset_tax_rate_tables();
+
+		list( $before, $after ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '49841', 'Gwinn' );
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '48226', 'Detroit' );
+		$detroit_ids = $this->michigan_rates_from_table( '48226', 'Detroit' )['ids'];
+
+		$location = array(
+			'from_country' => 'US',
+			'from_state'   => 'MI',
+			'to_country'   => 'US',
+			'to_state'     => 'MI',
+			'to_zip'       => '49841',
+			'to_city'      => 'Gwinn',
+		);
+
+		$kept = array(
+			$this->insert_michigan_rate( 5, '0.5000', 'Gwinn Assessment', '49841', 'GWINN' ),
+			$this->insert_michigan_rate( 6, '1.0000', 'MARQUETTE GWINN : Local Tax', '49841' ),
+			(int) $this->integration->create_or_update_tax_rate( $location, 1.0, 'reduced-rate', 1, 4, 'MARQUETTE GWINN : Special Tax' ),
+		);
+		$kept = array_merge( $kept, $detroit_ids );
+
+		$snapshots = array_map( array( $this, 'tax_rate_snapshot' ), $kept );
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $after ), '49841', 'Gwinn' );
+
+		$this->assertSame( $snapshots, array_map( array( $this, 'tax_rate_snapshot' ), $kept ) );
+		// Gwinn's three components, the three kept Gwinn rows and Detroit's four.
+		$this->assertSame( 10, $this->count_tax_rate_rows() );
+		$this->assertEqualsWithDelta( 7.0, $this->michigan_rates_from_table( '48226', 'Detroit' )['percent'], 0.0001 );
+	}
+
+	/**
+	 * An address with no postcode or city writes rows with no location, the same
+	 * shape as a merchant's state-wide row, so nothing above the components is removed.
+	 */
+	public function test_removing_rows_above_the_components_needs_a_postcode_or_city() {
+		$this->reset_tax_rate_tables();
+
+		$state_wide_id = $this->insert_michigan_rate( 5, '6.0000', 'MARQUETTE : County Tax' );
+
+		$location = array(
+			'to_country' => 'US',
+			'to_state'   => 'MI',
+			'to_zip'     => '',
+			'to_city'    => '',
+		);
+
+		$this->invoke_protected_method( 'remove_stale_components', array( $location, '', array( 1, 2, 3, 4 ), array( 'county' => 'MARQUETTE' ) ) );
+
+		$this->assertSame( array( $state_wide_id ), $this->tax_rate_ids_at_priority( 5 ) );
+	}
+
+	/**
+	 * Rows limited to exactly the looked-up postcode and city, above the components,
+	 * and whether a lookup wrote a row with that name for the address.
+	 *
+	 * @return array
+	 */
+	public function rows_above_the_components_by_name() {
+		$gwinn  = array( 'US', 'MI', '49841', 'Gwinn' );
+		$ottawa = array( 'CA', 'ON', 'K1A 0B1', 'Ottawa' );
+		$named  = array(
+			'county' => 'MARQUETTE',
+			'city'   => 'GWINN',
+		);
+		$none   = array(
+			'county' => null,
+			'city'   => null,
+		);
+
+		return array(
+			'US, special component'                   => array( $gwinn, $named, 'MARQUETTE GWINN : Special Tax', true ),
+			'US, state component'                     => array( $gwinn, $named, 'MARQUETTE GWINN : State Sales Tax', true ),
+			'US, county only in the name'             => array( $gwinn, array( 'county' => 'MARQUETTE' ), 'MARQUETTE : County Tax', true ),
+			'US, merchant name with the prefix'       => array( $gwinn, $named, 'MARQUETTE GWINN : Local Tax', false ),
+			'US, component name without the prefix'   => array( $gwinn, $named, 'Special Tax', false ),
+			'US, another town\'s prefix'              => array( $gwinn, $named, 'MARQUETTE SANDS : Special Tax', false ),
+			'US, 0% row beside a state-wide rate'     => array( $gwinn, $named, 'MARQUETTE GWINN : Manual Rate Nullified (Automated Taxes)', false ),
+			'US no jurisdictions, special component'  => array( $gwinn, $none, 'Special Tax', true ),
+			'US no jurisdictions, merchant Local Tax' => array( $gwinn, $none, 'Gwinn Local Tax', false ),
+			'US no jurisdictions, merchant Sales Tax' => array( $gwinn, $none, 'Sales Tax', false ),
+			'Canada, PST component'                   => array( $ottawa, $none, 'PST TAX', true ),
+			'Canada, GST component'                   => array( $ottawa, $none, 'GST TAX', true ),
+			'Canada, merchant LOCAL TAX'              => array( $ottawa, $none, 'LOCAL TAX', false ),
+			'Canada, merchant name in mixed case'     => array( $ottawa, $none, 'Pst Tax', false ),
+		);
+	}
+
+	/**
+	 * Only a row named as a lookup names a component for the address is removed. Any
+	 * other name ending in "Tax" is a merchant's.
+	 *
+	 * @dataProvider rows_above_the_components_by_name
+	 *
+	 * @param array  $place         Country, state, postcode and city looked up.
+	 * @param array  $jurisdictions County and city names TaxJar returned.
+	 * @param string $name          Name of the row at priority 5.
+	 * @param bool   $removed       Whether the row is removed.
+	 */
+	public function test_rows_above_the_components_are_removed_by_component_name( $place, $jurisdictions, $name, $removed ) {
+		$this->reset_tax_rate_tables();
+
+		$location = array(
+			'from_country' => $place[0],
+			'from_state'   => $place[1],
+			'to_country'   => $place[0],
+			'to_state'     => $place[1],
+			'to_zip'       => $place[2],
+			'to_city'      => $place[3],
+		);
+
+		// Written the way a lookup writes a row, so it is limited to exactly the address.
+		$row_id = (int) $this->integration->create_or_update_tax_rate( $location, 1.0, '', 1, 5, $name );
+
+		$this->invoke_protected_method( 'remove_stale_components', array( $location, '', array( 1, 2, 3, 4 ), $jurisdictions ) );
+
+		$this->assertSame( ! $removed, (bool) WC_Tax::_get_tax_rate( $row_id ) );
+	}
+
+	/**
+	 * Ids of the 0% rows added beside a state-wide rate, at any priority.
+	 *
+	 * @return int[]
+	 */
+	private function nullified_rate_ids() {
+		global $wpdb;
+
+		return array_map(
+			'intval',
+			$wpdb->get_col( // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+				"SELECT tax_rate_id FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_name LIKE '%Manual Rate Nullified (Automated Taxes)' ORDER BY tax_rate_id" // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+			)
+		);
+	}
+
+	/**
+	 * Once the merchant deletes their state-wide rate, the next lookup for a town
+	 * removes the 0% row it added beside that rate.
+	 */
+	public function test_lookup_removes_the_rate_added_beside_a_deleted_state_wide_rate() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$this->assertCount( 1, $this->nullified_rate_ids() );
+
+		// A state-wide rate in another tax class does not keep it.
+		$reduced_id = $this->insert_michigan_rate( 5, '3.0000', 'Reduced', '', '', 'reduced-rate' );
+
+		WC_Tax::_delete_tax_rate( $catch_all_id );
+
+		$taxes = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$this->assertSame( array(), $this->nullified_rate_ids() );
+		$this->assertSame( array( $reduced_id ), $this->tax_rate_ids_at_priority( 5 ) );
+		$this->assertSame( 5, $this->count_tax_rate_rows() );
+		$this->assertSame( $this->looked_up_rate_ids( $taxes ), $this->michigan_rates_from_table( '49841', 'Gwinn' )['ids'] );
+	}
+
+	/**
+	 * A merchant rate for every state, or every country, applies to the town as a
+	 * state-wide one does, so the 0% row beside it stays across lookups.
+	 *
+	 * @testWith ["US", ""]
+	 *           ["", ""]
+	 *
+	 * @param string $country Merchant row country.
+	 * @param string $state   Merchant row state.
+	 */
+	public function test_lookup_keeps_the_rate_added_beside_a_rate_for_every_state( $country, $state ) {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate(
+			$catch_all_id,
+			array(
+				'tax_rate_country'  => $country,
+				'tax_rate_state'    => $state,
+				'tax_rate_priority' => 5,
+			)
+		);
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$nullified = $this->nullified_rate_ids();
+		$this->assertCount( 1, $nullified );
+
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$this->assertSame( $nullified, $this->nullified_rate_ids() );
+		$this->assertSame( 6, $this->count_tax_rate_rows() );
+	}
+
+	/**
+	 * When the merchant moves their state-wide rate to another priority, the next
+	 * lookup moves the 0% row with it, so the town has one, at the new priority.
+	 * Left at the old priority too, an order taxed from the table would carry two $0
+	 * "Manual Rate Nullified" tax lines.
+	 */
+	public function test_lookup_moves_the_rate_added_beside_a_state_wide_rate_that_moved() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 6 ) );
+
+		$taxes = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$nullified = $this->nullified_rate_ids();
+		$this->assertCount( 1, $nullified );
+		$this->assertSame( 6, $this->tax_rate_snapshot( $nullified[0] )['priority'] );
+		$this->assertSame( array(), $this->tax_rate_ids_at_priority( 5 ) );
+		// The merchant row, four components and one 0% row.
+		$this->assertSame( 6, $this->count_tax_rate_rows() );
+
+		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
+		$this->assertSame( array_merge( $this->looked_up_rate_ids( $taxes ), $nullified ), $gwinn['ids'] );
+		$this->assertEqualsWithDelta( 6.0, $gwinn['percent'], 0.0001 );
+	}
+
+	/**
+	 * Only the town's own 0% rows are removed: a merchant's 0% row for the same ZIP and
+	 * city, a row with the same name that is not 0% or covers more than the town, the
+	 * town's row in another tax class, and another town's row all stay.
+	 */
+	public function test_lookup_removes_only_the_towns_own_rate_added_beside_a_state_wide_rate() {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$gwinn_nullified = $this->nullified_rate_ids();
+		$this->lookup_michigan_taxes( $integration, '48226', 'Detroit' );
+
+		$label     = 'MARQUETTE GWINN : Manual Rate Nullified (Automated Taxes)';
+		$kept      = array_merge(
+			array_diff( $this->nullified_rate_ids(), $gwinn_nullified ),
+			array(
+				$this->insert_michigan_rate( 7, '0.0000', 'Gwinn Exempt', '49841', 'GWINN' ),
+				$this->insert_michigan_rate( 8, '1.0000', $label, '49841', 'GWINN' ),
+				$this->insert_michigan_rate( 9, '0.0000', $label, '49841' ),
+				$this->insert_michigan_rate( 10, '0.0000', $label, '49841', 'GWINN', 'reduced-rate' ),
+			)
+		);
+		$snapshots = array_map( array( $this, 'tax_rate_snapshot' ), $kept );
+
+		WC_Tax::_delete_tax_rate( $catch_all_id );
+
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$this->assertSame( $snapshots, array_map( array( $this, 'tax_rate_snapshot' ), $kept ) );
+		$this->assertNotContains( $gwinn_nullified[0], $this->nullified_rate_ids(), "Gwinn's own 0% row stayed." );
+		// Detroit's four components and 0% row, Gwinn's four components and the four kept rows.
+		$this->assertSame( 13, $this->count_tax_rate_rows() );
+	}
+
+	/**
+	 * What WooCommerce taxes shipping to Gwinn at, read from the table as checkout does.
+	 *
+	 * @return float Percentage.
+	 */
+	private function gwinn_shipping_tax_percent() {
+		$rates = WC_Tax::find_shipping_rates(
+			array(
+				'country'   => 'US',
+				'state'     => 'MI',
+				'postcode'  => '49841',
+				'city'      => 'GWINN',
+				'tax_class' => '',
+			)
+		);
+
+		return (float) array_sum( wp_list_pluck( $rates, 'rate' ) );
+	}
+
+	/**
+	 * When a town gains a component, the component at the highest priority takes the
+	 * 0% row added there beside a state-wide rate. That row is not marked for shipping,
+	 * so the component must take TaxJar's answer for shipping instead of keeping the
+	 * row's. Kept, it would drop out of shipping tax, and every order shipped to the
+	 * town would under-collect it until the merchant ticked Shipping by hand.
+	 *
+	 * @testWith [true, "1", 7.0]
+	 *           [false, "0", 0.0]
+	 *
+	 * @param bool   $freight_taxable   Whether TaxJar taxes shipping.
+	 * @param string $expected_shipping Expected Shipping flag of the row.
+	 * @param float  $expected_percent  Expected shipping tax percentage.
+	 */
+	public function test_component_written_over_the_rate_beside_a_state_wide_rate_takes_the_looked_up_shipping( $freight_taxable, $expected_shipping, $expected_percent ) {
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 4 ) );
+
+		list( $with_special, $without_special ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		// City, County and State at 1 to 3, and a 0% row beside the merchant's at 4.
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, $freight_taxable, null, $without_special ), '49841', 'Gwinn', 10 );
+		$nullified = $this->nullified_rate_ids();
+		$this->assertCount( 1, $nullified );
+		$this->assertSame( array( $catch_all_id, $nullified[0] ), $this->tax_rate_ids_at_priority( 4 ) );
+
+		// A special district starts: City, County, Special and State at 1 to 4.
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, $freight_taxable, null, $with_special ), '49841', 'Gwinn', 10 );
+
+		$row = WC_Tax::_get_tax_rate( $nullified[0] );
+		$this->assertSame( 'MARQUETTE GWINN : State Sales Tax', $row['tax_rate_name'], 'Expected the State component in the 0% row.' );
+		$this->assertSame( $expected_shipping, (string) $row['tax_rate_shipping'] );
+		// 0% + 0% + 1% + 6%, the merchant's row still outranked.
+		$this->assertEqualsWithDelta( $expected_percent, $this->gwinn_shipping_tax_percent(), 0.0001 );
+	}
+
+	/**
+	 * Rows the lookup reuses that are not one of its 0% rows keep the merchant's
+	 * Shipping setting: a merchant's own 0% row, one of ours the merchant set to a
+	 * rate, and a component the merchant took off shipping.
+	 *
+	 * @testWith ["0.0000", "Gwinn Exempt"]
+	 *           ["1.0000", "MARQUETTE GWINN : Manual Rate Nullified (Automated Taxes)"]
+	 *           ["5.0000", "MARQUETTE GWINN : State Sales Tax"]
+	 *
+	 * @param string $rate Rate of the row at priority 4.
+	 * @param string $name Name of the row at priority 4.
+	 */
+	public function test_reused_row_that_is_not_a_rate_beside_a_state_wide_rate_keeps_its_shipping( $rate, $name ) {
+		$this->reset_tax_rate_tables();
+
+		list( $with_special, $without_special ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		// City, County and State at 1 to 3, so the row at 4 is the one matched there.
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, true, null, $without_special ), '49841', 'Gwinn', 10 );
+
+		$row_id = $this->insert_michigan_rate( 4, $rate, $name, '49841', 'GWINN' );
+		WC_Tax::_update_tax_rate( $row_id, array( 'tax_rate_shipping' => 0 ) );
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, true, null, $with_special ), '49841', 'Gwinn', 10 );
+
+		$row = WC_Tax::_get_tax_rate( $row_id );
+		$this->assertSame( 'MARQUETTE GWINN : State Sales Tax', $row['tax_rate_name'], 'Expected the State component in the row.' );
+		$this->assertSame( '6.0000', $row['tax_rate'] );
+		$this->assertSame( '0', (string) $row['tax_rate_shipping'], "The merchant's Shipping setting was overwritten." );
 	}
 
 	/**
@@ -6557,6 +7400,190 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			),
 			'Outside the US the label is used as is, not upper-cased.'
 		);
+	}
+
+	/**
+	 * Translate the words in rate names into German when the language __() is answering
+	 * in is German: the request's language, or the one switched to.
+	 *
+	 * The test install has no translations of this plugin, so this stands in for them.
+	 *
+	 * @param string $translation Translation so far.
+	 * @param string $text        Text to translate.
+	 * @param string $domain      Text domain.
+	 * @return string
+	 */
+	public function translate_rate_name_words_into_german( $translation, $text, $domain ) {
+		$german = array(
+			'Tax'                                     => 'Steuer',
+			'Manual Rate Nullified (Automated Taxes)' => 'Manueller Satz aufgehoben (Automatische Steuern)',
+		);
+
+		$language = is_locale_switched() ? get_locale() : determine_locale();
+
+		if ( 'woocommerce-services' !== $domain || 'de_DE' !== $language || ! isset( $german[ $text ] ) ) {
+			return $translation;
+		}
+
+		return $german[ $text ];
+	}
+
+	/**
+	 * Run a callback in an admin request by a user whose language is German, as
+	 * Recalculate runs, on a site in English. Translations come from
+	 * translate_rate_name_words_into_german().
+	 *
+	 * @param callable $callback Callback.
+	 * @return mixed What the callback returns.
+	 */
+	private function as_german_admin( callable $callback ) {
+		$previous_user = get_current_user_id();
+
+		wp_set_current_user(
+			self::factory()->user->create(
+				array(
+					'role'   => 'administrator',
+					'locale' => 'de_DE',
+				)
+			)
+		);
+		set_current_screen( 'dashboard' );
+
+		try {
+			return $callback();
+		} finally {
+			set_current_screen( 'front' );
+			wp_set_current_user( $previous_user );
+		}
+	}
+
+	/**
+	 * Start a test with no rate name words kept from an earlier one.
+	 */
+	private function forget_rate_name_words() {
+		$property = new ReflectionProperty( WC_Connect_TaxJar_Integration::class, 'rate_name_words' );
+		$property->setAccessible( true );
+		$property->setValue( null, array() );
+	}
+
+	/**
+	 * Names of every rate row, oldest first.
+	 *
+	 * @return string[]
+	 */
+	private function tax_rate_names() {
+		global $wpdb;
+
+		return $wpdb->get_col( "SELECT tax_rate_name FROM {$wpdb->prefix}woocommerce_tax_rates ORDER BY tax_rate_id" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery, WordPress.DB.PreparedSQL.InterpolatedNotPrepared
+	}
+
+	/**
+	 * Recalculate runs in the admin's language, checkout in the site's. When TaxJar
+	 * returns fewer rates for a town, a Recalculate by an admin whose language is not
+	 * the site's still removes the rows checkout wrote above the new ones, and leaves
+	 * the names of the rows it reuses in the site's language.
+	 */
+	public function test_lookup_in_the_admins_language_removes_the_rows_checkout_wrote() {
+		$this->reset_tax_rate_tables();
+		$this->forget_rate_name_words();
+		add_filter( 'gettext', array( $this, 'translate_rate_name_words_into_german' ), 10, 3 );
+
+		$this->assertSame(
+			'Steuer',
+			$this->as_german_admin(
+				function () {
+					return __( 'Tax', 'woocommerce-services' );
+				}
+			),
+			'The admin request is not in German, so this test proves nothing.'
+		);
+
+		list( $before, $after ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
+
+		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '49841', 'Gwinn' );
+		$this->assertSame( 4, $this->count_tax_rate_rows() );
+
+		$integration = $this->michigan_integration( true, false, null, $after );
+		$taxes       = $this->as_german_admin(
+			function () use ( $integration ) {
+				return $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+			}
+		);
+
+		$this->assertSame( array(), $this->tax_rate_ids_at_priority( 4 ), 'The row the lookup no longer returns stayed.' );
+		$this->assertSame(
+			array(
+				'MARQUETTE GWINN : City Tax',
+				'MARQUETTE GWINN : County Tax',
+				'MARQUETTE GWINN : State Sales Tax',
+			),
+			$this->tax_rate_names()
+		);
+		$this->assertSame( $this->looked_up_rate_ids( $taxes ), $this->michigan_rates_from_table( '49841', 'Gwinn' )['ids'] );
+	}
+
+	/**
+	 * Once the merchant deletes their state-wide rate, a Recalculate by an admin whose
+	 * language is not the site's removes the 0% row checkout added beside it.
+	 */
+	public function test_lookup_in_the_admins_language_removes_the_rate_checkout_added_beside_a_state_wide_rate() {
+		$this->reset_tax_rate_tables();
+		$this->forget_rate_name_words();
+		add_filter( 'gettext', array( $this, 'translate_rate_name_words_into_german' ), 10, 3 );
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$this->assertCount( 1, $this->nullified_rate_ids() );
+
+		WC_Tax::_delete_tax_rate( $catch_all_id );
+
+		$this->as_german_admin(
+			function () use ( $integration ) {
+				$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+			}
+		);
+
+		$this->assertSame( 4, $this->count_tax_rate_rows(), 'Expected only the four components.' );
+		$this->assertSame( array(), $this->tax_rate_ids_at_priority( 5 ) );
+	}
+
+	/**
+	 * Switching the locale reloads every text domain, so a lookup in the site's
+	 * language does not switch at all, and one in another language switches once,
+	 * however many names it builds.
+	 */
+	public function test_rate_names_switch_the_locale_only_once_and_only_when_needed() {
+		$this->reset_tax_rate_tables();
+		$this->forget_rate_name_words();
+
+		$switches = 0;
+		add_action(
+			'switch_locale',
+			function () use ( &$switches ) {
+				++$switches;
+			}
+		);
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$this->assertSame( 0, $switches, 'A lookup in the site language switched the locale.' );
+
+		// A new request.
+		$this->forget_rate_name_words();
+		$this->as_german_admin(
+			function () use ( $integration ) {
+				$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+				$this->lookup_michigan_taxes( $integration, '48226', 'Detroit' );
+				$this->assertFalse( is_locale_switched(), 'The locale was left switched.' );
+			}
+		);
+		$this->assertSame( 1, $switches );
 	}
 
 	/**

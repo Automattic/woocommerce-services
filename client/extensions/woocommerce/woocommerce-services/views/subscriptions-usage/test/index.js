@@ -32,9 +32,9 @@ const Wrapper = ({children}) => (
 
 const subscriptions = [
 	{
-		product_key:"W00-bfd64110-4ff9-b179-dca3903f62b0",
+		product_key:"W00-00000000-0000-0000-000000000001",
 		product_keys_all:
-			["W00-bfd64110-4ff9-b179-dca3903f62b0"],
+			["W00-00000000-0000-0000-000000000001"],
 		product_id:1770503,
 		product_name:"DHL Express rates",
 		product_url:"https:\/\/woocommerce.com\/products\/DHL-subscriptions\/",
@@ -63,9 +63,9 @@ const subscriptions = [
 		is_active: true,
 	},
 	{
-		product_key:"W00-bfd64110-4ff9-b179-dca3903f62b1",
+		product_key:"W00-00000000-0000-0000-000000000002",
 		product_keys_all:
-			["W00-bfd64110-4ff9-b179-dca3903f62b1"],
+			["W00-00000000-0000-0000-000000000002"],
 		product_id:1770504,
 		product_name:"UPS rates",
 		product_url:"https:\/\/woocommerce.com\/products\/UPS-subscriptions\/",
@@ -151,7 +151,7 @@ describe( 'Subscriptions Usage', () => {
 			// Click the Activate button
 			upsLabelsListItem.find('button').simulate('click');
 		} );
-		expect(apiPostSpy).toHaveBeenCalledWith(1234, 'connect/subscription/W00-bfd64110-4ff9-b179-dca3903f62b1/activate');
+		expect(apiPostSpy).toHaveBeenCalledWith(1234, 'connect/subscription/W00-00000000-0000-0000-000000000002/activate');
 	});
 
 } );
