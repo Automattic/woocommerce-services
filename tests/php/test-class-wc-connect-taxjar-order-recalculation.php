@@ -849,6 +849,344 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Add a $10 fee to the fixture order over REST.
+	 *
+	 * @param int    $order_id   Order id.
+	 * @param string $tax_status Fee tax status.
+	 * @return array{order: WC_Order, fee: int}
+	 */
+	private function add_fee( $order_id, $tax_status ) {
+		$order = $this->rest_update(
+			$order_id,
+			array(
+				'fee_lines' => array(
+					array(
+						'name'       => 'Service',
+						'total'      => '10.00',
+						'tax_status' => $tax_status,
+					),
+				),
+			)
+		);
+
+		$fees = $order->get_fees();
+
+		return array(
+			'order' => $order,
+			'fee'   => reset( $fees )->get_id(),
+		);
+	}
+
+	/**
+	 * Whether one of the order's tax notes says an item was left untaxed.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return bool
+	 */
+	private function has_untaxed_note( WC_Order $order ) {
+		return (bool) preg_grep( '/No tax was added/', $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * Move a fixture item's product to another tax class in the catalog, as a merchant
+	 * editing the product after the sale does.
+	 *
+	 * @param WC_Order $order     Order.
+	 * @param int      $item_id   Item id.
+	 * @param string   $tax_class New tax class of the product.
+	 * @return WC_Product
+	 */
+	private function move_product_to_class( WC_Order $order, $item_id, $tax_class ) {
+		$product = wc_get_product( $order->get_item( $item_id )->get_product_id() );
+		$product->set_tax_class( $tax_class );
+		$product->save();
+
+		return $product;
+	}
+
+	/**
+	 * @testdox A fee made not taxable loses its tax even when its amount stays the same.
+	 */
+	public function test_fee_tax_status_change_alone_moves_tax() {
+		$fixture = $this->create_placed_order();
+		$added   = $this->add_fee( $fixture['order']->get_id(), 'taxable' );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $added['order'], $added['fee'] ), 0.001, 'the fee starts taxed' );
+
+		$order = $this->rest_update(
+			$added['order']->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'         => $added['fee'],
+						'tax_status' => 'none',
+					),
+				),
+			)
+		);
+
+		// 30 + 10 fee + 5 shipping + 1.80 + 0.30.
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $added['fee'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 47.10 );
+	}
+
+	/**
+	 * @testdox A fee made taxable is taxed at the rate of the order's items in its tax class.
+	 */
+	public function test_fee_made_taxable_uses_matching_class_rate() {
+		$fixture = $this->create_placed_order();
+		$added   = $this->add_fee( $fixture['order']->get_id(), 'none' );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $added['order'], $added['fee'] ), 0.001, 'the fee starts untaxed' );
+
+		$order = $this->rest_update(
+			$added['order']->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'         => $added['fee'],
+						'tax_status' => 'taxable',
+					),
+				),
+			)
+		);
+
+		// 6% of $10; 30 + 10 + 5 + 2.40 + 0.30.
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $added['fee'] ), 0.001 );
+		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+	}
+
+	/**
+	 * @testdox An item moved to a tax class the order has no rate for loses its tax, with a note.
+	 */
+	public function test_item_tax_class_change_alone_moves_tax() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'        => $fixture['a'],
+						'tax_class' => 'reduced-rate',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+		// A untaxed, B 6% of $20; 30 + 5 + 1.20 + 0.30.
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['b'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+		$this->assertTrue( $this->has_untaxed_note( $order ), 'a note explains the untaxed item' );
+	}
+
+	/**
+	 * @testdox A tax class sent for the line counts even when the product now has the same class.
+	 */
+	public function test_tax_class_sent_for_line_counts_when_product_has_it() {
+		$fixture = $this->create_placed_order();
+		$this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'        => $fixture['a'],
+						'tax_class' => 'reduced-rate',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+		$this->assertTrue( $this->has_untaxed_note( $order ) );
+	}
+
+	/**
+	 * @testdox On an order that can't be edited, re-sending product_id for a line whose product changed tax class keeps the line's class and tax.
+	 */
+	public function test_resent_product_id_keeps_class_and_tax_on_locked_order() {
+		$fixture = $this->create_placed_order();
+		$product = $this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'         => $fixture['a'],
+						'product_id' => $product->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$this->assertSame( '', $order->get_item( $fixture['a'] )->get_tax_class(), 'The line keeps the class it was sold in' );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox On an order that can still be edited, re-sending product_id for a line whose product changed tax class taxes the line by its new class.
+	 */
+	public function test_resent_product_id_moves_tax_to_product_class_on_editable_order() {
+		$fixture = $this->create_placed_order();
+		$fixture['order']->set_status( 'on-hold' );
+		$fixture['order']->save();
+		$product = $this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'         => $fixture['a'],
+						'product_id' => $product->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		// The order has no Reduced rate, so the line is untaxed and the note says so.
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+		$this->assertTrue( $this->has_untaxed_note( $order ) );
+	}
+
+	/**
+	 * @testdox On an order that can't be edited, a line whose saved tax class was deleted keeps its tax on a re-send.
+	 */
+	public function test_resent_product_id_keeps_tax_when_saved_class_was_deleted() {
+		$fixture = $this->create_placed_order();
+		WC_Tax::create_tax_class( 'Gift wrap', 'gift-wrap' );
+		$item = $fixture['order']->get_item( $fixture['a'] );
+		$item->set_tax_class( 'gift-wrap' );
+		$taxes = array(
+			'total'    => array( $this->rate_id => '0.6' ),
+			'subtotal' => array( $this->rate_id => '0.6' ),
+		);
+		$this->place_item_as( $item, '10', $taxes, '10' );
+		WC_Tax::delete_tax_class_by( 'slug', 'gift-wrap' );
+		$product = $this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'         => $fixture['a'],
+						'product_id' => $product->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		// WooCommerce reads a deleted class back as Standard, so that is the class kept.
+		$this->assertSame( '', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox A line switched to a product in another tax class is taxed for that class.
+	 */
+	public function test_line_switched_to_product_in_other_class_moves_tax() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'         => $fixture['a'],
+						'product_id' => $this->create_product( '10', 'reduced-rate' )->get_id(),
+					),
+				),
+			)
+		);
+
+		// The line keeps its $10; the order has no Reduced rate, so it is untaxed.
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+		$this->assertTrue( $this->has_untaxed_note( $order ) );
+	}
+
+	/**
+	 * @testdox Items moved out of a tax class leave their rate to a new item in that class.
+	 */
+	public function test_reclassed_items_leave_their_rate_to_their_old_class() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'        => $fixture['a'],
+						'tax_class' => 'reduced-rate',
+					),
+					array(
+						'id'        => $fixture['b'],
+						'tax_class' => 'reduced-rate',
+					),
+					array(
+						'product_id' => $this->create_product( '30' )->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$c_id = $this->other_line_item( $order, array( $fixture['a'], $fixture['b'] ) );
+		// A and B untaxed; C 6% of $30. 10 + 20 + 30 + 5 + 1.80 + 0.30.
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['b'] ), 0.001 );
+		$this->assertEqualsWithDelta( 1.80, $this->item_tax( $order, $c_id ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 67.10 );
+	}
+
+	/**
+	 * @testdox A tax class changed on the item in code, then calculate_totals(), moves the tax the same way.
+	 */
+	public function test_programmatic_tax_class_change_moves_tax() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$order->get_item( $fixture['a'], false )->set_tax_class( 'reduced-rate' );
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+	}
+
+	/**
+	 * @testdox On an order that can't be edited, code that gives a line its product's new tax class keeps the order's tax.
+	 */
+	public function test_programmatic_product_reset_keeps_tax_on_locked_order() {
+		$fixture = $this->create_placed_order();
+		$product = $this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		// Not a REST request, so the class is not put back before the recalculation.
+		$order->get_item( $fixture['a'], false )->set_product( $product );
+		$order->calculate_totals( true );
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+	}
+
+	/**
 	 * @testdox A new product with no rate on the order for its tax class is left untaxed, with a note.
 	 */
 	public function test_new_item_without_matching_rate_is_untaxed_with_note() {
