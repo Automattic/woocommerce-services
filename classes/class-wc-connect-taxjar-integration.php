@@ -3943,12 +3943,8 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Remember that a REST request set an existing line item's tax class.
-	 *
-	 * When a request sends product_id for a line, WooCommerce calls set_product(), which
-	 * gives the line its product's current tax class. That class is not a change made to
-	 * the order: see order_item_tax_class_follows_product(). A class the request sends
-	 * is, even when it matches the product's.
+	 * Remember that a REST request sent a line's tax class, so it counts as a change
+	 * even when it matches the product's. See order_item_tax_class_follows_product().
 	 *
 	 * @internal Hooked to woocommerce_rest_set_order_item.
 	 *
@@ -3967,16 +3963,8 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Put back a line's saved tax class when a REST request resets it on an order that
-	 * can no longer be edited.
-	 *
-	 * A request that sends product_id, variation_id or sku for an existing line makes
-	 * WooCommerce call set_product(), which gives the line its product's current tax
-	 * class. The WooCommerce apps send product_id for every line on every update. On a
-	 * locked order the amounts must stay in line with what was paid, so the line keeps
-	 * the class it was sold in. A class the request sends, or one that came with another
-	 * product, is left as set. To use the product's new class, the line is removed and
-	 * the product added again. Orders that can be edited keep WooCommerce's reset.
+	 * Put back a line's saved tax class when a REST request resets it to its product's
+	 * on an order that can't be edited. See order_item_tax_class_follows_product().
 	 *
 	 * @internal Hooked to woocommerce_rest_set_order_item.
 	 *
@@ -4529,14 +4517,12 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Whether a line item's new tax class only follows its product.
 	 *
-	 * WooCommerce's set_product() gives a line its product's current tax class, and the
-	 * REST API calls it whenever a request sends product_id for an existing line. While
-	 * the order can be edited, the line follows its product, so that counts as a change.
-	 * Once it can't, the order was taxed in the class the line was sold in, and editing
-	 * the product after the sale must not move the order's tax. REST requests have the
-	 * class put back already (keep_saved_tax_class_on_locked_order()); this covers other
-	 * callers. A class the request set on the line, one that came with another product,
-	 * or one the product does not have, does count.
+	 * set_product() gives a line its product's current class, and the REST API calls it
+	 * whenever a request sends product_id, as the WooCommerce apps do on every update.
+	 * On an editable order the line follows its product, so that counts as a change. On
+	 * a locked one it doesn't, unless the request set the class, the line moved to another
+	 * product, or the product doesn't have that class. REST requests have the class put
+	 * back already (keep_saved_tax_class_on_locked_order()); this covers other callers.
 	 *
 	 * @param WC_Order_Item $item   A saved item whose tax class changed.
 	 * @param array         $before What get_order_item_tax_base() gave for it before the change.
