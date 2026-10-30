@@ -1030,7 +1030,6 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertSame( array(), $this->tax_notes( $order ) );
 	}
 
-
 	/**
 	 * @testdox On an order that can still be edited, re-sending product_id for a line whose product changed tax class taxes the line by its new class.
 	 */
