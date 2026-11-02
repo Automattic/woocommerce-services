@@ -61,6 +61,13 @@ class WC_Connect_TaxJar_Integration {
 	private $error_cache_time;
 
 	/**
+	 * How long a failed cart lookup is remembered, in seconds.
+	 *
+	 * @var int
+	 */
+	private $failed_lookup_cache_time;
+
+	/**
 	 * @var array
 	 */
 	private $response_rate_ids;
@@ -240,6 +247,13 @@ class WC_Connect_TaxJar_Integration {
 	private $failed_lookups_in_request = array();
 
 	/**
+	 * Whether the lookups running now are for a cart, so a shopper is waiting on them.
+	 *
+	 * @var bool
+	 */
+	private $is_cart_lookup = false;
+
+	/**
 	 * Words in rate row names, translated into the site's language, by site locale.
 	 *
 	 * Filled only by a request that had to switch to the site's language to build them.
@@ -264,6 +278,14 @@ class WC_Connect_TaxJar_Integration {
 	 * cannot be sent to TaxJar, as opposed to TaxJar failing to answer.
 	 */
 	private const ORDER_TAX_LOOKUP_BAD_ADDRESS = 'bad_address';
+
+	/**
+	 * Time limit in seconds for a cart lookup. A shopper is waiting on it, and each
+	 * checkout step can wait this long. Order lookups keep the API client's limit.
+	 *
+	 * @var int
+	 */
+	private const CART_LOOKUP_TIMEOUT = 10;
 
 	/**
 	 * Returned by lookup_order_taxes() when it failed because the store's own address
@@ -310,6 +332,9 @@ class WC_Connect_TaxJar_Integration {
 
 		// Cache error response for 5 minutes.
 		$this->error_cache_time = MINUTE_IN_SECONDS * 5;
+
+		// Remember a failed cart lookup for 1 minute.
+		$this->failed_lookup_cache_time = MINUTE_IN_SECONDS;
 
 		$this->is_itemized_tax_display = ( 'itemized' === get_option( 'woocommerce_tax_total_display' ) );
 	}
@@ -943,7 +968,13 @@ class WC_Connect_TaxJar_Integration {
 
 		// Group items by tax location and calculate taxes.
 		$items_by_location = $this->group_items_by_location( $line_items, $this->is_local_pickup() );
-		$taxes             = $this->calculate_taxes_by_location( $items_by_location, $shipping_amount );
+
+		$this->is_cart_lookup = true;
+		try {
+			$taxes = $this->calculate_taxes_by_location( $items_by_location, $shipping_amount );
+		} finally {
+			$this->is_cart_lookup = false;
+		}
 		// Return if taxes could not be calculated.
 		if ( false === $taxes ) {
 			return;
@@ -3417,7 +3448,13 @@ class WC_Connect_TaxJar_Integration {
 				return $this->failed_lookups_in_request[ $cache_key ];
 			}
 
-			$response      = $this->smartcalcs_request( $json );
+			if ( $this->is_failed_lookup_remembered( $cache_key ) ) {
+				$this->_log( 'Not requesting again: this lookup failed moments ago.' );
+
+				return null;
+			}
+
+			$response      = $this->send_lookup( $json );
 			$response_code = wp_remote_retrieve_response_code( $response );
 			$body          = json_decode( wp_remote_retrieve_body( $response ) );
 			if ( 'CA' !== $from_state ) {
@@ -3456,6 +3493,10 @@ class WC_Connect_TaxJar_Integration {
 				// stopping a request costs no round trip, and re-running it is what re-adds
 				// the shopper's notice after clear_notices() above.
 				$this->failed_lookups_in_request[ $cache_key ] = $response;
+
+				if ( $this->is_cart_lookup ) {
+					set_transient( 'failed_' . $cache_key, true, $this->failed_lookup_cache_time );
+				}
 			}
 		}
 
@@ -3466,6 +3507,60 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $response;
+	}
+
+	/**
+	 * Whether a cart lookup failed moments ago and should not be sent again yet.
+	 *
+	 * Each checkout step is its own request, so without this every step waits for the
+	 * same failing server. Placing the order always asks: its total is what the shopper
+	 * pays, and the server may be back. Classic and block checkout each fire their action
+	 * below before they total the cart for the order. Order lookups always ask too,
+	 * because no shopper is waiting on them.
+	 *
+	 * @param string $cache_key Cache key of the lookup.
+	 * @return bool
+	 */
+	private function is_failed_lookup_remembered( $cache_key ) {
+		if ( ! $this->is_cart_lookup ) {
+			return false;
+		}
+
+		if ( did_action( 'woocommerce_before_checkout_process' ) || did_action( 'woocommerce_store_api_checkout_update_customer_from_request' ) ) {
+			return false;
+		}
+
+		return false !== get_transient( 'failed_' . $cache_key );
+	}
+
+	/**
+	 * Send a lookup, with a short time limit when a shopper is waiting on it.
+	 *
+	 * @param string $json Request body.
+	 * @return mixed What smartcalcs_request() returned.
+	 */
+	private function send_lookup( $json ) {
+		if ( ! $this->is_cart_lookup ) {
+			return $this->smartcalcs_request( $json );
+		}
+
+		$lookup_path   = trailingslashit( self::PROXY_PATH ) . 'taxes';
+		$limit_timeout = static function ( $args, $url ) use ( $lookup_path ) {
+			if ( is_array( $args ) && is_string( $url ) && false !== strpos( $url, $lookup_path ) ) {
+				$args['timeout'] = self::CART_LOOKUP_TIMEOUT;
+			}
+
+			return $args;
+		};
+
+		// proxy_request() always sets its own long time limit; shorten it for this one call only.
+		add_filter( 'http_request_args', $limit_timeout, PHP_INT_MAX, 2 );
+
+		try {
+			return $this->smartcalcs_request( $json );
+		} finally {
+			remove_filter( 'http_request_args', $limit_timeout, PHP_INT_MAX );
+		}
 	}
 
 	/**
