@@ -905,6 +905,48 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Put a fixture line on a new variation that is in its own tax class, keeping the
+	 * line's $10 and $0.60 tax. The variable product is in the Standard class.
+	 *
+	 * @param WC_Order $order             Order.
+	 * @param int      $item_id           Item id.
+	 * @param string   $variation_class   Tax class of the variation the line is on.
+	 * @param string   $other_class       Tax class of a second variation of the same product.
+	 * @return array{parent: WC_Product, other: WC_Product}
+	 */
+	private function place_line_on_variation( WC_Order $order, $item_id, $variation_class, $other_class = '' ) {
+		$parent = new WC_Product_Variable();
+		$parent->set_name( 'Variable product' );
+		$parent->set_tax_class( '' );
+		$parent->save();
+
+		$variations = array();
+		foreach ( array( $variation_class, $other_class ) as $tax_class ) {
+			$variation = new WC_Product_Variation();
+			$variation->set_parent_id( $parent->get_id() );
+			$variation->set_regular_price( '10' );
+			$variation->set_tax_class( $tax_class );
+			$variation->save();
+			$variations[] = $variation;
+		}
+		// The variations go first, so deleting the parent finds nothing left to delete.
+		array_push( $this->products, $variations[0], $variations[1], $parent );
+
+		$item = $order->get_item( $item_id );
+		$item->set_product( $variations[0] );
+		$taxes = array(
+			'total'    => array( $this->rate_id => '0.6' ),
+			'subtotal' => array( $this->rate_id => '0.6' ),
+		);
+		$this->place_item_as( $item, '10', $taxes, '10' );
+
+		return array(
+			'parent' => $parent,
+			'other'  => $variations[1],
+		);
+	}
+
+	/**
 	 * @testdox A fee made not taxable loses its tax even when its amount stays the same.
 	 */
 	public function test_fee_tax_status_change_alone_moves_tax() {
@@ -1114,6 +1156,174 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		);
 
 		// The line keeps its $10; the order has no Reduced rate, so it is untaxed.
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+		$this->assertTrue( $this->has_untaxed_note( $order ) );
+	}
+
+	/**
+	 * Both order states the switch can happen in.
+	 *
+	 * @return array
+	 */
+	public function provide_locked_and_editable_status() {
+		return array(
+			'locked'   => array( 'processing' ),
+			'editable' => array( 'on-hold' ),
+		);
+	}
+
+	/**
+	 * @testdox A line switched to another variation of its product in another tax class is taxed for that class.
+	 * @dataProvider provide_locked_and_editable_status
+	 *
+	 * @param string $status Order status.
+	 */
+	public function test_line_switched_to_other_variation_in_other_class_moves_tax( $status ) {
+		$fixture = $this->create_placed_order();
+		$fixture['order']->set_status( $status );
+		$fixture['order']->save();
+		$products = $this->place_line_on_variation( $fixture['order'], $fixture['a'], '', 'reduced-rate' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'           => $fixture['a'],
+						'product_id'   => $products['parent']->get_id(),
+						'variation_id' => $products['other']->get_id(),
+						'quantity'     => 1,
+					),
+				),
+			)
+		);
+
+		// The line keeps its $10; the order has no Reduced rate, so it is untaxed.
+		$this->assertSame( $products['other']->get_id(), $order->get_item( $fixture['a'] )->get_variation_id() );
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+		$this->assertTrue( $this->has_untaxed_note( $order ) );
+	}
+
+	/**
+	 * @testdox On an order that can't be edited, sending only the parent's product_id for a variation line keeps the variation's class and the line's tax.
+	 */
+	public function test_parent_product_id_keeps_variation_class_and_tax_on_locked_order() {
+		$fixture  = $this->create_placed_order();
+		$products = $this->place_line_on_variation( $fixture['order'], $fixture['a'], 'reduced-rate' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'         => $fixture['a'],
+						'product_id' => $products['parent']->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox On an order that can still be edited, sending only the parent's product_id for a variation line gives it the parent's class.
+	 */
+	public function test_parent_product_id_gives_variation_line_parent_class_on_editable_order() {
+		$fixture = $this->create_placed_order();
+		$fixture['order']->set_status( 'on-hold' );
+		$fixture['order']->save();
+		$products = $this->place_line_on_variation( $fixture['order'], $fixture['a'], 'reduced-rate' );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'         => $fixture['a'],
+						'product_id' => $products['parent']->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		// WooCommerce gives the line the parent's Standard class, and the order has a
+		// Standard rate from line B: 6% of $10.
+		$this->assertSame( '', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+	}
+
+	/**
+	 * @testdox On an order that can't be edited, a class another callback sets on the line is kept and moves the tax.
+	 */
+	public function test_class_set_by_other_callback_stays_on_locked_order() {
+		$fixture = $this->create_placed_order();
+
+		add_action(
+			'woocommerce_rest_set_order_item',
+			static function ( $item ) {
+				$item->set_tax_class( 'reduced-rate' );
+			},
+			5
+		);
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 1,
+					),
+				),
+			)
+		);
+
+		// Not the product's class, so not a reset. The order has no Reduced rate.
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+		$this->assertTrue( $this->has_untaxed_note( $order ) );
+	}
+
+	/**
+	 * @testdox On an order that can't be edited, a class another callback sets on a variation line is kept when it's neither the variation's nor the parent's.
+	 */
+	public function test_class_set_by_other_callback_stays_on_locked_variation_line() {
+		$fixture = $this->create_placed_order();
+		$this->place_line_on_variation( $fixture['order'], $fixture['a'], 'reduced-rate' );
+
+		add_action(
+			'woocommerce_rest_set_order_item',
+			static function ( $item ) {
+				$item->set_tax_class( 'zero-rate' );
+			},
+			5
+		);
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 1,
+					),
+				),
+			)
+		);
+
+		// The variation is Reduced rate and its parent Standard. The order has no Zero rate.
+		$this->assertSame( 'zero-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
 		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
 		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
 		$this->assertTrue( $this->has_untaxed_note( $order ) );

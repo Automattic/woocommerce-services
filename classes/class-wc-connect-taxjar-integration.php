@@ -3987,6 +3987,10 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		if ( ! $this->order_item_has_tax_class_set_product_gives( $item ) ) {
+			return;
+		}
+
 		$order = $item->get_order();
 		if ( ! $order instanceof WC_Order || $order->is_editable() ) {
 			return;
@@ -4538,9 +4542,36 @@ class WC_Connect_TaxJar_Integration {
 			return false;
 		}
 
-		$product = $item->get_product();
+		return $this->order_item_has_tax_class_set_product_gives( $item );
+	}
 
-		return $product instanceof WC_Product && $product->get_tax_class() === $item->get_tax_class();
+	/**
+	 * Whether a line item's tax class is the one set_product() gives it.
+	 *
+	 * That's its product's class, or the parent's when a request sends only the parent's
+	 * product_id for a variation line: WooCommerce sets the parent's class, then puts the
+	 * variation back. Any other class was set on purpose, not reset.
+	 *
+	 * @param WC_Order_Item_Product $item A line item.
+	 * @return bool
+	 */
+	private function order_item_has_tax_class_set_product_gives( WC_Order_Item_Product $item ) {
+		$product = $item->get_product();
+		if ( ! $product instanceof WC_Product ) {
+			return false;
+		}
+
+		if ( $product->get_tax_class() === $item->get_tax_class() ) {
+			return true;
+		}
+
+		if ( ! $item->get_variation_id() ) {
+			return false;
+		}
+
+		$parent = wc_get_product( $item->get_product_id() );
+
+		return $parent instanceof WC_Product && $parent->get_tax_class() === $item->get_tax_class();
 	}
 
 	/**
@@ -4603,7 +4634,7 @@ class WC_Connect_TaxJar_Integration {
 	 *   @type float    $old_tax Tax before the order changed.
 	 *   @type float    $new_tax Tax after.
 	 *   @type bool     $moved   Whether the tax changed.
-	 *   @type string[] $untaxed Names of new items left untaxed for want of a rate.
+	 *   @type string[] $untaxed Names of items left untaxed for want of a rate: new ones, and ones moved to another class or made taxable.
 	 * }
 	 */
 	private function reapply_order_tax_rates( $order, $snapshot ) {
