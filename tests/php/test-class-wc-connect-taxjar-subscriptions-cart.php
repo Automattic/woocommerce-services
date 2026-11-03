@@ -272,6 +272,90 @@ class WP_Test_WC_Connect_TaxJar_Subscriptions_Cart extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Carts TaxJar answers as exempt, and the tax status their product should end up with.
+	 *
+	 * @return array
+	 */
+	public static function provide_carts_answered_as_exempt() {
+		return array(
+			'initial cart'   => array( false, 'none' ),
+			'recurring cart' => array( true, 'taxable' ),
+		);
+	}
+
+	/**
+	 * Only the initial cart marks a product TaxJar answered as exempt.
+	 *
+	 * The mark sends the line as exempt on the next lookup. A recurring cart shares its
+	 * product objects with the initial cart, so its mark would also send the sign-up line
+	 * as exempt.
+	 *
+	 * @dataProvider provide_carts_answered_as_exempt
+	 *
+	 * @param bool   $is_recurring        Whether the cart is a recurring cart.
+	 * @param string $expected_tax_status Tax status the product should have afterwards.
+	 */
+	public function test_only_the_initial_cart_marks_an_exempt_product_untaxed( $is_recurring, $expected_tax_status ) {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		$this->integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'smartcalcs_cache_request', 'get_store_settings', '_log' ) )
+			->getMock();
+		$this->integration->method( 'get_store_settings' )->willReturn(
+			array(
+				'country'  => 'US',
+				'state'    => 'CO',
+				'postcode' => '80202',
+				'city'     => 'Denver',
+				'street'   => '1 Main St',
+			)
+		);
+		// TaxJar answers every line as exempt.
+		$this->integration->method( 'smartcalcs_cache_request' )->willReturnCallback(
+			function ( $json ) {
+				$body  = json_decode( $json, true );
+				$lines = array();
+				foreach ( $body['line_items'] ?? array() as $line_item ) {
+					$lines[] = array(
+						'id'                   => $line_item['id'],
+						'combined_tax_rate'    => 0.0,
+						'state_sales_tax_rate' => 0.0,
+					);
+				}
+
+				return array(
+					'body' => wp_json_encode(
+						array(
+							'tax' => array(
+								'rate'            => 0.029,
+								'freight_taxable' => false,
+								'has_nexus'       => true,
+								'jurisdictions'   => array(
+									'county' => 'DENVER',
+									'city'   => 'DENVER',
+								),
+								'breakdown'       => array( 'line_items' => $lines ),
+							),
+						)
+					),
+				);
+			}
+		);
+
+		WC()->customer->set_shipping_location( 'US', 'CO', '80202', 'Denver' );
+		add_filter( 'woocommerce_is_checkout', '__return_true' );
+		WC_Subscriptions_Synchroniser::$deferred_first_payment = false;
+
+		$cart = $is_recurring ? $this->recurring_cart() : WC()->cart;
+		$this->integration->calculate_totals( $cart );
+
+		$cart_items = $cart->get_cart();
+		$cart_item  = reset( $cart_items );
+		$this->assertSame( $expected_tax_status, $cart_item['data']->get_tax_status() );
+	}
+
+	/**
 	 * The initial cart is still sent at the first payment, $0 for a deferred one, and
 	 * the free trial is off again afterwards, as it was before.
 	 */
