@@ -533,10 +533,11 @@ if ( ! class_exists( 'WC_Connect_Shipping_Label' ) ) {
 		 * @return bool True if shipping label is enabled from the settings.
 		 */
 		public function is_shipping_label_enabled() {
-			$account_settings = $this->account_settings->get();
+			// Only the stored setting is needed, so this asks the server for nothing. It runs for every order opened.
+			$account_settings = $this->settings_store->get_account_settings();
 
-			if ( isset( $account_settings['formData']['enabled'] ) && is_bool( $account_settings['formData']['enabled'] ) ) {
-				return $account_settings['formData']['enabled'];
+			if ( isset( $account_settings['enabled'] ) && is_bool( $account_settings['enabled'] ) ) {
+				return $account_settings['enabled'];
 			}
 
 			return true;

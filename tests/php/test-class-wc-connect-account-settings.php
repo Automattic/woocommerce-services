@@ -15,6 +15,9 @@ class WP_Test_WC_Connect_Account_Settings extends WC_REST_Unit_Test_Case {
 	/** @var WC_Connect_Account_Settings */
 	protected $account_settings;
 
+	/** @var WC_Connect_Service_Settings_Store */
+	protected $settings_store;
+
 	/** @var array */
 	protected $card = array(
 		'payment_method_id' => 7,
@@ -126,6 +129,7 @@ class WP_Test_WC_Connect_Account_Settings extends WC_REST_Unit_Test_Case {
 			}
 		};
 
+		$this->settings_store   = $settings_store;
 		$this->account_settings = new WC_Connect_Account_Settings( $settings_store, $payment_methods_store );
 
 		$controller = new WC_REST_Connect_Account_Settings_Controller(
@@ -221,5 +225,144 @@ class WP_Test_WC_Connect_Account_Settings extends WC_REST_Unit_Test_Case {
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertStringNotContainsString( self::OWNER_EMAIL, wp_json_encode( $response->get_data() ) );
+	}
+
+	/**
+	 * A client that counts how often it's asked for payment methods, and the store's card as its answer.
+	 *
+	 * @return WC_Connect_API_Client_Live
+	 */
+	private function get_counting_client() {
+		$client = new class() extends WC_Connect_API_Client_Live {
+			/** @var int */
+			public $asked = 0;
+
+			/** @var object|WP_Error */
+			public $answer;
+
+			/** No dependencies needed. */
+			public function __construct() {}
+
+			/** @return object|WP_Error */
+			public function get_payment_methods() {
+				++$this->asked;
+
+				return $this->answer;
+			}
+		};
+
+		$client->answer = (object) array(
+			'payment_methods'        => array( (object) $this->card ),
+			'add_payment_method_url' => self::ADD_CARD_URL,
+		);
+
+		return $client;
+	}
+
+	/**
+	 * A real store that asks the given client.
+	 *
+	 * @param WC_Connect_API_Client_Live $client The client to ask.
+	 * @return WC_Connect_Payment_Methods_Store
+	 */
+	private function get_store_asking( $client ) {
+		return new WC_Connect_Payment_Methods_Store( $this->settings_store, $client, $this->createMock( WC_Connect_Logger::class ) );
+	}
+
+	/**
+	 * @testdox Building account settings several times on one page asks for payment methods once, across every settings object sharing the store.
+	 */
+	public function test_one_page_asks_for_payment_methods_once() {
+		wp_set_current_user( $this->owner->ID );
+		$client = $this->get_counting_client();
+		$store  = $this->get_store_asking( $client );
+
+		// One label screen builds these from two different objects, more than once each.
+		$settings_a = new WC_Connect_Account_Settings( $this->settings_store, $store );
+		$settings_b = new WC_Connect_Account_Settings( $this->settings_store, $store );
+		$results    = array( $settings_a->get(), $settings_b->get(), $settings_a->get(), $settings_b->get() );
+
+		$this->assertSame( 1, $client->asked );
+		foreach ( $results as $result ) {
+			$this->assertEquals( array( (object) $this->card ), $result['formMeta']['payment_methods'] );
+			$this->assertFalse( $result['formMeta']['warnings']['payment_methods'] );
+		}
+	}
+
+	/**
+	 * @testdox When the server is down, one page asks once, warns every time and keeps the saved cards.
+	 */
+	public function test_failed_fetch_is_asked_once_and_keeps_saved_cards() {
+		wp_set_current_user( $this->owner->ID );
+		WC_Connect_Options::update_option( 'payment_methods', array( (object) $this->card ) );
+
+		$client         = $this->get_counting_client();
+		$client->answer = new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' );
+		$settings       = new WC_Connect_Account_Settings( $this->settings_store, $this->get_store_asking( $client ) );
+		$results        = array( $settings->get(), $settings->get() );
+
+		$this->assertSame( 1, $client->asked );
+		foreach ( $results as $result ) {
+			$this->assertNotFalse( $result['formMeta']['warnings']['payment_methods'] );
+			$this->assertEquals( array( (object) $this->card ), $result['formMeta']['payment_methods'] );
+		}
+	}
+
+	/**
+	 * @testdox The next page request asks again, so a card added elsewhere or a recovered server shows up.
+	 */
+	public function test_next_request_asks_for_payment_methods_again() {
+		wp_set_current_user( $this->owner->ID );
+		$client         = $this->get_counting_client();
+		$good_answer    = $client->answer;
+		$client->answer = new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' );
+
+		$first_page = new WC_Connect_Account_Settings( $this->settings_store, $this->get_store_asking( $client ) );
+		$this->assertNotFalse( $first_page->get()['formMeta']['warnings']['payment_methods'] );
+
+		$client->answer = $good_answer;
+		$next_page      = new WC_Connect_Account_Settings( $this->settings_store, $this->get_store_asking( $client ) );
+
+		$this->assertFalse( $next_page->get()['formMeta']['warnings']['payment_methods'] );
+		$this->assertSame( 2, $client->asked );
+	}
+
+	/**
+	 * @testdox fetch_payment_methods_from_connect_server() itself always asks the server.
+	 */
+	public function test_direct_fetch_always_asks() {
+		$client = $this->get_counting_client();
+		$store  = $this->get_store_asking( $client );
+
+		$this->assertTrue( $store->fetch_payment_methods_from_connect_server() );
+		$this->assertTrue( $store->fetch_payment_methods_from_connect_server() );
+
+		$this->assertSame( 2, $client->asked );
+	}
+
+	/**
+	 * @testdox A store subclass's fetch_payment_methods_from_connect_server() still runs, and its result decides the warning.
+	 */
+	public function test_overridden_fetch_still_runs() {
+		wp_set_current_user( $this->owner->ID );
+		$store = new class() extends WC_Connect_Payment_Methods_Store {
+			/** @var int */
+			public $calls = 0;
+
+			/** No dependencies needed. */
+			public function __construct() {}
+
+			/** @return bool */
+			public function fetch_payment_methods_from_connect_server() {
+				++$this->calls;
+
+				return false;
+			}
+		};
+
+		$settings = new WC_Connect_Account_Settings( $this->settings_store, $store );
+
+		$this->assertNotFalse( $settings->get()['formMeta']['warnings']['payment_methods'] );
+		$this->assertSame( 1, $store->calls );
 	}
 }
