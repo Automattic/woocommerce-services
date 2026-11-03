@@ -70,6 +70,9 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
+= 3.7.6 - 2026-xx-xx =
+* Fix   - Stop an order from taking minutes to open when the tax service is slow or down, on stores that still load shipping labels. Opening an order now asks for saved credit cards once with a 10 second limit, and not at all if the order has no shipping label box.
+
 = 3.7.5 - 2026-11-03 =
 * Fix   - Stop taxing an item at another item's rate on orders that include a WooCommerce Subscriptions product, so the order charges the tax the checkout showed.
 * Fix   - When the tax service is down or slow, ask it once per page request instead of again each time the cart total updates, so checkout and phone order screens wait less during an outage.
