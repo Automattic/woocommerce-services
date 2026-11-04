@@ -3951,7 +3951,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @param WC_Order_Item $item   The item about to be saved.
 	 * @param mixed         $posted The item's data in the request.
 	 *
-	 * @since 3.7.5
+	 * @since 3.7.6
 	 */
 	public function remember_order_item_tax_class_requested( $item, $posted = null ) {
 		// The REST controllers set the class only when the request has one (isset()).
@@ -3971,7 +3971,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @param WC_Order_Item $item   The item about to be saved.
 	 * @param mixed         $posted The item's data in the request.
 	 *
-	 * @since 3.7.5
+	 * @since 3.7.6
 	 */
 	public function keep_saved_tax_class_on_locked_order( $item, $posted = null ) {
 		if ( ! $item instanceof WC_Order_Item_Product || ! $item->get_id() || ( is_array( $posted ) && isset( $posted['tax_class'] ) ) ) {
