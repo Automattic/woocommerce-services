@@ -803,6 +803,34 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox An address and tax class change on an order that can't be edited ask TaxJar, and the note doesn't say the tax was kept.
+	 */
+	public function test_address_and_class_change_on_locked_order_asks_taxjar_without_kept_note() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping'   => self::address( '80301', 'Boulder' ),
+				'line_items' => array(
+					array(
+						'id'        => $fixture['a'],
+						'tax_class' => 'reduced-rate',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests, 'one TaxJar request' );
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'with today\'s rates', $notes[0] );
+		$this->assertStringNotContainsString( 'can no longer be edited', $notes[0] );
+	}
+
+	/**
 	 * @testdox An address change on an order with refunded tax keeps its rates, so the refund still matches them.
 	 */
 	public function test_address_change_with_refunded_tax_keeps_rates() {
