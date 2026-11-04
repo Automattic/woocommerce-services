@@ -5230,10 +5230,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * A shipping answer without a component doesn't lower the row a line's answer stored in
-	 * it, because both share the Standard class's rows.
+	 * Shipping shares the Standard class's rows with the lines, and WooCommerce charges it
+	 * what the row holds. So the row ends on shipping's own answer, also when a line in the
+	 * same lookup answered higher.
 	 */
-	public function test_shipping_answer_leaves_the_rate_of_the_line_in_the_same_row() {
+	public function test_shipping_answer_is_what_the_row_holds_after_a_higher_line() {
 		$this->reset_tax_rate_tables();
 
 		$no_shipping_tax = array(
@@ -5253,10 +5254,16 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			);
 		};
 
-		$this->lookup_michigan_taxes( $this->michigan_integration( true, true, null, $no_shipping_tax, $line_tax ), '49841', 'Gwinn', 10 );
+		$integration = $this->michigan_integration( true, true, null, $no_shipping_tax, $line_tax );
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 10 );
 
 		$state_rows = $this->tax_rate_ids_at_priority( 4 );
-		$this->assertSame( '6.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'] );
+		$this->assertSame( '0.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'] );
+
+		// A second lookup in the request, as a recurring cart makes, ends the same way.
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 10 );
+
+		$this->assertSame( '0.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'], 'After a second lookup' );
 	}
 
 	/**

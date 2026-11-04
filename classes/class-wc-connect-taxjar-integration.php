@@ -2710,9 +2710,10 @@ class WC_Connect_TaxJar_Integration {
 				}
 				$rate_name = self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions );
 
+				// Its own answer, not get_rate_to_store(): WooCommerce charges shipping what this row holds.
 				$taxes['rate_ids']['shipping'][] = $this->create_or_update_tax_rate(
 					$location,
-					$this->get_rate_to_store( $location, '', $priority, round( $tax_rate * 100, 4 ) ),
+					round( $tax_rate * 100, 4 ),
 					'',
 					$taxes['freight_taxable'],
 					$priority,
@@ -2747,6 +2748,10 @@ class WC_Connect_TaxJar_Integration {
 	 * row is read by the tax lines of the order and of the subscription, and by a later
 	 * failed lookup. So within a request it keeps the highest rate answered, or a tax line
 	 * would show 0% next to the tax it carries.
+	 *
+	 * Only line items use this. Shipping is written after the lines of its lookup with its
+	 * own answer, so a lower answer for shipping lowers the Standard row again. WooCommerce
+	 * charges shipping the rate in that row, so it would otherwise pay the line's rate.
 	 *
 	 * @param array  $location  Address the row is for.
 	 * @param string $tax_class Tax class of the row.
