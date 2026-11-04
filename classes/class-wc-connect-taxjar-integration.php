@@ -115,6 +115,15 @@ class WC_Connect_TaxJar_Integration {
 	private $pre_recalculation_tax_snapshots = array();
 
 	/**
+	 * Taxes of orders that can't be edited as they were before a Recalculate request
+	 * saved their items, keyed by order id. That save rebuilds the tax lines from the
+	 * rate table, with their rounding, before the recalculation starts.
+	 *
+	 * @var array
+	 */
+	private $pre_save_tax_snapshots = array();
+
+	/**
 	 * Taxable amounts, tax class and tax status of order items as they were before an
 	 * in-request save changed them, keyed by item id. The REST API saves an edited item
 	 * before it recalculates the order, so this is the only place the old values are
@@ -1035,7 +1044,16 @@ class WC_Connect_TaxJar_Integration {
 	 * @return void
 	 */
 	public function calculate_backend_totals( $order_id ) {
-		$order      = wc_get_order( $order_id );
+		$order = wc_get_order( $order_id );
+
+		// The admin hides Recalculate on an order that can't be edited, but WooCommerce's
+		// handler doesn't check. A request from a page opened before the order was paid
+		// still gets here, and that order's tax is a record of what was charged.
+		if ( $order instanceof WC_Order && ! $order->is_editable() ) {
+			$this->pre_save_tax_snapshots[ (int) $order_id ] = $this->snapshot_order_taxes( $order );
+			return;
+		}
+
 		$address    = $this->fill_missing_backend_street( $this->get_backend_address(), $order );
 		$line_items = $this->get_backend_line_items( $order );
 		if ( method_exists( $order, 'get_shipping_total' ) ) {
@@ -3651,7 +3669,8 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		// Admin order edits recalculate over AJAX and are handled by calculate_backend_totals().
-		if ( wp_doing_ajax() ) {
+		// That skips an order that can't be edited, so its tax is preserved here instead.
+		if ( wp_doing_ajax() && $order->is_editable() ) {
 			return false;
 		}
 
@@ -3742,7 +3761,8 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$snapshot = $this->snapshot_order_taxes( $order );
+		$snapshot = $this->pre_save_tax_snapshots[ (int) $order->get_id() ] ?? $this->snapshot_order_taxes( $order );
+		unset( $this->pre_save_tax_snapshots[ (int) $order->get_id() ] );
 
 		// WC's own lookup in an earlier calculate_taxes() may have wiped the tax lines.
 		// The earlier snapshot then still holds what was charged, and its own decision

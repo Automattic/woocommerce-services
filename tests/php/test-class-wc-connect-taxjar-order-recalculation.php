@@ -2834,6 +2834,77 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Send the request the admin's Recalculate button sends, moving a line to Reduced rate.
+	 *
+	 * @param WC_Order $order   Order.
+	 * @param int      $item_id Line to move.
+	 * @return WC_Order The order read back.
+	 */
+	private function admin_recalculate_with_class_change( WC_Order $order, $item_id ) {
+		$post = array(
+			'order_id' => $order->get_id(),
+			// The admin form sends each line's amounts and tax back with it.
+			'items'    => http_build_query(
+				array(
+					'order_item_id'        => array( $item_id ),
+					'order_item_tax_class' => array( $item_id => 'reduced-rate' ),
+					'order_item_qty'       => array( $item_id => 1 ),
+					'line_subtotal'        => array( $item_id => '10' ),
+					'line_total'           => array( $item_id => '10' ),
+					'line_subtotal_tax'    => array( $item_id => array( $this->rate_id => '0.6' ) ),
+					'line_tax'             => array( $item_id => array( $this->rate_id => '0.6' ) ),
+				)
+			),
+			'country'  => 'US',
+			'state'    => 'CO',
+			'postcode' => '80202',
+			'city'     => 'Denver',
+		);
+
+		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Saved to restore after the simulated request.
+		$_POST      = $post;
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		try {
+			wc_get_container()->get( Automattic\WooCommerce\Internal\Orders\TaxesController::class )->calc_line_taxes( $post );
+		} finally {
+			$_POST = $saved_post;
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+		}
+
+		return wc_get_order( $order->get_id() );
+	}
+
+	/**
+	 * @testdox A Recalculate request for an order that can't be edited changes no tax, though the admin hides the button.
+	 */
+	public function test_admin_recalculate_request_keeps_tax_on_locked_order() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->admin_recalculate_with_class_change( $fixture['order'], $fixture['a'] );
+
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		// Also checks the tax line's label and rate: wc_save_order_items() runs
+		// update_taxes(), which reloads them from the table, with its own rounding.
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertTrue( $this->has_kept_tax_note( $order ) );
+	}
+
+	/**
+	 * @testdox A Recalculate request for an order that can still be edited is left to WooCommerce, as it always was.
+	 */
+	public function test_admin_recalculate_request_recalculates_editable_order() {
+		$fixture = $this->create_editable_order();
+
+		$order = $this->admin_recalculate_with_class_change( $fixture['order'], $fixture['a'] );
+
+		// The fixture's row is overwritten to 0% in the table, and the lookup finds TaxJar unreachable.
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001 );
+		$this->assertFalse( $this->has_kept_tax_note( $order ) );
+	}
+
+	/**
 	 * Give the store nexus in the destination state, so an address change is looked up.
 	 *
 	 * With the store's nexus only in Colorado, a move out of state is answered without

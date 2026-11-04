@@ -642,15 +642,11 @@ class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 	 * was added: the line's tax doesn't change, and the product's new class gets no
 	 * row. Only the last check needs the fix. The line was taxed $6 before it too,
 	 * because Recalculate applies TaxJar's rate ids to the line directly.
-	 *
-	 * The order is processing, where a line must keep the class it was paid in. The
-	 * admin shows Recalculate only on editable orders, so a merchant can't reach this
-	 * from the order screen; the test calls the handler directly.
 	 */
 	public function test_recalculate_keeps_line_tax_and_writes_no_row_to_the_product_new_class() {
 		$product = $this->simple_product();
 		$order   = $this->order( array( $product ) );
-		$order->set_status( 'processing' );
+		$order->set_status( 'on-hold' );
 		$order->save();
 		$this->move_to_clothing( $product );
 
@@ -660,5 +656,21 @@ class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 		$this->assertSame( '', $item->get_tax_class(), 'The line left its class.' );
 		$this->assertEqualsWithDelta( 6.0, self::item_tax( $item ), 0.001, 'The line\'s tax changed: $100 at 6%' );
 		$this->assertNull( $this->state_rate( $this->clothing_slug ), 'The product\'s new class got a row from the line\'s answer.' );
+	}
+
+	/**
+	 * A Recalculate request for an order that can't be edited asks TaxJar nothing. The
+	 * admin hides the button there, but WooCommerce's handler doesn't check, so the test
+	 * calls the handler directly, as a page opened before the order was paid would.
+	 */
+	public function test_recalculate_request_for_order_that_cannot_be_edited_writes_no_rows() {
+		$order = $this->order( array( $this->simple_product() ) );
+		$order->set_status( 'processing' );
+		$order->save();
+
+		$order = $this->admin_recalculate( $order, $this->taxjar() );
+
+		$this->assertNull( $this->state_rate( '' ), 'TaxJar was asked, and its answer was written to the rate table.' );
+		$this->assertEqualsWithDelta( 0.0, self::item_tax( current( $order->get_items() ) ), 0.001, 'The order was charged no tax.' );
 	}
 }
