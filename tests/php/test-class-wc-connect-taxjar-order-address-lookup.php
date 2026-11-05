@@ -803,6 +803,34 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox An address and tax class change on an order that can't be edited ask TaxJar, and the note doesn't say the tax was kept.
+	 */
+	public function test_address_and_class_change_on_locked_order_asks_taxjar_without_kept_note() {
+		$fixture = $this->create_placed_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping'   => self::address( '80301', 'Boulder' ),
+				'line_items' => array(
+					array(
+						'id'        => $fixture['a'],
+						'tax_class' => 'reduced-rate',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests, 'one TaxJar request' );
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'with today\'s rates', $notes[0] );
+		$this->assertStringNotContainsString( 'can no longer be edited', $notes[0] );
+	}
+
+	/**
 	 * @testdox An address change on an order with refunded tax keeps its rates, so the refund still matches them.
 	 */
 	public function test_address_change_with_refunded_tax_keeps_rates() {
@@ -1607,6 +1635,188 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
 		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
+	}
+
+	/**
+	 * An order that can't be edited and was charged no tax: A ($10), B ($20) and $10
+	 * shipping in Denver, $40 in all, processing. The rate table has a 6% Colorado row,
+	 * as TaxJar writes from other orders, so WooCommerce's own calculation would add tax.
+	 *
+	 * @return array{order: WC_Order, a: int, b: int}
+	 */
+	private function create_untaxed_placed_order() {
+		WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '6.0000',
+				'tax_rate_name'     => 'CO Tax',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+
+		$order = wc_create_order();
+		$order->set_address( self::address(), 'billing' );
+		$order->set_address( self::address(), 'shipping' );
+		$a_id = $order->add_product( $this->create_product( '10' ), 1 );
+		$b_id = $order->add_product( $this->create_product( '20' ), 1 );
+
+		$shipping = new WC_Order_Item_Shipping();
+		$shipping->set_method_title( 'Flat rate' );
+		$shipping->set_method_id( 'flat_rate' );
+		$shipping->set_total( '10' );
+		$order->add_item( $shipping );
+
+		$order->set_shipping_total( '10' );
+		$order->set_total( 40 );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+
+		$this->assert_order_tax( wc_get_order( $order->get_id() ), 0.0, 0.0, 40.00 );
+
+		return array(
+			'order' => $order,
+			'a'     => $a_id,
+			'b'     => $b_id,
+		);
+	}
+
+	/**
+	 * @testdox On an untaxed order that can't be edited, a tax class and address change whose lookup fails keeps no tax, with one note that agrees.
+	 */
+	public function test_failed_lookup_keeps_no_tax_on_untaxed_locked_order() {
+		$fixture           = $this->create_untaxed_placed_order();
+		$this->taxjar_down = true;
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping'   => self::address( '80301', 'Boulder' ),
+				'line_items' => array(
+					array(
+						'id'        => $fixture['a'],
+						'tax_class' => 'reduced-rate',
+					),
+				),
+			)
+		);
+
+		// Without the guard, the CO row gives B $1.20 and shipping $0.60.
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
+		$this->assert_order_tax( $order, 0.0, 0.0, 40.00 );
+		$this->assertCount( 0, $order->get_taxes() );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
+		$this->assertStringContainsString( 'still taxed as it was charged', $notes[0] );
+	}
+
+	/**
+	 * @testdox On an untaxed order that can't be edited, a line added while the lookup fails is left untaxed like the rest.
+	 */
+	public function test_failed_lookup_leaves_added_line_untaxed_on_untaxed_locked_order() {
+		$fixture           = $this->create_untaxed_placed_order();
+		$this->taxjar_down = true;
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $this->create_product( '5' )->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		// Without the guard, the CO row gives 6% of $35 and of $10 shipping.
+		$this->assertCount( 1, $this->requests );
+		$this->assert_order_tax( $order, 0.0, 0.0, 45.00 );
+		foreach ( $order->get_items() as $item_id => $item ) {
+			$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $item_id ), 0.001, $item->get_name() );
+		}
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
+	}
+
+	/**
+	 * @testdox An order created as paid in this request, whose lookup fails, gets WooCommerce's own result, as before.
+	 */
+	public function test_failed_lookup_on_new_paid_order_keeps_woocommerce_result() {
+		$this->create_untaxed_placed_order();
+		$this->taxjar_down = true;
+
+		$order = wc_create_order( array( 'status' => 'processing' ) );
+		$order->set_address( self::address( '80301', 'Boulder' ), 'billing' );
+		$order->set_address( self::address( '80301', 'Boulder' ), 'shipping' );
+		$order->add_product( $this->create_product( '10' ), 1 );
+		$order->add_product( $this->create_product( '20' ), 1 );
+		$order->calculate_totals();
+
+		// The CO row: 6% of $30. It charged nothing before, so there is no "no tax" to keep.
+		$this->assertCount( 1, $this->requests );
+		$this->assert_order_tax( wc_get_order( $order->get_id() ), 1.80, 0.0, 31.80 );
+	}
+
+	/**
+	 * The tax hooks fire from WC_Abstract_Order, so a refund can reach them. A refund has
+	 * no is_editable(), address or get_address(), so the hooks must leave it alone.
+	 * WooCommerce's own calculate_taxes() can't run on a refund (it reads the refund's
+	 * address), so the hook is fired directly, with and without AJAX.
+	 *
+	 * @testdox The tax hooks leave a refund alone instead of failing on it.
+	 */
+	public function test_tax_hooks_leave_refund_alone() {
+		$fixture = $this->create_placed_order();
+		$refund  = wc_create_refund(
+			array(
+				'order_id' => $fixture['order']->get_id(),
+				'amount'   => 5,
+			)
+		);
+		$this->assertInstanceOf( WC_Order_Refund::class, $refund );
+
+		do_action( 'woocommerce_order_before_calculate_taxes', array(), $refund );
+
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		try {
+			do_action( 'woocommerce_order_before_calculate_taxes', array(), $refund );
+		} finally {
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+		}
+
+		// The restore half, which WooCommerce fires from calculate_totals().
+		do_action( 'woocommerce_order_after_calculate_totals', true, $refund );
+
+		$this->assertEqualsWithDelta( -5.0, (float) wc_get_order( $refund->get_id() )->get_total(), 0.001 );
+		$this->assertSame( array(), $this->tax_notes( $fixture['order'] ) );
+	}
+
+	/**
+	 * @testdox A tax calculation that isn't preserved drops the snapshot an admin save took for an order that can't be edited.
+	 */
+	public function test_rejected_calculation_drops_pre_save_snapshot() {
+		$fixture  = $this->create_placed_order();
+		$order_id = $fixture['order']->get_id();
+		$property = new ReflectionProperty( $this->integration, 'pre_save_tax_snapshots' );
+		$property->setAccessible( true );
+
+		$this->integration->calculate_backend_totals( $order_id );
+		$this->assertArrayHasKey( $order_id, $property->getValue( $this->integration ), 'the admin save took a snapshot' );
+
+		// A VAT-exempt order isn't preserved.
+		add_filter( 'woocommerce_order_is_vat_exempt', '__return_true' );
+		wc_get_order( $order_id )->calculate_taxes();
+
+		$this->assertArrayNotHasKey( $order_id, $property->getValue( $this->integration ) );
 	}
 
 	/**
