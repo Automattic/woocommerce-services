@@ -72,13 +72,13 @@ This plugin relies on the following external services:
 
 = 3.7.6 - 2026-xx-xx =
 * Fix   - Stop charging item tax on a product with the "Shipping only" tax status on orders placed through the checkout block. Checkout showed no item tax but the order charged it, so the order total came out higher than the total the customer saw. Shipping tax is unchanged.
+* Fix   - When the tax service does not answer, stop waiting after 10 seconds instead of 60 at the cart and checkout steps, and do not ask again for the same cart for one minute, so shoppers are not held up for minutes during an outage. Placing the order still asks once more and can still wait 60 seconds, so the order is taxed if the service is back or just slow. A store can change the 10 seconds with the new wc_services_cart_tax_lookup_timeout filter.
 * Dev   - Fix a PHP test that failed on WooCommerce 11.2.2, which now ignores a chosen shipping method unless its rate was offered.
 * Dev   - Fix a PHP test class that left its database transaction open, so the tests pass on WooCommerce 11.3.
 
 = 3.7.5 - 2026-11-03 =
 * Fix   - Stop taxing an item at another item's rate on orders that include a WooCommerce Subscriptions product, so the order charges the tax the checkout showed.
 * Fix   - When the tax service is down or slow, ask it once per page request instead of again each time the cart total updates, so checkout and phone order screens wait less during an outage.
-* Fix   - When the tax service does not answer, stop waiting after 10 seconds instead of 60 at the cart and checkout, and do not ask again for the same cart for one minute, so shoppers are not held up for minutes during an outage. Placing the order still asks once more, so the order is taxed if the service is back.
 * Fix   - Charge shipping tax on a tax rate a lookup saves in place of a town's 0% "Manual Rate Nullified (Automated Taxes)" rate, for example when a special district tax starts, in states that tax shipping. The rate kept the 0% rate's Shipping setting, which is always off, so orders shipped to that town under-collected shipping tax.
 * Fix   - Keep the names of tax rates saved by automated taxes in the site's language when an order is recalculated by an admin who uses another language. The rates were renamed into the admin's language, and rates a later lookup no longer needed were not removed.
 * Fix   - Write one order note, not two or three, when an order edited through the REST API or the WooCommerce app has its tax updated. The note now says the tax rates already saved on the order were used, instead of the rates recorded when the order was placed, which is not true after an address change.
