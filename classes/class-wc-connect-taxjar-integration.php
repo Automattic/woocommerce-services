@@ -281,7 +281,8 @@ class WC_Connect_TaxJar_Integration {
 
 	/**
 	 * Time limit in seconds for a cart lookup. A shopper is waiting on it, and each
-	 * checkout step can wait this long. Order lookups keep the API client's limit.
+	 * checkout step can wait this long. Placing the order and order lookups keep the
+	 * API client's limit.
 	 *
 	 * @var int
 	 */
@@ -3522,19 +3523,14 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * Each checkout step is its own request, so without this every step waits for the
 	 * same failing server. Placing the order always asks: its total is what the shopper
-	 * pays, and the server may be back. Classic and block checkout each fire their action
-	 * below before they total the cart for the order. Order lookups always ask too,
-	 * because no shopper is waiting on them.
+	 * pays, and the server may be back. Order lookups always ask too, because no shopper
+	 * is waiting on them.
 	 *
 	 * @param string $cache_key Cache key of the lookup.
 	 * @return bool
 	 */
 	private function is_failed_lookup_remembered( $cache_key ) {
-		if ( ! $this->is_cart_lookup ) {
-			return false;
-		}
-
-		if ( did_action( 'woocommerce_before_checkout_process' ) || did_action( 'woocommerce_store_api_checkout_update_customer_from_request' ) ) {
+		if ( ! $this->is_cart_lookup || $this->is_placing_order() ) {
 			return false;
 		}
 
@@ -3542,20 +3538,68 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Send a lookup, with a short time limit when a shopper is waiting on it.
+	 * Whether this request is placing an order.
+	 *
+	 * Classic checkout fires its action before it totals the cart. Block checkout totals
+	 * the cart before its action on WooCommerce 11.0 and after it from 11.1, so the
+	 * request is checked as well. The action still covers an order placed by a checkout
+	 * request dispatched from code, which has no route of its own.
+	 *
+	 * @return bool
+	 */
+	private function is_placing_order() {
+		if ( did_action( 'woocommerce_before_checkout_process' ) || did_action( 'woocommerce_store_api_checkout_update_customer_from_request' ) ) {
+			return true;
+		}
+
+		$route = $GLOBALS['wp']->query_vars['rest_route'] ?? '';
+
+		return isset( $_SERVER['REQUEST_METHOD'] ) && 'POST' === $_SERVER['REQUEST_METHOD']
+			&& is_string( $route ) && 1 === preg_match( '#^/?wc/store/v[0-9]+/checkout/?$#', $route );
+	}
+
+	/**
+	 * Time limit for a cart lookup, in seconds.
+	 *
+	 * @return int
+	 */
+	private function get_cart_lookup_timeout() {
+		/**
+		 * Filters how many seconds a cart or checkout step waits for a tax lookup.
+		 *
+		 * Raise it if the tax service often takes longer than this to answer your store. A
+		 * lookup that takes longer counts as failed, so the cart shows no tax until the
+		 * order is placed, and each step can make the shopper wait this long. Placing the
+		 * order and order lookups do not use this limit.
+		 *
+		 * @since 3.7.6
+		 *
+		 * @param int $timeout Time limit in seconds. A value below 1 is ignored.
+		 */
+		$timeout = apply_filters( 'wc_services_cart_tax_lookup_timeout', self::CART_LOOKUP_TIMEOUT );
+
+		return is_numeric( $timeout ) && (int) $timeout >= 1 ? (int) $timeout : self::CART_LOOKUP_TIMEOUT;
+	}
+
+	/**
+	 * Send a lookup, with a short time limit when a shopper is waiting on a cart total.
+	 *
+	 * Placing the order keeps the long limit. A failure there charges $0 tax and cannot be
+	 * collected later, and the earlier steps skip a failed lookup, so it costs one wait.
 	 *
 	 * @param string $json Request body.
 	 * @return mixed What smartcalcs_request() returned.
 	 */
 	private function send_lookup( $json ) {
-		if ( ! $this->is_cart_lookup ) {
+		if ( ! $this->is_cart_lookup || $this->is_placing_order() ) {
 			return $this->smartcalcs_request( $json );
 		}
 
+		$timeout       = $this->get_cart_lookup_timeout();
 		$lookup_path   = trailingslashit( self::PROXY_PATH ) . 'taxes';
-		$limit_timeout = static function ( $args, $url ) use ( $lookup_path ) {
+		$limit_timeout = static function ( $args, $url ) use ( $lookup_path, $timeout ) {
 			if ( is_array( $args ) && is_string( $url ) && false !== strpos( $url, $lookup_path ) ) {
-				$args['timeout'] = self::CART_LOOKUP_TIMEOUT;
+				$args['timeout'] = $timeout;
 			}
 
 			return $args;

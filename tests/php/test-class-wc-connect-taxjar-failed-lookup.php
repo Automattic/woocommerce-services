@@ -16,8 +16,8 @@ use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
  *
  * A shopper waits on every cart total, and each checkout step is its own request. So a
  * cart lookup also has a short time limit, and its failure is remembered for a minute
- * across requests. Placing the order asks once more, because that total is what the
- * shopper pays.
+ * across requests. Placing the order asks once more with the long limit, because that
+ * total is what the shopper pays.
  */
 class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 
@@ -78,6 +78,13 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 	private $saved_wc_session = false;
 
 	/**
+	 * REST request before a test set one up, put back in tear_down(). Null when untouched.
+	 *
+	 * @var array{method: string|null, route: string|null}|null
+	 */
+	private $saved_request = null;
+
+	/**
 	 * Load required classes before running tests.
 	 */
 	public static function set_up_before_class() {
@@ -104,6 +111,22 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 			StoreNoticesNotifier::clear_notices();
 			WC()->session           = $this->saved_wc_session;
 			$this->saved_wc_session = false;
+		}
+
+		if ( null !== $this->saved_request ) {
+			if ( null === $this->saved_request['method'] ) {
+				unset( $_SERVER['REQUEST_METHOD'] );
+			} else {
+				$_SERVER['REQUEST_METHOD'] = $this->saved_request['method'];
+			}
+
+			if ( null === $this->saved_request['route'] ) {
+				unset( $GLOBALS['wp']->query_vars['rest_route'] );
+			} else {
+				$GLOBALS['wp']->query_vars['rest_route'] = $this->saved_request['route'];
+			}
+
+			$this->saved_request = null;
 		}
 
 		parent::tear_down();
@@ -448,6 +471,22 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Make this the given REST request, until tear_down() puts the old one back.
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $route  REST route, as WordPress parsed it from the URL.
+	 */
+	private function set_request( $method, $route ) {
+		$this->saved_request = array(
+			'method' => $_SERVER['REQUEST_METHOD'] ?? null, // phpcs:ignore WordPress.Security.ValidatedSanitizedInput -- Restored as it was.
+			'route'  => $GLOBALS['wp']->query_vars['rest_route'] ?? null,
+		);
+
+		$_SERVER['REQUEST_METHOD']               = $method;
+		$GLOBALS['wp']->query_vars['rest_route'] = $route;
+	}
+
+	/**
 	 * A cart lookup that failed is not sent again by the next checkout step.
 	 *
 	 * @dataProvider provide_outages
@@ -624,18 +663,174 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Placing the order gets the same short limit.
+	 * Placing the order keeps the long limit, so an answer that takes 15 seconds still
+	 * taxes the order. The failed steps before it each waited the short limit at most.
+	 *
+	 * @dataProvider provide_place_order_actions
+	 *
+	 * @param string $action Action that says an order is being placed.
 	 */
-	public function test_retry_when_placing_the_order_has_the_short_time_limit() {
+	public function test_placing_the_order_keeps_the_long_time_limit( $action ) {
 		$this->fill_cart();
 		$this->proxy_answers_with( 'timeout' );
 		$this->total_cart_in_new_request();
 		$this->seen_timeouts = array();
 
-		$this->start_placing_order( 'woocommerce_before_checkout_process' );
+		$this->start_placing_order( $action );
+		$this->total_cart_in_new_request();
+
+		$this->assertSame( array( 60 ), $this->seen_timeouts );
+	}
+
+	/**
+	 * WooCommerce 11.0 totals the cart once before block checkout's action. That first
+	 * total is already the order being placed: it would otherwise send the lookup with
+	 * the short limit, and the total after the action would reuse its failure.
+	 */
+	public function test_block_checkout_keeps_the_long_limit_when_the_cart_is_totalled_before_the_action() {
+		$this->fill_cart();
+		$this->proxy_answers_with( 'timeout' );
+		$this->proxy_requests = 0;
+		$this->seen_timeouts  = array();
+
+		$this->set_request( 'POST', '/wc/store/v1/checkout' );
+		$this->total_cart_in_new_request();
+
+		$this->assertSame( array( 60 ), $this->seen_timeouts );
+
+		$this->start_placing_order( 'woocommerce_store_api_checkout_update_customer_from_request' );
+		WC()->cart->calculate_totals();
+
+		$this->assertSame( 1, $this->proxy_requests, 'One order costs one wait.' );
+	}
+
+	/**
+	 * The same early total asks again after a failure, without waiting for the action.
+	 */
+	public function test_block_checkout_ignores_a_remembered_failure_when_the_cart_is_totalled_before_the_action() {
+		$this->fill_cart();
+		$this->proxy_answers_with( 'timeout' );
+		$this->total_cart_in_new_request();
+		$this->proxy_requests = 0;
+
+		$this->set_request( 'POST', '/wc/store/v1/checkout' );
+		$this->total_cart_in_new_request();
+
+		$this->assertSame( 1, $this->proxy_requests );
+	}
+
+	/**
+	 * Requests that total the cart but do not place an order.
+	 *
+	 * @return array
+	 */
+	public function provide_requests_that_do_not_place_an_order() {
+		return array(
+			'saving checkout fields' => array( 'PUT', '/wc/store/v1/checkout' ),
+			'reading checkout'       => array( 'GET', '/wc/store/v1/checkout' ),
+			'updating the address'   => array( 'POST', '/wc/store/v1/cart/update-customer' ),
+			'batch of cart requests' => array( 'POST', '/wc/store/v1/batch' ),
+			'paying an order'        => array( 'POST', '/wc/store/v1/checkout/123' ),
+			'another route'          => array( 'POST', '/my-plugin/wc/store/v1/checkout' ),
+		);
+	}
+
+	/**
+	 * Only POST to the checkout route counts as placing an order. The others keep the
+	 * short limit and the remembered failure, or an outage would hold up every step again.
+	 *
+	 * @dataProvider provide_requests_that_do_not_place_an_order
+	 *
+	 * @param string $method HTTP method.
+	 * @param string $route  REST route.
+	 */
+	public function test_other_requests_are_not_placing_an_order( $method, $route ) {
+		$this->fill_cart();
+		$this->proxy_answers_with( 'timeout' );
+		$this->proxy_requests = 0;
+		$this->seen_timeouts  = array();
+		$this->set_request( $method, $route );
+
+		$this->total_cart_in_new_request();
 		$this->total_cart_in_new_request();
 
 		$this->assertSame( array( 10 ), $this->seen_timeouts );
+		$this->assertSame( 1, $this->proxy_requests );
+	}
+
+	/**
+	 * A store can change the time limit of a cart lookup.
+	 *
+	 * @dataProvider provide_valid_time_limits
+	 *
+	 * @param mixed $filtered What the filter returns.
+	 * @param int   $expected Time limit the lookup is sent with.
+	 */
+	public function test_store_can_change_the_cart_lookup_time_limit( $filtered, $expected ) {
+		$this->fill_cart();
+		$this->proxy_answers_with( 'timeout' );
+		$this->seen_timeouts = array();
+		add_filter(
+			'wc_services_cart_tax_lookup_timeout',
+			static function () use ( $filtered ) {
+				return $filtered;
+			}
+		);
+
+		$this->total_cart_in_new_request();
+
+		$this->assertSame( array( $expected ), $this->seen_timeouts );
+		$this->assertSame( 60, $this->seen_other_url_timeout, 'The filter only changes tax lookups.' );
+	}
+
+	/**
+	 * Filter values a store could mean, and the limit they give.
+	 *
+	 * @return array
+	 */
+	public function provide_valid_time_limits() {
+		return array(
+			'longer'           => array( 25, 25 ),
+			'shorter'          => array( 3, 3 ),
+			'one second'       => array( 1, 1 ),
+			'numeric string'   => array( '25', 25 ),
+			'whole seconds'    => array( 2.5, 2 ),
+			'zero'             => array( 0, 10 ),
+			'negative'         => array( -5, 10 ),
+			'under one second' => array( 0.5, 10 ),
+			'text'             => array( 'slow', 10 ),
+			'empty string'     => array( '', 10 ),
+			'null'             => array( null, 10 ),
+			'array'            => array( array( 25 ), 10 ),
+			'object'           => array( new stdClass(), 10 ),
+			'false'            => array( false, 10 ),
+			'true'             => array( true, 10 ),
+		);
+	}
+
+	/**
+	 * The filter is for cart steps. Placing the order and order lookups keep the long limit.
+	 */
+	public function test_cart_lookup_filter_does_not_change_other_lookups() {
+		$this->fill_cart();
+		$this->proxy_answers_with( 'timeout' );
+		add_filter(
+			'wc_services_cart_tax_lookup_timeout',
+			static function () {
+				return 3;
+			}
+		);
+		$this->total_cart_in_new_request();
+		$body                = $this->last_lookup_body;
+		$this->seen_timeouts = array();
+
+		$this->new_integration()->smartcalcs_cache_request( $body, 'MI' );
+		$this->assertSame( array( 60 ), $this->seen_timeouts, 'Order lookup.' );
+
+		$this->seen_timeouts = array();
+		$this->start_placing_order( 'woocommerce_before_checkout_process' );
+		$this->total_cart_in_new_request();
+		$this->assertSame( array( 60 ), $this->seen_timeouts, 'Placing the order.' );
 	}
 
 	/**
