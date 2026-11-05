@@ -71,6 +71,9 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.6 - 2026-xx-xx =
+* Fix   - Stop charging item tax on a product with the "Shipping only" tax status on orders placed through the checkout block. Checkout showed no item tax but the order charged it, so the order total came out higher than the total the customer saw. Shipping tax is unchanged.
+* Dev   - Fix a PHP test that failed on WooCommerce 11.2.2, which now ignores a chosen shipping method unless its rate was offered.
+* Dev   - Fix a PHP test class that left its database transaction open, so the tests pass on WooCommerce 11.3.
 * Tweak - WooCommerce 11.3 Compatibility.
 
 = 3.7.5 - 2026-11-03 =
