@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 7.1
 WC requires at least: 11.0
 WC tested up to: 11.2
-Stable tag: 3.7.4
+Stable tag: 3.7.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,12 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.7.5 - 2026-xx-xx =
+= 3.7.6 - 2026-xx-xx =
+* Fix   - Stop charging item tax on a product with the "Shipping only" tax status on orders placed through the checkout block. Checkout showed no item tax but the order charged it, so the order total came out higher than the total the customer saw. Shipping tax is unchanged.
+* Dev   - Fix a PHP test that failed on WooCommerce 11.2.2, which now ignores a chosen shipping method unless its rate was offered.
+* Dev   - Fix a PHP test class that left its database transaction open, so the tests pass on WooCommerce 11.3.
+
+= 3.7.5 - 2026-11-03 =
 * Fix   - Stop taxing an item at another item's rate on orders that include a WooCommerce Subscriptions product, so the order charges the tax the checkout showed.
 * Fix   - When the tax service is down or slow, ask it once per page request instead of again each time the cart total updates, so checkout and phone order screens wait less during an outage.
 * Fix   - Charge shipping tax on a tax rate a lookup saves in place of a town's 0% "Manual Rate Nullified (Automated Taxes)" rate, for example when a special district tax starts, in states that tax shipping. The rate kept the 0% rate's Shipping setting, which is always off, so orders shipped to that town under-collected shipping tax.
