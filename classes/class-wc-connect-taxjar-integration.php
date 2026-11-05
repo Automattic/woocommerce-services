@@ -115,9 +115,12 @@ class WC_Connect_TaxJar_Integration {
 	private $pre_recalculation_tax_snapshots = array();
 
 	/**
-	 * Taxes of orders that can't be edited as they were before a Recalculate request
-	 * saved their items, keyed by order id. That save rebuilds the tax lines from the
-	 * rate table, with their rounding, before the recalculation starts.
+	 * Taxes of orders that can't be edited as they were before the admin saved their
+	 * items, keyed by order id. Taken on every such save (Recalculate, Update and any
+	 * other request that saves the items), because the save rebuilds the tax lines from
+	 * the rate table, with their rounding. The next tax calculation of the order in the
+	 * request starts from it. Update recalculates without taxes, so after an Update the
+	 * entry stays until a later calculation in the same request uses it.
 	 *
 	 * @var array
 	 */
@@ -1036,11 +1039,17 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Calculate tax / totals using TaxJar for backend orders
+	 * Calculate tax / totals using TaxJar for backend orders.
+	 *
+	 * Runs before the admin saves an order's items, as Recalculate and Update do. For
+	 * an order that can't be edited, TaxJar isn't asked: the order's taxes are kept in
+	 * $pre_save_tax_snapshots for preserve_order_taxes_on_recalculation(), and nothing
+	 * else is done.
 	 *
 	 * Based on the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L557
 	 *
+	 * @param int $order_id The order whose items are about to be saved.
 	 * @return void
 	 */
 	public function calculate_backend_totals( $order_id ) {
@@ -1049,7 +1058,7 @@ class WC_Connect_TaxJar_Integration {
 		// The admin hides Recalculate on an order that can't be edited, but WooCommerce's
 		// handler doesn't check. A request from a page opened before the order was paid
 		// still gets here, and that order's tax is a record of what was charged.
-		if ( $order instanceof WC_Order && ! $order->is_editable() ) {
+		if ( $this->order_cannot_be_edited( $order ) ) {
 			$this->pre_save_tax_snapshots[ (int) $order_id ] = $this->snapshot_order_taxes( $order );
 			return;
 		}
@@ -3667,10 +3676,16 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @since 3.7.1
 	 *
-	 * @param WC_Order $order The order being recalculated.
+	 * @param WC_Abstract_Order $order The order being recalculated. A refund comes here too.
 	 * @return bool
 	 */
 	private function should_preserve_order_taxes( $order ) {
+		// A refund takes its tax from the order when it's created, and has no address or
+		// order changes of its own to compare. Reading them would fail on a refund.
+		if ( ! $order instanceof WC_Order ) {
+			return false;
+		}
+
 		// The cart/checkout flow populates response_rate_ids and manages its own taxes.
 		if ( ! empty( $this->response_rate_ids ) ) {
 			return false;
@@ -3678,7 +3693,7 @@ class WC_Connect_TaxJar_Integration {
 
 		// Admin order edits recalculate over AJAX and are handled by calculate_backend_totals().
 		// That skips an order that can't be edited, so its tax is preserved here instead.
-		if ( wp_doing_ajax() && $order->is_editable() ) {
+		if ( wp_doing_ajax() && ! $this->order_cannot_be_edited( $order ) ) {
 			return false;
 		}
 
@@ -3702,6 +3717,19 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return true;
+	}
+
+	/**
+	 * Whether an order can no longer be edited, so its tax is a record of what was charged.
+	 *
+	 * Only WC_Order has is_editable(). A refund reaches the same tax hooks and counts
+	 * as editable here, as it did before orders were locked.
+	 *
+	 * @param mixed $order The order, a refund, or whatever a hook passed.
+	 * @return bool
+	 */
+	private function order_cannot_be_edited( $order ) {
+		return $order instanceof WC_Order && ! $order->is_editable();
 	}
 
 	/**
@@ -3765,7 +3793,7 @@ class WC_Connect_TaxJar_Integration {
 		// Kept otherwise: when WC's own lookup has already wiped the tax lines, the next
 		// snapshot is empty and the earlier one is the only record of what was charged.
 		if ( ! $this->should_preserve_order_taxes( $order ) ) {
-			unset( $this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ] );
+			unset( $this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ], $this->pre_save_tax_snapshots[ (int) $order->get_id() ] );
 			return;
 		}
 
@@ -3794,10 +3822,15 @@ class WC_Connect_TaxJar_Integration {
 			$snapshot['lookup'] = false;
 		}
 
+		// An order that can't be edited and was charged no tax stays at no tax, unless a
+		// lookup gives it some: WC's rate table would otherwise add tax it never charged.
+		// An order created in this request has charged nothing yet; it is taxed as new.
+		$snapshot['keeps_no_tax'] = empty( $snapshot['tax_lines'] ) && $this->order_cannot_be_edited( $order ) && ! isset( $this->orders_created_in_request['ids'][ (int) $order->get_id() ] );
+
 		// Without tax lines there is nothing to preserve; never turn a first-time tax
 		// calculation into a zeroed one. Leave it to WC unless TaxJar is to be asked, or
-		// this order can't be edited and was charged no tax: WC's rate table would add some.
-		if ( empty( $snapshot['tax_lines'] ) && ! $snapshot['lookup'] && empty( $snapshot['base_changes']['kept_tax'] ) ) {
+		// the order keeps no tax (above).
+		if ( empty( $snapshot['tax_lines'] ) && ! $snapshot['lookup'] && empty( $snapshot['base_changes']['kept_tax'] ) && ! $snapshot['keeps_no_tax'] ) {
 			return;
 		}
 
@@ -3830,6 +3863,8 @@ class WC_Connect_TaxJar_Integration {
 	 *   note says why the tax was not updated.
 	 * - A tax class or tax status changed on an order that can't be edited: the change
 	 *   is saved, the tax charged stays, and a note says so.
+	 * - An order that can't be edited was charged no tax: it stays at no tax, unless a
+	 *   lookup gives it some. One created in this request is taxed as a new order.
 	 *
 	 * Everything said about one recalculation goes in a single order note.
 	 *
@@ -3862,8 +3897,13 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( is_array( $lookup ) ) {
 			$notes = $this->apply_looked_up_order_taxes( $order, $lookup, $snapshot );
-		} elseif ( empty( $snapshot['tax_lines'] ) && ( null !== $lookup || empty( $snapshot['base_changes']['kept_tax'] ) ) ) {
-			// Nothing to keep: what WC calculated stands, as it did before the lookup existed.
+		} elseif ( empty( $snapshot['tax_lines'] ) && ( null !== $lookup || empty( $snapshot['base_changes']['kept_tax'] ) || ! empty( $snapshot['keeps_no_tax'] ) ) ) {
+			// No tax lines to keep. An order that can't be edited stays at the no tax it
+			// was charged; otherwise what WC calculated stands, as before the lookup existed.
+			if ( ! empty( $snapshot['keeps_no_tax'] ) ) {
+				$this->restore_order_taxes( $order, $snapshot );
+			}
+
 			if ( self::ORDER_TAX_LOOKUP_BAD_ADDRESS === $lookup ) {
 				$notes[] = __( 'Tax could not be calculated for this order, because its address is incomplete or has a state or ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' );
 			} elseif ( self::ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS === $lookup ) {
@@ -3911,7 +3951,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! is_array( $lookup ) && ! empty( $snapshot['base_changes']['kept_tax'] ) ) {
 			$notes[] = sprintf(
 				/* translators: %s: comma-separated names of order items. */
-				__( 'The tax class or tax status of %s changed, but the tax was not changed, because this order can no longer be edited. The tax already charged was kept.', 'woocommerce-services' ),
+				__( 'The tax class or tax status of %s changed, but it is still taxed as it was charged, because this order can no longer be edited.', 'woocommerce-services' ),
 				implode( ', ', array_map( 'wp_strip_all_tags', array_column( $snapshot['base_changes']['kept_tax'], 'name' ) ) )
 			);
 		}
@@ -4007,8 +4047,7 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$order = $item->get_order();
-		if ( ! $order instanceof WC_Order || $order->is_editable() ) {
+		if ( ! $this->order_cannot_be_edited( $item->get_order() ) ) {
 			return;
 		}
 
@@ -4260,15 +4299,19 @@ class WC_Connect_TaxJar_Integration {
 	 * @param array    $snapshot Snapshot returned by snapshot_order_taxes().
 	 */
 	private function restore_order_taxes( $order, $snapshot ) {
-		// An order that can't be edited and was charged no tax stays at no tax.
-		if ( empty( $snapshot['tax_lines'] ) && empty( $snapshot['base_changes']['kept_tax'] ) ) {
+		// Nothing was recorded, so there is nothing to put back. An order that can't be
+		// edited and was charged no tax goes on: it stays at no tax.
+		if ( empty( $snapshot['tax_lines'] ) && empty( $snapshot['base_changes']['kept_tax'] ) && empty( $snapshot['keeps_no_tax'] ) ) {
 			return;
 		}
 
-		// Restore the per-item tax arrays on line items and fees.
+		// Restore the per-item tax arrays on line items and fees. An item added to an
+		// order that keeps no tax is untaxed like the rest.
 		foreach ( $order->get_items( array( 'line_item', 'fee' ) ) as $item_id => $item ) {
 			if ( isset( $snapshot['item_taxes'][ $item_id ] ) ) {
 				$item->set_taxes( $snapshot['item_taxes'][ $item_id ] );
+			} elseif ( ! empty( $snapshot['keeps_no_tax'] ) ) {
+				$item->set_taxes( false );
 			}
 		}
 
@@ -4276,6 +4319,8 @@ class WC_Connect_TaxJar_Integration {
 		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
 			if ( isset( $snapshot['item_taxes'][ 'shipping_' . $item_id ] ) ) {
 				$item->set_taxes( $snapshot['item_taxes'][ 'shipping_' . $item_id ] );
+			} elseif ( ! empty( $snapshot['keeps_no_tax'] ) ) {
+				$item->set_taxes( false );
 			}
 		}
 
@@ -4326,7 +4371,8 @@ class WC_Connect_TaxJar_Integration {
 	 *                                 id: the tax class they were taxed in.
 	 *   @type array $kept_tax         Items whose tax class or tax status changed on an order that can't
 	 *                                 be edited, keyed by item id: the tax_class and tax_status they were
-	 *                                 taxed with, and their name. These don't count as changed.
+	 *                                 taxed with, and their name. These don't count as changed. A line
+	 *                                 switched to another product isn't one: it counts as reclassed.
 	 *   @type array $new_item_taxes   Taxes of new items that arrived already taxed, keyed by spl_object_id().
 	 *   @type array $removed_rate_ids Rate ids of removed items: 'classes' keyed by tax class, and 'shipping';
 	 *                                 'untaxed_shipping' is true when a removed shipping line carried no tax.
@@ -4341,7 +4387,7 @@ class WC_Connect_TaxJar_Integration {
 		$kept_tax       = array();
 		$new_item_taxes = array();
 		$added          = false;
-		$is_locked      = ! $order->is_editable();
+		$is_locked      = $this->order_cannot_be_edited( $order );
 
 		foreach ( $order->get_items( $types ) as $item ) {
 			$item_id = (int) $item->get_id();
@@ -4365,7 +4411,9 @@ class WC_Connect_TaxJar_Integration {
 			if ( array_key_exists( 'tax_class', $moved ) || array_key_exists( 'tax_status', $moved ) ) {
 				$taxed_in_class = (string) ( $moved['tax_class'] ?? $item->get_tax_class() );
 
-				if ( $is_locked ) {
+				// A line switched to another product counts as one removed and one added,
+				// whose tax follows the order as for any added line.
+				if ( $is_locked && ! $this->order_item_product_switched( $item ) ) {
 					// Once an order can't be edited, its tax is a record of what was charged.
 					$kept_tax[ $item_id ] = array(
 						'tax_class'  => $taxed_in_class,
@@ -4580,17 +4628,35 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * The props an order item's tax is calculated from.
+	 * Whether a line item was switched to another product or variation since it was saved.
+	 *
+	 * @param WC_Order_Item $item A saved line item, fee or shipping item.
+	 * @return bool False for a fee or shipping item.
+	 */
+	private function order_item_product_switched( $item ) {
+		if ( ! $item instanceof WC_Order_Item_Product ) {
+			return false;
+		}
+
+		$before = $this->get_order_item_saved_base( $item );
+
+		return (int) $before['product_id'] !== (int) $item->get_product_id() || (int) $before['variation_id'] !== (int) $item->get_variation_id();
+	}
+
+	/**
+	 * The props an order item's tax is calculated from, and the product it was for.
 	 *
 	 * @param array $data Item data (WC_Order_Item::get_data() shape).
-	 * @return array{total: float|null, subtotal: float|null, tax_class: string|null, tax_status: string|null}
+	 * @return array{total: float|null, subtotal: float|null, tax_class: string|null, tax_status: string|null, product_id: int|null, variation_id: int|null}
 	 */
 	private static function get_order_item_tax_base( $data ) {
 		return array(
-			'total'      => isset( $data['total'] ) ? (float) $data['total'] : null,
-			'subtotal'   => isset( $data['subtotal'] ) ? (float) $data['subtotal'] : null,
-			'tax_class'  => isset( $data['tax_class'] ) ? (string) $data['tax_class'] : null,
-			'tax_status' => isset( $data['tax_status'] ) ? (string) $data['tax_status'] : null,
+			'total'        => isset( $data['total'] ) ? (float) $data['total'] : null,
+			'subtotal'     => isset( $data['subtotal'] ) ? (float) $data['subtotal'] : null,
+			'tax_class'    => isset( $data['tax_class'] ) ? (string) $data['tax_class'] : null,
+			'tax_status'   => isset( $data['tax_status'] ) ? (string) $data['tax_status'] : null,
+			'product_id'   => isset( $data['product_id'] ) ? (int) $data['product_id'] : null,
+			'variation_id' => isset( $data['variation_id'] ) ? (int) $data['variation_id'] : null,
 		);
 	}
 
@@ -4622,7 +4688,8 @@ class WC_Connect_TaxJar_Integration {
 	 * fee, or one whose tax class or status changed, at the rates of an existing item in
 	 * the same tax class; a new shipping line at the rates of the existing shipping.
 	 * On an order that can't be edited, a tax class or status change doesn't count: the
-	 * item is taxed as it was before that change.
+	 * item is taxed as it was before that change. A line switched to another product
+	 * does count, as a removed line and an added one would.
 	 * If the edit removed the last item of that class (or all the shipping), the rates
 	 * the removed items were taxed at are used. With no such rate on the order, such an
 	 * item is left untaxed and the note says so, unless it is shipping on an order

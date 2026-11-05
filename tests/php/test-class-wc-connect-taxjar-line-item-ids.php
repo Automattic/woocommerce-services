@@ -274,9 +274,10 @@ class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 	 *
 	 * @param WC_Order                      $order       Order.
 	 * @param WC_Connect_TaxJar_Integration $integration Integration under test.
+	 * @param bool                          $preserve    Also register the hooks init() adds to preserve an order's tax.
 	 * @return WC_Order The order read back.
 	 */
-	private function admin_recalculate( $order, $integration ) {
+	private function admin_recalculate( $order, $integration, $preserve = false ) {
 		if ( ! class_exists( \Automattic\WooCommerce\Internal\Orders\TaxesController::class ) ) {
 			$this->markTestSkipped( 'This WooCommerce version has no TaxesController.' );
 		}
@@ -297,6 +298,20 @@ class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $integration, 'override_order_item_taxes' ), 10, 2 );
 		add_filter( 'wp_doing_ajax', '__return_true' );
 
+		// The same priorities and argument counts as init().
+		$preserve_hooks = array(
+			array( 'woocommerce_order_before_calculate_taxes', 'preserve_order_taxes_on_recalculation', 10, 2 ),
+			array( 'woocommerce_before_order_item_object_save', 'remember_order_item_base_before_save', 10, 1 ),
+			array( 'woocommerce_after_order_item_object_save', 'remember_order_item_created', 10, 1 ),
+			array( 'woocommerce_before_order_object_save', 'remember_order_before_save', 10, 1 ),
+			array( 'woocommerce_after_order_object_save', 'remember_order_created', 10, 1 ),
+		);
+		if ( $preserve ) {
+			foreach ( $preserve_hooks as $hook ) {
+				add_action( $hook[0], array( $integration, $hook[1] ), $hook[2], $hook[3] );
+			}
+		}
+
 		try {
 			wc_get_container()->get( \Automattic\WooCommerce\Internal\Orders\TaxesController::class )->calc_line_taxes( $post );
 		} finally {
@@ -304,6 +319,11 @@ class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 			remove_action( 'woocommerce_before_save_order_items', array( $integration, 'calculate_backend_totals' ), 20 );
 			remove_action( 'woocommerce_order_item_after_calculate_taxes', array( $integration, 'override_order_item_taxes' ), 10 );
 			remove_filter( 'wp_doing_ajax', '__return_true' );
+			foreach ( $preserve_hooks as $hook ) {
+				remove_action( $hook[0], array( $integration, $hook[1] ), $hook[2] );
+			}
+			// Added by preserve_order_taxes_on_recalculation() when it keeps a snapshot.
+			remove_action( 'woocommerce_order_after_calculate_totals', array( $integration, 'restore_order_taxes_after_recalculation' ), 10 );
 		}
 
 		return wc_get_order( $order->get_id() );
@@ -672,5 +692,39 @@ class WP_Test_WC_Connect_TaxJar_Line_Item_Ids extends WC_Unit_Test_Case {
 
 		$this->assertNull( $this->state_rate( '' ), 'TaxJar was asked, and its answer was written to the rate table.' );
 		$this->assertEqualsWithDelta( 0.0, self::item_tax( current( $order->get_items() ) ), 0.001, 'The order was charged no tax.' );
+	}
+
+	/**
+	 * A Recalculate request for an order that can't be edited and was charged no tax
+	 * leaves it at no tax, even when the rate table has a row for its address (TaxJar
+	 * writes such rows from other orders). The hooks are registered as init() does.
+	 */
+	public function test_recalculate_request_keeps_no_tax_on_untaxed_order_that_cannot_be_edited() {
+		WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'MI',
+				'tax_rate'          => '6.0000',
+				'tax_rate_name'     => 'MI Tax',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+
+		$order = $this->order( array( $this->simple_product() ) );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001, 'The fixture order was charged no tax.' );
+
+		$order = $this->admin_recalculate( $order, $this->taxjar(), true );
+
+		// Without the guard, WooCommerce's rate table gives 6% of $100.
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001, 'The order gained tax.' );
+		$this->assertEqualsWithDelta( 0.0, self::item_tax( current( $order->get_items() ) ), 0.001 );
+		$this->assertCount( 0, $order->get_taxes() );
+		$this->assertEqualsWithDelta( 100.0, (float) $order->get_total(), 0.001 );
 	}
 }

@@ -1569,12 +1569,15 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'Tax updated', $notes[0] );
 		$this->assertStringContainsString( 'can no longer be edited', $notes[0] );
+		// The tax did change with the amount, so the note can't also say it didn't.
+		$this->assertStringContainsString( 'still taxed as it was charged', $notes[0] );
+		$this->assertStringNotContainsString( 'was not changed', $notes[0] );
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a line switched to another product in another tax class keeps its tax.
+	 * @testdox On an order that can't be edited, a line switched to another product in another tax class is taxed for that class, as a removed and an added line would be.
 	 */
-	public function test_line_switched_to_product_in_other_class_keeps_tax_on_locked_order() {
+	public function test_line_switched_to_product_in_other_class_moves_tax_on_locked_order() {
 		$fixture = $this->create_placed_order();
 
 		$order = $this->rest_update(
@@ -1589,16 +1592,18 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 			)
 		);
 
+		// The line keeps its $10; the order has no Reduced rate, so it is untaxed: 1.80 - 0.60.
 		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
-		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
-		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
-		$this->assertTrue( $this->has_kept_tax_note( $order ) );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+		$this->assertTrue( $this->has_untaxed_note( $order ) );
+		$this->assertFalse( $this->has_kept_tax_note( $order ) );
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a line switched to another variation in another tax class keeps its tax.
+	 * @testdox On an order that can't be edited, a line switched to another variation in another tax class is taxed for that class.
 	 */
-	public function test_line_switched_to_other_variation_in_other_class_keeps_tax_on_locked_order() {
+	public function test_line_switched_to_other_variation_in_other_class_moves_tax_on_locked_order() {
 		$fixture  = $this->create_placed_order();
 		$products = $this->place_line_on_variation( $fixture['order'], $fixture['a'], '', 'reduced-rate' );
 
@@ -1616,11 +1621,13 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 			)
 		);
 
+		// The line keeps its $10; the order has no Reduced rate, so it is untaxed: 1.80 - 0.60.
 		$this->assertSame( $products['other']->get_id(), $order->get_item( $fixture['a'] )->get_variation_id() );
 		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
-		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
-		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
-		$this->assertTrue( $this->has_kept_tax_note( $order ) );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.20, 0.30, 36.50 );
+		$this->assertTrue( $this->has_untaxed_note( $order ) );
+		$this->assertFalse( $this->has_kept_tax_note( $order ) );
 	}
 
 	/**
