@@ -2085,11 +2085,19 @@ class WC_Connect_TaxJar_Integration {
 	 * last: an item TaxJar answered as exempt would otherwise pay the rate of a taxed
 	 * item beside it.
 	 *
+	 * Only a taxable item pays item tax, as in WooCommerce. A "Shipping only" product is
+	 * sent to TaxJar as taxable because its rate rows carry the shipping tax, so it has
+	 * rate ids here, but they are not for the item itself.
+	 *
 	 * @param WC_Order_Item_Product $item          The order item.
 	 * @param array                 $rate_ids      Tax rate ids.
 	 * @param object|null           $response_line TaxJar's breakdown line for the item.
 	 */
 	private function set_order_item_taxes_from_rate_ids( $item, array $rate_ids, $response_line = null ) {
+		if ( 'taxable' !== $item->get_tax_status() ) {
+			return;
+		}
+
 		// Positions matter: the answer's components were stored in this order.
 		$tax_rates = $this->get_looked_up_rates( $rate_ids, $response_line );
 
