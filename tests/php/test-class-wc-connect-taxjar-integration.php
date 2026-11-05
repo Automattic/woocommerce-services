@@ -2586,6 +2586,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * @return void
 	 */
 	private function force_local_pickup_with_store_street( $street ) {
+		// Since WC 11.2.2, a chosen rate only counts if the session lists it as offered.
+		WC()->session->set( 'previous_shipping_methods', array( array( 'local_pickup:1' ) ) );
 		WC()->session->set( 'chosen_shipping_methods', array( 'local_pickup:1' ) );
 
 		$this->store_settings_filter = function ( $settings ) use ( $street ) {
@@ -2604,6 +2606,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 */
 	private function reset_local_pickup_with_store_street() {
 		WC()->session->set( 'chosen_shipping_methods', array() );
+		WC()->session->set( 'previous_shipping_methods', null );
 
 		if ( $this->store_settings_filter ) {
 			remove_filter( 'taxjar_store_settings', $this->store_settings_filter );
