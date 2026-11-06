@@ -147,8 +147,16 @@ export PATH="$SHIM_DIR:$PATH"
 
 # Inside a Composer script (`composer test`), PATH starts with this plugin's
 # vendor/bin, which can hold an older composer (wp-cli/package-command ships
-# one; its token check rejects GitHub Actions tokens). Use the Composer that
-# runs this script. Composer exports both variables to its scripts.
+# one; its token check rejects GitHub Actions tokens). The repair, and the
+# scripts it runs (WC's post-install.sh calls `composer`), must not use it:
+# drop the plugin's vendor/bin from PATH, and call the Composer that runs
+# this script directly. Composer exports both variables to its scripts.
+_plugin_bin="$(cd "$PROJECT_ROOT/vendor/bin" 2> /dev/null && pwd -P)" || _plugin_bin=""
+if [ -n "$_plugin_bin" ]; then
+    PATH="$(printf '%s\n' "$PATH" | tr ':' '\n' | grep -vxF -e "$_plugin_bin" -e "$PROJECT_ROOT/vendor/bin" | paste -s -d: -)"
+    export PATH
+fi
+unset _plugin_bin
 if [ -n "${COMPOSER_BINARY:-}" ] && [ -f "$COMPOSER_BINARY" ]; then
     composer() { "${PHP_BINARY:-php}" "$COMPOSER_BINARY" "$@"; }
 fi
