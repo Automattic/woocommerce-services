@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.7.6 - 2026-xx-xx =
 * Fix   - Stop charging item tax on a product with the "Shipping only" tax status on orders placed through the checkout block. Checkout showed no item tax but the order charged it, so the order total came out higher than the total the customer saw. Shipping tax is unchanged.
+* Fix   - Tax shipping at checkout and on Recalculate from what the tax service answered for that order. Shipping could be charged when the answer was that it is not taxable, or at the wrong rate, when a town's saved rates or your own tax rate for a list of ZIP codes, a ZIP code pattern such as 49* or a whole city said otherwise. For example, an order of only exempt clothing to Brooklyn paid tax on shipping after an earlier taxable order to the same town.
 * Dev   - Fix a PHP test that failed on WooCommerce 11.2.2, which now ignores a chosen shipping method unless its rate was offered.
 * Dev   - Fix a PHP test class that left its database transaction open, so the tests pass on WooCommerce 11.3.
 * Tweak - WooCommerce 11.3 Compatibility.
