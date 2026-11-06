@@ -114,7 +114,14 @@ trap _cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 trap 'exit 129' HUP
+# MariaDB 11+ images ship only mariadb / mariadb-admin, without the mysql*
+# names, so the shim runs the mysql* name if the container has it and the
+# mariadb* name otherwise.
 for _bin in mysqladmin mysql; do
+    case "$_bin" in
+        mysqladmin) _alt=mariadb-admin ;;
+        *) _alt=mariadb ;;
+    esac
     cat > "$SHIM_DIR/$_bin" <<SHIM
 #!/usr/bin/env bash
 # Drop the host's --host/--port/--protocol and any -h/-P pairs from the
@@ -128,13 +135,14 @@ while [ \$# -gt 0 ]; do
         *) args+=("\$1"); shift ;;
     esac
 done
-exec docker compose -f "$COMPOSE_FILE" exec -T test_db $_bin \\
-    --host=127.0.0.1 --port=3306 --protocol=tcp \\
+exec docker compose -f "$COMPOSE_FILE" exec -T test_db sh -c \\
+    'if command -v "\$1" > /dev/null 2>&1; then b="\$1"; else b="\$2"; fi; shift 2; exec "\$b" "\$@"' \\
+    sh $_bin $_alt --host=127.0.0.1 --port=3306 --protocol=tcp \\
     \${args[@]+"\${args[@]}"}
 SHIM
     chmod +x "$SHIM_DIR/$_bin"
 done
-unset _bin
+unset _bin _alt
 export PATH="$SHIM_DIR:$PATH"
 
 echo "============================================================"

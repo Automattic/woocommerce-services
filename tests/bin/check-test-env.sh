@@ -54,6 +54,11 @@ probe "WC test framework" \
 probe "WC composer dependencies" \
     WC test -f "${WC_DEVELOP_DIR}/vendor/autoload.php"
 
+# A WC tree whose composer install stopped early can have vendor/autoload.php
+# but not the PHPUnit polyfills that WC's test bootstrap loads.
+probe "WC PHPUnit polyfills" \
+    WC test -f "${WC_DEVELOP_DIR}/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php"
+
 probe "WC feature config generated" \
     WC test -f "${WC_DEVELOP_DIR}/includes/react-admin/feature-config.php"
 

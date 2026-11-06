@@ -242,6 +242,7 @@ st_rm_tree() {
 st_wc_tree_ok() {
     [ -f "${WC_DEVELOP_DIR}/tests/legacy/bootstrap.php" ] \
         && [ -f "${WC_DEVELOP_DIR}/vendor/autoload.php" ] \
+        && [ -f "${WC_DEVELOP_DIR}/vendor/yoast/phpunit-polyfills/phpunitpolyfills-autoload.php" ] \
         && [ -f "${WC_DEVELOP_DIR}/includes/react-admin/feature-config.php" ]
 }
 
