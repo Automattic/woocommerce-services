@@ -2,6 +2,9 @@
 
 = 3.7.6 - 2026-xx-xx =
 * Fix   - Stop charging item tax on a product with the "Shipping only" tax status on orders placed through the checkout block. Checkout showed no item tax but the order charged it, so the order total came out higher than the total the customer saw. Shipping tax is unchanged.
+* Fix   - Stop charging shipping on the sign-up order of a WooCommerce Subscriptions product synced to a renewal date, when tax could not be looked up for the order, such as for a customer in a state where the store does not collect tax, or when the tax lookup fails. The first renewal charges that shipping, so the customer paid it twice.
+* Fix   - Tax a WooCommerce Subscriptions renewal by its own price, not the sign-up order's. For products whose tax depends on the price, such as clothing in New York, a renewal's tax can go up or down: a $50 clothing plan with a $100 sign-up fee renews with less tax, and a $150 plan with a $50 sign-up fee and a free trial renews with more.
+* Fix   - Keep the highest tax rate when lines in one checkout get different rates for the same address, such as clothing under $110 in Albany, New York, which has no state tax. The order's tax line showed 0% next to the tax it carried, later edits through the REST API or the WooCommerce app did not update the order's tax, and a failed tax lookup at that address right after that checkout could charge too little.
 * Dev   - Fix a PHP test that failed on WooCommerce 11.2.2, which now ignores a chosen shipping method unless its rate was offered.
 * Dev   - Fix a PHP test class that left its database transaction open, so the tests pass on WooCommerce 11.3.
 * Tweak - WooCommerce 11.3 Compatibility.

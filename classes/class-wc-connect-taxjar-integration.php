@@ -205,6 +205,23 @@ class WC_Connect_TaxJar_Integration {
 	private $non_taxable_line_items = array();
 
 	/**
+	 * Highest rate a line item answered for each rate row in this request, by what
+	 * identifies the row. A row shipping answered for holds shipping's answer instead.
+	 * See get_rate_to_store().
+	 *
+	 * @var float[]
+	 */
+	private $highest_rates_stored = array();
+
+	/**
+	 * Last rate shipping answered for each rate row in this request, by what identifies
+	 * the row. See get_rate_to_store().
+	 *
+	 * @var float[]
+	 */
+	private $shipping_rates_stored = array();
+
+	/**
 	 * The tax class each order line item was sent to TaxJar in.
 	 *
 	 * Recorded while the TaxJar request for an order is built and read back when the
@@ -981,7 +998,10 @@ class WC_Connect_TaxJar_Integration {
 				// get_line_items() keys by cart item key and stores the canonical TaxJar ID
 				// under 'id'; the response is keyed by that canonical ID.
 				$line_item_key = $line_items[ $cart_item_key ]['id'] ?? null;
-				if ( null !== $line_item_key && isset( $taxes['line_items'][ $line_item_key ] ) && ! $taxes['line_items'][ $line_item_key ]->combined_tax_rate ) {
+				// A recurring cart shares its product objects with the main cart, and goes to
+				// TaxJar at the renewal price. Marking an exempt renewal would send the sign-up
+				// line as exempt too. Its own answer's 0% rates keep the renewal untaxed.
+				if ( empty( $wc_cart_object->recurring_cart_key ) && null !== $line_item_key && isset( $taxes['line_items'][ $line_item_key ] ) && ! $taxes['line_items'][ $line_item_key ]->combined_tax_rate ) {
 					if ( method_exists( $product, 'set_tax_status' ) ) {
 						$product->set_tax_status( 'none' ); // Woo 3.0+
 					} else {
@@ -1468,8 +1488,12 @@ class WC_Connect_TaxJar_Integration {
 				$this->non_taxable_line_items[ $id . '-' . $cart_item_key ] = true;
 			}
 
-			// Get WC Subscription sign-up fees for calculations
-			if ( class_exists( 'WC_Subscriptions_Cart' ) ) {
+			// Get WC Subscription sign-up fees for calculations. Only the initial cart is priced
+			// this way. Subscriptions sets the calculation type back to 'none' before this hook
+			// runs for a recurring cart, so check the cart's own key as well. Pricing a recurring
+			// cart here would also unset the free trial Subscriptions gives a synced product while
+			// it totals its recurring carts, and the initial order would then charge shipping.
+			if ( class_exists( 'WC_Subscriptions_Cart' ) && empty( $wc_cart_object->recurring_cart_key ) ) {
 				if ( 'none' == WC_Subscriptions_Cart::get_calculation_type() ) {
 					if ( class_exists( 'WC_Subscriptions_Synchroniser' ) ) {
 						WC_Subscriptions_Synchroniser::maybe_set_free_trial();
@@ -1900,8 +1924,9 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		// Only act if we have TaxJar-calculated rate IDs from this request.
-		if ( empty( $this->response_rate_ids ) || ! is_array( $this->response_rate_ids ) ) {
+		// Only act on TaxJar's answers from this request. A cart whose every line was answered
+		// as exempt has answers but no rate ids, and must not be taxed from the rows below.
+		if ( ! is_array( $this->response_rate_ids ) || ( empty( $this->response_rate_ids ) && empty( $this->response_line_items ) ) ) {
 			return;
 		}
 
@@ -1925,12 +1950,36 @@ class WC_Connect_TaxJar_Integration {
 			// line wrote. That includes a line checkout sends as exempt on its second pass,
 			// because TaxJar answered 0% for it on the first.
 			if ( is_object( $matching_line ) && isset( $matching_line->combined_tax_rate ) && 0.0 === (float) $matching_line->combined_tax_rate ) {
-				$item->set_taxes( false );
+				$this->clear_exempt_order_item_taxes( $item );
 			}
 			return;
 		}
 
 		$this->set_order_item_taxes_from_rate_ids( $item, $matching_rate_ids, $matching_line );
+	}
+
+	/**
+	 * Take the tax off an order item TaxJar answered as exempt.
+	 *
+	 * When another line on the order was taxed, the order has the rates and the item needs
+	 * none. When none was, the item keeps its rates at $0: the order's tax lines come from
+	 * them, and an order with none would be looked up again as new on its next edit.
+	 *
+	 * @param WC_Order_Item_Product $item The order item.
+	 */
+	private function clear_exempt_order_item_taxes( $item ) {
+		if ( ! empty( $this->response_rate_ids ) ) {
+			$item->set_taxes( false );
+			return;
+		}
+
+		$taxes = $item->get_taxes();
+		$item->set_taxes(
+			array(
+				'total'    => array_fill_keys( array_keys( $taxes['total'] ?? array() ), 0 ),
+				'subtotal' => array_fill_keys( array_keys( $taxes['subtotal'] ?? array() ), 0 ),
+			)
+		);
 	}
 
 	/**
@@ -2657,7 +2706,7 @@ class WC_Connect_TaxJar_Integration {
 
 					$taxes['rate_ids'][ $line_item_key ][] = $this->create_or_update_tax_rate(
 						$location,
-						round( $tax_rate * 100, 4 ),
+						$this->get_rate_to_store( $location, $tax_class, $priority, round( $tax_rate * 100, 4 ) ),
 						$tax_class,
 						$taxes['freight_taxable'],
 						$priority,
@@ -2678,9 +2727,13 @@ class WC_Connect_TaxJar_Integration {
 				}
 				$rate_name = self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions );
 
+				// Its own answer, not the highest: WooCommerce charges shipping what this row holds.
+				$shipping_rate = round( $tax_rate * 100, 4 );
+				$this->shipping_rates_stored[ self::get_rate_row_key( $location, '', $priority ) ] = $shipping_rate;
+
 				$taxes['rate_ids']['shipping'][] = $this->create_or_update_tax_rate(
 					$location,
-					round( $tax_rate * 100, 4 ),
+					$shipping_rate,
 					'',
 					$taxes['freight_taxable'],
 					$priority,
@@ -2701,6 +2754,55 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $taxes;
+	}
+
+	/**
+	 * The rate to store in a rate row for a rate TaxJar answered.
+	 *
+	 * A row is shared by every line in its tax class at an address, but TaxJar answers per
+	 * line, by price. Clothing under $110 in Albany, NY has no state tax, for example, so a
+	 * subscription whose first payment is over $110 and whose renewal is under it gets two
+	 * answers for one row, in one request.
+	 *
+	 * A line is charged its own answer whatever the row holds (get_looked_up_rates()). The
+	 * row is read by the tax lines of the order and of the subscription, and by a later
+	 * failed lookup. So within a request it keeps the highest rate a line answered, or a
+	 * tax line would show 0% next to the tax it carries.
+	 *
+	 * Shipping is the exception. WooCommerce charges shipping the rate in its Standard
+	 * row, so shipping is written after the lines of its lookup with its own answer, and
+	 * that answer can be lower than a line's. Once shipping has answered for a row in this
+	 * request, the row keeps shipping's answer: a later lookup with no shipping breakdown
+	 * would otherwise put a line's higher rate back, and shipping would pay it.
+	 *
+	 * Only line items call this.
+	 *
+	 * @param array  $location  Address the row is for.
+	 * @param string $tax_class Tax class of the row.
+	 * @param int    $priority  Priority of the row.
+	 * @param float  $rate      Rate TaxJar answered, as a percentage.
+	 *
+	 * @return float
+	 */
+	private function get_rate_to_store( array $location, $tax_class, $priority, $rate ) {
+		$row = self::get_rate_row_key( $location, $tax_class, $priority );
+
+		$this->highest_rates_stored[ $row ] = max( (float) $rate, $this->highest_rates_stored[ $row ] ?? 0.0 );
+
+		return $this->shipping_rates_stored[ $row ] ?? $this->highest_rates_stored[ $row ];
+	}
+
+	/**
+	 * What identifies a rate row for get_rate_to_store().
+	 *
+	 * @param array  $location  Address the row is for.
+	 * @param string $tax_class Tax class of the row.
+	 * @param int    $priority  Priority of the row.
+	 *
+	 * @return string
+	 */
+	private static function get_rate_row_key( array $location, $tax_class, $priority ) {
+		return (string) wp_json_encode( array( $location, (string) $tax_class, (int) $priority ) );
 	}
 
 	/**
