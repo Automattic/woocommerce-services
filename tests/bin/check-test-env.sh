@@ -3,14 +3,15 @@
 #
 # Pre-flight health check for the PHPUnit test environment.
 #
-# Probes the components needed for `composer test` and, on failure,
+# Probes the components needed for `composer run test` and, on failure,
 # dispatches a granular repair to install-wc-tests.sh by setting REPAIR_*
 # env vars so only the broken components get rebuilt.
 #
-# The probes are intentionally cheap. The most important one is WP_CONFIG —
-# it catches the cross-plugin /tmp drift where another woocommerce extension
-# (e.g. USPS) overwrote /tmp/wordpress-tests-lib/wp-tests-config.php with a
-# different DB_HOST port.
+# The probes are intentionally cheap and read-only. The shared WP/WC trees are
+# probed without a lock; install-wc-tests.sh probes them again under the lock
+# (another run may be setting them up right now) before it repairs anything.
+# There is no DB_HOST probe: run-tests.sh writes this plugin's own
+# wp-tests-config.php on every run, so other plugins cannot change it.
 
 set -u
 
@@ -23,7 +24,14 @@ source "$SCRIPT_DIR/test-config.sh"
 
 failed=0
 results=()
-declare -A REPAIR=()
+
+# One plain variable per repairable component rather than an associative
+# array: `declare -A` needs bash 4, and macOS still ships bash 3.2 as /bin/bash.
+NEED_VENDOR=0
+NEED_WC=0
+NEED_WP=0
+NEED_DB=0
+NEED_DB_PORT=0
 
 probe() {
     local label="$1" repair_key="$2"
@@ -33,14 +41,8 @@ probe() {
     else
         results+=("   ❌ $label")
         failed=1
-        [[ -n "$repair_key" ]] && REPAIR[$repair_key]=1
+        [[ -n "$repair_key" ]] && printf -v "NEED_${repair_key}" '%s' 1
     fi
-}
-
-probe_wp_config_db_host() {
-    local cfg="${WP_TESTS_DIR}/wp-tests-config.php"
-    [[ -f "$cfg" ]] || return 1
-    grep -qE "define\([[:space:]]*'DB_HOST'[[:space:]]*,[[:space:]]*'${TEST_DB_HOST}:${TEST_DB_PORT}'[[:space:]]*\)" "$cfg"
 }
 
 probe "PHPUnit binary" \
@@ -61,11 +63,8 @@ probe "WP core" \
 probe "WP test library" \
     WP test -f "${WP_TESTS_DIR}/includes/functions.php"
 
-probe "WP tests config exists" \
-    WP test -f "${WP_TESTS_DIR}/wp-tests-config.php"
-
-probe "WP tests config DB_HOST matches ${TEST_DB_HOST}:${TEST_DB_PORT}" \
-    WP_CONFIG probe_wp_config_db_host
+probe "WP tests config template" \
+    WP bash -c "test -f '${WP_TESTS_DIR}/wp-tests-config-sample.php' || test -f '${WP_TESTS_DIR}/wp-tests-config.php'"
 
 probe "DB container running" \
     DB bash -c "docker compose -f '$COMPOSE_FILE' ps test_db --status running -q 2>/dev/null | grep -q ."
@@ -82,23 +81,21 @@ if [ "$failed" = "1" ]; then
     done
     echo
     echo "▶️  Running install-wc-tests.sh (granular repair)..."
-    echo "   Components to repair:" \
-        "${REPAIR[VENDOR]:+VENDOR}" \
-        "${REPAIR[WC]:+WC}" \
-        "${REPAIR[WP]:+WP}" \
-        "${REPAIR[WP_CONFIG]:+WP_CONFIG}" \
-        "${REPAIR[DB]:+DB}" \
-        "${REPAIR[DB_PORT]:+DB_PORT}"
+    components=""
+    for key in VENDOR WC WP DB DB_PORT; do
+        flag="NEED_${key}"
+        [[ "${!flag}" == "1" ]] && components="${components} ${key}"
+    done
+    echo "   Components to repair:${components}"
     echo "   ℹ️  To force a full reinstall instead, run:  bash tests/bin/install-wc-tests.sh --force"
     echo
     exec env \
         REPAIR_DISPATCHED=1 \
-        REPAIR_VENDOR="${REPAIR[VENDOR]-0}" \
-        REPAIR_WC="${REPAIR[WC]-0}" \
-        REPAIR_WP="${REPAIR[WP]-0}" \
-        REPAIR_WP_CONFIG="${REPAIR[WP_CONFIG]-0}" \
-        REPAIR_DB="${REPAIR[DB]-0}" \
-        REPAIR_DB_PORT="${REPAIR[DB_PORT]-0}" \
+        REPAIR_VENDOR="$NEED_VENDOR" \
+        REPAIR_WC="$NEED_WC" \
+        REPAIR_WP="$NEED_WP" \
+        REPAIR_DB="$NEED_DB" \
+        REPAIR_DB_PORT="$NEED_DB_PORT" \
         bash "$SCRIPT_DIR/install-wc-tests.sh"
 fi
 
