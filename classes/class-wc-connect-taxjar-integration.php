@@ -205,12 +205,21 @@ class WC_Connect_TaxJar_Integration {
 	private $non_taxable_line_items = array();
 
 	/**
-	 * Highest rate this request stored in each rate row, by what identifies the row.
+	 * Highest rate a line item answered for each rate row in this request, by what
+	 * identifies the row. A row shipping answered for holds shipping's answer instead.
 	 * See get_rate_to_store().
 	 *
 	 * @var float[]
 	 */
 	private $highest_rates_stored = array();
+
+	/**
+	 * Last rate shipping answered for each rate row in this request, by what identifies
+	 * the row. See get_rate_to_store().
+	 *
+	 * @var float[]
+	 */
+	private $shipping_rates_stored = array();
 
 	/**
 	 * The tax class each order line item was sent to TaxJar in.
@@ -2710,10 +2719,13 @@ class WC_Connect_TaxJar_Integration {
 				}
 				$rate_name = self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions );
 
-				// Its own answer, not get_rate_to_store(): WooCommerce charges shipping what this row holds.
+				// Its own answer, not the highest: WooCommerce charges shipping what this row holds.
+				$shipping_rate = round( $tax_rate * 100, 4 );
+				$this->shipping_rates_stored[ self::get_rate_row_key( $location, '', $priority ) ] = $shipping_rate;
+
 				$taxes['rate_ids']['shipping'][] = $this->create_or_update_tax_rate(
 					$location,
-					round( $tax_rate * 100, 4 ),
+					$shipping_rate,
 					'',
 					$taxes['freight_taxable'],
 					$priority,
@@ -2746,12 +2758,16 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * A line is charged its own answer whatever the row holds (get_looked_up_rates()). The
 	 * row is read by the tax lines of the order and of the subscription, and by a later
-	 * failed lookup. So within a request it keeps the highest rate answered, or a tax line
-	 * would show 0% next to the tax it carries.
+	 * failed lookup. So within a request it keeps the highest rate a line answered, or a
+	 * tax line would show 0% next to the tax it carries.
 	 *
-	 * Only line items use this. Shipping is written after the lines of its lookup with its
-	 * own answer, so a lower answer for shipping lowers the Standard row again. WooCommerce
-	 * charges shipping the rate in that row, so it would otherwise pay the line's rate.
+	 * Shipping is the exception. WooCommerce charges shipping the rate in its Standard
+	 * row, so shipping is written after the lines of its lookup with its own answer, and
+	 * that answer can be lower than a line's. Once shipping has answered for a row in this
+	 * request, the row keeps shipping's answer: a later lookup with no shipping breakdown
+	 * would otherwise put a line's higher rate back, and shipping would pay it.
+	 *
+	 * Only line items call this.
 	 *
 	 * @param array  $location  Address the row is for.
 	 * @param string $tax_class Tax class of the row.
@@ -2761,11 +2777,24 @@ class WC_Connect_TaxJar_Integration {
 	 * @return float
 	 */
 	private function get_rate_to_store( array $location, $tax_class, $priority, $rate ) {
-		$row = wp_json_encode( array( $location, $tax_class, $priority ) );
+		$row = self::get_rate_row_key( $location, $tax_class, $priority );
 
 		$this->highest_rates_stored[ $row ] = max( (float) $rate, $this->highest_rates_stored[ $row ] ?? 0.0 );
 
-		return $this->highest_rates_stored[ $row ];
+		return $this->shipping_rates_stored[ $row ] ?? $this->highest_rates_stored[ $row ];
+	}
+
+	/**
+	 * What identifies a rate row for get_rate_to_store().
+	 *
+	 * @param array  $location  Address the row is for.
+	 * @param string $tax_class Tax class of the row.
+	 * @param int    $priority  Priority of the row.
+	 *
+	 * @return string
+	 */
+	private static function get_rate_row_key( array $location, $tax_class, $priority ) {
+		return (string) wp_json_encode( array( $location, (string) $tax_class, (int) $priority ) );
 	}
 
 	/**

@@ -5267,6 +5267,47 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A later lookup in the request with no shipping breakdown leaves the row on shipping's
+	 * answer. The row stays marked for shipping, so the line's higher rate would otherwise
+	 * be charged on shipping again by a later calculation with no lookup.
+	 *
+	 * Live TaxJar sends a shipping breakdown for $0 shipping when shipping is taxable. This
+	 * Michigan answer leaves it out for $0, which stands for any lookup without one.
+	 */
+	public function test_lookup_without_shipping_keeps_the_row_on_shippings_answer() {
+		$this->reset_tax_rate_tables();
+
+		$no_shipping_tax = array(
+			'combined_tax_rate'    => 0.0,
+			'city_tax_rate'        => 0.0,
+			'county_tax_rate'      => 0.0,
+			'special_tax_rate'     => 0.0,
+			'state_sales_tax_rate' => 0.0,
+		);
+		$line_tax        = static function () use ( $no_shipping_tax ) {
+			return array_merge(
+				$no_shipping_tax,
+				array(
+					'combined_tax_rate'    => 0.06,
+					'state_sales_tax_rate' => 0.06,
+				)
+			);
+		};
+
+		$integration = $this->michigan_integration( true, true, null, $no_shipping_tax, $line_tax );
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 10 );
+		// The synced sign-up order of WOOTAX-399: $0 shipping, after the recurring cart's lookup.
+		$taxes = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 0 );
+
+		$this->assertArrayNotHasKey( 'shipping', $taxes['rate_ids'], 'The second lookup has no shipping breakdown.' );
+		$state_rows = $this->tax_rate_ids_at_priority( 4 );
+		$this->assertCount( 1, $state_rows );
+		$state_row = WC_Tax::_get_tax_rate( reset( $state_rows ) );
+		$this->assertSame( '0.0000', $state_row['tax_rate'], 'State rate' );
+		$this->assertSame( '1', (string) $state_row['tax_rate_shipping'], 'The row still applies to shipping.' );
+	}
+
+	/**
 	 * A line priced differently in the recurring cart is taxed by each cart's own answer:
 	 * the recurring cart's and the order's.
 	 *
