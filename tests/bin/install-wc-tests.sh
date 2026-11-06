@@ -145,6 +145,14 @@ done
 unset _bin _alt
 export PATH="$SHIM_DIR:$PATH"
 
+# Inside a Composer script (`composer test`), PATH starts with this plugin's
+# vendor/bin, which can hold an older composer (wp-cli/package-command ships
+# one; its token check rejects GitHub Actions tokens). Use the Composer that
+# runs this script. Composer exports both variables to its scripts.
+if [ -n "${COMPOSER_BINARY:-}" ] && [ -f "$COMPOSER_BINARY" ]; then
+    composer() { "${PHP_BINARY:-php}" "$COMPOSER_BINARY" "$@"; }
+fi
+
 echo "============================================================"
 echo "Test environment repair (${WC_TEST_COMPOSE_PROJECT})"
 echo "============================================================"
