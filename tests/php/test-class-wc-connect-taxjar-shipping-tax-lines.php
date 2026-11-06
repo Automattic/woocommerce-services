@@ -60,6 +60,25 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 			),
 			'freight_taxable' => false,
 		),
+		// Not a real place's answer: shipping taxable, but at a lower rate than the line.
+		'XX' => array(
+			'store'               => array( 'MI', '49855', 'Marquette', '1 Main St' ),
+			'to'                  => array( 'MI', '49841', 'Gwinn' ),
+			'county'              => 'MARQUETTE',
+			'components'          => array(
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.0,
+				'state_sales_tax_rate' => 0.06,
+			),
+			'shipping_components' => array(
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.0,
+				'state_sales_tax_rate' => 0.0,
+			),
+			'freight_taxable'     => true,
+		),
 		'NY' => array(
 			'store'           => array( 'NY', '10001', 'New York', '350 5th Ave' ),
 			'to'              => array( 'NY', '10001', 'New York' ),
@@ -207,7 +226,8 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 				// Live TaxJar returns this whenever freight is taxable, also for shipping 0.
 				if ( $place['freight_taxable'] ) {
-					$breakdown['shipping'] = array_merge( array( 'combined_tax_rate' => array_sum( $place['components'] ) ), $place['components'] );
+					$shipping_components   = $place['shipping_components'] ?? $place['components'];
+					$breakdown['shipping'] = array_merge( array( 'combined_tax_rate' => array_sum( $shipping_components ) ), $shipping_components );
 				}
 
 				return array(
@@ -979,6 +999,71 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		$order = $this->admin_recalculate( $order, 'TX' );
 		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.011, 'Recalculate shipping tax' );
 		$this->assertNotContains( $merchant, $this->shipping_line_rate_ids( $order ), 'Recalculate' );
+	}
+
+	/**
+	 * Shipping taxable at a lower rate than a line in the same lookup. They share the
+	 * Standard rows, so what a row holds may be the line's rate. Shipping pays TaxJar's
+	 * answer for shipping whichever it holds: $100 at 6% and $10 at 0% are $6.00 tax and
+	 * $116.00 in all.
+	 *
+	 * @dataProvider data_row_holding_the_line_rate
+	 *
+	 * @param bool  $row_keeps_line_rate Whether the Standard row keeps the highest rate written to it.
+	 * @param float $expected_row_rate   What the row holds after the lookup.
+	 */
+	public function test_shipping_below_a_line_in_the_same_row_pays_the_answer_for_shipping( $row_keeps_line_rate, $expected_row_rate ) {
+		global $wpdb;
+
+		// What stores run; configure_tax_settings() writes it on every load.
+		update_option( 'woocommerce_shipping_tax_class', '' );
+
+		if ( $row_keeps_line_rate ) {
+			$highest  = array();
+			$keep_row = function ( $rate_id, $row ) use ( &$highest, $wpdb ) {
+				$highest[ $rate_id ] = max( (float) $row['tax_rate'], $highest[ $rate_id ] ?? 0.0 );
+				$wpdb->update( $wpdb->prefix . 'woocommerce_tax_rates', array( 'tax_rate' => $highest[ $rate_id ] ), array( 'tax_rate_id' => $rate_id ) );
+			};
+			add_action( 'woocommerce_tax_rate_added', $keep_row, 10, 2 );
+			add_action( 'woocommerce_tax_rate_updated', $keep_row, 10, 2 );
+		}
+
+		$this->ship_to( self::$places['XX']['to'] );
+		$this->hook( $this->taxjar( 'XX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+
+		$row_rates = $wpdb->get_col( "SELECT tax_rate FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_class = ''" );
+		$this->assertEqualsWithDelta( $expected_row_rate, max( array_map( 'floatval', $row_rates ) ), 0.001, 'What the Standard row holds' );
+
+		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+
+		$order = $this->classic_checkout_order();
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Classic checkout total' );
+
+		// Block checkout re-taxes the order it builds from the cart.
+		$order->calculate_totals();
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Block checkout total' );
+
+		$order = $this->admin_recalculate( $order, 'XX' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Recalculate total' );
+	}
+
+	/**
+	 * The two things the shared Standard row can hold after the lookup.
+	 *
+	 * @return array[]
+	 */
+	public function data_row_holding_the_line_rate() {
+		return array(
+			'the row holds the answer for shipping' => array( false, 0.0 ),
+			'the row holds the rate of the line'    => array( true, 6.0 ),
+		);
 	}
 
 	/**

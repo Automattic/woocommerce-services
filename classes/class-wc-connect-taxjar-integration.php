@@ -1993,7 +1993,7 @@ class WC_Connect_TaxJar_Integration {
 		 * Filters whether shipping prices include tax. A WooCommerce core filter, applied
 		 * here as WC_Tax::calc_shipping_tax() applies it.
 		 *
-		 * @since 3.7.5 Applied by this plugin.
+		 * @since 3.7.6 Applied by this plugin.
 		 *
 		 * @param bool $shipping_prices_include_tax Whether they do. Default false.
 		 */
@@ -2817,7 +2817,7 @@ class WC_Connect_TaxJar_Integration {
 				}
 			}
 
-			$taxes['shipping_answer'] = $this->get_shipping_answer( $taxes, $location );
+			$taxes['shipping_answer'] = $this->get_shipping_answer( $taxes, $location, $taxjar_taxes->breakdown->shipping ?? null );
 		}
 
 		return $taxes;
@@ -2833,10 +2833,11 @@ class WC_Connect_TaxJar_Integration {
 	 * to a ZIP list, a wildcard or a city can outrank the row for the town, so its rate and
 	 * Shipping setting would apply to an address TaxJar has answered for.
 	 *
-	 * The answer is the rates to tax shipping at, none when shipping is not taxed. The
-	 * rate table is left as it is, so everything that reads it without a lookup still gets
-	 * what it did. A lookup that decides nothing about shipping gives null, and WooCommerce's
-	 * result from the table stands:
+	 * The answer is the rates to tax shipping at, none when shipping is not taxed. Their
+	 * percentages are TaxJar's for shipping, not what the shared row holds. The rate table
+	 * is left as it is, so everything that reads it without a lookup still gets what it
+	 * did. A lookup that decides nothing about shipping gives null, and WooCommerce's result
+	 * from the table stands:
 	 *
 	 * - A merchant's own shipping tax class, whose rows the merchant chose.
 	 * - A taxable answer without a shipping breakdown, which has no rates to use.
@@ -2847,11 +2848,12 @@ class WC_Connect_TaxJar_Integration {
 	 * table. A tick where TaxJar does not tax shipping can't be honored, since it can't be
 	 * told from the row a taxable order left behind.
 	 *
-	 * @param array $taxes    The lookup's result, with the rows it wrote.
-	 * @param array $location Location in the `to_*` shape, as written.
+	 * @param array       $taxes         The lookup's result, with the rows it wrote.
+	 * @param array       $location      Location in the `to_*` shape, as written.
+	 * @param object|null $shipping_line The answer's breakdown line for shipping.
 	 * @return array{address: string[], rates: array}|null
 	 */
-	private function get_shipping_answer( array $taxes, array $location ) {
+	private function get_shipping_answer( array $taxes, array $location, $shipping_line = null ) {
 		if ( ! in_array( (string) get_option( 'woocommerce_shipping_tax_class' ), array( '', 'inherit' ), true ) ) {
 			return null;
 		}
@@ -2862,7 +2864,7 @@ class WC_Connect_TaxJar_Integration {
 				return null;
 			}
 
-			foreach ( $this->get_looked_up_rates( $taxes['rate_ids']['shipping'] ) as $rate_id => $rate ) {
+			foreach ( $this->get_looked_up_rates( $taxes['rate_ids']['shipping'], $shipping_line ) as $rate_id => $rate ) {
 				$row = WC_Tax::_get_tax_rate( $rate_id );
 				if ( ! empty( $row['tax_rate_shipping'] ) ) {
 					$rates[ $rate_id ] = $rate;
