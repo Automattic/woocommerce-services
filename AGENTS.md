@@ -55,19 +55,34 @@ npm run env:start && npm run test:e2e-playwright:local   # Playwright E2E (see b
   interactive terminal. Force it either way with `TESTDOX=1` / `TESTDOX=0` (e.g.
   `TESTDOX=1 composer test`).
 - The test DB is a throwaway MariaDB container defined in `tests/docker-compose.yml`
-  (published on `127.0.0.1:4416`; credentials in `tests/test.env`). Docker is required;
-  a local mysql client is not (the installer materialises shims that proxy through the
-  container when no client is present).
+  (published on `127.0.0.1:4416`; credentials in `tests/test.env`). Docker is required.
+  A local mysql client is not: `mysql` and `mysqladmin` always run inside the DB container,
+  and a host client is never used.
 - `composer test:setup` installs/repairs every missing component; for a full rebuild that
   also wipes the DB volume run `bash tests/bin/install-wc-tests.sh --force`.
-- WP/WC are installed under the system temp dir (honors `TMPDIR`). The WC clone builds
-  with its own modern Node via the WC checkout's `.nvmrc`; this is independent of the
-  plugin's own pinned Node (`.nvmrc` = 24.21.0) and PHPUnit needs no Node at all.
+- WP/WC are installed under the system temp dir (honors `TMPDIR`) and are shared with the
+  other WooCommerce extensions' suites on the machine. A lock in `tests/bin/shared-trees.sh`
+  coordinates changes to them, so several plugins can run their suites at the same time.
+  Each run writes this checkout's own `tests/.wp-tests-config.php` (gitignored), which the
+  bootstrap loads through `WP_TESTS_CONFIG_FILE_PATH`, so a run never uses another
+  plugin's DB. `vendor/bin/phpunit` by hand uses the file the last `composer test` wrote.
+- To run a second checkout of this plugin at the same time, override the compose name and
+  ports: `WC_TEST_COMPOSE_PROJECT=wcservices_test2 WC_TEST_DB_PORT=4417
+  WC_TEST_ADMINER_PORT=8063 composer test`.
+- The WC clone builds with its own modern Node via the WC checkout's `.nvmrc`; this is
+  independent of the plugin's own pinned Node (`.nvmrc` = 24.21.0) and PHPUnit needs no
+  Node at all.
 - By default the installer clones the **latest** WooCommerce release, whereas CI tests
   the 3 latest WC minors — so a local `composer test` can run against a different WC than
-  the merge gate. To reproduce a specific version, pin it on a forced (re)install:
-  `WC_VERSION=9.4.0 bash tests/bin/install-wc-tests.sh --force` (`EXPECTED_WP_VERSION`
-  pins WordPress the same way).
+  the merge gate. To test a specific version, pin it: `WC_VERSION=9.4.0 composer test`
+  (`EXPECTED_WP_VERSION` pins WordPress the same way). A pinned version gets its own trees
+  under `$TMPDIR/wc-test-trees/`, so the default trees are left alone.
+- The test-env scripts in `tests/bin/` (`run-tests.sh`, `check-test-env.sh`,
+  `install-wc-tests.sh`, `test-config.sh`, `shared-trees.sh`) are vendored copies of the
+  canonical scripts in `woocommerce/escargot-dev-environment` (`tools/phpunit-test-env/`),
+  pinned by `tests/bin/test-env.sha256`. Do not edit them here: the
+  `Test-env scripts identity` workflow fails on any local change. Change them upstream and
+  copy the new version in with `manifest.sh vendor`.
 
 ## Linting (PHPCS) — split by concern
 The PHPCS ruleset is split into concern-specific files, all importing `.phpcs.common.xml` (shared file/exclude/arg/config). Run `check-all` (the `phpcs.xml.dist` aggregator) before pushing, or a single scope while iterating:
@@ -82,8 +97,8 @@ The husky pre-commit hook (`bin/wc-phpcbf.sh` via lint-staged) auto-fixes staged
 
 ## Shell Script Portability (GNU vs BSD)
 The test-env scripts (`tests/bin/*.sh`) and hook helpers (`bin/*.sh`) run on Linux/CI (GNU userland) **and** on contributors' machines (stock macOS ships BSD `grep`/`sed`). CI is GNU-only, so BSD-only breakage never shows up in the merge gate — keep both in mind when editing any shell script:
-- Use POSIX character classes, not GNU regex shorthands: `[[:space:]]` / `[[:digit:]]` / `[[:alnum:]]` instead of `\s` / `\d` / `\w`. BSD `grep -E`/`sed -E` treat `\s` as a literal `s`, so patterns silently stop matching — this cost us a full-reinstall misfire in the `wp-tests-config.php` DB_HOST probe.
-- `sed -i` is not portable: GNU is `sed -i`, BSD needs a backup suffix (`sed -i .bak`). Branch on `[[ "$(uname -s)" == 'Darwin' ]]` and remove the `.bak` afterward — see `repair_wp_config()` in `install-wc-tests.sh`.
+- Use POSIX character classes, not GNU regex shorthands: `[[:space:]]` / `[[:digit:]]` / `[[:alnum:]]` instead of `\s` / `\d` / `\w`. BSD `grep -E`/`sed -E` treat `\s` as a literal `s`, so patterns silently stop matching — this once caused a full-reinstall misfire in a test-env probe.
+- `sed -i` is not portable: GNU is `sed -i`, BSD needs a backup suffix (`sed -i .bak`). Branch on `[[ "$(uname -s)" == 'Darwin' ]]` and remove the `.bak` afterward.
 - Prefer ERE (`grep -E` / `sed -E`) with POSIX quantifiers; avoid GNU-only escapes like `\+`, `\?`, `\|` in BRE. When a script carries regex, test it on macOS or reason through the BSD case before merging.
 
 ## Key Conventions

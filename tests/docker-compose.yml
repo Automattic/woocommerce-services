@@ -2,11 +2,14 @@
 # parent directory ("tests"), which collides with sibling shipping plugins whose
 # compose files also live in tests/ — a `down --remove-orphans` from one would
 # tear down another's DB container. A unique name keeps this plugin isolated.
-name: wcservices_test
+# WC_TEST_COMPOSE_PROJECT, WC_TEST_DB_PORT and WC_TEST_ADMINER_PORT override the
+# name and ports, so a second checkout of this plugin can run its suite at the
+# same time.
+name: ${WC_TEST_COMPOSE_PROJECT:-wcservices_test}
 
 services:
     test_db:
-        container_name: wcservices_test_sql
+        container_name: ${WC_TEST_COMPOSE_PROJECT:-wcservices_test}_sql
         # Match CI (.github/workflows/php_tests.yml) so local runs exercise the
         # same MariaDB as the merge gate.
         image: mariadb:10.9
@@ -15,8 +18,8 @@ services:
         ports:
             # Bind to loopback only. The throwaway test DB and the (unauthenticated)
             # Adminer below must not be reachable from the LAN.
-            - "127.0.0.1:4416:3306"
+            - "127.0.0.1:${WC_TEST_DB_PORT:-4416}:3306"
     test_adminer:
         image: adminer:4.8.1
         ports:
-            - "127.0.0.1:8062:8080"
+            - "127.0.0.1:${WC_TEST_ADMINER_PORT:-8062}:8080"
