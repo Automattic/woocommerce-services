@@ -23,6 +23,9 @@
 # different versions can run at the same time and the default trees are left
 # alone. Unpinned ("latest") runs keep using the default folders above.
 # WP_CORE_DIR, WP_TESTS_DIR and WC_CLONE_DIR still override all of this.
+#
+# Default WP version: the latest, or the plugin's "Tested up to" version when
+# tests/test.env sets TEST_WP_DEFAULT_VERSION=tested-up-to (see below).
 
 __tc_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 __tc_env_file="${__tc_dir}/test.env"
@@ -61,6 +64,28 @@ TEST_TMP_DIR="${TEST_TMP_DIR%/}"
 
 # Folder-safe version name: "release/10.9" → "release_10.9".
 __tc_slug() { printf '%s' "$1" | tr -c 'A-Za-z0-9._-' '_'; }
+
+# Default WP version. Unset, a run tests the latest WordPress. A plugin that
+# sets TEST_WP_DEFAULT_VERSION=tested-up-to in tests/test.env tests its own
+# "Tested up to" version instead (major.minor, from readme.txt or the main
+# plugin file). EXPECTED_WP_VERSION always wins; set it to "latest" to test
+# the latest WordPress in such a plugin.
+if [ -z "${EXPECTED_WP_VERSION:-}" ] && [ "${TEST_WP_DEFAULT_VERSION:-}" = "tested-up-to" ]; then
+    __tc_root="$(dirname "$__tc_dir")"
+    __tc_tested=""
+    for __tc_f in "$__tc_root/readme.txt" "$__tc_root"/*.php; do
+        [ -f "$__tc_f" ] || continue
+        # Anchored at the line start, so "WC tested up to:" does not match.
+        __tc_tested="$(sed -nE 's/^[[:space:]*]*Tested up to:[[:space:]]*([0-9]+\.[0-9]+).*/\1/p' "$__tc_f" | head -1)"
+        [ -n "$__tc_tested" ] && break
+    done
+    if [ -n "$__tc_tested" ]; then
+        export EXPECTED_WP_VERSION="$__tc_tested"
+    else
+        echo "⚠️  TEST_WP_DEFAULT_VERSION=tested-up-to, but no 'Tested up to:' header was found. Testing the latest WordPress." >&2
+    fi
+    unset __tc_root __tc_tested __tc_f
+fi
 
 __tc_wp_pin="${EXPECTED_WP_VERSION:-}"
 case "$__tc_wp_pin" in latest|stable) __tc_wp_pin="" ;; esac
