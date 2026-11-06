@@ -1187,6 +1187,153 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$coat->delete( true );
 	}
 
+	/**
+	 * Total an order the way the Store API does at checkout: TaxJar has answered with a
+	 * rate row for every line, and the row also carries the shipping tax.
+	 *
+	 * @param array $lines Lines, each as array( tax status, line total ).
+	 * @return array {
+	 *     @type WC_Order $order Order, read back.
+	 *     @type float[]  $item_taxes Tax on each line, in the order given.
+	 * }
+	 */
+	private function total_order_as_store_api_checkout( array $lines ) {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		update_option( 'woocommerce_shipping_tax_class', 'inherit' );
+
+		$rate_id = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'NY',
+				'tax_rate'          => '8.875',
+				'tax_rate_name'     => 'NY Tax',
+				'tax_rate_shipping' => 1,
+				'tax_rate_compound' => 'no',
+				'tax_rate_priority' => 1,
+				'tax_rate_class'    => '',
+			)
+		);
+
+		$order = new WC_Order();
+		$order->set_shipping_country( 'US' );
+		$order->set_shipping_state( 'NY' );
+		$order->set_shipping_postcode( '10001' );
+		$order->set_shipping_city( 'New York' );
+
+		$response_rate_ids = array();
+		$products          = array();
+		$items             = array();
+		foreach ( $lines as $index => list( $tax_status, $total ) ) {
+			$product = WC_Helper_Product::create_simple_product();
+			$product->set_tax_status( $tax_status );
+			$product->save();
+			$products[] = $product;
+
+			$item = new WC_Order_Item_Product();
+			$item->set_product( $product );
+			$item->set_quantity( 1 );
+			$item->set_total( $total );
+			$item->set_subtotal( $total );
+			$order->add_item( $item );
+			$items[] = $item;
+
+			$response_rate_ids[ $product->get_id() . '-line-' . $index ] = array( $rate_id );
+		}
+
+		$shipping = new WC_Order_Item_Shipping();
+		$shipping->set_method_id( 'flat_rate' );
+		$shipping->set_total( '10.00' );
+		$order->add_item( $shipping );
+		$order->save();
+
+		$this->set_private_property( 'response_rate_ids', $response_rate_ids );
+
+		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this->integration, 'override_order_item_taxes' ), 10, 2 );
+		try {
+			$order->calculate_totals();
+		} finally {
+			remove_action( 'woocommerce_order_item_after_calculate_taxes', array( $this->integration, 'override_order_item_taxes' ), 10 );
+		}
+
+		$item_taxes = array();
+		foreach ( $items as $item ) {
+			$item_taxes[] = (float) array_sum( $item->get_taxes()['total'] );
+		}
+
+		$order = wc_get_order( $order->get_id() );
+
+		WC_Tax::_delete_tax_rate( $rate_id );
+		delete_option( 'woocommerce_shipping_tax_class' );
+		foreach ( $products as $product ) {
+			$product->delete( true );
+		}
+
+		return array(
+			'order'      => $order,
+			'item_taxes' => $item_taxes,
+		);
+	}
+
+	/**
+	 * A "Shipping only" product pays no item tax on the order, as at checkout, and its
+	 * rate row still carries the shipping tax. A $200 product and $10 shipping at 8.875%
+	 * come to $210.89, the amount the checkout page showed.
+	 */
+	public function test_order_charges_no_item_tax_on_shipping_only_product() {
+		$result = $this->total_order_as_store_api_checkout( array( array( 'shipping', '200.00' ) ) );
+
+		$this->assertEqualsWithDelta( 0.0, $result['item_taxes'][0], 0.0001 );
+		$this->assertEqualsWithDelta( 0.0, (float) $result['order']->get_cart_tax(), 0.0001 );
+		$this->assertEqualsWithDelta( 0.89, (float) $result['order']->get_shipping_tax(), 0.0001 );
+		$this->assertEqualsWithDelta( 210.89, (float) $result['order']->get_total(), 0.0001 );
+	}
+
+	/**
+	 * The same order with a taxable product does pay item tax from the row, so the test
+	 * above passes because of the product's tax status and not because of its setup.
+	 */
+	public function test_order_charges_item_tax_on_taxable_product_from_the_same_row() {
+		$result = $this->total_order_as_store_api_checkout( array( array( 'taxable', '200.00' ) ) );
+
+		$this->assertEqualsWithDelta( 17.75, $result['item_taxes'][0], 0.0001 );
+		$this->assertEqualsWithDelta( 0.89, (float) $result['order']->get_shipping_tax(), 0.0001 );
+		$this->assertEqualsWithDelta( 228.64, (float) $result['order']->get_total(), 0.0001 );
+	}
+
+	/**
+	 * Only the line that isn't taxable loses its item tax. The taxable line beside it,
+	 * which shares its rate row, keeps its own.
+	 *
+	 * @dataProvider provide_untaxed_tax_statuses
+	 *
+	 * @param string $tax_status Tax status of the line that pays no item tax.
+	 */
+	public function test_order_charges_item_tax_only_on_the_taxable_line( $tax_status ) {
+		$result = $this->total_order_as_store_api_checkout(
+			array(
+				array( $tax_status, '200.00' ),
+				array( 'taxable', '80.00' ),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.0, $result['item_taxes'][0], 0.0001 );
+		$this->assertEqualsWithDelta( 7.10, $result['item_taxes'][1], 0.0001 );
+		$this->assertEqualsWithDelta( 0.89, (float) $result['order']->get_shipping_tax(), 0.0001 );
+		$this->assertEqualsWithDelta( 297.99, (float) $result['order']->get_total(), 0.0001 );
+	}
+
+	/**
+	 * Tax statuses WooCommerce charges no item tax for.
+	 *
+	 * @return array
+	 */
+	public function provide_untaxed_tax_statuses() {
+		return array(
+			'shipping only' => array( 'shipping' ),
+			'none'          => array( 'none' ),
+		);
+	}
+
 	// -------------------------------------------------------------------------
 	// calculate_taxes_by_location() tests
 	// -------------------------------------------------------------------------
@@ -2439,6 +2586,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * @return void
 	 */
 	private function force_local_pickup_with_store_street( $street ) {
+		// Since WC 11.2.2, a chosen rate only counts if the session lists it as offered.
+		WC()->session->set( 'previous_shipping_methods', array( array( 'local_pickup:1' ) ) );
 		WC()->session->set( 'chosen_shipping_methods', array( 'local_pickup:1' ) );
 
 		$this->store_settings_filter = function ( $settings ) use ( $street ) {
@@ -2457,6 +2606,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 */
 	private function reset_local_pickup_with_store_street() {
 		WC()->session->set( 'chosen_shipping_methods', array() );
+		WC()->session->set( 'previous_shipping_methods', null );
 
 		if ( $this->store_settings_filter ) {
 			remove_filter( 'taxjar_store_settings', $this->store_settings_filter );
