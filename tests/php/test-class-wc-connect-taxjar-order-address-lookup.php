@@ -1820,6 +1820,48 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A Store API checkout draft is not locked: WooCommerce's own tax stands when nothing is looked up.
+	 */
+	public function test_store_api_checkout_draft_keeps_woocommerce_tax() {
+		WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '6.0000',
+				'tax_rate_name'     => 'CO Tax',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+
+		// The draft as the Store API created it in an earlier request: an address, no tax lines yet.
+		$order = wc_create_order( array( 'status' => 'checkout-draft' ) );
+		$order->set_address( self::address(), 'billing' );
+		$order->set_address( self::address(), 'shipping' );
+		$order->add_product( $this->create_product( '100' ), 1 );
+		$order->set_total( 100 );
+		$order->save();
+		$this->forget_created_in_request();
+		$this->assertFalse( $order->is_editable(), 'WooCommerce does not count a checkout draft as editable' );
+
+		// The Store API syncs the draft from the cart; with no TaxJar answer, WooCommerce's rates apply.
+		$GLOBALS['wp']->query_vars['rest_route'] = '/wc/store/v1/checkout';
+		try {
+			$order = wc_get_order( $order->get_id() );
+			$order->calculate_totals( true );
+		} finally {
+			unset( $GLOBALS['wp']->query_vars['rest_route'] );
+		}
+
+		// Treating the draft as locked would keep it at the no tax it started with: $100, not $106.
+		$this->assert_order_tax( wc_get_order( $order->get_id() ), 6.00, 0.0, 106.00 );
+		$this->assertCount( 0, $this->requests );
+	}
+
+	/**
 	 * @testdox Adding items to an untaxed draft order asks TaxJar.
 	 */
 	public function test_items_added_to_untaxed_order_ask_taxjar() {

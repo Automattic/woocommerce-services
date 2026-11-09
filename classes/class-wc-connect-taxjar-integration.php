@@ -3722,14 +3722,16 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Whether an order can no longer be edited, so its tax is a record of what was charged.
 	 *
-	 * Only WC_Order has is_editable(). A refund reaches the same tax hooks and counts
-	 * as editable here, as it did before orders were locked.
+	 * Only WC_Order has is_editable(), so a refund is never locked here, and
+	 * should_preserve_order_taxes() leaves refunds alone before it matters. A checkout
+	 * draft is not editable in WooCommerce's sense either, but nothing has been charged
+	 * on it: the Store API recalculates it on every cart change, so it is not locked.
 	 *
 	 * @param mixed $order The order, a refund, or whatever a hook passed.
 	 * @return bool
 	 */
 	private function order_cannot_be_edited( $order ) {
-		return $order instanceof WC_Order && ! $order->is_editable();
+		return $order instanceof WC_Order && ! $order->is_editable() && 'checkout-draft' !== $order->get_status();
 	}
 
 	/**
@@ -3949,7 +3951,7 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 
-		// A lookup replaced the order's tax, so there is no charged tax left to speak of.
+		// Not after a lookup: its answer replaced the charged tax, so there is no kept tax to note.
 		if ( ! is_array( $lookup ) && ! empty( $snapshot['base_changes']['kept_tax'] ) ) {
 			$notes[] = sprintf(
 				/* translators: %s: comma-separated names of order items. */
@@ -4019,8 +4021,8 @@ class WC_Connect_TaxJar_Integration {
 	 * Put back a line's saved tax class when a REST request resets it to its product's
 	 * on an order that can't be edited.
 	 *
-	 * set_product() gives a line its product's current class, and the REST API calls it
-	 * whenever a request sends product_id, as the WooCommerce apps do on every update.
+	 * WooCommerce's set_product() gives a line its product's current class, and the REST
+	 * API calls it whenever a request sends product_id, as the apps do on every update.
 	 * Without this, every app edit would rewrite the class of every line on a paid order.
 	 * A class the request sent, or that isn't the one set_product() gives, stays.
 	 *
