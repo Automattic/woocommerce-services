@@ -5,8 +5,8 @@ Requires PHP: 7.4
 Requires at least: 7.0
 Requires Plugins: woocommerce
 Tested up to: 7.1
-WC requires at least: 11.0
-WC tested up to: 11.2
+WC requires at least: 11.1
+WC tested up to: 11.3
 Stable tag: 3.7.5
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -75,6 +75,7 @@ This plugin relies on the following external services:
 * Fix   - Stop charging item tax on a product with the "Shipping only" tax status on orders placed through the checkout block. Checkout showed no item tax but the order charged it, so the order total came out higher than the total the customer saw. Shipping tax is unchanged.
 * Dev   - Fix a PHP test that failed on WooCommerce 11.2.2, which now ignores a chosen shipping method unless its rate was offered.
 * Dev   - Fix a PHP test class that left its database transaction open, so the tests pass on WooCommerce 11.3.
+* Tweak - WooCommerce 11.3 Compatibility.
 
 = 3.7.5 - 2026-11-03 =
 * Fix   - Stop taxing an item at another item's rate on orders that include a WooCommerce Subscriptions product, so the order charges the tax the checkout showed.
