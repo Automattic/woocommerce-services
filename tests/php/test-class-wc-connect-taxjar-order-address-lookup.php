@@ -1714,7 +1714,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
-		$this->assertStringContainsString( 'still taxed as it was charged', $notes[0] );
+		$this->assertStringContainsString( 'the change is saved but not used for tax', $notes[0] );
 	}
 
 	/**

@@ -1570,7 +1570,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertStringContainsString( 'Tax updated', $notes[0] );
 		$this->assertStringContainsString( 'can no longer be edited', $notes[0] );
 		// The tax did change with the amount, so the note can't also say it didn't.
-		$this->assertStringContainsString( 'still taxed as it was charged', $notes[0] );
+		$this->assertStringContainsString( 'the change is saved but not used for tax', $notes[0] );
 		$this->assertStringNotContainsString( 'was not changed', $notes[0] );
 	}
 

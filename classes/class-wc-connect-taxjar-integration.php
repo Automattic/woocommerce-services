@@ -3769,8 +3769,10 @@ class WC_Connect_TaxJar_Integration {
 	 * have (there is no rate to re-use). See lookup_order_taxes().
 	 *
 	 * The cart/checkout, Store API and admin-AJAX flows have their own handling and are
-	 * left untouched, an order with no existing tax lines and nothing to look up is left
-	 * to WC, and a VAT-exempt order keeps the zero tax WC gives it.
+	 * left untouched, except an admin-AJAX recalculation of an order that can't be
+	 * edited. An order with no existing tax lines and nothing to look up is left to WC,
+	 * unless it can't be edited and wasn't created in this request: then it stays at no
+	 * tax. A VAT-exempt order keeps the zero tax WC gives it.
 	 *
 	 * Restoration happens on woocommerce_order_after_calculate_totals, the only post-
 	 * recalculation hook WC fires on this path. A caller that invokes
@@ -3783,8 +3785,8 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @internal Hooked to woocommerce_order_before_calculate_taxes.
 	 *
-	 * @param array    $args  Args passed to calculate_taxes(). Unused.
-	 * @param WC_Order $order The order being recalculated.
+	 * @param array             $args  Args passed to calculate_taxes(). Unused.
+	 * @param WC_Abstract_Order $order The order being recalculated. A refund comes here too.
 	 *
 	 * @since 3.6.8
 	 */
@@ -3870,8 +3872,8 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @internal Hooked to woocommerce_order_after_calculate_totals.
 	 *
-	 * @param bool     $and_taxes Whether taxes were recalculated. Unused.
-	 * @param WC_Order $order     The order whose totals were recalculated.
+	 * @param bool              $and_taxes Whether taxes were recalculated. Unused.
+	 * @param WC_Abstract_Order $order     The order whose totals were recalculated. A refund comes here too.
 	 */
 	public function restore_order_taxes_after_recalculation( $and_taxes, $order ) {
 		$order_id = (int) $order->get_id();
@@ -3951,7 +3953,7 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! is_array( $lookup ) && ! empty( $snapshot['base_changes']['kept_tax'] ) ) {
 			$notes[] = sprintf(
 				/* translators: %s: comma-separated names of order items. */
-				__( 'The tax class or tax status of %s changed, but it is still taxed as it was charged, because this order can no longer be edited.', 'woocommerce-services' ),
+				__( 'The tax class or tax status changed for %s. Because this order can no longer be edited, the change is saved but not used for tax.', 'woocommerce-services' ),
 				implode( ', ', array_map( 'wp_strip_all_tags', array_column( $snapshot['base_changes']['kept_tax'], 'name' ) ) )
 			);
 		}
