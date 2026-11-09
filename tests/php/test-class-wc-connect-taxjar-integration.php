@@ -5025,6 +5025,479 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * TaxJar's answer for clothing in Albany, NY: over $110 the state and county both tax
+	 * it, and under $110 only the county does.
+	 *
+	 * @return callable For michigan_integration()'s $components_for.
+	 */
+	private static function partly_exempt_under_110() {
+		return static function ( $line_item ) {
+			$over = (float) $line_item['unit_price'] >= 110;
+
+			return array(
+				'combined_tax_rate'    => $over ? 0.08 : 0.04,
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.04,
+				'special_tax_rate'     => 0.0,
+				'state_sales_tax_rate' => $over ? 0.04 : 0.0,
+			);
+		};
+	}
+
+	/**
+	 * The percent and tax of an order's tax lines, by priority of the rate they use.
+	 *
+	 * @param WC_Abstract_Order $order Order.
+	 * @return array<int, array{0: float, 1: float}>
+	 */
+	private static function tax_lines_by_priority( $order ) {
+		$lines = array();
+		foreach ( $order->get_items( 'tax' ) as $line ) {
+			$rate = WC_Tax::_get_tax_rate( $line->get_rate_id() );
+
+			$lines[ (int) $rate['tax_rate_priority'] ] = array( (float) $line->get_rate_percent(), (float) $line->get_tax_total() );
+		}
+
+		return $lines;
+	}
+
+	/**
+	 * The tax a failed lookup charges on a new $100 cart: WooCommerce's, from the rate rows.
+	 *
+	 * @return float
+	 */
+	private function tax_when_a_later_lookup_fails() {
+		// A new request: calculate_totals() left the last instance hooked.
+		remove_all_actions( 'woocommerce_after_calculate_totals', 20 );
+		$product = $this->priced_product( 100 );
+		WC()->cart->empty_cart();
+		WC()->cart->add_to_cart( $product->get_id(), 1 );
+
+		$saved_route = $GLOBALS['wp']->query_vars['rest_route'] ?? null;
+
+		$GLOBALS['wp']->query_vars['rest_route'] = '/wc/store/v1/checkout';
+		try {
+			WC()->cart->calculate_totals();
+			$this->michigan_integration( false )->calculate_totals( WC()->cart );
+		} finally {
+			$GLOBALS['wp']->query_vars['rest_route'] = $saved_route;
+		}
+
+		$tax = (float) WC()->cart->get_cart_contents_tax();
+		WC()->cart->empty_cart();
+		$product->delete( true );
+
+		return $tax;
+	}
+
+	/**
+	 * A renewal under the exempt threshold doesn't lower the rates the first payment was
+	 * taxed at. The order's tax line and a later failed lookup both read the rows.
+	 */
+	public function test_exempt_renewal_leaves_the_rates_of_the_taxed_first_payment() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 100 );
+		$box_key       = WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$integration    = $this->michigan_integration( true, false, 60 );
+		$recurring_cart = null;
+		$recurring      = self::total_a_recurring_cart( $integration, $box_key, 50, $recurring_cart );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		$this->assertEqualsWithDelta( 0.0, (float) $recurring_cart->get_cart_contents_tax(), 0.001, 'TaxJar answered the $50 renewal as exempt' );
+		// Priority 4 is the state component: 6% of the $100 first payment.
+		$lines = self::tax_lines_by_priority( $order );
+		$this->assertEqualsWithDelta( 6.0, $lines[4][0], 0.001, 'State tax line percent' );
+		$this->assertEqualsWithDelta( 6.0, $lines[4][1], 0.001, 'State tax line amount' );
+		$this->assertEqualsWithDelta( 6.0, $this->tax_when_a_later_lookup_fails(), 0.001, '6% of a new $100 cart' );
+	}
+
+	/**
+	 * A first payment partly exempt under the threshold doesn't lower the rate the renewal
+	 * is taxed at, so the subscription's tax lines show what it charges. Rows that held
+	 * only the main cart's answer would show this renewal's state tax at 0%.
+	 */
+	public function test_partly_exempt_first_payment_leaves_the_rates_of_the_renewal() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		$box_key       = WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$integration    = $this->michigan_integration( true, false, null, null, self::partly_exempt_under_110() );
+		$recurring_cart = null;
+		$recurring      = self::total_a_recurring_cart( $integration, $box_key, 150, $recurring_cart );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		// County (priority 2) 4% of the $50 first payment; no state tax on it.
+		$this->assertEqualsWithDelta( 2.0, (float) $order->get_cart_tax(), 0.001, 'First payment tax' );
+		$lines = self::tax_lines_by_priority( $order );
+		$this->assertEqualsWithDelta( 4.0, $lines[2][0], 0.001, 'First payment county percent' );
+		$this->assertEqualsWithDelta( 2.0, $lines[2][1], 0.001, 'First payment county amount' );
+
+		// State and county each 4% of the $150 renewal.
+		$subscription = new WC_Order();
+		WC()->checkout->create_order_tax_lines( $subscription, $recurring_cart );
+		$lines = self::tax_lines_by_priority( $subscription );
+		$this->assertEqualsWithDelta( 4.0, $lines[4][0], 0.001, 'Renewal state percent' );
+		$this->assertEqualsWithDelta( 6.0, $lines[4][1], 0.001, 'Renewal state amount' );
+		$this->assertEqualsWithDelta( 4.0, $lines[2][0], 0.001, 'Renewal county percent' );
+		$this->assertEqualsWithDelta( 6.0, $lines[2][1], 0.001, 'Renewal county amount' );
+	}
+
+	/**
+	 * A renewal partly exempt under the threshold doesn't lower the state rate of the
+	 * first payment, which the order's tax line would then show at 0%.
+	 */
+	public function test_partly_exempt_renewal_leaves_the_rates_of_the_first_payment() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 150 );
+		$box_key       = WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$integration    = $this->michigan_integration( true, false, null, null, self::partly_exempt_under_110() );
+		$recurring_cart = null;
+		$recurring      = self::total_a_recurring_cart( $integration, $box_key, 50, $recurring_cart );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		// County 4% of the $50 renewal only.
+		$this->assertEqualsWithDelta( 2.0, (float) $recurring_cart->get_cart_contents_tax(), 0.001, 'Renewal tax' );
+		// State and county each 4% of the $150 first payment.
+		$lines = self::tax_lines_by_priority( $order );
+		$this->assertEqualsWithDelta( 4.0, $lines[4][0], 0.001, 'First payment state percent' );
+		$this->assertEqualsWithDelta( 6.0, $lines[4][1], 0.001, 'First payment state amount' );
+		$this->assertEqualsWithDelta( 4.0, $lines[2][0], 0.001, 'First payment county percent' );
+		$this->assertEqualsWithDelta( 6.0, $lines[2][1], 0.001, 'First payment county amount' );
+	}
+
+	/**
+	 * The order of two lines in the cart.
+	 *
+	 * @return array
+	 */
+	public function provide_order_of_two_prices() {
+		return array(
+			'$150 first' => array( array( 150, 50 ) ),
+			'$50 first'  => array( array( 50, 150 ) ),
+		);
+	}
+
+	/**
+	 * A line partly exempt under the threshold doesn't lower the state rate of the other
+	 * line in the cart, wherever it sits in the cart. No subscription is involved.
+	 *
+	 * @dataProvider provide_order_of_two_prices
+	 *
+	 * @param array $prices Line prices, in cart order.
+	 */
+	public function test_partly_exempt_line_leaves_the_rates_of_the_other_line( $prices ) {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$products = array();
+		foreach ( $prices as $price ) {
+			$products[] = $this->priced_product( $price );
+			WC()->cart->add_to_cart( end( $products )->get_id(), 1 );
+		}
+
+		$order = $this->store_api_checkout( $this->michigan_integration( true, false, null, null, self::partly_exempt_under_110() ) );
+
+		// State 4% of $150 only; county 4% of both lines.
+		$lines = self::tax_lines_by_priority( $order );
+		$this->assertEqualsWithDelta( 4.0, $lines[4][0], 0.001, 'State percent' );
+		$this->assertEqualsWithDelta( 6.0, $lines[4][1], 0.001, 'State amount' );
+		$this->assertEqualsWithDelta( 4.0, $lines[2][0], 0.001, 'County percent' );
+		$this->assertEqualsWithDelta( 8.0, $lines[2][1], 0.001, 'County amount' );
+
+		foreach ( $products as $product ) {
+			$product->delete( true );
+		}
+	}
+
+	/**
+	 * An order whose only line TaxJar answered as exempt stays untaxed, though the rate
+	 * rows hold another cart's rate for its address. The order must not fall back to them.
+	 */
+	public function test_exempt_first_payment_stays_untaxed_when_the_rows_hold_the_renewals_rate() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		$box_key       = WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$integration = $this->michigan_integration( true, false, 60 );
+		$recurring   = self::total_a_recurring_cart( $integration, $box_key, 100 );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		$state_rows = $this->tax_rate_ids_at_priority( 4 );
+		$this->assertSame( '6.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'], 'The rows hold the $100 renewal\'s rate' );
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
+
+		// It keeps the rate at $0, so its next edit isn't looked up again as a new order.
+		$lines = self::tax_lines_by_priority( $order );
+		$this->assertEqualsWithDelta( 6.0, $lines[4][0], 0.001, 'State tax line percent' );
+		$this->assertEqualsWithDelta( 0.0, $lines[4][1], 0.001, 'State tax line amount' );
+	}
+
+	/**
+	 * A cart whose only line TaxJar answered as exempt keeps its tax lines at 0%, so an edit
+	 * of the order leaves it untaxed instead of looking it up again as new.
+	 */
+	public function test_order_with_only_an_exempt_line_keeps_its_tax_lines() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 50 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ) );
+
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'TaxJar answered the $50 line as exempt' );
+		$lines = self::tax_lines_by_priority( $order );
+		$this->assertEqualsWithDelta( 0.0, $lines[4][0], 0.001, 'State tax line percent' );
+		$this->assertEqualsWithDelta( 0.0, $lines[4][1], 0.001, 'State tax line amount' );
+	}
+
+	/**
+	 * An exempt line beside a taxed line has no rates of its own: the order has them from
+	 * the taxed line.
+	 */
+	public function test_exempt_line_beside_a_taxed_line_has_no_rates() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$shirt         = $this->priced_product( 50 );
+		$this->product = $this->priced_product( 100 );
+		WC()->cart->add_to_cart( $shirt->get_id(), 1 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ) );
+
+		$shirt_item = null;
+		foreach ( $order->get_items() as $item ) {
+			if ( $item->get_product_id() === $shirt->get_id() ) {
+				$shirt_item = $item;
+			}
+		}
+		$this->assertNotNull( $shirt_item, 'The exempt line is on the order' );
+		$this->assertSame( array(), $shirt_item->get_taxes()['total'] );
+
+		$shirt->delete( true );
+	}
+
+	/**
+	 * Rows of two tax classes at one address keep their own rates: a lower rate in the
+	 * second class isn't raised to the first's.
+	 */
+	public function test_rate_rows_of_two_tax_classes_keep_their_own_rates() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$coat = $this->priced_product( 100 );
+		$hat  = $this->priced_product( 50 );
+		$hat->set_tax_class( 'reduced-rate' );
+		$hat->save();
+		WC()->cart->add_to_cart( $coat->get_id(), 1 );
+		WC()->cart->add_to_cart( $hat->get_id(), 1 );
+
+		$answers = static function ( $line_item ) {
+			$rate = (float) $line_item['unit_price'] >= 100 ? 0.06 : 0.03;
+
+			return array(
+				'combined_tax_rate'    => $rate,
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.0,
+				'state_sales_tax_rate' => $rate,
+			);
+		};
+		$order   = $this->store_api_checkout( $this->michigan_integration( true, false, null, null, $answers ) );
+
+		$percents = array();
+		foreach ( $order->get_items( 'tax' ) as $line ) {
+			if ( 0.0 !== (float) $line->get_tax_total() ) {
+				$percents[] = (float) $line->get_rate_percent();
+			}
+		}
+		sort( $percents );
+		$this->assertSame( array( 3.0, 6.0 ), $percents, 'Each class shows its own state rate' );
+
+		$coat->delete( true );
+		$hat->delete( true );
+	}
+
+	/**
+	 * Rows of two addresses keep their own rates: a lower rate at the second address isn't
+	 * raised to the first's, when one request looks up both.
+	 */
+	public function test_rate_rows_of_two_addresses_keep_their_own_rates() {
+		$this->reset_tax_rate_tables();
+
+		$answers     = static function () {
+			static $rate = 0.06;
+			$answer      = array(
+				'combined_tax_rate'    => $rate,
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.0,
+				'state_sales_tax_rate' => $rate,
+			);
+			$rate        = 0.03;
+
+			return $answer;
+		};
+		$integration = $this->michigan_integration( true, false, null, null, $answers );
+
+		$first  = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$second = $this->lookup_michigan_taxes( $integration, '49855', 'Marquette' );
+
+		$first_ids  = $this->looked_up_rate_ids( $first );
+		$second_ids = $this->looked_up_rate_ids( $second );
+		$this->assertSame( '6.0000', WC_Tax::_get_tax_rate( end( $first_ids ) )['tax_rate'], 'State rate at the first address' );
+		$this->assertSame( '3.0000', WC_Tax::_get_tax_rate( end( $second_ids ) )['tax_rate'], 'State rate at the second address' );
+	}
+
+	/**
+	 * The rate rows remember the highest line answer for one order's lookup only. A
+	 * process that recalculates several orders (a REST batch, WP-CLI, a scheduled job)
+	 * still writes a later order's lower answer for the same row.
+	 */
+	public function test_a_later_order_in_the_same_process_writes_its_own_rate() {
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$answers     = static function () {
+			static $rate = 0.06;
+			$answer      = array(
+				'combined_tax_rate'    => $rate,
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.0,
+				'state_sales_tax_rate' => $rate,
+			);
+			$rate        = 0.03;
+
+			return $answer;
+		};
+		$integration = $this->michigan_integration( true, false, null, null, $answers );
+
+		$first  = $this->admin_recalculate( $integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
+		$second = $this->admin_recalculate( $integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
+
+		$this->assertEqualsWithDelta( 6.0, (float) $first->get_cart_tax(), 0.001, 'First order: 6% of $100' );
+		$this->assertEqualsWithDelta( 3.0, (float) $second->get_cart_tax(), 0.001, 'Second order: 3% of $100' );
+		$state_rows = $this->tax_rate_ids_at_priority( 4 );
+		$this->assertCount( 1, $state_rows );
+		$this->assertSame( '3.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'], 'The row holds the second order\'s own answer' );
+	}
+
+	/**
+	 * Shipping shares the Standard class's rows with the lines, and WooCommerce charges it
+	 * what the row holds. So the row ends on shipping's own answer, also when a line in the
+	 * same lookup answered higher.
+	 */
+	public function test_shipping_answer_is_what_the_row_holds_after_a_higher_line() {
+		$this->reset_tax_rate_tables();
+
+		$no_shipping_tax = array(
+			'combined_tax_rate'    => 0.0,
+			'city_tax_rate'        => 0.0,
+			'county_tax_rate'      => 0.0,
+			'special_tax_rate'     => 0.0,
+			'state_sales_tax_rate' => 0.0,
+		);
+		$line_tax        = static function () use ( $no_shipping_tax ) {
+			return array_merge(
+				$no_shipping_tax,
+				array(
+					'combined_tax_rate'    => 0.06,
+					'state_sales_tax_rate' => 0.06,
+				)
+			);
+		};
+
+		$integration = $this->michigan_integration( true, true, null, $no_shipping_tax, $line_tax );
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 10 );
+
+		$state_rows = $this->tax_rate_ids_at_priority( 4 );
+		$this->assertSame( '0.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'] );
+
+		// A second lookup in the request, as a recurring cart makes, ends the same way.
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 10 );
+
+		$this->assertSame( '0.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'], 'After a second lookup' );
+	}
+
+	/**
+	 * A later lookup in the request with no shipping breakdown leaves the row on shipping's
+	 * answer. The row stays marked for shipping, so the line's higher rate would otherwise
+	 * be charged on shipping again by a later calculation with no lookup.
+	 *
+	 * Live TaxJar sends a shipping breakdown for $0 shipping when shipping is taxable. This
+	 * Michigan answer leaves it out for $0, which stands for any lookup without one.
+	 */
+	public function test_lookup_without_shipping_keeps_the_row_on_shippings_answer() {
+		$this->reset_tax_rate_tables();
+
+		$no_shipping_tax = array(
+			'combined_tax_rate'    => 0.0,
+			'city_tax_rate'        => 0.0,
+			'county_tax_rate'      => 0.0,
+			'special_tax_rate'     => 0.0,
+			'state_sales_tax_rate' => 0.0,
+		);
+		$line_tax        = static function () use ( $no_shipping_tax ) {
+			return array_merge(
+				$no_shipping_tax,
+				array(
+					'combined_tax_rate'    => 0.06,
+					'state_sales_tax_rate' => 0.06,
+				)
+			);
+		};
+
+		$integration = $this->michigan_integration( true, true, null, $no_shipping_tax, $line_tax );
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 10 );
+		// The synced sign-up order of WOOTAX-399: $0 shipping, after the recurring cart's lookup.
+		$taxes = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 0 );
+
+		$this->assertArrayNotHasKey( 'shipping', $taxes['rate_ids'], 'The second lookup has no shipping breakdown.' );
+		$state_rows = $this->tax_rate_ids_at_priority( 4 );
+		$this->assertCount( 1, $state_rows );
+		$state_row = WC_Tax::_get_tax_rate( reset( $state_rows ) );
+		$this->assertSame( '0.0000', $state_row['tax_rate'], 'State rate' );
+		$this->assertSame( '1', (string) $state_row['tax_rate_shipping'], 'The row still applies to shipping.' );
+	}
+
+	/**
 	 * A line priced differently in the recurring cart is taxed by each cart's own answer:
 	 * the recurring cart's and the order's.
 	 *
