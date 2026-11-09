@@ -5076,9 +5076,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$saved_route = $GLOBALS['wp']->query_vars['rest_route'] ?? null;
 
 		$GLOBALS['wp']->query_vars['rest_route'] = '/wc/store/v1/checkout';
-		WC()->cart->calculate_totals();
-		$this->michigan_integration( false )->calculate_totals( WC()->cart );
-		$GLOBALS['wp']->query_vars['rest_route'] = $saved_route;
+		try {
+			WC()->cart->calculate_totals();
+			$this->michigan_integration( false )->calculate_totals( WC()->cart );
+		} finally {
+			$GLOBALS['wp']->query_vars['rest_route'] = $saved_route;
+		}
 
 		$tax = (float) WC()->cart->get_cart_contents_tax();
 		WC()->cart->empty_cart();
@@ -5297,11 +5300,14 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ) );
 
+		$shirt_item = null;
 		foreach ( $order->get_items() as $item ) {
 			if ( $item->get_product_id() === $shirt->get_id() ) {
-				$this->assertSame( array(), $item->get_taxes()['total'] );
+				$shirt_item = $item;
 			}
 		}
+		$this->assertNotNull( $shirt_item, 'The exempt line is on the order' );
+		$this->assertSame( array(), $shirt_item->get_taxes()['total'] );
 
 		$shirt->delete( true );
 	}
@@ -5377,6 +5383,40 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$second_ids = $this->looked_up_rate_ids( $second );
 		$this->assertSame( '6.0000', WC_Tax::_get_tax_rate( end( $first_ids ) )['tax_rate'], 'State rate at the first address' );
 		$this->assertSame( '3.0000', WC_Tax::_get_tax_rate( end( $second_ids ) )['tax_rate'], 'State rate at the second address' );
+	}
+
+	/**
+	 * The rate rows remember the highest line answer for one order's lookup only. A
+	 * process that recalculates several orders (a REST batch, WP-CLI, a scheduled job)
+	 * still writes a later order's lower answer for the same row.
+	 */
+	public function test_a_later_order_in_the_same_process_writes_its_own_rate() {
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$answers     = static function () {
+			static $rate = 0.06;
+			$answer      = array(
+				'combined_tax_rate'    => $rate,
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.0,
+				'state_sales_tax_rate' => $rate,
+			);
+			$rate        = 0.03;
+
+			return $answer;
+		};
+		$integration = $this->michigan_integration( true, false, null, null, $answers );
+
+		$first  = $this->admin_recalculate( $integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
+		$second = $this->admin_recalculate( $integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
+
+		$this->assertEqualsWithDelta( 6.0, (float) $first->get_cart_tax(), 0.001, 'First order: 6% of $100' );
+		$this->assertEqualsWithDelta( 3.0, (float) $second->get_cart_tax(), 0.001, 'Second order: 3% of $100' );
+		$state_rows = $this->tax_rate_ids_at_priority( 4 );
+		$this->assertCount( 1, $state_rows );
+		$this->assertSame( '3.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'], 'The row holds the second order\'s own answer' );
 	}
 
 	/**

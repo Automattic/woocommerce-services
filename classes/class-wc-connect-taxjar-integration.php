@@ -205,16 +205,18 @@ class WC_Connect_TaxJar_Integration {
 	private $non_taxable_line_items = array();
 
 	/**
-	 * Highest rate a line item answered for each rate row in this request, by what
-	 * identifies the row. See get_rate_to_store().
+	 * Highest rate a line item answered for each rate row, by what identifies the row,
+	 * since the current cart or order lookup began. See get_rate_to_store() and
+	 * reset_rate_row_memory().
 	 *
 	 * @var float[]
 	 */
 	private $highest_rates_stored = array();
 
 	/**
-	 * Last rate shipping answered for each rate row in this request, by what identifies
-	 * the row. See get_rate_to_store().
+	 * Last rate shipping answered for each rate row, by what identifies the row, since
+	 * the current cart or order lookup began. See get_rate_to_store() and
+	 * reset_rate_row_memory().
 	 *
 	 * @var float[]
 	 */
@@ -1046,6 +1048,8 @@ class WC_Connect_TaxJar_Integration {
 	 * @return void
 	 */
 	public function calculate_backend_totals( $order_id ) {
+		$this->reset_rate_row_memory();
+
 		$order      = wc_get_order( $order_id );
 		$address    = $this->fill_missing_backend_street( $this->get_backend_address(), $order );
 		$line_items = $this->get_backend_line_items( $order );
@@ -1897,7 +1901,8 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		// The line's own percentages, as the order uses: rows are shared by every product
-		// in a tax class and hold whichever line was stored last.
+		// in a tax class and hold the highest rate a line answered, or shipping's own
+		// (see get_rate_to_store()).
 		$tax_rates = $this->get_looked_up_rates( $matching_rate_ids, $this->response_line_items[ $line_item_key ] ?? null );
 
 		// Return our rates if we found any, otherwise fall back to WooCommerce's.
@@ -2098,9 +2103,9 @@ class WC_Connect_TaxJar_Integration {
 	 * Tax an order item at the given rate rows, replacing what WooCommerce found.
 	 *
 	 * The percentages come from TaxJar's answer for the item when it is given. Rows are
-	 * shared by every product in a tax class, so they hold whichever line was stored
-	 * last: an item TaxJar answered as exempt would otherwise pay the rate of a taxed
-	 * item beside it.
+	 * shared by every product in a tax class, so they hold the highest rate a line
+	 * answered (see get_rate_to_store()): an item TaxJar answered as exempt would
+	 * otherwise pay the rate of a taxed item beside it.
 	 *
 	 * Only a taxable item pays item tax, as in WooCommerce. A "Shipping only" product is
 	 * sent to TaxJar as taxable because its rate rows carry the shipping tax, so it has
@@ -2765,8 +2770,10 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * A line is charged its own answer whatever the row holds (get_looked_up_rates()). The
 	 * row is read by the tax lines of the order and of the subscription, and by a later
-	 * failed lookup. So within a request it keeps the highest rate a line answered, or a
-	 * tax line would show 0% next to the tax it carries.
+	 * failed lookup. So within one cart or order lookup it keeps the highest rate a line
+	 * answered, or a tax line would show 0% next to the tax it carries. The memory starts
+	 * over with each order lookup (reset_rate_row_memory()), so one order's answers do
+	 * not decide another order's rows in the same process.
 	 *
 	 * Only line items call this. Shipping writes its own answer to its Standard row, which
 	 * can be lower than a line's, and WooCommerce charges shipping that row's rate. So once
@@ -2786,6 +2793,19 @@ class WC_Connect_TaxJar_Integration {
 		$this->highest_rates_stored[ $row ] = max( (float) $rate, $this->highest_rates_stored[ $row ] ?? 0.0 );
 
 		return $this->shipping_rates_stored[ $row ] ?? $this->highest_rates_stored[ $row ];
+	}
+
+	/**
+	 * Forget the rates remembered for the rate rows.
+	 *
+	 * Called when a lookup starts for an order. A checkout's carts share one memory, as
+	 * Subscriptions totals the recurring carts and the main cart in one request, but an
+	 * order recalculated by the REST API, WP-CLI or a scheduled job is its own lookup, and
+	 * one process can recalculate many orders.
+	 */
+	private function reset_rate_row_memory() {
+		$this->highest_rates_stored  = array();
+		$this->shipping_rates_stored = array();
 	}
 
 	/**
@@ -5155,6 +5175,8 @@ class WC_Connect_TaxJar_Integration {
 	 *                                 to ask about.
 	 */
 	private function lookup_order_taxes( $order ) {
+		$this->reset_rate_row_memory();
+
 		$default_type = $this->get_order_tax_location_type( $order );
 		$line_items   = $this->get_backend_line_items( $order );
 		$shipping     = (float) $order->get_shipping_total();
