@@ -60,6 +60,25 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 			),
 			'freight_taxable' => false,
 		),
+		// Not a real place's answer: shipping taxable, but at a lower rate than the line.
+		'XX' => array(
+			'store'               => array( 'MI', '49855', 'Marquette', '1 Main St' ),
+			'to'                  => array( 'MI', '49841', 'Gwinn' ),
+			'county'              => 'MARQUETTE',
+			'components'          => array(
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.0,
+				'state_sales_tax_rate' => 0.06,
+			),
+			'shipping_components' => array(
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.0,
+				'state_sales_tax_rate' => 0.0,
+			),
+			'freight_taxable'     => true,
+		),
 		'NY' => array(
 			'store'           => array( 'NY', '10001', 'New York', '350 5th Ave' ),
 			'to'              => array( 'NY', '10001', 'New York' ),
@@ -202,7 +221,8 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 				// Live TaxJar returns this whenever freight is taxable, also for shipping 0.
 				if ( $place['freight_taxable'] ) {
-					$breakdown['shipping'] = array_merge( array( 'combined_tax_rate' => array_sum( $place['components'] ) ), $place['components'] );
+					$shipping_components   = $place['shipping_components'] ?? $place['components'];
+					$breakdown['shipping'] = array_merge( array( 'combined_tax_rate' => array_sum( $shipping_components ) ), $shipping_components );
 				}
 
 				return array(
@@ -497,6 +517,52 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		$order = $this->admin_recalculate( $order, 'MI' );
 		$this->assert_no_extra_tax_items( $order, $merchant, 'Recalculate' );
 		$this->assertEqualsWithDelta( 6.0, (float) $order->get_total_tax(), 0.001 );
+	}
+
+	/**
+	 * Shipping taxable at a lower rate than a line in the same lookup. They share the
+	 * Standard rows, and WooCommerce charges shipping what the row holds, so the rows keep
+	 * shipping's 0%. $100 at 6% and $10 at 0% come to $6.00 tax at the cart, at checkout
+	 * and on Recalculate, which all look the tax up.
+	 *
+	 * A later calculation with no lookup has only the rows, so it taxes the line at 0%
+	 * too: $110 with no tax. That is the trade-off of rows holding shipping's answer.
+	 */
+	public function test_shipping_taxed_lower_than_a_line_pays_its_own_answer() {
+		// What stores run; configure_tax_settings() writes it on every load.
+		update_option( 'woocommerce_shipping_tax_class', '' );
+
+		$this->ship_to( self::$places['XX']['to'] );
+		$this->hook( $this->taxjar( 'XX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+
+		$order = $this->classic_checkout_order();
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Classic checkout total' );
+
+		// Block checkout re-taxes the order it builds from the cart.
+		$order->calculate_totals();
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Block checkout total' );
+
+		$order = $this->admin_recalculate( $order, 'XX' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Recalculate total' );
+
+		// A later request with no lookup, as a REST or app edit can be: only the rows are left.
+		foreach ( $this->hooked as $integration ) {
+			$this->unhook( $integration );
+		}
+		$this->hooked = array();
+		$order->calculate_totals();
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Shipping tax with no lookup' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'Line tax with no lookup' );
+		$this->assertEqualsWithDelta( 110.0, (float) $order->get_total(), 0.001, 'Total with no lookup' );
 	}
 
 	/**
