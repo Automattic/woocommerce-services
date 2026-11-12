@@ -40,6 +40,11 @@ a store with a real WordPress.com connection. If a store is connected after armi
 the stub stops acting on it. The Playwright global teardown disarms it and undoes
 the terms acceptance it made; deactivating the stub does the same.
 
+The WordPress Playground preview linked from the "Test the build" comment on pull
+requests loads the stub too, from the pull request's commit, and arms it by calling
+`wc_services_e2e_tax_stub_arm()` directly (`.github/workflows/test_the_build.yml`).
+Renaming the stub's file or that function breaks the preview.
+
 While armed, the stub records every tax rate row inserted, and `/reset` and
 `/disarm` delete those rows. That tracking goes by row ID only: a rate you add by
 hand while the stub is armed is deleted too, and an existing row the plugin
