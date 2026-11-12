@@ -41,3 +41,15 @@ jobs:
     with:
       extension: ${{ needs.build.outputs.plugin_name }}
       artifact: ${{ needs.build.outputs.plugin_name }}
+
+  # Not for forks or Dependabot: the build job above is skipped for them, and their token cannot comment.
+  test-the-build:
+    name: Test the build
+    if: ${{ github.event_name == 'pull_request' }}
+    needs: build
+    permissions:
+      pull-requests: write
+    uses: ./.github/workflows/test_the_build.yml
+    with:
+      extension: ${{ needs.build.outputs.plugin_name }}
+      artifact: ${{ needs.build.outputs.plugin_name }}
