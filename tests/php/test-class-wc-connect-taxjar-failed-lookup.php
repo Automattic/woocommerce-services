@@ -85,6 +85,13 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 	private $saved_request = null;
 
 	/**
+	 * Whether the test served the request as admin-ajax.php does for a phone order plugin.
+	 *
+	 * @var bool
+	 */
+	private $as_phone_order = false;
+
+	/**
 	 * Load required classes before running tests.
 	 */
 	public static function set_up_before_class() {
@@ -101,6 +108,12 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 	 */
 	public function tear_down() {
 		// Hooks added here are restored by the parent.
+		if ( $this->as_phone_order ) {
+			unset( $GLOBALS['current_screen'] );
+			wp_set_current_user( 0 );
+			$this->as_phone_order = false;
+		}
+
 		if ( $this->product ) {
 			WC()->cart->empty_cart();
 			WC_Helper_Product::delete_product( $this->product->get_id() );
@@ -283,13 +296,14 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * The next request asks again: a failed lookup is not stored anywhere that outlives the request.
+	 * The next request asks again for an order lookup: only a failed cart lookup is remembered
+	 * between requests.
 	 *
 	 * @dataProvider provide_outages
 	 *
 	 * @param int|string $outage HTTP status, or 'timeout'.
 	 */
-	public function test_failed_lookup_is_sent_again_in_the_next_request( $outage ) {
+	public function test_failed_order_lookup_is_sent_again_in_the_next_request( $outage ) {
 		$this->proxy_answers_with( $outage );
 
 		$this->new_integration()->smartcalcs_cache_request( $this->request_body(), 'MI' );
@@ -647,6 +661,28 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A phone order plugin totals the cart in admin-ajax.php and creates the order from
+	 * it, so the cart keeps the long limit and a failure is not remembered.
+	 */
+	public function test_phone_order_cart_keeps_the_long_limit_and_asks_again() {
+		$this->fill_cart();
+		$this->as_phone_order = true;
+		set_current_screen( 'dashboard' );
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'shop_manager' ) ) );
+		add_filter( 'woocommerce_services_calculate_admin_ajax_cart_tax', '__return_true' );
+		$this->proxy_answers_with( 'timeout' );
+		$this->proxy_requests = 0;
+		$this->seen_timeouts  = array();
+
+		$this->total_cart_in_new_request();
+		$this->total_cart_in_new_request();
+
+		$this->assertSame( array( 60, 60 ), $this->seen_timeouts );
+		$this->assertSame( array(), $this->remembered_failures );
+	}
+
+	/**
 	 * A cart lookup gets 10 seconds, and only that request gets the shorter limit.
 	 */
 	public function test_cart_lookup_has_a_short_time_limit_for_that_call_only() {
@@ -663,8 +699,8 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Placing the order keeps the long limit, so an answer that takes 15 seconds still
-	 * taxes the order. The failed steps before it each waited the short limit at most.
+	 * Placing the order keeps the long limit, even after an earlier step failed with the
+	 * short one.
 	 *
 	 * @dataProvider provide_place_order_actions
 	 *
@@ -683,17 +719,35 @@ class WP_Test_WC_Connect_TaxJar_Failed_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Store API checkout routes that place an order.
+	 *
+	 * @return array
+	 */
+	public function provide_checkout_routes() {
+		return array(
+			'v1'                  => array( '/wc/store/v1/checkout' ),
+			'another version'     => array( '/wc/store/v2/checkout' ),
+			'no leading slash'    => array( 'wc/store/v1/checkout' ),
+			'with trailing slash' => array( '/wc/store/v1/checkout/' ),
+		);
+	}
+
+	/**
 	 * WooCommerce 11.0 totals the cart once before block checkout's action. That first
 	 * total is already the order being placed: it would otherwise send the lookup with
 	 * the short limit, and the total after the action would reuse its failure.
+	 *
+	 * @dataProvider provide_checkout_routes
+	 *
+	 * @param string $route Store API checkout route.
 	 */
-	public function test_block_checkout_keeps_the_long_limit_when_the_cart_is_totalled_before_the_action() {
+	public function test_block_checkout_keeps_the_long_limit_when_the_cart_is_totalled_before_the_action( $route ) {
 		$this->fill_cart();
 		$this->proxy_answers_with( 'timeout' );
 		$this->proxy_requests = 0;
 		$this->seen_timeouts  = array();
 
-		$this->set_request( 'POST', '/wc/store/v1/checkout' );
+		$this->set_request( 'POST', $route );
 		$this->total_cart_in_new_request();
 
 		$this->assertSame( array( 60 ), $this->seen_timeouts );

@@ -1008,7 +1008,8 @@ class WC_Connect_TaxJar_Integration {
 		// Group items by tax location and calculate taxes.
 		$items_by_location = $this->group_items_by_location( $line_items, $this->is_local_pickup() );
 
-		$this->is_cart_lookup = true;
+		// Nobody waits at checkout on a phone order cart, and its order is created from it, so it keeps the long limit.
+		$this->is_cart_lookup = ! $this->is_opted_in_admin_ajax_cart( $wc_cart_object );
 		try {
 			$taxes = $this->calculate_taxes_by_location( $items_by_location, $shipping_amount );
 		} finally {
@@ -3611,7 +3612,9 @@ class WC_Connect_TaxJar_Integration {
 			}
 
 			if ( $this->is_failed_lookup_remembered( $cache_key ) ) {
-				$this->_log( 'Not requesting again: this lookup failed moments ago.' );
+				// Logged even without debug logging, so an outage shows one line per skipped step. Not
+				// error(): that would replace the admin notice that shows why the lookup failed.
+				$this->logger->log( 'Not requesting tax again: this lookup failed less than a minute ago (' . $cache_key . ').', 'WCS Tax', true );
 
 				return null;
 			}
@@ -3725,9 +3728,9 @@ class WC_Connect_TaxJar_Integration {
 		 * order is placed, and each step can make the shopper wait this long. Placing the
 		 * order and order lookups do not use this limit.
 		 *
-		 * @since 3.7.6
+		 * @since 3.7.7
 		 *
-		 * @param int $timeout Time limit in seconds. A value below 1 is ignored.
+		 * @param int $timeout Time limit in whole seconds. Values that are not numbers or are below 1 fall back to 10.
 		 */
 		$timeout = apply_filters( 'wc_services_cart_tax_lookup_timeout', self::CART_LOOKUP_TIMEOUT );
 
