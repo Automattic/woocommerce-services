@@ -1,11 +1,11 @@
 name: Test the build
 
-# Posts the "Test the build" comment on a pull request: three ways to try the
-# build without a development environment.
+# Posts the "Test the build" comment on a pull request: links that open the
+# build in WordPress Playground, so trying it needs no development environment.
 #
-# This job holds a token that can write to the pull request and, once it
-# exists, the Jetpack Beta Builder secret. So it never checks out or runs the
-# pull request's code. It only repackages, as data, the zip the build job made.
+# This job holds a token that can write to the pull request. So it never checks
+# out or runs the pull request's code. It only repackages, as data, the zip the
+# build job made.
 
 on:
   workflow_call:
@@ -18,10 +18,6 @@ on:
         description: 'Name of the artifact holding the built zip.'
         required: true
         type: string
-    secrets:
-      JETPACK_BETA_BUILDER_SECRET:
-        description: 'Webhook secret of the Jetpack Beta Builder. Without it, the comment says Jetpack Beta and Jurassic Ninja are not available yet.'
-        required: false
 
 jobs:
   test-the-build:
@@ -34,7 +30,6 @@ jobs:
       EXTENSION: ${{ inputs.extension }}
       PR_NUMBER: ${{ github.event.pull_request.number }}
       PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-      PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
     steps:
       - name: Download the built plugin
         uses: actions/download-artifact@v4
@@ -42,10 +37,9 @@ jobs:
           name: ${{ inputs.artifact }}
           path: ${{ runner.temp }}/package
 
-      # Gives the build a version that names the pull request and the commit, in the
-      # folder layout Jetpack Beta expects (<slug>-dev). The assets in dist/ carry the
-      # version in their file names and the plugin loads them by its own version, so
-      # they are renamed with it.
+      # Gives the build a version that names the pull request and the commit. The
+      # assets in dist/ carry the version in their file names and the plugin loads
+      # them by its own version, so they are renamed with it.
       - name: Label the build with the pull request and commit
         id: label
         shell: bash
@@ -85,15 +79,14 @@ jobs:
             exit 1
           fi
 
-          mv "$plugin" "build/$EXTENSION-dev"
           mkdir release
-          ( cd build && zip -qr "../release/$EXTENSION-dev.zip" "$EXTENSION-dev" )
+          ( cd build && zip -qr "../release/$EXTENSION.zip" "$EXTENSION" )
 
           echo "Build version: $dev_version" >> "$GITHUB_STEP_SUMMARY"
           echo "dev_version=$dev_version" >> "$GITHUB_OUTPUT"
 
-      # The Playground links download this on every click, so it is kept longer than
-      # the copy for the Beta Builder. The run ID in the name ties a link to one build.
+      # The Playground links download this on every click. The run ID in the name ties
+      # a link to one build.
       - name: Upload the labeled build for the Playground previews
         uses: actions/upload-artifact@v4
         with:
@@ -102,54 +95,10 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-      - name: Check whether the Jetpack Beta Builder is set up
-        id: beta
-        env:
-          SECRET: ${{ secrets.JETPACK_BETA_BUILDER_SECRET }}
-        run: |
-          if [ -n "$SECRET" ]; then
-            echo "configured=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "configured=false" >> "$GITHUB_OUTPUT"
-            echo "No JETPACK_BETA_BUILDER_SECRET secret: the build is not sent to the Jetpack Beta Builder." >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Upload the labeled build for the Jetpack Beta Builder
-        if: steps.beta.outputs.configured == 'true'
-        uses: actions/upload-artifact@v4
-        with:
-          name: plugins # The name the Jetpack Beta Builder looks for.
-          path: ${{ runner.temp }}/release
-          if-no-files-found: error
-          # The Beta Builder copies it right away.
-          retention-days: 1
-
-      # A failure here must not stop the comment: it then says that Jetpack Beta and
-      # Jurassic Ninja do not have this build, and still offers the Playground links.
-      - name: Tell the Jetpack Beta Builder about the build
-        id: inform
-        if: steps.beta.outputs.configured == 'true'
-        continue-on-error: true
-        env:
-          SECRET: ${{ secrets.JETPACK_BETA_BUILDER_SECRET }}
-          DEV_VERSION: ${{ steps.label.outputs.dev_version }}
-        run: |
-          PLUGIN_DATA="$( jq -cn --arg slug "$EXTENSION" --arg version "$DEV_VERSION" '{ ( $slug ): { version: $version } }' )"
-
-          curl --fail --silent --show-error -L \
-            --url "https://betadownload.jetpack.me/gh-action.php?run_id=$GITHUB_RUN_ID&pr=$PR_NUMBER&commit=$GITHUB_SHA" \
-            --form-string "repo=$GITHUB_REPOSITORY" \
-            --form-string "branch=$PR_HEAD_REF" \
-            --form-string "plugins=$PLUGIN_DATA" \
-            --form-string "secret=$SECRET"
-
       # WordPress Playground runs in the visitor's browser and only fetches public URLs.
       # Its artifact proxy serves this run's artifact for the pull request, and finds the
       # workflow by name: hence GITHUB_WORKFLOW, which here is the calling workflow's.
       # An artifact is a zip around the uploaded zip, so the Blueprints unzip it first.
-      #
-      # The plugin is installed in its release folder, not the -dev one, because it
-      # refers to itself by that path.
       #
       # A site in a browser tab cannot connect to WordPress.com, which automated taxes
       # need. One preview therefore adds the stub the E2E suite uses, fetched from this
@@ -265,7 +214,7 @@ jobs:
                 { step: "login", username: "admin" },
                 { step: "installPlugin", pluginData: { resource: "wordpress.org/plugins", slug: "woocommerce" }, options: { activate: true } },
                 { step: "unzip", zipFile: { resource: "url", url: $artifact_url, caption: "Downloading the WooCommerce Tax build for this pull request" }, extractToPath: "/tmp/pr" },
-                { step: "installPlugin", pluginData: { resource: "vfs", path: "/tmp/pr/\($extension)-dev.zip" }, options: { activate: true, targetFolderName: $extension } },
+                { step: "installPlugin", pluginData: { resource: "vfs", path: "/tmp/pr/\($extension).zip" }, options: { activate: true } },
                 { step: "runPHP", code: $store_setup }
               ] as $store
             | [
@@ -288,51 +237,16 @@ jobs:
       - name: Write the comment
         shell: bash
         env:
-          BETA_CONFIGURED: ${{ steps.beta.outputs.configured }}
-          BETA_INFORMED: ${{ steps.inform.outcome }}
           DEV_VERSION: ${{ steps.label.outputs.dev_version }}
           PLAYGROUND_STUBBED_URL: ${{ steps.playground.outputs.stubbed_url }}
           PLAYGROUND_UNCONNECTED_URL: ${{ steps.playground.outputs.unconnected_url }}
         run: |
           set -euo pipefail
 
-          RUN_URL="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-
-          # Never offer a link that cannot work: the Jetpack Beta and Jurassic Ninja
-          # instructions appear only when the Beta Builder took this build.
-          JURASSIC_NINJA_AUDIENCE=''
-          if [ "$BETA_CONFIGURED" != 'true' ]; then
-            JETPACK_BETA=":construction: Not available yet. Jetpack Beta only offers plugins that are registered with the Jetpack Beta Builder, and WooCommerce Tax is not. It needs that registration, and the Beta Builder's webhook secret saved as \`JETPACK_BETA_BUILDER_SECRET\` in this repository's Actions secrets."
-            JURASSIC_NINJA=":construction: Not available yet. Jurassic Ninja installs a pull request's build through Jetpack Beta, so it needs the same setup as Option 1."
-          elif [ "$BETA_INFORMED" != 'success' ]; then
-            JETPACK_BETA=":x: Not available for this build: sending it to the Jetpack Beta Builder failed. See the [workflow run]($RUN_URL)."
-            JURASSIC_NINJA=":x: Not available for this build. Jurassic Ninja installs it through Jetpack Beta, which does not have it."
-          else
-            JURASSIC_NINJA_AUDIENCE=' - available for logged-in A12s'
-            BRANCH_PARAM="$( jq -rn --arg branch "$PR_HEAD_REF" '$branch|@uri' )"
-            JETPACK_BETA="- Install and activate [Jetpack Beta](https://jetpack.com/beta/#download-and-install).
-          - Use this build by searching for PR number \`$PR_NUMBER\` or branch name \`$PR_HEAD_REF\` in your-test.site/wp-admin/admin.php?page=jetpack-beta&plugin=$EXTENSION
-
-          :information_source: Use a test site, not a live store. Automated taxes calculate only once the site is connected to WordPress.com."
-            JURASSIC_NINJA=":warning: Log in at [jurassic.ninja](https://jurassic.ninja/) first. Without a login, the link below takes you to the Jurassic Ninja homepage and no site is created.
-
-          :rocket: [Launch a JN site with this branch and sample products](https://jurassic.ninja/create/?jetpack-beta&nojetpack&woocommerce&woocommerce-import-sample-data&branches.$EXTENSION=$BRANCH_PARAM) :rocket:
-
-          :information_source: The site starts without a WordPress.com connection. Automated taxes calculate only once you connect it."
-          fi
-
           cat > "$RUNNER_TEMP/comment.md" <<EOF
           ### Test the build
 
-          #### Option 1. Jetpack Beta
-
-          $JETPACK_BETA
-
-          #### Option 2. Jurassic Ninja$JURASSIC_NINJA_AUDIENCE
-
-          $JURASSIC_NINJA
-
-          #### Option 3. WordPress Playground - runs in your browser
+          #### WordPress Playground - runs in your browser
 
           - :test_tube: [Open with made-up tax rates]($PLAYGROUND_STUBBED_URL): a store in Texas with automated taxes on, a sample product and a Texas customer, on WooCommerce > Settings > Tax. Add the product to the cart to see tax at cart and checkout.
           - :electric_plug: [Open unconnected]($PLAYGROUND_UNCONNECTED_URL): the same store as a merchant sees it before connecting to WordPress.com. Connecting from there does not work.
