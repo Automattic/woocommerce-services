@@ -54,6 +54,9 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 		require_once $classes . 'class-wc-connect-options.php';
 		require_once $classes . 'class-wc-connect-jetpack.php';
 		require_once $classes . 'class-wc-connect-nux.php';
+		require_once $classes . 'class-wc-connect-tracks.php';
+		require_once ABSPATH . 'wp-admin/includes/class-wp-screen.php';
+		require_once ABSPATH . 'wp-admin/includes/screen.php';
 	}
 
 	/**
@@ -306,23 +309,155 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
-	 * A non-owner may still change other keys while leaving the acceptance as it is.
+	 * A non-owner cannot arm the after-connection banner, which accepts the terms when it
+	 * renders for the owner.
 	 */
-	public function test_non_owner_can_change_other_keys() {
-		update_option( 'wc_connect_options', array( 'tos_accepted' => true ) );
+	public function test_non_owner_cannot_arm_after_connection_banner() {
+		wp_set_current_user( $this->shop_manager );
+
+		$response = $this->send(
+			array(
+				'wc_connect_options' => array(
+					'tos_accepted' => false,
+					WC_Connect_Nux::SHOULD_SHOW_AFTER_CXN_BANNER => true,
+				),
+			)
+		);
+
+		$this->assert_refused( $response );
+		$this->assertSame( array( 'tos_accepted' => false ), get_option( 'wc_connect_options' ) );
+
+		// The owner's next admin page load must not accept the terms.
+		$this->render_owner_banners();
+		$this->assertFalse( $this->tos_accepted() );
+	}
+
+	/**
+	 * A non-owner cannot change other keys either, such as the store GUID.
+	 */
+	public function test_non_owner_cannot_change_other_keys() {
+		update_option(
+			'wc_connect_options',
+			array(
+				'tos_accepted' => true,
+				'store_guid'   => 'original-guid',
+			)
+		);
 		wp_set_current_user( $this->shop_manager );
 
 		$response = $this->send(
 			array(
 				'wc_connect_options' => array(
 					'tos_accepted' => true,
-					'other_key'    => 'value',
+					'store_guid'   => 'attacker-guid',
+				),
+			)
+		);
+
+		$this->assert_refused( $response );
+		$this->assertSame( 'original-guid', get_option( 'wc_connect_options' )['store_guid'] );
+	}
+
+	/**
+	 * Writing back the stored value unchanged, in any key order, is allowed.
+	 */
+	public function test_non_owner_identical_write_allowed() {
+		update_option(
+			'wc_connect_options',
+			array(
+				'tos_accepted' => true,
+				'store_guid'   => 'original-guid',
+				'nested'       => array(
+					'a' => 1,
+					'b' => 'x',
+				),
+			)
+		);
+		wp_set_current_user( $this->shop_manager );
+
+		$response = $this->send(
+			array(
+				'wc_connect_options' => array(
+					'nested'       => array(
+						'b' => 'x',
+						'a' => 1,
+					),
+					'store_guid'   => 'original-guid',
+					'tos_accepted' => true,
 				),
 			)
 		);
 
 		$this->assertSame( 200, $response->get_status() );
-		$this->assertSame( 'value', get_option( 'wc_connect_options' )['other_key'] );
+	}
+
+	/**
+	 * The connection owner can change other keys.
+	 */
+	public function test_owner_can_change_other_keys() {
+		wp_set_current_user( $this->owner );
+
+		$response = $this->send(
+			array(
+				'wc_connect_options' => array(
+					'tos_accepted' => false,
+					'store_guid'   => 'new-guid',
+				),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'new-guid', get_option( 'wc_connect_options' )['store_guid'] );
+	}
+
+	/**
+	 * In offline mode any shop manager can change other keys.
+	 */
+	public function test_anyone_can_change_other_keys_in_offline_mode() {
+		WCS_Test_Jetpack_Connection::set_offline( true );
+		wp_set_current_user( $this->shop_manager );
+
+		$response = $this->send(
+			array(
+				'wc_connect_options' => array(
+					'tos_accepted' => false,
+					'store_guid'   => 'new-guid',
+				),
+			)
+		);
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( 'new-guid', get_option( 'wc_connect_options' )['store_guid'] );
+	}
+
+	/**
+	 * Load an admin page as the connection owner: set the banners up as admin_init does,
+	 * then render admin_notices.
+	 */
+	private function render_owner_banners() {
+		wp_set_current_user( $this->owner );
+		update_option( 'woocommerce_default_country', 'US:CA' );
+		set_current_screen( 'plugins' );
+
+		$nux = ( new ReflectionClass( 'WC_Connect_Nux' ) )->newInstanceWithoutConstructor();
+
+		// The banner that accepts the terms records a Tracks event; keep it off the network.
+		$tracks   = $this->getMockBuilder( 'WC_Connect_Tracks' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'opted_in' ) )
+			->getMock();
+		$property = new ReflectionProperty( 'WC_Connect_Nux', 'tracks' );
+		$property->setAccessible( true );
+		$property->setValue( $nux, $tracks );
+
+		remove_all_actions( 'admin_notices' );
+		$nux->set_up_nux_notices();
+
+		ob_start();
+		do_action( 'admin_notices' );
+		ob_end_clean();
+
+		set_current_screen( 'front' );
 	}
 
 	/**

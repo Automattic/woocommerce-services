@@ -330,12 +330,14 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		/**
-		 * Refuse a WooCommerce core options update that changes the Terms of Service
-		 * acceptance when the current user may not accept the terms.
+		 * Refuse a WooCommerce core options update that could lead to an accepted Terms of
+		 * Service when the current user may not accept the terms.
 		 *
 		 * The core wc-admin/options route lets any shop manager write wc_connect_options,
-		 * and woocommerce_setup_jetpack_opted_in, which pre_wc_init() turns into an accepted
-		 * ToS on the next request. Without an owner (not connected, or a site-only
+		 * which holds the acceptance and the flag that makes the owner's next admin page
+		 * accept it, and woocommerce_setup_jetpack_opted_in, which pre_wc_init() turns into
+		 * an accepted ToS on the next request. Such a user may not change wc_connect_options
+		 * there at all; writing back the stored value is allowed. Without an owner (not connected, or a site-only
 		 * connection) the opt-in stays writable, as WooCommerce sets it in its tax task
 		 * before the store connects. The handler is matched rather than the route, so every
 		 * way of reaching it is covered, and the whole request is refused.
@@ -362,10 +364,10 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$changes_tos = false;
 
+			// Any change to wc_connect_options counts: other keys, such as the one that arms
+			// the after-connection banner, lead to an accepted ToS too.
 			if ( array_key_exists( 'wc_connect_options', $params ) ) {
-				$new_options  = $params['wc_connect_options'];
-				$new_accepted = is_array( $new_options ) && ! empty( $new_options['tos_accepted'] );
-				$changes_tos  = (bool) WC_Connect_Options::get_option( 'tos_accepted' ) !== $new_accepted;
+				$changes_tos = self::sort_keys_recursively( $params['wc_connect_options'] ) !== self::sort_keys_recursively( get_option( 'wc_connect_options' ) );
 			}
 
 			if ( ! $changes_tos && ! empty( $params['woocommerce_setup_jetpack_opted_in'] ) ) {
@@ -381,6 +383,22 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				__( 'Only the Jetpack connection owner can change the WooCommerce Tax Terms of Service acceptance.', 'woocommerce-services' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
+		}
+
+		/**
+		 * Sort array keys at every level, so values that differ only in key order compare equal.
+		 *
+		 * @param mixed $value Value to normalize.
+		 * @return mixed
+		 */
+		private static function sort_keys_recursively( $value ) {
+			if ( ! is_array( $value ) ) {
+				return $value;
+			}
+
+			ksort( $value );
+
+			return array_map( array( __CLASS__, 'sort_keys_recursively' ), $value );
 		}
 
 		/**
