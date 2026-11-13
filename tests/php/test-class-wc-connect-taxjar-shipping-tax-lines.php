@@ -115,6 +115,8 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		require_once __DIR__ . '/../../classes/class-wc-connect-taxjar-integration.php';
 		require_once __DIR__ . '/../../classes/class-wc-connect-api-client.php';
 		require_once __DIR__ . '/../../classes/class-wc-connect-logger.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-tracks.php';
+		require_once __DIR__ . '/../../classes/class-wc-connect-custom-surcharge.php';
 	}
 
 	/**
@@ -155,6 +157,9 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		remove_all_filters( 'woocommerce_tax_line_item_location' );
 		remove_all_filters( 'woocommerce_cart_shipping_packages' );
 		remove_all_filters( 'wp_doing_ajax' );
+		remove_all_filters( 'woocommerce_taxjar_enable_florida_shipping_tax' );
+		remove_all_filters( 'woocommerce_shipping_prices_include_tax' );
+		remove_all_filters( 'woocommerce_local_pickup_methods' );
 
 		WC()->cart->empty_cart();
 		WC()->session->set( 'chosen_shipping_methods', array() );
@@ -263,7 +268,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 			array( 'woocommerce_cart_totals_get_item_tax_rates', 'override_cart_item_tax_rates', 10, 3 ),
 			array( 'woocommerce_order_item_after_calculate_taxes', 'override_order_item_taxes', 10, 2 ),
 			// Registered by some versions of the fix only.
-			array( 'woocommerce_order_item_shipping_after_calculate_taxes', 'override_order_shipping_taxes', 10, 1 ),
+			array( 'woocommerce_order_item_shipping_after_calculate_taxes', 'override_order_shipping_taxes', 10, 2 ),
 			array( 'woocommerce_calc_shipping_tax', 'override_cart_shipping_taxes', 10, 2 ),
 		);
 	}
@@ -395,14 +400,15 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	 * @param WC_Order $order Order.
 	 * @param string   $state Store state, for a fresh integration.
 	 * @param bool     $answers Whether TaxJar answers.
+	 * @param callable $integration Builds the integration, when `$state`'s is not the one wanted.
 	 * @return WC_Order
 	 */
-	private function admin_recalculate( $order, $state, $answers = true ) {
-		foreach ( $this->hooked as $integration ) {
-			$this->unhook( $integration );
+	private function admin_recalculate( $order, $state, $answers = true, $integration = null ) {
+		foreach ( $this->hooked as $hooked ) {
+			$this->unhook( $hooked );
 		}
 		$this->hooked = array();
-		$this->hook( $this->taxjar( $state, $answers ) );
+		$this->hook( $integration ? $integration() : $this->taxjar( $state, $answers ) );
 
 		$post = array(
 			'order_id' => $order->get_id(),
@@ -816,5 +822,686 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 20.0, (float) WC()->cart->get_shipping_total(), 0.001, 'Two packages at $10.' );
 		$this->assertEqualsWithDelta( $expected, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
 		$this->assertEmpty( array_intersect( $this->nullified_rate_ids(), array_keys( WC()->cart->get_shipping_taxes() ) ), 'Cart shipping taxes include the 0% row.' );
+	}
+
+	/**
+	 * A merchant row limited to places, with Shipping ticked.
+	 *
+	 * @param string $state     State.
+	 * @param string $postcodes Postcodes, `;` separated.
+	 * @param string $cities    Cities, `;` separated.
+	 * @param float  $rate      Percent.
+	 * @return int Rate id.
+	 */
+	private function merchant_local_rate( $state, $postcodes, $cities, $rate ) {
+		$id = (int) WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => $state,
+				'tax_rate_name'     => 'Merchant Local',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate'          => (string) $rate,
+				'tax_rate_class'    => '',
+			)
+		);
+		WC_Tax::_update_tax_rate_postcodes( $id, $postcodes );
+		WC_Tax::_update_tax_rate_cities( $id, $cities );
+
+		return $id;
+	}
+
+	/**
+	 * An integration for a New York store, with TaxJar answering Brooklyn as it does live
+	 * (read 2026-11-03): clothing under $110 is exempt, and shipping is only taxable when
+	 * something in the request is.
+	 *
+	 * @return WC_Connect_TaxJar_Integration
+	 */
+	private function taxjar_new_york_clothing() {
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'smartcalcs_cache_request', 'get_store_settings', '_log' ) )
+			->getMock();
+
+		$integration->method( 'get_store_settings' )->willReturn(
+			array(
+				'country'  => 'US',
+				'state'    => 'NY',
+				'postcode' => '10001',
+				'city'     => 'New York',
+				'street'   => '350 5th Ave',
+			)
+		);
+
+		$integration->method( 'smartcalcs_cache_request' )->willReturnCallback(
+			function ( $json ) {
+				$body       = json_decode( $json, true );
+				$taxed      = array(
+					'city_tax_rate'        => 0.04875,
+					'county_tax_rate'      => 0.0,
+					'special_tax_rate'     => 0.0,
+					'state_sales_tax_rate' => 0.04,
+				);
+				$lines      = array();
+				$is_taxable = false;
+				foreach ( $body['line_items'] as $line_item ) {
+					$exempt     = in_array( (string) $line_item['product_tax_code'], array( '20010', '99999' ), true );
+					$components = $exempt ? array_map( '__return_zero', $taxed ) : $taxed;
+					$is_taxable = $is_taxable || ! $exempt;
+					$lines[]    = array_merge(
+						array(
+							'id'                => $line_item['id'],
+							'tax_collectable'   => round( $line_item['unit_price'] * $line_item['quantity'] * array_sum( $components ), 2 ),
+							'combined_tax_rate' => array_sum( $components ),
+						),
+						$components
+					);
+				}
+
+				$breakdown = array( 'line_items' => $lines );
+				if ( $is_taxable ) {
+					$breakdown['shipping'] = array_merge( array( 'combined_tax_rate' => array_sum( $taxed ) ), $taxed );
+				}
+
+				return array(
+					'body' => wp_json_encode(
+						array(
+							'tax' => array(
+								'rate'            => $is_taxable ? array_sum( $taxed ) : 0,
+								'freight_taxable' => $is_taxable,
+								'has_nexus'       => true,
+								'jurisdictions'   => array(
+									'county' => 'KINGS',
+									'city'   => 'BROOKLYN',
+								),
+								'breakdown'       => $breakdown,
+							),
+						)
+					),
+				);
+			}
+		);
+
+		return $integration;
+	}
+
+	/**
+	 * The rows a merchant can limit to a place, the way WOOTAX-396's three kinds rank.
+	 *
+	 * @return array[] [ postcodes, cities ]
+	 */
+	public function merchant_local_rows() {
+		return array(
+			'ZIP list'     => array( '49866;49849', '' ),
+			'ZIP wildcard' => array( '49*', '' ),
+			'city'         => array( '', 'NEGAUNEE' ),
+		);
+	}
+
+	/**
+	 * The steps on the ticket: $100 to Negaunee, MI, with a merchant's 6% row covering the
+	 * town. Michigan does not tax shipping that is listed separately, so tax is $6.00 on
+	 * the item and nothing on $10 shipping: $116.00, at checkout and on Recalculate.
+	 *
+	 * @dataProvider merchant_local_rows
+	 *
+	 * @param string $postcodes Postcodes of the merchant's row.
+	 * @param string $cities    Cities of the merchant's row.
+	 */
+	public function test_merchant_local_row_does_not_tax_shipping_where_taxjar_does_not( $postcodes, $cities ) {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$merchant = $this->merchant_local_rate( 'MI', $postcodes, $cities, 6 );
+		$this->ship_to( array( 'MI', '49866', 'Negaunee' ) );
+		$this->hook( $this->taxjar( 'MI' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) WC()->cart->get_total( 'edit' ), 0.001, 'Cart total' );
+
+		$order = $this->classic_checkout_order();
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
+		$this->assertSame( array(), $this->shipping_line_rate_ids( $order ), 'Classic checkout shipping line' );
+		$this->assertNotContains( $merchant, $this->tax_item_rate_ids( $order ), 'Classic checkout' );
+
+		// Block checkout re-taxes the order it builds from the cart.
+		$order->calculate_totals();
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Block checkout total' );
+
+		$order = $this->admin_recalculate( $order, 'MI' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
+		$this->assertEqualsWithDelta( 6.0, (float) $order->get_cart_tax(), 0.001, 'Recalculate item tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Recalculate total' );
+		$this->assertNotContains( $merchant, $this->tax_item_rate_ids( $order ), 'Recalculate' );
+	}
+
+	/**
+	 * The merchant's row is not changed, and keeps taxing shipping for what no lookup
+	 * covered: its other ZIP code when read from the table, and that ZIP code at checkout
+	 * when TaxJar does not answer.
+	 */
+	public function test_merchant_local_row_still_taxes_shipping_where_no_lookup_answered() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$merchant = $this->merchant_local_rate( 'MI', '49866;49849', '', 6 );
+		$this->ship_to( array( 'MI', '49866', 'Negaunee' ) );
+		$this->hook( $this->taxjar( 'MI' ) );
+		$this->calculate_cart( array( $this->product() ) );
+
+		$row = WC_Tax::_get_tax_rate( $merchant );
+		$this->assertSame( 'Merchant Local', $row['tax_rate_name'] );
+		$this->assertEqualsWithDelta( 6.0, (float) $row['tax_rate'], 0.001 );
+		$this->assertSame(
+			array( $merchant ),
+			array_keys(
+				WC_Tax::find_shipping_rates(
+					array(
+						'country'  => 'US',
+						'state'    => 'MI',
+						'postcode' => '49849',
+						'city'     => 'ISHPEMING',
+					)
+				)
+			)
+		);
+
+		$this->unhook( $this->hooked[0] );
+		$this->hooked = array();
+		$this->ship_to( array( 'MI', '49849', 'Ishpeming' ) );
+		$this->hook( $this->taxjar( 'MI', false ) );
+		$this->calculate_cart( array( $this->product() ) );
+
+		$this->assertEqualsWithDelta( 0.6, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+		$this->assertSame( array( $merchant ), array_keys( WC()->cart->get_shipping_taxes() ) );
+	}
+
+	/**
+	 * Where TaxJar taxes shipping, it is TaxJar's rate that is charged, and not the
+	 * merchant's 5% row covering the town: $10 at 8.25% is $0.83, at checkout and on
+	 * Recalculate.
+	 */
+	public function test_merchant_local_row_does_not_replace_the_shipping_rate_taxjar_returned() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$merchant = $this->merchant_local_rate( 'TX', '78664;78665', '', 5 );
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->hook( $this->taxjar( 'TX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 0.83, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
+		$this->assertArrayNotHasKey( $merchant, WC()->cart->get_shipping_taxes() );
+
+		$order = $this->classic_checkout_order();
+		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.011, 'Classic checkout shipping tax' );
+		$this->assertNotContains( $merchant, $this->shipping_line_rate_ids( $order ), 'Classic checkout' );
+
+		$order->calculate_totals();
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.011, 'Block checkout shipping tax' );
+		$this->assertNotContains( $merchant, $this->shipping_line_rate_ids( $order ), 'Block checkout' );
+
+		$order = $this->admin_recalculate( $order, 'TX' );
+		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.011, 'Recalculate shipping tax' );
+		$this->assertNotContains( $merchant, $this->shipping_line_rate_ids( $order ), 'Recalculate' );
+	}
+
+	/**
+	 * Shipping taxable at a lower rate than a line in the same lookup. They share the
+	 * Standard rows, so what a row holds may be the line's rate. Shipping pays TaxJar's
+	 * answer for shipping whichever it holds: $100 at 6% and $10 at 0% are $6.00 tax and
+	 * $116.00 in all.
+	 *
+	 * @dataProvider data_row_holding_the_line_rate
+	 *
+	 * @param bool  $row_keeps_line_rate Whether the Standard row keeps the highest rate written to it.
+	 * @param float $expected_row_rate   What the row holds after the lookup.
+	 */
+	public function test_shipping_below_a_line_in_the_same_row_pays_the_answer_for_shipping( $row_keeps_line_rate, $expected_row_rate ) {
+		global $wpdb;
+
+		// What stores run; configure_tax_settings() writes it on every load.
+		update_option( 'woocommerce_shipping_tax_class', '' );
+
+		if ( $row_keeps_line_rate ) {
+			$highest  = array();
+			$keep_row = function ( $rate_id, $row ) use ( &$highest, $wpdb ) {
+				$highest[ $rate_id ] = max( (float) $row['tax_rate'], $highest[ $rate_id ] ?? 0.0 );
+				$wpdb->update( $wpdb->prefix . 'woocommerce_tax_rates', array( 'tax_rate' => $highest[ $rate_id ] ), array( 'tax_rate_id' => $rate_id ) );
+			};
+			add_action( 'woocommerce_tax_rate_added', $keep_row, 10, 2 );
+			add_action( 'woocommerce_tax_rate_updated', $keep_row, 10, 2 );
+		}
+
+		$this->ship_to( self::$places['XX']['to'] );
+		$this->hook( $this->taxjar( 'XX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+
+		$row_rates = $wpdb->get_col( "SELECT tax_rate FROM {$wpdb->prefix}woocommerce_tax_rates WHERE tax_rate_class = ''" );
+		$this->assertEqualsWithDelta( $expected_row_rate, max( array_map( 'floatval', $row_rates ) ), 0.001, 'What the Standard row holds' );
+
+		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+
+		$order = $this->classic_checkout_order();
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Classic checkout total' );
+
+		// Block checkout re-taxes the order it builds from the cart.
+		$order->calculate_totals();
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Block checkout total' );
+
+		$order = $this->admin_recalculate( $order, 'XX' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
+		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Recalculate total' );
+	}
+
+	/**
+	 * The two things the shared Standard row can hold after the lookup.
+	 *
+	 * @return array[]
+	 */
+	public function data_row_holding_the_line_rate() {
+		return array(
+			'the row holds the answer for shipping' => array( false, 0.0 ),
+			'the row holds the rate of the line'    => array( true, 6.0 ),
+		);
+	}
+
+	/**
+	 * The report on the ticket: an order of a standard item to Brooklyn leaves the town's
+	 * standard rows marked for shipping, and shipping is always read from those. Clothing
+	 * under $110 is exempt there and TaxJar says its shipping is not taxable, so a
+	 * clothing-only order pays no tax at all.
+	 */
+	public function test_exempt_clothing_order_pays_no_shipping_tax_after_a_taxable_order_to_the_same_town() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$created = WC_Tax::create_tax_class( 'Clothing - 20010' );
+		$slug    = is_wp_error( $created ) ? 'clothing-20010' : $created['slug'];
+
+		$this->ship_to( array( 'NY', '11201', 'Brooklyn' ) );
+		$this->hook( $this->taxjar_new_york_clothing() );
+
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 0.89, (float) WC()->cart->get_shipping_tax(), 0.011, 'A standard item: shipping is taxed.' );
+
+		$clothing = $this->product( $slug );
+		$this->calculate_cart( array( $clothing ) );
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+
+		$order = $this->classic_checkout_order();
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001, 'Classic checkout tax' );
+
+		$order->calculate_totals();
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001, 'Block checkout tax' );
+
+		$order = $this->admin_recalculate( $order, 'NY', true, array( $this, 'taxjar_new_york_clothing' ) );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001, 'Recalculate tax' );
+		$this->assertEqualsWithDelta( 110.0, (float) $order->get_total(), 0.001, 'Recalculate total' );
+
+		WC_Tax::delete_tax_class_by( 'slug', $slug );
+	}
+
+	/**
+	 * Clothing beside a standard item: TaxJar taxes the standard item and the shipping.
+	 * $100 and $10 at 8.875% are $8.88 and $0.89.
+	 */
+	public function test_clothing_beside_a_taxable_item_keeps_shipping_taxed() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$created = WC_Tax::create_tax_class( 'Clothing - 20010' );
+		$slug    = is_wp_error( $created ) ? 'clothing-20010' : $created['slug'];
+
+		$this->ship_to( array( 'NY', '11201', 'Brooklyn' ) );
+		$this->hook( $this->taxjar_new_york_clothing() );
+
+		$this->calculate_cart( array( $this->product( $slug ), $this->product() ) );
+
+		$this->assertEqualsWithDelta( 8.88, (float) WC()->cart->get_cart_contents_tax(), 0.011, 'Cart item tax' );
+		$this->assertEqualsWithDelta( 0.89, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
+
+		WC_Tax::delete_tax_class_by( 'slug', $slug );
+	}
+
+	/**
+	 * Turning Florida's rule off means TaxJar's "not taxable" counts, also for rows the
+	 * rule marked for shipping earlier.
+	 */
+	public function test_florida_rule_turned_off_follows_taxjar() {
+		$this->ship_to( self::$places['FL']['to'] );
+		$this->hook( $this->taxjar( 'FL' ) );
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 0.65, (float) WC()->cart->get_shipping_tax(), 0.001, 'With the rule' );
+
+		add_filter( 'woocommerce_taxjar_enable_florida_shipping_tax', '__return_false' );
+		$this->calculate_cart( array( $this->product() ) );
+
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Without the rule' );
+	}
+
+	/**
+	 * A lookup that fails after one that answered must not reuse that answer: the customer
+	 * moved to another town, so the table decides again.
+	 */
+	public function test_failed_lookup_does_not_reuse_the_earlier_shipping_answer() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$this->merchant_local_rate( 'MI', '49866;49849', '', 6 );
+		$this->ship_to( array( 'MI', '49866', 'Negaunee' ) );
+
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'calculate_taxes_by_location', 'get_store_settings', '_log' ) )
+			->getMock();
+		$integration->method( 'calculate_taxes_by_location' )->willReturn( false );
+
+		$property = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_shipping_answer' );
+		$property->setAccessible( true );
+		$property->setValue(
+			$integration,
+			array(
+				'address' => array( 'US', 'MI', '49866', 'NEGAUNEE' ),
+				'rates'   => array(),
+			)
+		);
+
+		$this->hook( $integration );
+		$this->calculate_cart( array( $this->product() ) );
+
+		$this->assertNull( $property->getValue( $integration ) );
+		$this->assertEqualsWithDelta( 0.6, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+	}
+
+	/**
+	 * Another order in the checkout's request, going to another town, is not taxed from
+	 * the cart's answer: its shipping stays what the table gives that town.
+	 */
+	public function test_cart_answer_is_not_applied_to_an_order_going_elsewhere() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$merchant = $this->merchant_local_rate( 'MI', '49866;49849', '', 6 );
+		$this->ship_to( array( 'MI', '49866', 'Negaunee' ) );
+		$this->hook( $this->taxjar( 'MI' ) );
+		$this->calculate_cart( array( $this->product() ) );
+
+		$order = $this->classic_checkout_order();
+		$order->set_shipping_postcode( '49849' );
+		$order->set_shipping_city( 'Ishpeming' );
+		$order->save();
+		$order->calculate_taxes();
+
+		$this->assertSame( array( $merchant ), $this->shipping_line_rate_ids( $order ) );
+		$this->assertEqualsWithDelta( 0.6, (float) $order->get_shipping_tax(), 0.001 );
+	}
+
+	/**
+	 * Only the answer about the parcel counts. A booking taxed at the store and a clothing
+	 * parcel going to the store's own town are two requests to the same address: shipping
+	 * follows the parcel's, whichever comes first.
+	 *
+	 * @testWith [true]
+	 *           [false]
+	 *
+	 * @param bool $booking_first Whether the booking is first in the cart.
+	 */
+	public function test_shipping_follows_the_answer_for_the_shipped_items_at_the_same_address( $booking_first ) {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$created = WC_Tax::create_tax_class( 'Clothing - 20010' );
+		$slug    = is_wp_error( $created ) ? 'clothing-20010' : $created['slug'];
+
+		$this->ship_to( array( 'NY', '10001', 'New York' ) );
+		$this->hook( $this->taxjar_new_york_clothing() );
+
+		$booking = $this->product();
+		add_filter(
+			'woocommerce_tax_line_item_location',
+			function ( $location, $product ) use ( $booking ) {
+				return $product->get_id() === $booking->get_id() ? 'base' : $location;
+			},
+			10,
+			2
+		);
+
+		$clothing = $this->product( $slug );
+		$this->calculate_cart( $booking_first ? array( $booking, $clothing ) : array( $clothing, $booking ) );
+
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+
+		WC_Tax::delete_tax_class_by( 'slug', $slug );
+	}
+
+	/**
+	 * Local pickup is taxed at the store, so the answer for the store decides a pickup fee.
+	 * $10 at Austin's looked-up 8.25%, not at the merchant's 5% row: $0.83.
+	 */
+	public function test_local_pickup_fee_is_taxed_from_the_answer_for_the_store() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		update_option( 'woocommerce_default_country', 'US:TX' );
+		update_option( 'woocommerce_store_postcode', '78701' );
+		update_option( 'woocommerce_store_city', 'Austin' );
+		add_filter(
+			'woocommerce_local_pickup_methods',
+			function () {
+				return array( 'legacy_flat_rate' );
+			}
+		);
+
+		$merchant = $this->merchant_local_rate( 'TX', '78701;78702', '', 5 );
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->hook( $this->taxjar( 'TX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+
+		$this->assertSame( '78701', WC_Tax::get_tax_location()[2], 'The fee is taxed at the store.' );
+		$this->assertEqualsWithDelta( 0.83, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
+		$this->assertArrayNotHasKey( $merchant, WC()->cart->get_shipping_taxes() );
+	}
+
+	/**
+	 * With shipping prices that include tax (WooCommerce 10.6+), the tax is taken out of
+	 * the price: $10 at 8.25% holds $0.76, leaving $9.24.
+	 */
+	public function test_shipping_prices_that_include_tax_are_taxed_inclusively() {
+		add_filter( 'woocommerce_shipping_prices_include_tax', '__return_true' );
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$this->merchant_local_rate( 'TX', '78664;78665', '', 5 );
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->hook( $this->taxjar( 'TX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+
+		$this->assertEqualsWithDelta( 0.76, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
+		$this->assertEqualsWithDelta( 9.24, (float) WC()->cart->get_shipping_total(), 0.011, 'Cart shipping total' );
+	}
+
+	/**
+	 * Two methods offered: each is taxed from the answer at its own price, also one that
+	 * is not the method the cart's lookup was asked about.
+	 */
+	public function test_every_offered_shipping_method_is_taxed_from_the_answer() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$this->merchant_local_rate( 'TX', '78664;78665', '', 5 );
+		$this->ship_to( self::$places['TX']['to'] );
+
+		$integration = $this->hook( $this->taxjar( 'TX' ) );
+		$this->calculate_cart( array( $this->product() ) );
+
+		$taxes = $integration->override_cart_shipping_taxes( array( 1 => 99.0 ), 25.0 );
+
+		$this->assertEqualsWithDelta( 2.0625, array_sum( $taxes ), 0.001 );
+	}
+
+	/**
+	 * Nothing changes before a lookup has answered, or with an input a callback broke.
+	 */
+	public function test_cart_shipping_taxes_are_left_alone_without_an_answer() {
+		$integration = $this->taxjar( 'TX' );
+
+		$this->assertSame( array( 7 => 1.5 ), $integration->override_cart_shipping_taxes( array( 7 => 1.5 ), 10.0 ) );
+		$this->assertSame( 'not an array', $integration->override_cart_shipping_taxes( 'not an array', 10.0 ) );
+	}
+
+	/**
+	 * init() registers the two shipping hooks, with the arguments they need.
+	 */
+	public function test_init_registers_the_shipping_hooks() {
+		update_option( 'wc_connect_taxes_enabled', 'yes' );
+
+		$integration = new WC_Connect_TaxJar_Integration(
+			$this->createMock( WC_Connect_API_Client::class ),
+			$this->createMock( WC_Connect_Logger::class ),
+			'https://example.com',
+			$this->createMock( WC_Connect_Tracks::class )
+		);
+		$integration->init();
+
+		$this->assertSame( 10, has_filter( 'woocommerce_calc_shipping_tax', array( $integration, 'override_cart_shipping_taxes' ) ) );
+		$this->assertSame( 10, has_action( 'woocommerce_order_item_shipping_after_calculate_taxes', array( $integration, 'override_order_shipping_taxes' ) ) );
+
+		global $wp_filter;
+		$callback = $wp_filter['woocommerce_order_item_shipping_after_calculate_taxes']->callbacks[10][ _wp_filter_build_unique_id( '', array( $integration, 'override_order_shipping_taxes' ), 10 ) ];
+		$this->assertSame( 2, $callback['accepted_args'] );
+	}
+
+	/**
+	 * A lookup that says shipping is taxable without saying at what rate has nothing to
+	 * use, so the table's result stands.
+	 */
+	public function test_taxable_answer_without_a_shipping_breakdown_decides_nothing() {
+		$integration = $this->taxjar( 'TX' );
+		$method      = new ReflectionMethod( 'WC_Connect_TaxJar_Integration', 'get_shipping_answer' );
+		$method->setAccessible( true );
+
+		$answer = $method->invoke(
+			$integration,
+			array(
+				'freight_taxable' => 1,
+				'rate_ids'        => array(),
+			),
+			array(
+				'to_country' => 'US',
+				'from_state' => 'TX',
+				'to_state'   => 'TX',
+				'to_zip'     => '78664',
+				'to_city'    => 'Round Rock',
+			)
+		);
+
+		$this->assertNull( $answer );
+	}
+
+	/**
+	 * A plugin shipping a cart's packages to several addresses moves the customer for each:
+	 * the answer is about the address looked up, so another one stays with the table.
+	 */
+	public function test_cart_answer_is_not_applied_to_a_rate_for_another_address() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$this->merchant_local_rate( 'MI', '49866;49849', '', 6 );
+		$this->ship_to( array( 'MI', '49866', 'Negaunee' ) );
+		$integration = $this->hook( $this->taxjar( 'MI' ) );
+		$this->calculate_cart( array( $this->product() ) );
+
+		$this->assertSame( array(), $integration->override_cart_shipping_taxes( array( 1 => 0.6 ), 10.0 ), 'The address looked up' );
+
+		$this->ship_to( array( 'MI', '49849', 'Ishpeming' ) );
+		$this->assertSame( array( 1 => 0.6 ), $integration->override_cart_shipping_taxes( array( 1 => 0.6 ), 10.0 ), 'Another address' );
+	}
+
+	/**
+	 * Each answer an admin recalculation looked up applies to that recalculation. A later
+	 * one in the same request, with no lookup of its own, stays with the table.
+	 */
+	public function test_admin_recalculation_answer_is_used_once() {
+		$integration = $this->taxjar( 'MI' );
+
+		$order = new WC_Order();
+		$order->save();
+		$item = new WC_Order_Item_Shipping();
+		$item->set_order_id( $order->get_id() );
+		$item->set_total( '10' );
+		$item->set_taxes( array( 'total' => array( 5 => '0.6' ) ) );
+		$item->save();
+
+		$property = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'admin_recalculation_shipping_answers' );
+		$property->setAccessible( true );
+		$property->setValue(
+			$integration,
+			array(
+				$order->get_id() => array(
+					$item->get_id() => array(
+						'address' => array( 'US', 'MI', '49866', 'NEGAUNEE' ),
+						'rates'   => array(),
+					),
+				),
+			)
+		);
+
+		$integration->override_order_shipping_taxes( $item );
+		$this->assertSame( array(), $item->get_taxes()['total'], 'The recalculation it was looked up for' );
+
+		$item->set_taxes( array( 'total' => array( 5 => '0.6' ) ) );
+		$integration->override_order_shipping_taxes( $item );
+		$this->assertSame( array( 5 => '0.6' ), $item->get_taxes()['total'], 'A later one' );
+	}
+
+	/**
+	 * A shipping line that is not taxable keeps no tax, as WooCommerce left it, whatever
+	 * the lookup said.
+	 */
+	public function test_shipping_line_that_is_not_taxable_is_left_alone() {
+		$integration = $this->hook( $this->taxjar( 'TX' ) );
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->calculate_cart( array( $this->product() ) );
+
+		$item = new class() extends WC_Order_Item_Shipping {
+			/**
+			 * This line is not taxable.
+			 *
+			 * @param string $context Unused.
+			 * @return string
+			 */
+			public function get_tax_status( $context = 'view' ) {
+				return 'none';
+			}
+		};
+		$item->set_total( '10' );
+
+		$integration->override_order_shipping_taxes(
+			$item,
+			array(
+				'country'  => 'US',
+				'state'    => 'TX',
+				'postcode' => '78664',
+				'city'     => 'Round Rock',
+			)
+		);
+
+		$this->assertSame( array(), $item->get_taxes()['total'] );
+	}
+
+	/**
+	 * A cart totalled during the main cart's total (a Subscriptions recurring cart) gives
+	 * the main cart its answer back, like the rest of what the main cart's lookup said.
+	 */
+	public function test_nested_cart_gives_the_main_cart_its_shipping_answer_back() {
+		$this->ship_to( self::$places['MI']['to'] );
+		$integration = $this->hook( $this->taxjar( 'MI' ) );
+
+		$property = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'response_shipping_answer' );
+		$property->setAccessible( true );
+
+		$depth = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'main_cart_total_depth' );
+		$depth->setAccessible( true );
+		$depth->setValue( $integration, 1 );
+		$property->setValue( $integration, array( 'main' ) );
+
+		WC()->cart->add_to_cart( $this->product()->get_id(), 1 );
+		$other = clone WC()->cart;
+		$integration->calculate_totals( $other );
+
+		$this->assertSame( array( 'main' ), $property->getValue( $integration ) );
 	}
 }
