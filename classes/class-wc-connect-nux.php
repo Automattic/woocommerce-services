@@ -330,6 +330,78 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		/**
+		 * Refuse a WooCommerce core options update that changes the Terms of Service
+		 * acceptance when the current user may not accept the terms.
+		 *
+		 * The core wc-admin/options route lets any shop manager write wc_connect_options,
+		 * and woocommerce_setup_jetpack_opted_in, which pre_wc_init() turns into an accepted
+		 * ToS on the next request. Without an owner (not connected, or a site-only
+		 * connection) the opt-in stays writable, as WooCommerce sets it in its tax task
+		 * before the store connects. The handler is matched rather than the route, so every
+		 * way of reaching it is covered, and the whole request is refused.
+		 *
+		 * Hooked to rest_request_before_callbacks.
+		 *
+		 * @since 3.7.7
+		 *
+		 * @param WP_REST_Response|WP_HTTP_Response|WP_Error|mixed $response Result to send to the client.
+		 * @param array                                            $handler  Route handler used for the request.
+		 * @param WP_REST_Request                                  $request  Request used to generate the response.
+		 * @return WP_REST_Response|WP_HTTP_Response|WP_Error|mixed
+		 */
+		public static function restrict_tos_change_through_core_options( $response, $handler, $request ) {
+			if ( is_wp_error( $response ) || ! $request instanceof WP_REST_Request || ! self::is_core_options_update_handler( $handler ) ) {
+				return $response;
+			}
+
+			// The core handler writes only the JSON params.
+			$params = $request->get_json_params();
+			if ( ! is_array( $params ) ) {
+				return $response;
+			}
+
+			$changes_tos = false;
+
+			if ( array_key_exists( 'wc_connect_options', $params ) ) {
+				$new_options  = $params['wc_connect_options'];
+				$new_accepted = is_array( $new_options ) && ! empty( $new_options['tos_accepted'] );
+				$changes_tos  = (bool) WC_Connect_Options::get_option( 'tos_accepted' ) !== $new_accepted;
+			}
+
+			if ( ! $changes_tos && ! empty( $params['woocommerce_setup_jetpack_opted_in'] ) ) {
+				$changes_tos = WC_Connect_Jetpack::is_connected();
+			}
+
+			if ( ! $changes_tos || self::current_user_can_accept_tos() ) {
+				return $response;
+			}
+
+			return new WP_Error(
+				'wc_connect_tos_owner_only',
+				__( 'Only the Jetpack connection owner can change the WooCommerce Tax Terms of Service acceptance.', 'woocommerce-services' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		/**
+		 * Whether a REST handler is the WooCommerce core options update.
+		 *
+		 * @param array|mixed $handler Route handler used for the request.
+		 * @return bool
+		 */
+		private static function is_core_options_update_handler( $handler ) {
+			$options_class = 'Automattic\WooCommerce\Admin\API\Options';
+
+			return class_exists( $options_class )
+				&& is_array( $handler )
+				&& isset( $handler['callback'] )
+				&& is_array( $handler['callback'] )
+				&& isset( $handler['callback'][0], $handler['callback'][1] )
+				&& $handler['callback'][0] instanceof $options_class
+				&& 'update_options' === $handler['callback'][1];
+		}
+
+		/**
 		 * Whether the WooCommerce Tax connection banner may render on the given screen.
 		 *
 		 * The banner only offers WooCommerce Tax, so it is confined to where WooCommerce
