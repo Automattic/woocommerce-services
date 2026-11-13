@@ -611,6 +611,28 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
+	 * A result an earlier filter already returned is passed on unchanged, and the request
+	 * is not run.
+	 */
+	public function test_earlier_dispatch_result_returned_unchanged() {
+		$earlier = new WP_REST_Response( array( 'handled' => 'earlier' ), 202 );
+		add_filter(
+			'rest_dispatch_request',
+			function () use ( $earlier ) {
+				return $earlier;
+			},
+			5
+		);
+		wp_set_current_user( $this->shop_manager );
+
+		$response = $this->send( array( 'wc_connect_options' => array( 'tos_accepted' => true ) ) );
+
+		$this->assertSame( 202, $response->get_status() );
+		$this->assertSame( array( 'handled' => 'earlier' ), $response->get_data() );
+		$this->assertFalse( $this->tos_accepted() );
+	}
+
+	/**
 	 * Reading the options is not affected.
 	 */
 	public function test_get_untouched() {
