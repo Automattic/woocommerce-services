@@ -785,7 +785,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 			add_filter( 'all_plugins', array( $this, 'maybe_rename_plugin' ) );
-			add_filter( 'rest_request_before_callbacks', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ), 10, 3 );
+			add_filter( 'rest_dispatch_request', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ), 10, 4 );
 
 			if ( WC_Connect_Nux::JETPACK_NOT_CONNECTED === $this->nux->get_jetpack_install_status() ) {
 				return;

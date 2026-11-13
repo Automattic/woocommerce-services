@@ -77,7 +77,7 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 		( new Options() )->register_routes();
 
 		// The loader adds this in pre_wc_init(); adding the same callback again is a no-op.
-		add_filter( 'rest_request_before_callbacks', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ), 10, 3 );
+		add_filter( 'rest_dispatch_request', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ), 10, 4 );
 
 		$this->owner        = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$this->other_admin  = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -95,6 +95,7 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 		WCS_Test_Jetpack_Connection::reset();
 		delete_option( 'wc_connect_options' );
 		delete_option( 'woocommerce_setup_jetpack_opted_in' );
+		unset( $GLOBALS['HTTP_RAW_POST_DATA'], $_SERVER['REQUEST_METHOD'], $_SERVER['CONTENT_TYPE'], $_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] );
 
 		parent::tear_down();
 	}
@@ -113,6 +114,33 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 		$request->set_body( wp_json_encode( $params ) );
 
 		return $this->server->dispatch( $request );
+	}
+
+	/**
+	 * Serve a JSON request the way WordPress serves an HTTP one, so the route comes from
+	 * the path (as ?rest_route= passes it) and the method can be overridden by header.
+	 *
+	 * @param string      $path            Route as requested.
+	 * @param string      $method          HTTP method.
+	 * @param array       $params          Options to write.
+	 * @param string|null $method_override X-HTTP-Method-Override header value.
+	 * @return array{ status: int, data: mixed }
+	 */
+	private function serve( $path, $method, $params, $method_override = null ) {
+		// phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- WP_REST_Server::get_raw_data() reads the body from here.
+		$GLOBALS['HTTP_RAW_POST_DATA'] = wp_json_encode( $params );
+		$_SERVER['REQUEST_METHOD']     = $method;
+		$_SERVER['CONTENT_TYPE']       = 'application/json';
+		if ( null !== $method_override ) {
+			$_SERVER['HTTP_X_HTTP_METHOD_OVERRIDE'] = $method_override;
+		}
+
+		$this->server->serve_request( $path );
+
+		return array(
+			'status' => $this->server->status,
+			'data'   => json_decode( $this->server->sent_body, true ),
+		);
 	}
 
 	/**
@@ -139,11 +167,11 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 	 */
 	public function test_loader_registers_the_guard() {
 		$loader = new WC_Connect_Loader();
-		remove_all_filters( 'rest_request_before_callbacks' );
+		remove_all_filters( 'rest_dispatch_request' );
 
 		$loader->pre_wc_init();
 
-		$this->assertSame( 10, has_filter( 'rest_request_before_callbacks', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ) ) );
+		$this->assertSame( 10, has_filter( 'rest_dispatch_request', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ) ) );
 	}
 
 	/**
@@ -528,6 +556,58 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 
 		$this->assert_refused( $response );
 		$this->assertFalse( $this->tos_accepted() );
+	}
+
+	/**
+	 * The route as ?rest_route= passes it, in another case, is refused.
+	 */
+	public function test_rest_route_query_variant_refused() {
+		wp_set_current_user( $this->shop_manager );
+
+		$result = $this->serve( '/WC-Admin/Options', 'PUT', array( 'wc_connect_options' => array( 'tos_accepted' => true ) ) );
+
+		$this->assertSame( 403, $result['status'] );
+		$this->assertSame( 'wc_connect_tos_owner_only', $result['data']['code'] );
+		$this->assertFalse( $this->tos_accepted() );
+	}
+
+	/**
+	 * A POST overridden to PUT by header is refused.
+	 */
+	public function test_method_override_refused() {
+		wp_set_current_user( $this->shop_manager );
+
+		$result = $this->serve( self::ROUTE, 'POST', array( 'wc_connect_options' => array( 'tos_accepted' => true ) ), 'PUT' );
+
+		$this->assertSame( 403, $result['status'] );
+		$this->assertSame( 'wc_connect_tos_owner_only', $result['data']['code'] );
+		$this->assertFalse( $this->tos_accepted() );
+	}
+
+	/**
+	 * A logged-out request gets WooCommerce's own error, which says nothing about the
+	 * terms or the owner.
+	 */
+	public function test_logged_out_request_gets_core_error() {
+		wp_set_current_user( 0 );
+
+		$response = $this->send( array( 'wc_connect_options' => array( 'tos_accepted' => true ) ) );
+
+		$this->assertSame( 401, $response->get_status() );
+		$this->assertSame( 'woocommerce_rest_cannot_update', $response->get_data()['code'] );
+		$this->assertFalse( $this->tos_accepted() );
+	}
+
+	/**
+	 * So does a user without access to the route.
+	 */
+	public function test_subscriber_gets_core_error() {
+		wp_set_current_user( self::factory()->user->create( array( 'role' => 'subscriber' ) ) );
+
+		$response = $this->send( array( 'woocommerce_setup_jetpack_opted_in' => true ) );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertSame( 'woocommerce_rest_cannot_update', $response->get_data()['code'] );
 	}
 
 	/**
