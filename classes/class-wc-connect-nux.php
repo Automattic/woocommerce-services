@@ -330,6 +330,99 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		/**
+		 * Refuse a WooCommerce core options update that could lead to an accepted Terms of
+		 * Service when the current user may not accept the terms.
+		 *
+		 * The core wc-admin/options route lets any shop manager write wc_connect_options,
+		 * which holds the acceptance and the flag that makes the owner's next admin page
+		 * accept it, and woocommerce_setup_jetpack_opted_in, which pre_wc_init() turns into
+		 * an accepted ToS on the next request. Such a user may not change wc_connect_options
+		 * there at all; writing back the stored value is allowed. Without an owner (not
+		 * connected, or a site-only connection) the opt-in stays writable, as WooCommerce
+		 * sets it in its tax task before the store connects. The handler is matched rather
+		 * than the route, so every way of reaching it is covered, and the whole request is
+		 * refused.
+		 *
+		 * Hooked to rest_dispatch_request, which runs after the route's permission check, so
+		 * a user without access to the route gets WooCommerce's own error.
+		 *
+		 * @since 3.7.7
+		 *
+		 * @param mixed           $dispatch_result Result from an earlier filter, or null to dispatch.
+		 * @param WP_REST_Request $request         Request used to generate the response.
+		 * @param string          $route           Route matched for the request.
+		 * @param array           $handler         Route handler used for the request.
+		 * @return mixed The incoming result, null to let the request run, or a WP_Error to refuse it.
+		 */
+		public static function restrict_tos_change_through_core_options( $dispatch_result, $request, $route, $handler ) {
+			if ( null !== $dispatch_result || ! $request instanceof WP_REST_Request || ! self::is_core_options_update_handler( $handler ) ) {
+				return $dispatch_result;
+			}
+
+			// The core handler writes only the JSON params.
+			$params = $request->get_json_params();
+			if ( ! is_array( $params ) ) {
+				return null;
+			}
+
+			$changes_tos = false;
+
+			// Any change to wc_connect_options counts: other keys, such as the one that arms
+			// the after-connection banner, lead to an accepted ToS too.
+			if ( array_key_exists( 'wc_connect_options', $params ) ) {
+				$changes_tos = self::sort_keys_recursively( $params['wc_connect_options'] ) !== self::sort_keys_recursively( get_option( 'wc_connect_options' ) );
+			}
+
+			if ( ! $changes_tos && ! empty( $params['woocommerce_setup_jetpack_opted_in'] ) ) {
+				$changes_tos = WC_Connect_Jetpack::is_connected();
+			}
+
+			if ( ! $changes_tos || self::current_user_can_accept_tos() ) {
+				return null;
+			}
+
+			return new WP_Error(
+				'wc_connect_tos_owner_only',
+				__( 'Only the Jetpack connection owner can change the WooCommerce Tax settings or Terms of Service acceptance.', 'woocommerce-services' ),
+				array( 'status' => rest_authorization_required_code() )
+			);
+		}
+
+		/**
+		 * Sort array keys at every level, so values that differ only in key order compare equal.
+		 *
+		 * @param mixed $value Value to normalize.
+		 * @return mixed
+		 */
+		private static function sort_keys_recursively( $value ) {
+			if ( ! is_array( $value ) ) {
+				return $value;
+			}
+
+			ksort( $value );
+
+			return array_map( array( __CLASS__, 'sort_keys_recursively' ), $value );
+		}
+
+		/**
+		 * Whether a REST handler is the WooCommerce core options update.
+		 *
+		 * @param array|mixed $handler Route handler used for the request.
+		 * @return bool
+		 */
+		private static function is_core_options_update_handler( $handler ) {
+			$options_class = 'Automattic\WooCommerce\Admin\API\Options';
+
+			return class_exists( $options_class )
+				&& is_array( $handler )
+				&& isset( $handler['callback'] )
+				&& is_array( $handler['callback'] )
+				&& isset( $handler['callback'][0], $handler['callback'][1] )
+				&& $handler['callback'][0] instanceof $options_class
+				&& 'update_options' === $handler['callback'][1];
+		}
+
+		/**
 		 * Whether the WooCommerce Tax connection banner may render on the given screen.
 		 *
 		 * The banner only offers WooCommerce Tax, so it is confined to where WooCommerce
