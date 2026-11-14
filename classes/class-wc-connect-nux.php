@@ -383,7 +383,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			return new WP_Error(
 				'wc_connect_tos_owner_only',
-				__( 'Only the Jetpack connection owner can change the WooCommerce Tax Terms of Service acceptance.', 'woocommerce-services' ),
+				__( 'Only the Jetpack connection owner can change the WooCommerce Tax settings or Terms of Service acceptance.', 'woocommerce-services' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
 		}
