@@ -808,8 +808,9 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * The opt-in can be set by any shop manager, or before the store has an owner, so it
 		 * is only turned into an accepted ToS on a request by a store manager who may accept
 		 * the terms: the connection owner, or anyone in offline mode. Any other request,
-		 * including logged-out, cron and WP-CLI ones, leaves the opt-in for that user's next
-		 * request. pre_wc_init() runs on init, after WordPress has set the current user.
+		 * including logged-out, cron and WP-CLI ones without --user, leaves the opt-in for
+		 * that user's next request. pre_wc_init() runs on init, after WordPress has set the
+		 * current user (wp --user=<owner> sets it before init too).
 		 *
 		 * @return bool
 		 */
