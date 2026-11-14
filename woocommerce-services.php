@@ -805,12 +805,17 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Whether the WooCommerce setup opt-in may be stored as an accepted ToS on this request.
 		 *
-		 * The opt-in can be set by any shop manager, or before the store has an owner, so it
-		 * is only turned into an accepted ToS on a request by a store manager who may accept
-		 * the terms: the connection owner, or anyone in offline mode. Any other request,
-		 * including logged-out, cron and WP-CLI ones without --user, leaves the opt-in for
-		 * that user's next request. pre_wc_init() runs on init, after WordPress has set the
-		 * current user (wp --user=<owner> sets it before init too).
+		 * The opt-in can be set by any shop manager, or before the store has an owner (WooCommerce
+		 * sets it when Jetpack registers the site), so it is only turned into an accepted ToS on a
+		 * request by a user who can manage WooCommerce and may accept the terms: the connection
+		 * owner, or any such user in offline mode. Any other request, including logged-out, cron
+		 * and WP-CLI ones without --user, leaves the opt-in for the next request by such a user.
+		 *
+		 * pre_wc_init() runs on before_woocommerce_init, which WooCommerce fires on init. WordPress
+		 * sets the logged-in user before init, and WP-CLI applies --user on init at priority 0,
+		 * ahead of WooCommerce.
+		 *
+		 * @since 3.7.7
 		 *
 		 * @return bool
 		 */
