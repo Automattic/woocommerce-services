@@ -77,7 +77,7 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 		( new Options() )->register_routes();
 
 		// The loader adds this in pre_wc_init(); adding the same callback again is a no-op.
-		add_filter( 'rest_dispatch_request', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ), 10, 4 );
+		add_filter( 'rest_dispatch_request', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ), PHP_INT_MAX, 4 );
 
 		$this->owner        = self::factory()->user->create( array( 'role' => 'administrator' ) );
 		$this->other_admin  = self::factory()->user->create( array( 'role' => 'administrator' ) );
@@ -171,7 +171,7 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 
 		$loader->pre_wc_init();
 
-		$this->assertSame( 10, has_filter( 'rest_dispatch_request', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ) ) );
+		$this->assertSame( PHP_INT_MAX, has_filter( 'rest_dispatch_request', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ) ) );
 	}
 
 	/**
@@ -629,6 +629,21 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 
 		$this->assertSame( 202, $response->get_status() );
 		$this->assertSame( array( 'handled' => 'earlier' ), $response->get_data() );
+		$this->assertFalse( $this->tos_accepted() );
+	}
+
+	/**
+	 * A later filter that returns null whatever it is given cannot undo the refusal.
+	 */
+	public function test_later_filter_returning_null_does_not_undo_refusal() {
+		remove_all_filters( 'rest_dispatch_request' );
+		( new WC_Connect_Loader() )->pre_wc_init();
+		add_filter( 'rest_dispatch_request', '__return_null', PHP_INT_MAX - 1 );
+		wp_set_current_user( $this->shop_manager );
+
+		$response = $this->send( array( 'wc_connect_options' => array( 'tos_accepted' => true ) ) );
+
+		$this->assert_refused( $response );
 		$this->assertFalse( $this->tos_accepted() );
 	}
 
