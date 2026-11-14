@@ -680,4 +680,105 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 		$this->assertSame( 'US:CA', get_option( 'woocommerce_default_country' ) );
 		$this->assertFalse( $this->tos_accepted() );
 	}
+
+	/**
+	 * Spellings of the two option names that WooCommerce does not allow-list but that
+	 * update_option() (which trims the name) and the database collation (which ignores case
+	 * and accents) resolve to the real option.
+	 *
+	 * @return array
+	 */
+	public function provide_option_name_variants() {
+		return array(
+			'leading space'  => array( ' wc_connect_options', ' woocommerce_setup_jetpack_opted_in' ),
+			'trailing space' => array( 'wc_connect_options ', 'woocommerce_setup_jetpack_opted_in ' ),
+			'upper case'     => array( 'WC_CONNECT_OPTIONS', 'WOOCOMMERCE_SETUP_JETPACK_OPTED_IN' ),
+			'accented'       => array( 'wc_cönnect_options', 'woocommerce_setup_jetpack_öpted_in' ),
+			'zero-width'     => array( "wc_connect\u{200B}_options", "woocommerce_setup\u{200B}_jetpack_opted_in" ),
+		);
+	}
+
+	/**
+	 * Run the guard as WooCommerce dispatches the core options update.
+	 *
+	 * WooCommerce 11.1 lets an administrator write any option name it does not allow-list
+	 * on a production site; later versions refuse such names in the route's permission
+	 * check, before the guard runs. Calling the guard directly covers both.
+	 *
+	 * @param array $params Options to write.
+	 * @return mixed The guard's result.
+	 */
+	private function run_guard( $params ) {
+		$request = new WP_REST_Request( 'PUT', self::ROUTE );
+		$request->set_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( $params ) );
+
+		return WC_Connect_Nux::restrict_tos_change_through_core_options(
+			null,
+			$request,
+			self::ROUTE,
+			array( 'callback' => array( new Options(), 'update_options' ) )
+		);
+	}
+
+	/**
+	 * A non-owner cannot reach wc_connect_options or the opt-in under another spelling.
+	 *
+	 * @dataProvider provide_option_name_variants
+	 *
+	 * @param string $options_name Spelling of wc_connect_options.
+	 * @param string $opt_in_name  Spelling of woocommerce_setup_jetpack_opted_in.
+	 */
+	public function test_non_owner_cannot_use_option_name_variant( $options_name, $opt_in_name ) {
+		wp_set_current_user( $this->other_admin );
+
+		$refused_options = $this->run_guard( array( $options_name => array( 'tos_accepted' => true ) ) );
+		$refused_opt_in  = $this->run_guard( array( $opt_in_name => true ) );
+
+		$this->assertWPError( $refused_options );
+		$this->assertSame( 'wc_connect_tos_owner_only', $refused_options->get_error_code() );
+		$this->assertWPError( $refused_opt_in );
+		$this->assertSame( 'wc_connect_tos_owner_only', $refused_opt_in->get_error_code() );
+	}
+
+	/**
+	 * Through the route, whichever of WooCommerce or the guard refuses it, a variant
+	 * spelling leaves the terms and the opt-in unchanged.
+	 *
+	 * @dataProvider provide_option_name_variants
+	 *
+	 * @param string $options_name Spelling of wc_connect_options.
+	 * @param string $opt_in_name  Spelling of woocommerce_setup_jetpack_opted_in.
+	 */
+	public function test_option_name_variant_through_route_changes_nothing( $options_name, $opt_in_name ) {
+		// WooCommerce reports a name it does not allow-list as a deprecated use of the route.
+		$this->setExpectedDeprecated( 'Automattic\WooCommerce\Admin\API\Options::update_options' );
+		wp_set_current_user( $this->other_admin );
+
+		$options_response = $this->send( array( $options_name => array( 'tos_accepted' => true ) ) );
+		$opt_in_response  = $this->send( array( $opt_in_name => true ) );
+
+		$this->assertSame( 403, $options_response->get_status() );
+		$this->assertSame( 403, $opt_in_response->get_status() );
+		$this->assertFalse( $this->tos_accepted() );
+		$this->assertFalse( get_option( 'woocommerce_setup_jetpack_opted_in' ) );
+	}
+
+	/**
+	 * The owner is not refused under a variant spelling.
+	 */
+	public function test_owner_not_refused_for_option_name_variant() {
+		wp_set_current_user( $this->owner );
+
+		$this->assertNull( $this->run_guard( array( 'WC_CONNECT_OPTIONS' => array( 'tos_accepted' => true ) ) ) );
+	}
+
+	/**
+	 * A name that only contains one of the two names is not mistaken for it.
+	 */
+	public function test_unrelated_option_name_not_refused() {
+		wp_set_current_user( $this->shop_manager );
+
+		$this->assertNull( $this->run_guard( array( 'wc_connect_options_backup' => array( 'tos_accepted' => true ) ) ) );
+	}
 }
