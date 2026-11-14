@@ -560,7 +560,7 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
-	 * The route as ?rest_route= passes it, in another case, is refused.
+	 * A request served the way rest_api_loaded() serves ?rest_route=, with the route in another case, is refused.
 	 */
 	public function test_rest_route_query_variant_refused() {
 		wp_set_current_user( $this->shop_manager );
@@ -780,5 +780,133 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 		wp_set_current_user( $this->shop_manager );
 
 		$this->assertNull( $this->run_guard( array( 'wc_connect_options_backup' => array( 'tos_accepted' => true ) ) ) );
+	}
+
+	/**
+	 * Without an owner nobody may accept, so a non-owner's change to wc_connect_options is
+	 * refused before the store connects too, alone or together with an opt-in that is
+	 * allowed there.
+	 *
+	 * @return array
+	 */
+	public function provide_ownerless_wc_connect_options_payloads() {
+		return array(
+			'options alone'      => array( array( 'wc_connect_options' => array( 'tos_accepted' => true ) ) ),
+			'options and opt-in' => array(
+				array(
+					'wc_connect_options'                 => array( 'tos_accepted' => true ),
+					'woocommerce_setup_jetpack_opted_in' => true,
+				),
+			),
+		);
+	}
+
+	/**
+	 * Not connected.
+	 *
+	 * @dataProvider provide_ownerless_wc_connect_options_payloads
+	 *
+	 * @param array $params Options to write.
+	 */
+	public function test_wc_connect_options_change_refused_when_not_connected( $params ) {
+		WCS_Test_Jetpack_Connection::reset();
+		WCS_Test_Jetpack_Connection::set_offline( false );
+		wp_set_current_user( $this->shop_manager );
+
+		$response = $this->send( $params );
+
+		$this->assert_refused( $response );
+		$this->assertFalse( $this->tos_accepted() );
+		$this->assertFalse( get_option( 'woocommerce_setup_jetpack_opted_in' ) );
+	}
+
+	/**
+	 * Site-only connection.
+	 *
+	 * @dataProvider provide_ownerless_wc_connect_options_payloads
+	 *
+	 * @param array $params Options to write.
+	 */
+	public function test_wc_connect_options_change_refused_on_site_only_connection( $params ) {
+		Jetpack_Options::delete_option( array( 'user_tokens', 'master_user' ) );
+		WCS_Test_Jetpack_Connection::reset_caches();
+		$this->assertTrue( WC_Connect_Jetpack::is_site_only_connection() );
+		wp_set_current_user( $this->shop_manager );
+
+		$response = $this->send( $params );
+
+		$this->assert_refused( $response );
+		$this->assertFalse( $this->tos_accepted() );
+		$this->assertFalse( get_option( 'woocommerce_setup_jetpack_opted_in' ) );
+	}
+
+	/**
+	 * The loader registers the guard on a store that is not connected, where the opt-in is
+	 * commonly set.
+	 */
+	public function test_loader_registers_the_guard_when_not_connected() {
+		WCS_Test_Jetpack_Connection::reset();
+		WCS_Test_Jetpack_Connection::set_offline( false );
+		remove_all_filters( 'rest_dispatch_request' );
+
+		( new WC_Connect_Loader() )->pre_wc_init();
+
+		$this->assertSame( PHP_INT_MAX, has_filter( 'rest_dispatch_request', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ) ) );
+	}
+
+	/**
+	 * Another route's handler is left alone, even when its body would be refused on the
+	 * core options route.
+	 */
+	public function test_other_handler_untouched() {
+		$this->server->register_route(
+			'wcs-test/v1',
+			'/wcs-test/v1/echo',
+			array(
+				array(
+					'methods'             => 'PUT',
+					'callback'            => function () {
+						return array( 'handled' => true );
+					},
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+		wp_set_current_user( $this->shop_manager );
+
+		$response = $this->send( array( 'wc_connect_options' => array( 'tos_accepted' => true ) ), 'PUT', '/wcs-test/v1/echo' );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'handled' => true ), $response->get_data() );
+	}
+
+	/**
+	 * The core read handler is left alone when its request carries a JSON body.
+	 */
+	public function test_get_with_json_body_untouched() {
+		wp_set_current_user( $this->shop_manager );
+
+		$request = new WP_REST_Request( 'GET', self::ROUTE );
+		$request->set_query_params( array( 'options' => 'wc_connect_options' ) );
+		$request->set_header( 'content-type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'wc_connect_options' => array( 'tos_accepted' => true ) ) ) );
+		$response = $this->server->dispatch( $request );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertFalse( $this->tos_accepted() );
+	}
+
+	/**
+	 * Writing back an option that does not exist yet as an empty array is a change: the
+	 * comparison is strict.
+	 */
+	public function test_loosely_equal_value_refused() {
+		delete_option( 'wc_connect_options' );
+		wp_set_current_user( $this->shop_manager );
+
+		$response = $this->send( array( 'wc_connect_options' => array() ) );
+
+		$this->assert_refused( $response );
+		$this->assertFalse( get_option( 'wc_connect_options' ) );
 	}
 }
