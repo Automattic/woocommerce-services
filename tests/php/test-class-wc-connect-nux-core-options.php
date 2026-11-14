@@ -274,6 +274,7 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 			'empty options'      => array( array() ),
 			'tos_accepted false' => array( array( 'tos_accepted' => false ) ),
 			'string'             => array( 'revoked' ),
+			'null'               => array( null ),
 		);
 	}
 
