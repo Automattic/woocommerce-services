@@ -774,7 +774,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Prevent presenting users with TOS they've already
 			// accepted in the core WC Setup Wizard or on WP.com.
 			if ( ! $tos_accepted &&
-			( get_option( 'woocommerce_setup_jetpack_opted_in' ) || WC_Connect_Jetpack::is_atomic_site() )
+			( $this->can_accept_tos_from_setup_opt_in() || WC_Connect_Jetpack::is_atomic_site() )
 			) {
 				WC_Connect_Options::update_option( 'tos_accepted', true );
 				delete_option( 'woocommerce_setup_jetpack_opted_in' );
@@ -800,6 +800,24 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
+		}
+
+		/**
+		 * Whether the WooCommerce setup opt-in may be stored as an accepted ToS on this request.
+		 *
+		 * The opt-in can be set by any shop manager, or before the store has an owner, so it
+		 * is only turned into an accepted ToS on a request by a store manager who may accept
+		 * the terms: the connection owner, or anyone in offline mode. Any other request,
+		 * including logged-out, cron and WP-CLI ones without --user, leaves the opt-in for
+		 * that user's next request. pre_wc_init() runs on init, after WordPress has set the
+		 * current user (wp --user=<owner> sets it before init too).
+		 *
+		 * @return bool
+		 */
+		private function can_accept_tos_from_setup_opt_in() {
+			return get_option( 'woocommerce_setup_jetpack_opted_in' )
+				&& current_user_can( 'manage_woocommerce' )
+				&& WC_Connect_Nux::current_user_can_accept_tos();
 		}
 
 		public function get_service_schema_defaults( $schema ) {

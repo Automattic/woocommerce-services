@@ -336,12 +336,12 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * The core wc-admin/options route lets any shop manager write wc_connect_options,
 		 * which holds the acceptance and the flag that makes the owner's next admin page
 		 * accept it, and woocommerce_setup_jetpack_opted_in, which pre_wc_init() turns into
-		 * an accepted ToS on the next request. Such a user may not change wc_connect_options
-		 * there at all; writing back the stored value is allowed. Without an owner (not
-		 * connected, or a site-only connection) the opt-in stays writable, as WooCommerce
-		 * sets it in its tax task before the store connects. The handler is matched rather
-		 * than the route, so every way of reaching it is covered, and the whole request is
-		 * refused.
+		 * an accepted ToS on the next request by a user who may accept the terms. A user who
+		 * may not accept them may not change wc_connect_options there at all; writing back
+		 * the stored value is allowed. Without an owner (not connected, or a site-only
+		 * connection) the opt-in stays writable, as WooCommerce sets it in its tax task
+		 * before the store connects. The handler is matched rather than the route, so every
+		 * way of reaching it is covered, and the whole request is refused.
 		 *
 		 * Hooked to rest_dispatch_request, which runs after the route's permission check, so
 		 * a user without access to the route gets WooCommerce's own error.
