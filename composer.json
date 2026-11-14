@@ -71,7 +71,8 @@
 			"npm run build && composer install && ./vendor/bin/qit run:e2e woocommerce-services --zip=woocommerce-services.zip --config=./qit.json --test-package=./tests/e2e-playwright"
 		],
 		"test": [
-			"./tests/bin/run-tests.sh"
+			"Composer\\Config::disableProcessTimeout",
+			"bash tests/bin/run-tests.sh"
 		],
 		"test:check": [
 			"./tests/bin/check-test-env.sh"
