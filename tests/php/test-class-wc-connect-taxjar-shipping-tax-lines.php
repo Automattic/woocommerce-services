@@ -138,6 +138,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		WC_Helper_Shipping::create_simple_flat_rate( 10 );
 		WC()->session->set( 'chosen_shipping_methods', array( 'flat_rate' ) );
+		WC()->session->set( 'shipping_for_package_0', null );
 		WC()->customer->set_is_vat_exempt( false );
 
 		// Look like a Store API checkout request, so calculate_totals() runs.
@@ -1185,10 +1186,15 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * A lookup that fails after one that answered must not reuse that answer: the customer
-	 * moved to another town, so the table decides again.
+	 * A lookup that fails after one that answered for the same address must not reuse that
+	 * answer, also for shipping already priced from it: the cart may have changed, so the
+	 * table decides again. The city's case doesn't matter.
+	 *
+	 * @dataProvider data_answered_city
+	 *
+	 * @param string $answered_city City of the earlier answer.
 	 */
-	public function test_failed_lookup_does_not_reuse_the_earlier_shipping_answer() {
+	public function test_failed_lookup_does_not_reuse_the_earlier_shipping_answer( $answered_city ) {
 		update_option( 'woocommerce_shipping_tax_class', '' );
 		$this->merchant_local_rate( 'MI', '49866;49849', '', 6 );
 		$this->ship_to( array( 'MI', '49866', 'Negaunee' ) );
@@ -1204,7 +1210,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		$property->setValue(
 			$integration,
 			array(
-				'address' => array( 'US', 'MI', '49866', 'NEGAUNEE' ),
+				'address' => array( 'US', 'MI', '49866', $answered_city ),
 				'rates'   => array(),
 			)
 		);
@@ -1214,6 +1220,18 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->assertNull( $property->getValue( $integration ) );
 		$this->assertEqualsWithDelta( 0.6, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+	}
+
+	/**
+	 * Cities for test_failed_lookup_does_not_reuse_the_earlier_shipping_answer().
+	 *
+	 * @return array
+	 */
+	public function data_answered_city() {
+		return array(
+			'as entered'  => array( 'Negaunee' ),
+			'upper-cased' => array( 'NEGAUNEE' ),
+		);
 	}
 
 	/**
@@ -1298,6 +1316,14 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		$this->assertSame( '78701', WC_Tax::get_tax_location()[2], 'The fee is taxed at the store.' );
 		$this->assertEqualsWithDelta( 0.83, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
 		$this->assertArrayNotHasKey( $merchant, WC()->cart->get_shipping_taxes() );
+
+		// Block checkout taxes the order again, at the store's city as entered.
+		$order = $this->classic_checkout_order();
+		$order->calculate_totals();
+		$order    = wc_get_order( $order->get_id() );
+		$shipping = current( $order->get_items( 'shipping' ) );
+		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.011, 'Block checkout shipping tax' );
+		$this->assertArrayNotHasKey( $merchant, $shipping->get_taxes()['total'] );
 	}
 
 	/**

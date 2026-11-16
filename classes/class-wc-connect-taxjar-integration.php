@@ -1034,8 +1034,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 		// Return if taxes could not be calculated.
 		if ( false === $taxes ) {
-			// An earlier answer in this request may be about another address or cart.
-			$this->response_shipping_answer = null;
+			$this->forget_shipping_answer( $wc_cart_object );
 			return;
 		}
 
@@ -1085,23 +1084,7 @@ class WC_Connect_TaxJar_Integration {
 				}
 			}
 
-			// Recalculate shipping package rates
-			foreach ( $wc_cart_object->get_shipping_packages() as $package_key => $package ) {
-				WC()->session->set( 'shipping_for_package_' . $package_key, null );
-			}
-
-			if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
-				do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
-				do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
-				new WC_Cart_Totals( $wc_cart_object );
-				remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-				do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
-				add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-			} else {
-				remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-				$wc_cart_object->calculate_totals();
-				add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-			}
+			$this->calculate_cart_totals_again( $wc_cart_object );
 		} finally {
 			// Also when a callback throws, so the count and the answers stay right.
 			if ( $is_main_cart ) {
@@ -1109,6 +1092,71 @@ class WC_Connect_TaxJar_Integration {
 			}
 			if ( null !== $main_cart_answers ) {
 				list( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys, $this->response_shipping_answer ) = $main_cart_answers;
+			}
+		}
+	}
+
+	/**
+	 * Total a cart again after its lookup, without looking it up again.
+	 *
+	 * The shipping packages are cleared, so shipping is priced again too.
+	 *
+	 * @param WC_Cart $wc_cart_object The cart.
+	 */
+	private function calculate_cart_totals_again( $wc_cart_object ) {
+		// Recalculate shipping package rates
+		foreach ( $wc_cart_object->get_shipping_packages() as $package_key => $package ) {
+			WC()->session->set( 'shipping_for_package_' . $package_key, null );
+		}
+
+		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
+			do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
+			do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
+			new WC_Cart_Totals( $wc_cart_object );
+			remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
+			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+		} else {
+			remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			$wc_cart_object->calculate_totals();
+			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+		}
+	}
+
+	/**
+	 * Drop the shipping answer after a failed lookup, and price shipping again without it.
+	 *
+	 * WooCommerce prices shipping before the lookup runs, so a cart totalled again in the
+	 * same request, such as after its contents changed, has just priced shipping from the
+	 * earlier answer. With no answer, the saved rates decide, as they do when the first
+	 * lookup fails.
+	 *
+	 * Another cart totalled during the main cart's total gives the main cart's answer back,
+	 * as it does after a lookup that answered.
+	 *
+	 * @param WC_Cart $wc_cart_object The cart whose lookup failed.
+	 */
+	private function forget_shipping_answer( $wc_cart_object ) {
+		if ( null === $this->response_shipping_answer ) {
+			return;
+		}
+
+		$is_main_cart     = WC()->cart instanceof WC_Cart && WC()->cart === $wc_cart_object;
+		$main_cart_answer = ! $is_main_cart && 0 < $this->main_cart_total_depth ? $this->response_shipping_answer : null;
+
+		$this->response_shipping_answer = null;
+		if ( $is_main_cart ) {
+			++$this->main_cart_total_depth;
+		}
+
+		try {
+			$this->calculate_cart_totals_again( $wc_cart_object );
+		} finally {
+			if ( $is_main_cart ) {
+				--$this->main_cart_total_depth;
+			}
+			if ( null !== $main_cart_answer ) {
+				$this->response_shipping_answer = $main_cart_answer;
 			}
 		}
 	}
@@ -2090,7 +2138,7 @@ class WC_Connect_TaxJar_Integration {
 		 * Filters whether shipping prices include tax. A WooCommerce core filter, applied
 		 * here as WC_Tax::calc_shipping_tax() applies it.
 		 *
-		 * @since 3.7.6 Applied by this plugin.
+		 * @since 3.7.7 Applied by this plugin.
 		 *
 		 * @param bool $shipping_prices_include_tax Whether they do. Default false.
 		 */
@@ -2140,12 +2188,16 @@ class WC_Connect_TaxJar_Integration {
 	 * It can be taxing another one: a plugin shipping a cart's packages to several
 	 * addresses moves the customer for each of them.
 	 *
+	 * Case doesn't count, as in the rate table. For local pickup the cart is answered for
+	 * the store with its city upper-cased, while the order is taxed at the store's city as
+	 * entered in the settings.
+	 *
 	 * @param array   $answer  A shipping answer, see get_shipping_answer().
 	 * @param Address $address The address being taxed.
 	 * @return bool
 	 */
 	private function is_shipping_answer_for_address( array $answer, Address $address ) {
-		return array( $address->country(), $address->state(), $address->postcode(), $address->city() ) === $answer['address'];
+		return Address::from_taxable_tuple( $answer['address'] )->jurisdiction_key() === $address->jurisdiction_key();
 	}
 
 	/**
