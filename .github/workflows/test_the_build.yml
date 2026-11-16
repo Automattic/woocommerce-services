@@ -1,0 +1,286 @@
+name: Test the build
+
+# Posts the "Test the build" comment on a pull request: links that open the
+# build in WordPress Playground, so trying it needs no development environment.
+#
+# This job holds a token that can write to the pull request. So it never checks
+# out or runs the pull request's code. It only repackages, as data, the zip the
+# build job made.
+
+on:
+  workflow_call:
+    inputs:
+      extension:
+        description: 'Plugin slug, used to find the zip in the artifact.'
+        required: true
+        type: string
+      artifact:
+        description: 'Name of the artifact holding the built zip.'
+        required: true
+        type: string
+
+jobs:
+  test-the-build:
+    name: Post the comment
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pull-requests: write
+    env:
+      EXTENSION: ${{ inputs.extension }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - name: Download the built plugin
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.artifact }}
+          path: ${{ runner.temp }}/package
+
+      # Gives the build a version that names the pull request and the commit. The
+      # assets in dist/ carry the version in their file names and the plugin loads
+      # them by its own version, so they are renamed with it.
+      - name: Label the build with the pull request and commit
+        id: label
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+
+          unzip -q "package/$EXTENSION.zip" -d build
+          plugin="build/$EXTENSION"
+          main_file="$plugin/$EXTENSION.php"
+          test -f "$main_file"
+
+          version="$( sed -n 's/^ \* Version:[[:space:]]*//p' "$main_file" | head -n 1 )"
+          if ! [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Unexpected plugin version \"$version\"."
+            exit 1
+          fi
+
+          next_version="${version%.*}.$(( ${version##*.} + 1 ))"
+          dev_version="${next_version}-dev_PR-${PR_NUMBER}_commit-${PR_HEAD_SHA:0:7}"
+
+          sed "s/^ \* Version:.*$/ * Version: $dev_version/" "$main_file" > "$main_file.tmp"
+          mv "$main_file.tmp" "$main_file"
+          sed "s/^Stable tag:.*$/Stable tag: $dev_version/" "$plugin/readme.txt" > "$plugin/readme.txt.tmp"
+          mv "$plugin/readme.txt.tmp" "$plugin/readme.txt"
+          grep -qF " * Version: $dev_version" "$main_file"
+          grep -qF "Stable tag: $dev_version" "$plugin/readme.txt"
+
+          renamed=0
+          for asset in "$plugin"/dist/*-"$version".*; do
+            test -e "$asset" || continue
+            mv "$asset" "${asset%-"$version".*}-$dev_version.${asset##*.}"
+            renamed=$(( renamed + 1 ))
+          done
+          if [ "$renamed" -eq 0 ]; then
+            echo "::error::No asset in dist/ is named after version $version, so the labeled build would not find its scripts."
+            exit 1
+          fi
+
+          mkdir release
+          ( cd build && zip -qr "../release/$EXTENSION.zip" "$EXTENSION" )
+
+          echo "Build version: $dev_version" >> "$GITHUB_STEP_SUMMARY"
+          echo "dev_version=$dev_version" >> "$GITHUB_OUTPUT"
+
+      # The Playground links download this on every click. The run ID in the name ties
+      # a link to one build.
+      - name: Upload the labeled build for the Playground previews
+        uses: actions/upload-artifact@v4
+        with:
+          name: plugins-${{ github.run_id }}
+          path: ${{ runner.temp }}/release
+          if-no-files-found: error
+          retention-days: 14
+
+      # WordPress Playground runs in the visitor's browser and only fetches public URLs.
+      # Its artifact proxy serves this run's artifact for the pull request, and finds the
+      # workflow by name: hence GITHUB_WORKFLOW, which here is the calling workflow's.
+      # An artifact is a zip around the uploaded zip, so the Blueprints unzip it first.
+      #
+      # A site in a browser tab cannot connect to WordPress.com, which automated taxes
+      # need. One preview therefore adds the stub the E2E suite uses, fetched from this
+      # pull request's commit: it stands in for the connection and answers the tax
+      # requests itself. See tests/e2e-playwright/README.md.
+      #
+      # To show UI that is behind an option, set the option in STORE_SETUP.
+      - name: Build the WordPress Playground links
+        id: playground
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          read -r -d '' STORE_SETUP <<'PHP' || true
+          <?php
+          require '/wordpress/wp-load.php';
+
+          // Skip the WooCommerce setup wizard and open the store to visitors.
+          delete_transient( '_wc_activation_redirect' );
+          update_option( 'woocommerce_onboarding_profile', array( 'skipped' => true ) );
+          update_option( 'woocommerce_coming_soon', 'no' );
+          update_option( 'woocommerce_custom_orders_table_enabled', 'yes' );
+
+          // A store in Texas that charges tax: the Tax settings only exist then.
+          update_option( 'woocommerce_store_address', '100 Congress Ave' );
+          update_option( 'woocommerce_store_city', 'Austin' );
+          update_option( 'woocommerce_default_country', 'US:TX' );
+          update_option( 'woocommerce_store_postcode', '78701' );
+          update_option( 'woocommerce_currency', 'USD' );
+          update_option( 'woocommerce_calc_taxes', 'yes' );
+          update_option( 'woocommerce_cheque_settings', array( 'enabled' => 'yes' ) );
+
+          // The logged-in admin shops from the same state. Orders to another US state are not taxed.
+          $customer = new WC_Customer( get_user_by( 'login', 'admin' )->ID );
+          $address  = array(
+              'first_name' => 'Sample',
+              'last_name'  => 'Customer',
+              'address_1'  => '1 Main St',
+              'city'       => 'Houston',
+              'state'      => 'TX',
+              'postcode'   => '77002',
+              'country'    => 'US',
+          );
+          foreach ( $address as $field => $value ) {
+              $customer->{"set_billing_$field"}( $value );
+              $customer->{"set_shipping_$field"}( $value );
+          }
+          $customer->set_billing_email( 'sample-customer@example.com' );
+          $customer->set_billing_phone( '5555550100' );
+          $customer->save();
+
+          // Virtual, so checkout needs no shipping method.
+          $product = new WC_Product_Simple();
+          $product->set_name( 'Sample product' );
+          $product->set_regular_price( '100' );
+          $product->set_virtual( true );
+          $product->set_status( 'publish' );
+          $product->save();
+          PHP
+
+          read -r -d '' ARM_TAX_STUB <<'PHP' || true
+          <?php
+          require '/wordpress/wp-load.php';
+
+          $armed = wc_services_e2e_tax_stub_arm();
+          if ( is_wp_error( $armed ) ) {
+              throw new Exception( $armed->get_error_message() );
+          }
+          update_option( 'wc_connect_taxes_enabled', 'yes' );
+          PHP
+
+          # A new store has no tax rates saved yet. The Cart and Checkout blocks only show
+          # tax on their first load for an address the store has looked up before, so
+          # this does that first lookup, for the sample customer.
+          read -r -d '' LOOK_UP_SAMPLE_TAX <<'PHP' || true
+          <?php
+          define( 'WOOCOMMERCE_CART', true );
+          require '/wordpress/wp-load.php';
+
+          // WooCommerce has set up a guest by now, who has no address to look up.
+          WC()->customer = new WC_Customer( get_user_by( 'login', 'admin' )->ID, true );
+          WC()->cart->add_to_cart( wc_get_products( array( 'limit' => 1, 'return' => 'ids' ) )[0] );
+          WC()->cart->calculate_totals();
+          WC()->cart->empty_cart();
+          PHP
+
+          ARTIFACT_URL="$( jq -rn \
+            --arg org "$GITHUB_REPOSITORY_OWNER" \
+            --arg repo "${GITHUB_REPOSITORY#*/}" \
+            --arg workflow "$GITHUB_WORKFLOW" \
+            --arg pr "$PR_NUMBER" \
+            --arg artifact "plugins-$GITHUB_RUN_ID" \
+            '"https://playground.wordpress.net/plugin-proxy.php?org=\($org|@uri)&repo=\($repo|@uri)&workflow=\($workflow|@uri)&pr=\($pr|@uri)&artifact=\($artifact|@uri)"' )"
+
+          STUB="wc-services-e2e-tax-stub"
+          STUB_URL="https://raw.githubusercontent.com/$GITHUB_REPOSITORY/$PR_HEAD_SHA/tests/e2e-playwright/support/$STUB/$STUB.php"
+
+          BLUEPRINTS="$( jq -cn \
+            --arg artifact_url "$ARTIFACT_URL" \
+            --arg extension "$EXTENSION" \
+            --arg stub "$STUB" \
+            --arg stub_url "$STUB_URL" \
+            --arg store_setup "$STORE_SETUP" \
+            --arg arm_tax_stub "$ARM_TAX_STUB" \
+            --arg look_up_sample_tax "$LOOK_UP_SAMPLE_TAX" '
+            {
+              "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+              landingPage: "/wp-admin/admin.php?page=wc-settings&tab=tax",
+              preferredVersions: { php: "8.3", wp: "latest" },
+              features: { networking: true }
+            } as $base
+            | [
+                { step: "login", username: "admin" },
+                { step: "installPlugin", pluginData: { resource: "wordpress.org/plugins", slug: "woocommerce" }, options: { activate: true } },
+                { step: "unzip", zipFile: { resource: "url", url: $artifact_url, caption: "Downloading the WooCommerce Tax build for this pull request" }, extractToPath: "/tmp/pr" },
+                { step: "installPlugin", pluginData: { resource: "vfs", path: "/tmp/pr/\($extension).zip" }, options: { activate: true } },
+                { step: "runPHP", code: $store_setup }
+              ] as $store
+            | [
+                { step: "mkdir", path: "/wordpress/wp-content/plugins/\($stub)" },
+                { step: "writeFile", path: "/wordpress/wp-content/plugins/\($stub)/\($stub).php", data: { resource: "url", url: $stub_url, caption: "Downloading the tax stub" } },
+                { step: "activatePlugin", pluginPath: "\($stub)/\($stub).php" },
+                { step: "runPHP", code: $arm_tax_stub },
+                { step: "runPHP", code: $look_up_sample_tax }
+              ] as $tax_stub
+            | {
+                stubbed: ( $base + { steps: ( $store + $tax_stub ) } ),
+                unconnected: ( $base + { steps: $store } )
+              }' )"
+
+          {
+            echo "stubbed_url=https://playground.wordpress.net/#$( jq -rn --argjson blueprints "$BLUEPRINTS" '$blueprints.stubbed|tojson|@uri' )"
+            echo "unconnected_url=https://playground.wordpress.net/#$( jq -rn --argjson blueprints "$BLUEPRINTS" '$blueprints.unconnected|tojson|@uri' )"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Write the comment
+        shell: bash
+        env:
+          DEV_VERSION: ${{ steps.label.outputs.dev_version }}
+          PLAYGROUND_STUBBED_URL: ${{ steps.playground.outputs.stubbed_url }}
+          PLAYGROUND_UNCONNECTED_URL: ${{ steps.playground.outputs.unconnected_url }}
+        run: |
+          set -euo pipefail
+
+          cat > "$RUNNER_TEMP/comment.md" <<EOF
+          ### Test the build
+
+          #### WordPress Playground - runs in your browser
+
+          - :test_tube: [Open with made-up tax rates]($PLAYGROUND_STUBBED_URL): a store in Texas with automated taxes on, a sample product and a Texas customer, on WooCommerce > Settings > Tax. Add the product to the cart to see tax at cart and checkout.
+          - :electric_plug: [Open unconnected]($PLAYGROUND_UNCONNECTED_URL): the same store as a merchant sees it before connecting to WordPress.com. Connecting from there does not work.
+
+          :information_source: A site in your browser tab cannot connect to WordPress.com, so neither preview reaches the tax service. In the first one, the stub from the E2E suite answers instead: every Texas address gets 6.25% state tax and 2% city tax. It shows how screens and totals look, not what the real rates are. Shipping labels and live rates are in neither preview. The links stop working 14 days after the last build.
+
+          ---
+
+          Build info:
+
+          - Version: $DEV_VERSION
+          - Latest commit: $PR_HEAD_SHA
+          - Build time: $( date -u "+%Y-%m-%d %H:%M:%S UTC" )
+
+          _Note: the build is updated when a new commit is pushed to this PR._
+          EOF
+
+          cat "$RUNNER_TEMP/comment.md" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Add or update the comment on the pull request
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          COMMENT_IDS="$( gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
+            --jq '.[] | select( .user.login == "github-actions[bot]" and ( .body | startswith( "### Test the build" ) ) ) | .id' )"
+          COMMENT_ID="${COMMENT_IDS%%$'\n'*}"
+
+          if [ -n "$COMMENT_ID" ]; then
+            gh api -X PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID" -F "body=@$RUNNER_TEMP/comment.md" --silent
+            echo "Updated comment $COMMENT_ID."
+          else
+            gh api -X POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -F "body=@$RUNNER_TEMP/comment.md" --silent
+            echo "Created the comment."
+          fi

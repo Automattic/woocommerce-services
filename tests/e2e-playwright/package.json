@@ -8,6 +8,11 @@
 		"playwright-ctrf-json-reporter": "^0.0.29",
 		"typescript": "^5.7.3"
 	},
+	"overrides": {
+		"glob": {
+			"minimatch": "^11.0.1"
+		}
+	},
 	"scripts": {
 		"test:e2e": "playwright test",
 		"typecheck": "tsc --noEmit"
