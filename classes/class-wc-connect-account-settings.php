@@ -27,7 +27,7 @@ class WC_Connect_Account_Settings {
 
 	public function get() {
 		$payment_methods_warning = false;
-		$payment_methods_success = $this->payment_methods_store->fetch_payment_methods_from_connect_server();
+		$payment_methods_success = $this->payment_methods_store->fetch_payment_methods_once();
 
 		if ( ! $payment_methods_success ) {
 			$payment_methods_warning = __( 'There was a problem updating your saved credit cards.', 'woocommerce-services' );
