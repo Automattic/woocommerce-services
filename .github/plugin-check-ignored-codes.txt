@@ -22,3 +22,13 @@ WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedConstantFound
 # The plugin ships its own translation files in i18n/languages, so it still
 # loads them itself.
 PluginCheck.CodeAnalysis.DiscouragedFunctions.load_plugin_textdomainFound
+
+# The admin screens ship their own copy of React and do not use the React that
+# WordPress loads, so a newer React in WordPress does not reach them. They were
+# checked with React 19 loaded and still work. These stay only until the admin
+# screens move to the React WordPress provides; remove them then.
+# inlined_react_jsx_runtime is left on on purpose: it catches a bundle that
+# hands elements from an old React to the React WordPress loads.
+inlined_react
+inlined_react_dom
+react_removed_api

@@ -15,6 +15,7 @@ class WP_Test_WC_Connect_Loader extends WC_Unit_Test_Case {
 		remove_all_actions( 'wc_connect_shipping_zone_method_deleted' );
 		remove_all_actions( 'wc_connect_shipping_zone_method_status_toggled' );
 		remove_all_actions( 'wc_connect_saved_service_settings' );
+		parent::tear_down();
 	}
 
 	protected function mockLoader( $store = false, $api_client = false, $logger = false, $tracks = false ) {
