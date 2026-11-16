@@ -44,10 +44,35 @@ export TEST_ENV_OWNER_PID
 _ST_HELD=""
 
 # Start time of a process. With the PID it identifies the process even after
-# the PID is reused. `ps -o lstart=` works on Linux and macOS, and for other
-# users' processes (kill -0 does not).
+# the PID is reused. Every copy of this file must compute it the same way,
+# and the value must not depend on the caller's TZ, locale or wall clock: a
+# run's label is read by other runs, which can have another TZ or LC_ALL.
+#   Linux:     field 22 of /proc/<pid>/stat (clock ticks since boot). A clock
+#              step (NTP, the WSL resync after sleep) does not change it.
+#   elsewhere: `ps -o lstart=` with LC_ALL=C TZ=UTC0 (macOS has no /proc).
+# Prints nothing when the start time cannot be read.
+# TEST_ENV_START_SOURCE=proc|ps forces one method (used by the self-test).
+if [ -z "${TEST_ENV_START_SOURCE:-}" ]; then
+    if [ -r /proc/self/stat ]; then TEST_ENV_START_SOURCE="proc"; else TEST_ENV_START_SOURCE="ps"; fi
+fi
 _st_pid_start() {
-    ps -o lstart= -p "$1" 2> /dev/null | tr -s ' ' | sed 's/^ //; s/ $//'
+    local stat
+    if [ "$TEST_ENV_START_SOURCE" = proc ]; then
+        stat="$(cat "/proc/$1/stat" 2> /dev/null)" || return 0
+        # Field 2 (the process name) can hold spaces and ")": cut after the
+        # last ") ". Field 22 is then the 20th field.
+        printf '%s\n' "${stat##*) }" | awk '{ if ($20 != "") print "proc:" $20 }'
+    else
+        LC_ALL=C TZ=UTC0 ps -o lstart= -p "$1" 2> /dev/null | tr -s ' ' | sed 's/^ //; s/ $//'
+    fi
+}
+
+# Does a process with this PID exist? Used only when its start time cannot be
+# read. kill -0 fails for other users' processes, so also look in /proc and ps.
+_st_pid_exists() {
+    kill -0 "$1" 2> /dev/null && return 0
+    [ -d "/proc/$1" ] && return 0
+    [ -n "$(ps -o pid= -p "$1" 2> /dev/null)" ]
 }
 
 TEST_ENV_OWNER_START="${TEST_ENV_OWNER_START:-$(_st_pid_start "$TEST_ENV_OWNER_PID")}"
@@ -59,13 +84,21 @@ _st_label() {
 }
 
 # _st_alive "pid|project|time|start" → 0 if that exact process still runs.
+# If a start time is unknown (the label has none, or it cannot be read for the
+# PID now), the PID alone decides, and a live PID counts as alive: waiting for
+# a stale lock is safer than deleting a tree under a running suite.
 _st_alive() {
-    local label="$1" pid start rest
+    local label="$1" pid start now
     pid="${label%%|*}"
     start="${label##*|}"
-    [ -n "$pid" ] || return 1
-    rest="$(_st_pid_start "$pid")"
-    [ -n "$rest" ] && [ "$rest" = "$start" ]
+    case "$pid" in '' | *[!0-9]*) return 1 ;; esac
+    [ "$start" != "$label" ] || start=""
+    now="$(_st_pid_start "$pid")"
+    if [ -n "$now" ] && [ -n "$start" ]; then
+        [ "$now" = "$start" ]
+        return
+    fi
+    _st_pid_exists "$pid"
 }
 
 # _st_describe "pid|project|time|start" → "project (pid 123, since time)"
@@ -80,13 +113,35 @@ _st_describe() {
 }
 
 _st_lock_one() {
-    local tree="${1%/}" lock waited=0 next_note=0 owner
+    local tree="${1%/}" lock waited=0 next_note=0 owner err
     lock="${tree}.lock"
-    mkdir -p "$(dirname "$tree")"
-    while ! ln -s "$(_st_label)" "$lock" 2> /dev/null; do
+    if ! err="$(mkdir -p "$(dirname "$tree")" 2>&1)"; then
+        echo "❌ Cannot create the folder for ${lock}: ${err}" >&2
+        return 1
+    fi
+    while :; do
+        # A lock is always a symlink. `ln -s` would put a link inside an
+        # existing folder and report success, so check this first.
+        if [ -e "$lock" ] && [ ! -L "$lock" ]; then
+            echo "❌ ${lock} exists but is not a lock (a symlink). If no test run uses ${tree}, remove it: rm -rf '${lock}'" >&2
+            return 1
+        fi
+        err="$(ln -s "$(_st_label)" "$lock" 2>&1)" && break
         owner="$(readlink "$lock" 2> /dev/null)" || owner=""
-        # Released between our ln and readlink: try again at once.
-        [ -n "$owner" ] || continue
+        if [ -z "$owner" ]; then
+            # No lock to read. Either its holder released it between our ln
+            # and readlink, or ln failed for another reason (for example a
+            # folder we cannot write to). Try once more. If there is still no
+            # lock, stop with ln's error instead of spinning.
+            if [ ! -L "$lock" ] && [ ! -e "$lock" ]; then
+                err="$(ln -s "$(_st_label)" "$lock" 2>&1)" && break
+                if [ ! -L "$lock" ] && [ ! -e "$lock" ]; then
+                    echo "❌ Cannot create ${lock}: ${err}" >&2
+                    return 1
+                fi
+            fi
+            continue
+        fi
         if [ "${owner%%|*}" = "$TEST_ENV_OWNER_PID" ] && [ "${owner##*|}" = "$TEST_ENV_OWNER_START" ]; then
             # Already ours (a repair started by our own run-tests.sh). The
             # holder that took it releases it, so do not add it to _ST_HELD.
@@ -209,30 +264,34 @@ st_wait_idle() {
     done
 }
 
-# st_rm_tree <dir> <marker>... — delete a shared tree, but only if it looks
-# like one this harness made: it must be missing, empty, or contain one of the
-# markers. Stops a mistyped or inherited WP_TESTS_DIR / WP_CORE_DIR /
-# WC_CLONE_DIR from deleting something else. Pass a marker that an interrupted
-# install leaves behind too (".git" for a half-done clone), or the repair
-# could never clean up after it.
+# Every tree this harness creates holds this file. st_rm_tree deletes only
+# folders that have it, so a mistyped or inherited WP_TESTS_DIR / WP_CORE_DIR /
+# WC_CLONE_DIR (for example someone's own WooCommerce checkout) is never
+# deleted. Trees are built in a temporary folder, marked, and then renamed into
+# place, so a half-done install never sits at the tree's path unmarked.
+ST_TREE_MARKER=".wc-test-env-tree"
+
+# st_mark_tree <dir> — mark <dir> as a tree this harness made.
+st_mark_tree() {
+    printf 'Made by tests/bin/install-wc-tests.sh (escargot-dev-environment tools/phpunit-test-env). Safe to delete.\n' \
+        > "${1%/}/${ST_TREE_MARKER}"
+}
+
+# st_rm_tree <dir> — delete a shared tree, but only if it is missing, empty,
+# or has the marker file.
 st_rm_tree() {
-    local dir="${1%/}" marker
-    shift
+    local dir="${1%/}"
     if [ -z "$dir" ] || [ "$dir" = "/" ] || [ "$dir" = "${HOME%/}" ]; then
         echo "❌ Refusing to delete '${dir}'." >&2
         return 1
     fi
-    if [ ! -e "$dir" ] || [ -z "$(ls -A "$dir" 2> /dev/null)" ]; then
+    if [ ! -e "$dir" ] || [ -L "$dir" ] || [ -z "$(ls -A "$dir" 2> /dev/null)" ] || [ -f "${dir}/${ST_TREE_MARKER}" ]; then
         rm -rf "$dir"
         return 0
     fi
-    for marker in "$@"; do
-        if [ -e "${dir}/${marker}" ]; then
-            rm -rf "$dir"
-            return 0
-        fi
-    done
-    echo "❌ Refusing to delete ${dir}: it is not empty and has none of: $*. It may not be a test tree." >&2
+    echo "❌ Refusing to delete ${dir}: it has no ${ST_TREE_MARKER} file, so this harness did not make it." >&2
+    echo "   If it is a test tree from an older harness, delete it yourself and run again: rm -rf '${dir}'" >&2
+    echo "   If it is your own checkout, point WP_CORE_DIR / WP_TESTS_DIR / WC_CLONE_DIR somewhere else." >&2
     return 1
 }
 

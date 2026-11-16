@@ -119,7 +119,7 @@ export WP_TESTS_CONFIG_FILE_PATH="$TEST_WP_CONFIG"
 # ---------------------------------------------------------------------------
 # 4. Run PHPUnit (pass any extra args through, e.g. --filter)
 # ---------------------------------------------------------------------------
-echo "==> Running PHPUnit (${WC_TEST_COMPOSE_PROJECT}, DB ${TEST_DB_HOST}:${TEST_DB_PORT}, WC ${WC_DEVELOP_DIR}, WP ${WP_CORE_DIR})..."
+echo "==> Running PHPUnit (${WC_TEST_COMPOSE_PROJECT}, DB ${TEST_DB_HOST}:${TEST_DB_PORT}, WC ${WC_DEVELOP_DIR}, WP ${WP_CORE_DIR}, WP tests ${WP_TESTS_DIR})..."
 # Output format. --testdox prints one readable line per test — pleasant for a
 # human, but many times PHPUnit's compact progress output, so it floods
 # pre-commit hooks, redirected logs and AI-agent context. Resolve it:

@@ -104,8 +104,10 @@ if [ "$failed" = "1" ]; then
         bash "$SCRIPT_DIR/install-wc-tests.sh"
 fi
 
-# Healthy path. Stay quiet when chained from run-tests.sh; print a confirmation
-# only when invoked directly.
+# Healthy path. Print a confirmation only when install-wc-tests.sh, run with no
+# flags, handed over to this check (it sets REENTRY_FROM_SETUP), so that run
+# ends with a result. Stay quiet otherwise: run-tests.sh calls this check
+# before every run, and a direct run reports problems only.
 if [[ -n "${REENTRY_FROM_SETUP:-}" ]]; then
     echo "✅ Test environment is ready. Nothing to repair."
     echo "   To force a full reinstall anyway, run:  bash tests/bin/install-wc-tests.sh --force"

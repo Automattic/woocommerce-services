@@ -215,11 +215,16 @@ if [[ "$REPAIR_DB" == "1" ]]; then
     # older compose project of this same plugin (before `name:` was pinned).
     # It would block `up -d` on the name and port, so remove it.
     docker rm -f "${WC_TEST_COMPOSE_PROJECT}_sql" > /dev/null 2>&1 || true
-    docker compose -f "$COMPOSE_FILE" up -d
 fi
 
+# Start the DB service on its own first, so another service in the compose
+# file (Adminer) whose port is busy cannot fail the repair. Then start the
+# rest, but only warn if that fails: the tests need only the DB.
 if [[ "$REPAIR_DB" == "1" || "$REPAIR_TEST_DB" == "1" || "$REPAIR_DB_PORT" == "1" ]]; then
-    docker compose -f "$COMPOSE_FILE" up -d > /dev/null
+    docker compose -f "$COMPOSE_FILE" up -d test_db > /dev/null
+    if ! docker compose -f "$COMPOSE_FILE" up -d > /dev/null 2>&1; then
+        echo "   ⚠️  The DB is up, but another service in tests/docker-compose.yml did not start (is the Adminer port in use?). The tests do not need it."
+    fi
 fi
 
 wait_for_db() {
@@ -300,6 +305,20 @@ resolve_wc_version() {
 }
 
 resolve_wp_tests_tag() {
+    # x.y: test the newest x.y.z release, so WP core and the test library come
+    # from the same release. Without a release yet (a beta branch), use the
+    # x.y branch for both.
+    if [[ $WP_VERSION =~ ^[0-9]+\.[0-9]+$ ]]; then
+        local versions_json="${WP_CORE_DIR%/}.versions.json" newest
+        if download https://api.wordpress.org/core/stable-check/1.0/ "$versions_json" 2> /dev/null; then
+            newest="$(grep -oE "\"${WP_VERSION//./\\.}(\\.[0-9]+)?\"" "$versions_json" | tr -d '"' | sort -t. -k3,3n | tail -1)"
+        fi
+        rm -f "$versions_json"
+        if [ -n "${newest:-}" ]; then
+            echo "ℹ️  Resolved WordPress ${WP_VERSION} to its newest release: ${newest}"
+            WP_VERSION="$newest"
+        fi
+    fi
     if [[ $WP_VERSION =~ ^[0-9]+\.[0-9]+$ ]]; then
         WP_TESTS_TAG="branches/$WP_VERSION"
     elif [[ $WP_VERSION =~ [0-9]+\.[0-9]+\.[0-9]+ ]]; then
@@ -324,6 +343,29 @@ resolve_wp_tests_tag() {
 }
 
 # ---------------------------------------------------------------------------
+# New trees are built in <tree>.partial/tree, marked, and then renamed to
+# <tree>. So an interrupted install never leaves a half-done tree at <tree>,
+# and st_rm_tree only ever has to delete trees that carry the marker.
+# ---------------------------------------------------------------------------
+new_partial_dir() {
+    local partial="${1%/}.partial"
+    # Left over from an interrupted install. It is marked, so st_rm_tree
+    # deletes it; anything else at this path is refused.
+    st_rm_tree "$partial"
+    mkdir -p "$partial"
+    st_mark_tree "$partial"
+    printf '%s\n' "$partial"
+}
+
+move_into_place() {
+    local partial="$1" tree="${2%/}"
+    st_mark_tree "$partial/tree"
+    mkdir -p "$(dirname "$tree")"
+    mv "$partial/tree" "$tree"
+    rm -rf "$partial"
+}
+
+# ---------------------------------------------------------------------------
 # WooCommerce
 # ---------------------------------------------------------------------------
 install_wc() {
@@ -333,14 +375,17 @@ install_wc() {
     echo "------------------------------------------------------------"
 
     st_wait_idle "$WC_CLONE_DIR"
-    st_rm_tree "$WC_CLONE_DIR" "plugins/woocommerce" ".git"
+    st_rm_tree "$WC_CLONE_DIR"
 
     # No fallback to the default branch: a version that cannot be cloned (a
     # typo, a network failure) must fail the run rather than quietly test
     # WooCommerce trunk under the requested version's name. In CI that trunk
     # copy would also be cached under the release tag's key.
+    local partial
+    partial="$(new_partial_dir "$WC_CLONE_DIR")"
     run_quiet "Cloning WooCommerce $WC_VERSION..." \
-        git clone --depth=1 --branch="$WC_VERSION" https://github.com/woocommerce/woocommerce.git "$WC_CLONE_DIR"
+        git clone --depth=1 --branch="$WC_VERSION" https://github.com/woocommerce/woocommerce.git "$partial/tree"
+    move_into_place "$partial" "$WC_CLONE_DIR"
 
     if [ -f "$WC_DEVELOP_DIR/composer.json" ]; then
         run_quiet "Running WC composer install..." \
@@ -363,11 +408,11 @@ install_wp_core() {
     fi
 
     st_wait_idle "$WP_CORE_DIR"
-    st_rm_tree "$WP_CORE_DIR" "wp-includes/version.php"
+    st_rm_tree "$WP_CORE_DIR"
 
     # Temporary files next to the tree, not at a fixed $TMPDIR path: two runs
     # installing different WP versions at the same time must not share them.
-    local zip="${WP_CORE_DIR%/}.download.zip" extract="${WP_CORE_DIR%/}.extract"
+    local zip="${WP_CORE_DIR%/}.download.zip" partial
     if [[ $WP_VERSION == 'nightly' || $WP_VERSION == 'trunk' ]]; then
         download https://wordpress.org/nightly-builds/wordpress-latest.zip "$zip"
     elif [[ "$WP_VERSION" == 'latest' ]]; then
@@ -376,20 +421,27 @@ install_wp_core() {
         download "https://wordpress.org/wordpress-$WP_VERSION.zip" "$zip"
     fi
 
-    rm -rf "$extract"
-    unzip -q "$zip" -d "$extract"
-    mkdir -p "$(dirname "${WP_CORE_DIR%/}")"
-    mv "${extract}/wordpress" "${WP_CORE_DIR%/}"
-    rm -rf "$extract" "$zip"
+    partial="$(new_partial_dir "$WP_CORE_DIR")"
+    unzip -q "$zip" -d "$partial"
+    mv "$partial/wordpress" "$partial/tree"
+    move_into_place "$partial" "$WP_CORE_DIR"
+    rm -f "$zip"
 }
 
 install_wp_test_suite() {
     if [ ! -f "${WP_TESTS_DIR%/}/includes/functions.php" ]; then
         st_wait_idle "$WP_TESTS_DIR"
-        st_rm_tree "$WP_TESTS_DIR" "includes/functions.php" "includes"
-        mkdir -p "$WP_TESTS_DIR"
-        svn co --quiet --ignore-externals "https://develop.svn.wordpress.org/${WP_TESTS_TAG}/tests/phpunit/includes/" "$WP_TESTS_DIR/includes"
-        svn co --quiet --ignore-externals "https://develop.svn.wordpress.org/${WP_TESTS_TAG}/tests/phpunit/data/" "$WP_TESTS_DIR/data"
+        st_rm_tree "$WP_TESTS_DIR"
+        # Check out into the partial folder: an interrupted svn co must not
+        # leave an includes/ at the tree's path that passes the probes.
+        local partial
+        partial="$(new_partial_dir "$WP_TESTS_DIR")"
+        mkdir -p "$partial/tree"
+        svn co --quiet --ignore-externals "https://develop.svn.wordpress.org/${WP_TESTS_TAG}/tests/phpunit/includes/" "$partial/tree/includes"
+        svn co --quiet --ignore-externals "https://develop.svn.wordpress.org/${WP_TESTS_TAG}/tests/phpunit/data/" "$partial/tree/data"
+        download "https://develop.svn.wordpress.org/${WP_TESTS_TAG}/wp-tests-config-sample.php" \
+            "$partial/tree/wp-tests-config-sample.php"
+        move_into_place "$partial" "$WP_TESTS_DIR"
     fi
 
     # The untouched sample is the template for every plugin's own
@@ -414,8 +466,8 @@ install_wp() {
     if [[ "$FORCE" == "1" ]]; then
         st_wait_idle "$WP_CORE_DIR"
         st_wait_idle "$WP_TESTS_DIR"
-        st_rm_tree "$WP_CORE_DIR" "wp-includes/version.php"
-        st_rm_tree "$WP_TESTS_DIR" "includes/functions.php" "includes"
+        st_rm_tree "$WP_CORE_DIR"
+        st_rm_tree "$WP_TESTS_DIR"
     fi
 
     install_wp_core
