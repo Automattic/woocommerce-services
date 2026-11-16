@@ -178,7 +178,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	/**
 	 * Build the placed fixture order described in the class docblock.
 	 *
-	 * @param array $overrides Optional: 'a_tax' (hand-typed tax on A), 'rate_percent'.
+	 * @param array $overrides Optional: 'a_tax' (hand-typed tax on A), 'rate_percent', 'status'
+	 *                         (default on-hold with no payment date, so its tax is not locked).
 	 * @return array{order: WC_Order, a: int, b: int, shipping: int}
 	 */
 	private function create_placed_order( array $overrides = array() ) {
@@ -235,7 +236,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order->set_cart_tax( $cart_tax );
 		$order->set_shipping_tax( '0.3' );
 		$order->set_total( 30 + 5 + $cart_tax + 0.3 );
-		$order->set_status( 'processing' );
+		$order->set_status( $overrides['status'] ?? 'on-hold' );
 		$order->save();
 		$this->forget_created_in_request();
 
@@ -523,7 +524,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order->add_item( $tax_line );
 
 		$order->set_total( '18' );
-		$order->set_status( 'processing' );
+		$order->set_status( 'on-hold' );
 		$order->save();
 		$this->forget_created_in_request();
 
@@ -888,17 +889,46 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Whether one of the order's tax notes says the tax was kept after a class or status change.
+	 * Whether one of the order's tax notes is the note for an edit of a locked order.
 	 *
 	 * @param WC_Order $order Order.
 	 * @return bool
 	 */
 	private function has_kept_tax_note( WC_Order $order ) {
-		return (bool) preg_grep( '/can no longer be edited/', $this->tax_notes( $order ) );
+		return (bool) preg_grep( '/This order changed after its tax was charged\./', $this->tax_notes( $order ) );
 	}
 
 	/**
-	 * The placed order, moved back to a status that can still be edited.
+	 * Pay an order, as a gateway does: it gets a payment date, so its tax is locked.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return WC_Order The order, read again.
+	 */
+	private function pay_order( WC_Order $order ) {
+		$order = wc_get_order( $order->get_id() );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+		$this->assertNotNull( $order->get_date_paid(), 'the paid order has a payment date' );
+
+		return wc_get_order( $order->get_id() );
+	}
+
+	/**
+	 * The placed order, paid: it has a payment date, so its tax is locked.
+	 *
+	 * @param array $overrides See create_placed_order().
+	 * @return array See create_placed_order().
+	 */
+	private function create_paid_order( array $overrides = array() ) {
+		$fixture = $this->create_placed_order( array_merge( $overrides, array( 'status' => 'processing' ) ) );
+		$this->assertNotNull( $fixture['order']->get_date_paid(), 'the paid fixture has a payment date' );
+
+		return $fixture;
+	}
+
+	/**
+	 * The placed order, moved to on hold with no payment date: it can be edited and its tax is not locked.
 	 *
 	 * @return array See create_placed_order().
 	 */
@@ -1070,10 +1100,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, re-sending product_id for a line whose product changed tax class keeps the line's class and tax.
+	 * @testdox On a paid order, re-sending product_id for a line whose product changed tax class keeps the line's class and tax.
 	 */
 	public function test_resent_product_id_keeps_class_and_tax_on_locked_order() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 		$product = $this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
 
 		$order = $this->rest_update(
@@ -1125,10 +1155,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a line whose saved tax class was deleted keeps its tax on a re-send.
+	 * @testdox On a paid order, a line whose saved tax class was deleted keeps its tax on a re-send.
 	 */
 	public function test_resent_product_id_keeps_tax_when_saved_class_was_deleted() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 		WC_Tax::create_tax_class( 'Gift wrap', 'gift-wrap' );
 		$item = $fixture['order']->get_item( $fixture['a'] );
 		$item->set_tax_class( 'gift-wrap' );
@@ -1214,10 +1244,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, sending only the parent's product_id for a variation line keeps the variation's class and the line's tax.
+	 * @testdox On a paid order, sending only the parent's product_id for a variation line keeps the variation's class and the line's tax.
 	 */
 	public function test_parent_product_id_keeps_variation_class_and_tax_on_locked_order() {
-		$fixture  = $this->create_placed_order();
+		$fixture  = $this->create_paid_order();
 		$products = $this->place_line_on_variation( $fixture['order'], $fixture['a'], 'reduced-rate' );
 
 		$order = $this->rest_update(
@@ -1269,10 +1299,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a class another callback sets on the line is kept and moves the tax.
+	 * @testdox On a paid order, a class another callback sets on the line is kept and moves the tax.
 	 */
 	public function test_class_set_by_other_callback_stays_on_locked_order() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 
 		add_action(
 			'woocommerce_rest_set_order_item',
@@ -1302,10 +1332,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a class another callback sets on a variation line is kept when it's neither the variation's nor the parent's.
+	 * @testdox On a paid order, a class another callback sets on a variation line is kept when it's neither the variation's nor the parent's.
 	 */
 	public function test_class_set_by_other_callback_stays_on_locked_variation_line() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 		$this->place_line_on_variation( $fixture['order'], $fixture['a'], 'reduced-rate' );
 
 		add_action(
@@ -1385,10 +1415,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, code that gives a line its product's new tax class keeps the order's tax.
+	 * @testdox On a paid order, code that gives a line its product's new tax class keeps the order's tax.
 	 */
 	public function test_programmatic_product_reset_keeps_tax_on_locked_order() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 		$product = $this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
 		$order   = wc_get_order( $fixture['order']->get_id() );
 
@@ -1408,10 +1438,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	// -------------------------------------------------------------------------
 
 	/**
-	 * @testdox On an order that can't be edited, a tax class change is saved and the tax charged stays, with a note.
+	 * @testdox On a paid order, a tax class change is saved and the tax charged stays, with a note.
 	 */
 	public function test_item_tax_class_change_keeps_tax_on_locked_order() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 
 		$order = $this->rest_update(
 			$fixture['order']->get_id(),
@@ -1435,10 +1465,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a class sent for a line whose product has it keeps the tax too.
+	 * @testdox On a paid order, a class sent for a line whose product has it keeps the tax too.
 	 */
 	public function test_tax_class_sent_for_line_keeps_tax_on_locked_order_when_product_has_it() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 		$this->move_product_to_class( $fixture['order'], $fixture['a'], 'reduced-rate' );
 
 		$order = $this->rest_update(
@@ -1460,15 +1490,16 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a fee made not taxable is saved and keeps its tax, with a note.
+	 * @testdox On a paid order, a fee made not taxable is saved and keeps its tax, with a note.
 	 */
 	public function test_fee_made_not_taxable_keeps_tax_on_locked_order() {
 		$fixture = $this->create_placed_order();
 		$added   = $this->add_fee( $fixture['order']->get_id(), 'taxable' );
 		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $added['order'], $added['fee'] ), 0.001, 'the fee starts taxed' );
+		$paid = $this->pay_order( $added['order'] );
 
 		$order = $this->rest_update(
-			$added['order']->get_id(),
+			$paid->get_id(),
 			array(
 				'fee_lines' => array(
 					array(
@@ -1487,14 +1518,15 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a fee made taxable is saved and stays untaxed, with a note.
+	 * @testdox On a paid order, a fee made taxable is saved and stays untaxed, with a note.
 	 */
 	public function test_fee_made_taxable_stays_untaxed_on_locked_order() {
 		$fixture = $this->create_placed_order();
 		$added   = $this->add_fee( $fixture['order']->get_id(), 'none' );
+		$paid    = $this->pay_order( $added['order'] );
 
 		$order = $this->rest_update(
-			$added['order']->get_id(),
+			$paid->get_id(),
 			array(
 				'fee_lines' => array(
 					array(
@@ -1514,14 +1546,15 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a fee made not taxable in the same edit as a new amount is taxed on that amount at the rate it was charged.
+	 * @testdox On a paid order, a fee made not taxable in the same edit as a new amount keeps the tax it was charged.
 	 */
-	public function test_fee_status_and_amount_change_uses_charged_rate_on_locked_order() {
+	public function test_fee_status_and_amount_change_keeps_charged_tax_on_locked_order() {
 		$fixture = $this->create_placed_order();
 		$added   = $this->add_fee( $fixture['order']->get_id(), 'taxable' );
+		$paid    = $this->pay_order( $added['order'] );
 
 		$order = $this->rest_update(
-			$added['order']->get_id(),
+			$paid->get_id(),
 			array(
 				'fee_lines' => array(
 					array(
@@ -1534,17 +1567,22 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		);
 
 		$this->assertSame( 'none', $order->get_item( $added['fee'] )->get_tax_status() );
-		// 6% of $12 = $0.72; 30 + 12 + 5 + 2.52 + 0.30.
-		$this->assertEqualsWithDelta( 0.72, $this->item_tax( $order, $added['fee'] ), 0.001 );
-		$this->assert_order_tax( $order, 2.52, 0.30, 49.82 );
-		$this->assertTrue( $this->has_kept_tax_note( $order ) );
+		// The $0.60 charged on the $10 fee stays; 30 + 12 + 5 + 2.40 + 0.30.
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $added['fee'] ), 0.001 );
+		$this->assert_order_tax( $order, 2.40, 0.30, 49.70 );
+		// Adding the fee before payment wrote its own note; this edit writes one more.
+		$notes = array_values( preg_grep( '/after its tax was charged/', $this->tax_notes( $order ) ) );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'This order changed after its tax was charged.', $notes[0] );
+		$this->assertStringContainsString( 'Service changed from taxable to not taxable.', $notes[0] );
+		$this->assertStringContainsString( 'The tax stays at', $notes[0] );
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a new amount and class on one line use the rate it was charged, in a single note.
+	 * @testdox On a paid order, a new amount and class on one line keep the tax it was charged, in a single note.
 	 */
-	public function test_item_class_and_amount_change_uses_charged_rate_in_one_note_on_locked_order() {
-		$fixture = $this->create_placed_order();
+	public function test_item_class_and_amount_change_keeps_charged_tax_in_one_note_on_locked_order() {
+		$fixture = $this->create_paid_order();
 
 		$order = $this->rest_update(
 			$fixture['order']->get_id(),
@@ -1562,20 +1600,20 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		);
 
 		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
-		// 6% of $20 = $1.20; 40 + 5 + 2.40 + 0.30.
-		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['a'] ), 0.001 );
-		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+		// A keeps the $0.60 it was charged on $10; 40 + 5 + 1.80 + 0.30.
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 47.10 );
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'Tax updated', $notes[0] );
-		$this->assertStringContainsString( 'can no longer be edited', $notes[0] );
-		// The tax did change with the amount, so the note can't also say it didn't.
-		$this->assertStringContainsString( 'the change is saved but not used for tax', $notes[0] );
-		$this->assertStringNotContainsString( 'was not changed', $notes[0] );
+		$this->assertStringContainsString( 'quantity changed from 1 to 2.', $notes[0] );
+		$this->assertStringContainsString( 'tax class changed from Standard to Reduced rate.', $notes[0] );
+		// The order has no Reduced rate, so the tax as it is now can't be given.
+		$this->assertStringContainsString( 'The tax for the order as it is now was not calculated, because the order has no tax rate for', $notes[0] );
+		$this->assertStringNotContainsString( 'Tax updated', $notes[0] );
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a line switched to another product in another tax class is taxed for that class, as a removed and an added line would be.
+	 * @testdox On a paid order, a line switched to another product in another tax class is taxed for that class, as a removed and an added line would be.
 	 */
 	public function test_line_switched_to_product_in_other_class_moves_tax_on_locked_order() {
 		$fixture = $this->create_placed_order();
@@ -1601,7 +1639,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a line switched to another variation in another tax class is taxed for that class.
+	 * @testdox On a paid order, a line switched to another variation in another tax class is taxed for that class.
 	 */
 	public function test_line_switched_to_other_variation_in_other_class_moves_tax_on_locked_order() {
 		$fixture  = $this->create_placed_order();
@@ -1631,10 +1669,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a tax class changed on the item in code keeps the tax, with a note.
+	 * @testdox On a paid order, a tax class changed on the item in code keeps the tax, with a note.
 	 */
 	public function test_programmatic_tax_class_change_keeps_tax_on_locked_order() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 		$order   = wc_get_order( $fixture['order']->get_id() );
 
 		$order->get_item( $fixture['a'], false )->set_tax_class( 'reduced-rate' );
@@ -1648,10 +1686,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, items moved out of a tax class still leave their rate to a new item in that class.
+	 * @testdox On a paid order, items moved out of a tax class keep their tax, and a new item in that class gets none.
 	 */
-	public function test_items_moved_out_of_class_leave_their_rate_on_locked_order() {
-		$fixture = $this->create_placed_order();
+	public function test_items_moved_out_of_class_keep_their_tax_on_locked_order() {
+		$fixture = $this->create_paid_order();
 
 		$order = $this->rest_update(
 			$fixture['order']->get_id(),
@@ -1674,18 +1712,19 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		);
 
 		$c_id = $this->other_line_item( $order, array( $fixture['a'], $fixture['b'] ) );
-		// A and B keep their tax; C 6% of $30. 10 + 20 + 30 + 5 + 3.60 + 0.30.
+		// A and B keep their tax; C, added after the sale, gets none. 10 + 20 + 30 + 5 + 1.80 + 0.30.
 		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
 		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['b'] ), 0.001 );
-		$this->assertEqualsWithDelta( 1.80, $this->item_tax( $order, $c_id ), 0.001 );
-		$this->assert_order_tax( $order, 3.60, 0.30, 68.90 );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $c_id ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 67.10 );
+		$this->assertTrue( $this->has_kept_tax_note( $order ) );
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, a line moved to a class gives a new item in that class no rate in the same edit.
+	 * @testdox On a paid order, a line moved to a class keeps its tax, and a new item in that class gets none.
 	 */
 	public function test_item_moved_to_class_gives_new_item_no_rate_on_locked_order() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 
 		$order = $this->rest_update(
 			$fixture['order']->get_id(),
@@ -1704,19 +1743,19 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		);
 
 		$c_id = $this->other_line_item( $order, array( $fixture['a'], $fixture['b'] ) );
-		// A keeps its Standard tax; C has no Reduced rate. 10 + 20 + 30 + 5 + 1.80 + 0.30.
+		// A keeps its Standard tax; C, added after the sale, gets none. 10 + 20 + 30 + 5 + 1.80 + 0.30.
 		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
 		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $c_id ), 0.001 );
 		$this->assert_order_tax( $order, 1.80, 0.30, 67.10 );
-		$this->assertTrue( $this->has_untaxed_note( $order ) );
+		$this->assertFalse( $this->has_untaxed_note( $order ), 'the note for a paid order says it instead' );
 		$this->assertTrue( $this->has_kept_tax_note( $order ) );
 	}
 
 	/**
-	 * @testdox On an order that can't be edited, sending the same tax class again writes no second note.
+	 * @testdox On a paid order, sending the same tax class again writes no second note.
 	 */
 	public function test_same_tax_class_sent_twice_writes_one_note_on_locked_order() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 		$body    = array(
 			'line_items' => array(
 				array(
@@ -1738,7 +1777,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	 * @testdox A class sent in the request that also unlocks the order keeps the tax: the order was locked when the edit was made.
 	 */
 	public function test_class_sent_with_status_that_unlocks_order_keeps_tax() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 
 		$order = $this->rest_update(
 			$fixture['order']->get_id(),
@@ -2057,7 +2096,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		$order->set_cart_tax( 0.80 );
 		$order->set_total( 24.80 );
-		$order->set_status( 'processing' );
+		$order->set_status( 'on-hold' );
 		$order->save();
 		$this->forget_created_in_request();
 
@@ -2886,7 +2925,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	 * @testdox A Recalculate request for an order that can't be edited changes no tax, though the admin hides the button.
 	 */
 	public function test_admin_recalculate_request_keeps_tax_on_locked_order() {
-		$fixture = $this->create_placed_order();
+		$fixture = $this->create_paid_order();
 
 		$order = $this->admin_recalculate_with_class_change( $fixture['order'], $fixture['a'] );
 
@@ -3227,5 +3266,410 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001 );
 		$this->assertNotEmpty( $this->tax_notes( $order ), 'a note explains the untaxed shipping' );
+	}
+
+	// -------------------------------------------------------------------------
+	// A paid order keeps the tax it was charged.
+	//
+	// Accounting fixes the tax at the earliest of payment, invoice and shipment.
+	// WooCommerce records the payment date and, with order fulfillments, the date a
+	// shipment was first fulfilled. Expected figures below follow from that rule: the
+	// tax lines and each item's tax stay as charged, the order total moves by the item
+	// amounts only, and "the tax as it is now" is the order's own rate on the new amounts.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * An order note as a merchant reads it: no HTML, entities decoded.
+	 *
+	 * @param string $note Note content.
+	 * @return string
+	 */
+	private static function note_text( $note ) {
+		return html_entity_decode( wp_strip_all_tags( $note ), ENT_QUOTES, 'UTF-8' );
+	}
+
+	/**
+	 * The notes written for edits of a locked order, as text.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return string[]
+	 */
+	private function locked_order_notes( WC_Order $order ) {
+		return array_values( array_map( array( self::class, 'note_text' ), preg_grep( '/after its tax was charged/', $this->tax_notes( $order ) ) ) );
+	}
+
+	/**
+	 * Edit line A of the fixture from 1 to 2 at $20, through the REST API.
+	 *
+	 * @param array $fixture See create_placed_order().
+	 * @return WC_Order
+	 */
+	private function double_line_a( array $fixture ) {
+		return $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * @testdox On a paid order, a quantity change keeps the tax charged, with the note accounting reviewed (the $6.89 example).
+	 */
+	public function test_paid_order_quantity_change_keeps_charged_tax_with_note() {
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+		$order->set_shipping_country( 'US' );
+		$order->set_shipping_state( 'CO' );
+		$order->set_shipping_postcode( '80202' );
+		$order->set_shipping_city( 'Denver' );
+		$product = $this->create_product( '6.50' );
+		$product->set_name( 'T-shirt' );
+		$product->save();
+		$item_id = $order->add_product( $product, 1 );
+		$order->get_item( $item_id, false )->set_taxes(
+			array(
+				'total'    => array( $this->rate_id => '0.39' ),
+				'subtotal' => array( $this->rate_id => '0.39' ),
+			)
+		);
+		$tax_line = new WC_Order_Item_Tax();
+		$tax_line->set_rate_id( $this->rate_id );
+		$tax_line->set_rate_code( 'US-CO-CO TAX-1' );
+		$tax_line->set_label( 'CO Tax' );
+		$tax_line->set_rate_percent( 6.0 );
+		$tax_line->set_tax_total( '0.39' );
+		$order->add_item( $tax_line );
+		$order->set_cart_tax( '0.39' );
+		$order->set_total( 6.89 );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $item_id,
+						'quantity' => 2,
+						'subtotal' => '13.00',
+						'total'    => '13.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.39, $this->item_tax( $order, $item_id ), 0.001 );
+		$this->assert_order_tax( $order, 0.39, 0.0, 13.39 );
+
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$lines = explode( "\n", $notes[0] );
+		$this->assertSame( 'This order changed after its tax was charged.', $lines[0] );
+		$this->assertMatchesRegularExpression( '/^Changed: .+, by .+\.$/', $lines[1], 'when, and by the admin user' );
+		$this->assertSame(
+			array(
+				'Change: T-shirt quantity changed from 1 to 2.',
+				'Items: from $6.50 to $13.00. Order total: from $6.89 to $13.39.',
+				'Tax charged: $0.39 (6% on $6.50). The tax stays at $0.39.',
+				'Tax for the order as it is now: $0.78 (6% on $13.00). Difference: $0.39.',
+				'No payment or refund was made for this change.',
+				'Next step: if the customer must pay more, create a new order for the difference. If the customer must get money back, issue a refund. If you sent the customer an invoice for this order, also issue a corrective document that refers to that invoice.',
+			),
+			array_slice( $lines, 2 )
+		);
+		$this->assertStringNotContainsString( 'already paid', $notes[0] );
+
+		$note = wc_get_order_notes( array( 'order_id' => $order->get_id() ) )[0];
+		$this->assertFalse( $note->customer_note, 'the note is private' );
+	}
+
+	/**
+	 * @testdox On a paid order, removing a line keeps the tax charged, and the note shows the lower tax the order has now.
+	 */
+	public function test_paid_order_removed_line_keeps_charged_tax_with_note() {
+		$fixture = $this->create_paid_order();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['b'],
+						'quantity' => 0,
+					),
+				),
+			)
+		);
+
+		$this->assertFalse( $order->get_item( $fixture['b'] ), 'B is removed' );
+		// The $2.10 charged stays; 10 + 5 + 1.80 + 0.30.
+		$this->assert_order_tax( $order, 1.80, 0.30, 17.10 );
+
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Change: Dummy Product removed.', $notes[0] );
+		$this->assertStringContainsString( 'Items: from $30.00 to $10.00. Order total: from $37.10 to $17.10.', $notes[0] );
+		// A $10, B $20 and shipping $5, all at 6%.
+		$this->assertStringContainsString( 'Tax charged: $2.10 (6% on $35.00). The tax stays at $2.10.', $notes[0] );
+		// A $10 and shipping $5 at 6%.
+		$this->assertStringContainsString( 'Tax for the order as it is now: $0.90 (6% on $15.00). Difference: -$1.20.', $notes[0] );
+		$this->assertStringContainsString( 'If the customer must get money back, issue a refund.', $notes[0] );
+	}
+
+	/**
+	 * @testdox On a paid order, a line switched to another product keeps its tax, and the note names both products.
+	 */
+	public function test_paid_order_product_switch_keeps_charged_tax() {
+		$fixture = $this->create_paid_order();
+		$hoodie  = $this->create_product( '10', 'reduced-rate' );
+		$hoodie->set_name( 'Hoodie' );
+		$hoodie->save();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'         => $fixture['a'],
+						'product_id' => $hoodie->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$this->assertSame( $hoodie->get_id(), $order->get_item( $fixture['a'] )->get_product_id() );
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001, 'taxed as the line it replaced was' );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Dummy Product changed to Hoodie.', $notes[0] );
+		$this->assertStringContainsString( 'Order total: $37.10 (no change).', $notes[0] );
+	}
+
+	/**
+	 * @testdox A paid order moved back to on hold stays locked: an edit keeps the tax charged.
+	 */
+	public function test_paid_order_moved_back_to_on_hold_keeps_charged_tax() {
+		$fixture = $this->create_paid_order();
+		$fixture['order']->set_status( 'on-hold' );
+		$fixture['order']->save();
+		$this->assertTrue( $fixture['order']->is_editable() );
+
+		$order = $this->double_line_a( $fixture );
+
+		// 40 + 5 + 1.80 + 0.30.
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 47.10 );
+		$this->assertCount( 1, $this->locked_order_notes( $order ) );
+	}
+
+	/**
+	 * @testdox A cancelled order that was never paid is not locked: an edit moves the tax with the order.
+	 */
+	public function test_cancelled_unpaid_order_follows_the_order() {
+		$fixture = $this->create_placed_order( array( 'status' => 'cancelled' ) );
+		$this->assertNull( $fixture['order']->get_date_paid() );
+		$this->assertFalse( $fixture['order']->is_editable() );
+
+		$order = $this->double_line_a( $fixture );
+
+		// 6% of $20 = $1.20; 40 + 5 + 2.40 + 0.30.
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+		$this->assertSame( array(), $this->locked_order_notes( $order ) );
+	}
+
+	/**
+	 * Turn on WooCommerce's order fulfillments and add a fulfillment for line A.
+	 *
+	 * @param WC_Order $order  Order.
+	 * @param int      $a      Line A's id.
+	 * @param string   $status 'fulfilled', or 'unfulfilled' for a draft shipment.
+	 */
+	private function add_fulfillment( WC_Order $order, $a, $status ) {
+		if ( ! class_exists( Automattic\WooCommerce\Admin\Features\Fulfillments\Fulfillment::class ) ) {
+			$this->markTestSkipped( 'Order fulfillments need WooCommerce 10.2 or later.' );
+		}
+
+		update_option( 'woocommerce_feature_fulfillments_enabled', 'yes' );
+		wc_get_container()->get( Automattic\WooCommerce\Admin\Features\Fulfillments\FulfillmentsController::class )->initialize_fulfillments();
+
+		$fulfillment = new Automattic\WooCommerce\Admin\Features\Fulfillments\Fulfillment();
+		$fulfillment->set_props(
+			array(
+				'entity_type' => WC_Order::class,
+				'entity_id'   => (string) $order->get_id(),
+				'status'      => $status,
+			)
+		);
+		$fulfillment->set_items(
+			array(
+				array(
+					'item_id' => $a,
+					'qty'     => 1,
+				),
+			)
+		);
+		$fulfillment->save();
+		$this->forget_created_in_request();
+	}
+
+	/**
+	 * @testdox An unpaid order with a shipment marked fulfilled is locked: an edit keeps the tax charged.
+	 */
+	public function test_unpaid_order_with_fulfilled_shipment_keeps_charged_tax() {
+		$fixture = $this->create_placed_order();
+		try {
+			$this->add_fulfillment( $fixture['order'], $fixture['a'], 'fulfilled' );
+			$this->assertNull( wc_get_order( $fixture['order']->get_id() )->get_date_paid() );
+
+			$order = $this->double_line_a( $fixture );
+		} finally {
+			update_option( 'woocommerce_feature_fulfillments_enabled', 'no' );
+		}
+
+		// A partial shipment locks the whole order: 40 + 5 + 1.80 + 0.30.
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 1.80, 0.30, 47.10 );
+		$this->assertCount( 1, $this->locked_order_notes( $order ) );
+	}
+
+	/**
+	 * @testdox An unpaid order with only a draft shipment is not locked: an edit moves the tax with the order.
+	 */
+	public function test_unpaid_order_with_draft_shipment_follows_the_order() {
+		$fixture = $this->create_placed_order();
+		try {
+			$this->add_fulfillment( $fixture['order'], $fixture['a'], 'unfulfilled' );
+
+			$order = $this->double_line_a( $fixture );
+		} finally {
+			update_option( 'woocommerce_feature_fulfillments_enabled', 'no' );
+		}
+
+		// 6% of $20 = $1.20; 40 + 5 + 2.40 + 0.30.
+		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+		$this->assertSame( array(), $this->locked_order_notes( $order ) );
+	}
+
+	/**
+	 * @testdox With order fulfillments turned off, a fulfilled shipment saved earlier does not lock an unpaid order.
+	 */
+	public function test_fulfilled_shipment_is_ignored_when_fulfillments_are_off() {
+		$fixture = $this->create_placed_order();
+		$this->add_fulfillment( $fixture['order'], $fixture['a'], 'fulfilled' );
+		update_option( 'woocommerce_feature_fulfillments_enabled', 'no' );
+
+		$order = $this->double_line_a( $fixture );
+
+		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+	}
+
+	/**
+	 * @testdox The note on a paid order names the user and the WooCommerce app when the edit comes from the app.
+	 */
+	public function test_paid_order_note_names_user_and_app() {
+		$fixture = $this->create_paid_order();
+		wp_set_current_user(
+			self::factory()->user->create(
+				array(
+					'role'         => 'administrator',
+					'display_name' => 'Jane Smith',
+				)
+			)
+		);
+
+		$user_agent                 = $_SERVER['HTTP_USER_AGENT'] ?? null; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput
+		$_SERVER['HTTP_USER_AGENT'] = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 wc-ios/21.3';
+		try {
+			$order = $this->double_line_a( $fixture );
+		} finally {
+			if ( null === $user_agent ) {
+				unset( $_SERVER['HTTP_USER_AGENT'] );
+			} else {
+				$_SERVER['HTTP_USER_AGENT'] = $user_agent;
+			}
+		}
+
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertMatchesRegularExpression( '/^Changed: .+, by Jane Smith \(WooCommerce app\)\.$/m', $notes[0] );
+	}
+
+	/**
+	 * @testdox On a paid order whose items are in two tax classes, the note gives the tax charged without a single rate.
+	 */
+	public function test_paid_order_note_leaves_out_rate_for_mixed_rates() {
+		$fixture = $this->create_paid_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+		// B was taxed at another rate as well, as a second tax class would be.
+		$second = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '0.0000',
+				'tax_rate_name'     => 'Other',
+				'tax_rate_priority' => 2,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 1,
+				'tax_rate_class'    => '',
+			)
+		);
+		$taxes  = array(
+			'total'    => array(
+				$this->rate_id => '1.2',
+				$second        => '0.4',
+			),
+			'subtotal' => array(
+				$this->rate_id => '1.2',
+				$second        => '0.4',
+			),
+		);
+		$order->get_item( $fixture['b'], false )->set_taxes( $taxes );
+		$order->get_item( $fixture['b'], false )->save();
+		$tax_line = new WC_Order_Item_Tax();
+		$tax_line->set_rate_id( $second );
+		$tax_line->set_label( 'Other' );
+		$tax_line->set_rate_percent( 2.0 );
+		$tax_line->set_tax_total( '0.4' );
+		$order->add_item( $tax_line );
+		$order->set_cart_tax( '2.2' );
+		$order->set_total( 37.50 );
+		$order->save();
+		$this->forget_created_in_request();
+
+		$order = $this->double_line_a( $fixture );
+
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Tax charged: $2.50. The tax stays at $2.50.', $notes[0] );
+	}
+
+	/**
+	 * @testdox On a paid order, saving again with nothing changed writes no note.
+	 */
+	public function test_paid_order_resave_writes_no_note() {
+		$fixture = $this->create_paid_order();
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'customer_note' => 'Leave at the door' ) );
+		$order->calculate_totals( true );
+		$order = wc_get_order( $order->get_id() );
+
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
 	}
 }
