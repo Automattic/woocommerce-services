@@ -421,6 +421,36 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
+	 * Writing back what a read returned is allowed when the stored value holds objects, as
+	 * the cached payment methods of a store with saved cards do.
+	 */
+	public function test_non_owner_identical_write_with_stored_objects_allowed() {
+		update_option(
+			'wc_connect_options',
+			array(
+				'tos_accepted'    => true,
+				'payment_methods' => array(
+					(object) array(
+						'payment_method_id' => 1,
+						'name'              => 'Jane Doe',
+						'card_type'         => 'visa',
+						'card_digits'       => '4242',
+						'expiry'            => '2030-01-31',
+					),
+				),
+			)
+		);
+		wp_set_current_user( $this->shop_manager );
+
+		// What a read of the option sends to the client.
+		$as_read = json_decode( wp_json_encode( get_option( 'wc_connect_options' ) ), true );
+
+		$response = $this->send( array( 'wc_connect_options' => $as_read ) );
+
+		$this->assertSame( 200, $response->get_status() );
+	}
+
+	/**
 	 * The connection owner can change other keys.
 	 */
 	public function test_owner_can_change_other_keys() {
@@ -695,6 +725,8 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 			'upper case'     => array( 'WC_CONNECT_OPTIONS', 'WOOCOMMERCE_SETUP_JETPACK_OPTED_IN' ),
 			'accented'       => array( 'wc_cönnect_options', 'woocommerce_setup_jetpack_öpted_in' ),
 			'zero-width'     => array( "wc_connect\u{200B}_options", "woocommerce_setup\u{200B}_jetpack_opted_in" ),
+			'full-width'     => array( 'ｗｃ_connect_options', 'ｗｏｏｃｏｍｍｅｒｃｅ_setup_jetpack_opted_in' ),
+			'full-width _'   => array( 'wc＿connect＿options', 'woocommerce＿setup＿jetpack＿opted＿in' ),
 		);
 	}
 
@@ -771,6 +803,25 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 		wp_set_current_user( $this->owner );
 
 		$this->assertNull( $this->run_guard( array( 'WC_CONNECT_OPTIONS' => array( 'tos_accepted' => true ) ) ) );
+	}
+
+	/**
+	 * An accented spelling is refused whatever the site language. For German,
+	 * remove_accents() turns ö into oe, while the database collation still reads it as o.
+	 */
+	public function test_accented_option_name_refused_in_any_locale() {
+		add_filter(
+			'locale',
+			function () {
+				return 'de_DE';
+			}
+		);
+		wp_set_current_user( $this->other_admin );
+
+		$refused = $this->run_guard( array( 'wc_cönnect_options' => array( 'tos_accepted' => true ) ) );
+
+		$this->assertWPError( $refused );
+		$this->assertSame( 'wc_connect_tos_owner_only', $refused->get_error_code() );
 	}
 
 	/**
@@ -881,6 +932,40 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
+	 * Another controller's update_options method is left alone: only WooCommerce's options
+	 * controller is matched.
+	 */
+	public function test_other_controller_update_options_untouched() {
+		$controller = new class() {
+			/**
+			 * Echo handler.
+			 *
+			 * @return array
+			 */
+			public function update_options() {
+				return array( 'handled' => true );
+			}
+		};
+		$this->server->register_route(
+			'wcs-test/v1',
+			'/wcs-test/v1/options',
+			array(
+				array(
+					'methods'             => 'PUT',
+					'callback'            => array( $controller, 'update_options' ),
+					'permission_callback' => '__return_true',
+				),
+			)
+		);
+		wp_set_current_user( $this->shop_manager );
+
+		$response = $this->send( array( 'wc_connect_options' => array( 'tos_accepted' => true ) ), 'PUT', '/wcs-test/v1/options' );
+
+		$this->assertSame( 200, $response->get_status() );
+		$this->assertSame( array( 'handled' => true ), $response->get_data() );
+	}
+
+	/**
 	 * The core read handler is left alone when its request carries a JSON body.
 	 */
 	public function test_get_with_json_body_untouched() {
@@ -908,5 +993,25 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 
 		$this->assert_refused( $response );
 		$this->assertFalse( get_option( 'wc_connect_options' ) );
+	}
+
+	/**
+	 * A JSON body that is not an object is left to WooCommerce, which writes nothing for it.
+	 */
+	public function test_non_object_json_body_left_to_woocommerce() {
+		wp_set_current_user( $this->shop_manager );
+
+		$request = new WP_REST_Request( 'PUT', self::ROUTE );
+		$request->set_header( 'content-type', 'application/json' );
+		$request->set_body( '"wc_connect_options"' );
+
+		$result = WC_Connect_Nux::restrict_tos_change_through_core_options(
+			null,
+			$request,
+			self::ROUTE,
+			array( 'callback' => array( new Options(), 'update_options' ) )
+		);
+
+		$this->assertNull( $result );
 	}
 }
