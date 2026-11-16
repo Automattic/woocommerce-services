@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 7.1
 WC requires at least: 11.1
 WC tested up to: 11.3
-Stable tag: 3.7.5
+Stable tag: 3.7.6
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,11 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.7.6 - 2026-xx-xx =
+= 3.7.7 - 2026-xx-xx =
+* Fix   - Stop a down or slow tax service from holding up each checkout step for a minute. Steps now wait 10 seconds, and placing the order still waits up to 60.
+* Add   - wc_services_cart_tax_lookup_timeout filter to change how long cart and checkout steps wait for a tax lookup.
+
+= 3.7.6 - 2026-11-11 =
 * Fix   - Update an order's tax when an edit through the REST API or the WooCommerce app changes only a line's tax class or a fee's tax status, while the order can still be edited. The order kept its old tax. When the app sends a line's product again after the product moved to another tax class, the line now follows the product. Once an order can no longer be edited (any status other than pending payment, on hold or a new draft), the tax already charged stays: re-sending a product leaves the line's class as it was, and a tax class or tax status sent in the request is saved with an order note saying the change is not used for tax. A line switched to another product or variation is taxed for its new tax class, as a newly added line would be. A Recalculate request for such an order no longer changes its tax, including an order that was charged none.
 * Fix   - Stop charging item tax on a product with the "Shipping only" tax status on orders placed through the checkout block. Checkout showed no item tax but the order charged it, so the order total came out higher than the total the customer saw. Shipping tax is unchanged.
 * Fix   - Tax shipping at checkout and on Recalculate from what the tax service answered for that order. Shipping could be charged when the answer was that it is not taxable, or at the wrong rate, when a town's saved rates or your own tax rate for a list of ZIP codes, a ZIP code pattern such as 49* or a whole city said otherwise. For example, an order of only exempt clothing to Brooklyn paid tax on shipping after an earlier taxable order to the same town.
