@@ -23,6 +23,21 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 */
 		protected $wc_connect_loader;
 
+		/**
+		 * Time limit in seconds for the requests an admin waits on when a label screen loads.
+		 * If the server is too slow, the screen carries on with what the store has saved.
+		 *
+		 * @var int
+		 */
+		private const LABEL_SCREEN_REQUEST_TIMEOUT = 10;
+
+		/**
+		 * Whether the heartbeat in is_alive_cached() already failed in this page request.
+		 *
+		 * @var bool
+		 */
+		private $is_alive_failed_in_request = false;
+
 		public function __construct(
 			WC_Connect_Service_Schemas_Validator $validator,
 			WC_Connect_Loader $wc_connect_loader
@@ -202,7 +217,11 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 		 * @return mixed|WP_Error
 		 */
 		public function get_payment_methods() {
-			return $this->request( 'POST', '/payment/methods' );
+			return $this->with_label_screen_timeout(
+				function () {
+					return $this->request( 'POST', '/payment/methods' );
+				}
+			);
 		}
 
 		/**
@@ -400,12 +419,44 @@ if ( ! class_exists( 'WC_Connect_API_Client' ) ) {
 				return true;
 			}
 
-			$is_alive_request = $this->is_alive();
+			if ( $this->is_alive_failed_in_request ) {
+				return false;
+			}
+
+			$is_alive_request = $this->with_label_screen_timeout( array( $this, 'is_alive' ) );
 			$new_is_alive     = ! is_wp_error( $is_alive_request );
 			if ( $new_is_alive ) {
 				set_transient( 'connect_server_is_alive_transient', true, MINUTE_IN_SECONDS );
+			} else {
+				$this->is_alive_failed_in_request = true;
 			}
 			return $new_is_alive;
+		}
+
+		/**
+		 * Run a request with the label screen's time limit.
+		 *
+		 * The callback runs first on the filter, so a store's own callback can still set the limit.
+		 *
+		 * @param callable $send_request Sends the request.
+		 * @return mixed What $send_request returned.
+		 */
+		private function with_label_screen_timeout( $send_request ) {
+			$limit_timeout = static function ( $args ) {
+				if ( is_array( $args ) ) {
+					$args['timeout'] = self::LABEL_SCREEN_REQUEST_TIMEOUT;
+				}
+
+				return $args;
+			};
+
+			add_filter( 'wc_connect_request_args', $limit_timeout, PHP_INT_MIN );
+
+			try {
+				return $send_request();
+			} finally {
+				remove_filter( 'wc_connect_request_args', $limit_timeout, PHP_INT_MIN );
+			}
 		}
 
 		/**
