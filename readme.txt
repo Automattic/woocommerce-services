@@ -73,6 +73,7 @@ This plugin relies on the following external services:
 = 3.7.7 - 2026-xx-xx =
 * Fix   - Stop a down or slow tax service from holding up each checkout step for a minute. Steps now wait 10 seconds, and placing the order still waits up to 60.
 * Fix   - Stop an order from taking minutes to open when the tax service is slow or down, on stores that still load shipping labels. Opening an order now asks for saved credit cards once with a 10 second limit, and not at all if the order has no shipping label box.
+* Fix   - Stop adding $0 tax lines to orders and subscriptions for taxes that did not apply, such as "City Tax 0%" on a Michigan order or "State Tax 4%" with $0 on clothing under $110 in New York. Tax records showed a rate that was not charged. Tax amounts do not change, and orders placed before this update keep their tax lines.
 * Add   - wc_services_cart_tax_lookup_timeout filter to change how long cart and checkout steps wait for a tax lookup.
 
 = 3.7.6 - 2026-11-11 =
