@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 7.1
 WC requires at least: 11.1
 WC tested up to: 11.3
-Stable tag: 3.7.6
+Stable tag: 3.7.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,7 +70,7 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.7.7 - 2026-xx-xx =
+= 3.7.7 - 2026-11-17 =
 * Add   - wc_services_cart_tax_lookup_timeout filter to change how long cart and checkout steps wait for a tax lookup.
 * Fix   - Stop a down or slow tax service from holding up each checkout step for a minute. Steps now wait 10 seconds, and placing the order still waits up to 60.
 * Fix   - Stop an order from taking minutes to open when the tax service is slow or down, on stores that still load shipping labels. Opening an order now asks for saved credit cards once with a 10 second limit, and not at all if the order has no shipping label box.
