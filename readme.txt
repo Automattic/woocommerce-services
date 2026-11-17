@@ -7,7 +7,7 @@ Requires Plugins: woocommerce
 Tested up to: 7.1
 WC requires at least: 11.1
 WC tested up to: 11.3
-Stable tag: 3.7.6
+Stable tag: 3.7.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -70,12 +70,14 @@ This plugin relies on the following external services:
 
 == Changelog ==
 
-= 3.7.7 - 2026-xx-xx =
+= 3.7.8 - 2026-xx-xx =
+* Fix   - Accept the WooCommerce Tax Terms of Service from the WooCommerce setup opt-in only on a request by a user who can manage WooCommerce and is the Jetpack connection owner, or by any such user in offline mode. Any request accepted them before, including a logged-out visit, cron or WP-CLI. The opt-in is now kept until such a request; WP-CLI without --user and cron never consume it.
+
+= 3.7.7 - 2026-11-17 =
 * Add   - wc_services_cart_tax_lookup_timeout filter to change how long cart and checkout steps wait for a tax lookup.
 * Fix   - Stop a down or slow tax service from holding up each checkout step for a minute. Steps now wait 10 seconds, and placing the order still waits up to 60.
 * Fix   - Stop an order from taking minutes to open when the tax service is slow or down, on stores that still load shipping labels. Opening an order now asks for saved credit cards once with a 10 second limit, and not at all if the order has no shipping label box.
-* Fix   - Stop shop managers and administrators who are not the Jetpack connection owner from changing the WooCommerce Tax settings stored in wc_connect_options, including the Terms of Service acceptance, through the WooCommerce options REST route, and on a connected store from setting the setup opt-in there. On a connected store they could accept the Terms of Service through that route.
-* Fix   - Accept the WooCommerce Tax Terms of Service from the WooCommerce setup opt-in only on a request by a user who can manage WooCommerce and is the Jetpack connection owner, or by any such user in offline mode. Any request accepted them before, including a logged-out visit, cron or WP-CLI. The opt-in is now kept until such a request; WP-CLI without --user and cron never consume it.
+* Fix   - Security update.
 
 = 3.7.6 - 2026-11-11 =
 * Fix   - Update an order's tax when an edit through the REST API or the WooCommerce app changes only a line's tax class or a fee's tax status, while the order can still be edited. The order kept its old tax. When the app sends a line's product again after the product moved to another tax class, the line now follows the product. Once an order can no longer be edited (any status other than pending payment, on hold or a new draft), the tax already charged stays: re-sending a product leaves the line's class as it was, and a tax class or tax status sent in the request is saved with an order note saying the change is not used for tax. A line switched to another product or variation is taxed for its new tax class, as a newly added line would be. A Recalculate request for such an order no longer changes its tax, including an order that was charged none.

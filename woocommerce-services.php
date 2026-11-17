@@ -10,7 +10,7 @@
  * Domain Path: /i18n/languages/
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Version: 3.7.6
+ * Version: 3.7.7
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 7.0
@@ -815,7 +815,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		 * sets the logged-in user before init, and WP-CLI applies --user on init at priority 0,
 		 * ahead of WooCommerce.
 		 *
-		 * @since 3.7.7
+		 * @since 3.7.8
 		 *
 		 * @return bool
 		 */
