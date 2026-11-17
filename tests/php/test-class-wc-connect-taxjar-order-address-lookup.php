@@ -70,6 +70,14 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	private $state_threshold = false;
 
 	/**
+	 * When true the fake TaxJar taxes nothing: every line at 0%, and shipping not taxed,
+	 * as for an order of clothing under the threshold in New York.
+	 *
+	 * @var bool
+	 */
+	private $taxes_nothing = false;
+
+	/**
 	 * Rate id the fixture order was taxed with.
 	 *
 	 * @var int
@@ -114,6 +122,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->taxjar_down      = false;
 		$this->zip_not_in_state = false;
 		$this->state_threshold  = false;
+		$this->taxes_nothing    = false;
 
 		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
 		$api_client->method( 'proxy_request' )->willReturnCallback( array( $this, 'fake_taxjar' ) );
@@ -194,16 +203,27 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$line_items = array();
 		foreach ( $body['line_items'] ?? array() as $line_item ) {
 			$line_rates = $rates;
-			if ( '99999' === (string) $line_item['product_tax_code'] ) {
+			if ( $this->taxes_nothing || '99999' === (string) $line_item['product_tax_code'] ) {
 				$line_rates = array_map( '__return_zero', $rates );
 			} elseif ( $this->state_threshold && (float) $line_item['unit_price'] >= 20 ) {
 				$line_rates['state_tax_rate'] = 0;
 			}
+			// As TaxJar answers: nothing taxable when no rate applies, and a $0 line at the
+			// full rate with nothing taxable.
+			$amount       = (float) $line_item['unit_price'] * (float) $line_item['quantity'] - (float) ( $line_item['discount'] ?? 0 );
 			$line_items[] = array_merge(
 				array( 'id' => $line_item['id'] ),
 				$line_rates,
-				array( 'combined_tax_rate' => array_sum( $line_rates ) )
+				array(
+					'combined_tax_rate' => array_sum( $line_rates ),
+					'taxable_amount'    => array_sum( $line_rates ) > 0 ? $amount : 0.0,
+				)
 			);
+		}
+
+		$breakdown = array( 'line_items' => $line_items );
+		if ( ! $this->taxes_nothing ) {
+			$breakdown['shipping'] = array_merge( $rates, array( 'combined_tax_rate' => $combined ) );
 		}
 
 		return array(
@@ -213,17 +233,14 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 					'tax' => array(
 						'rate'            => $combined,
 						'has_nexus'       => true,
-						'freight_taxable' => true,
+						'freight_taxable' => ! $this->taxes_nothing,
 						'jurisdictions'   => array(
 							'country' => 'US',
 							'state'   => 'CO',
 							'county'  => 'DENVER',
 							'city'    => 'DENVER',
 						),
-						'breakdown'       => array(
-							'line_items' => $line_items,
-							'shipping'   => array_merge( $rates, array( 'combined_tax_rate' => $combined ) ),
-						),
+						'breakdown'       => $breakdown,
 					),
 				)
 			),
@@ -2278,5 +2295,217 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
 		$this->assertStringContainsString( 'state or ZIP code that is not valid', $notes[0] );
 		$this->assertStringNotContainsString( 'tax service', $notes[0] );
+	}
+
+	// -------------------------------------------------------------------------
+	// Items TaxJar does not tax get no tax line
+	// -------------------------------------------------------------------------
+
+	/**
+	 * A REST order TaxJar taxed none of, with A ($10), B ($20) and $10 shipping.
+	 *
+	 * @return array{order: WC_Order, a: int, b: int}
+	 */
+	private function rest_create_untaxed() {
+		$this->taxes_nothing = true;
+		$order               = $this->rest_create();
+		$this->taxes_nothing = false;
+
+		$ids = array_keys( $order->get_items() );
+		$this->forget_created_in_request();
+
+		return array(
+			'order' => $order,
+			'a'     => $ids[0],
+			'b'     => $ids[1],
+		);
+	}
+
+	/**
+	 * @testdox A new REST order TaxJar taxed none of has no tax lines, and records that no tax was charged.
+	 */
+	public function test_rest_created_order_taxjar_taxed_none_of_has_no_tax_lines() {
+		$order = $this->rest_create_untaxed()['order'];
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		$this->assert_order_tax( $order, 0.0, 0.0, 40.00 );
+		$this->assertSame( array(), $order->get_taxes(), 'Tax lines' );
+		$this->assertSame( 'yes', $order->get_meta( '_wc_connect_taxjar_no_tax_charged' ), 'No tax charged' );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox An edit of an order TaxJar taxed none of does not ask TaxJar again, and keeps it at no tax.
+	 */
+	public function test_edit_of_an_order_taxjar_taxed_none_of_is_not_looked_up_again() {
+		$fixture        = $this->rest_create_untaxed();
+		$this->requests = array();
+
+		// A merchant's Colorado row, so WooCommerce's own calculation would add tax.
+		WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '6.0000',
+				'tax_rate_name'     => 'CO Tax',
+				'tax_rate_priority' => 3,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['b'],
+						'subtotal' => '300.00',
+						'total'    => '300.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked again' );
+		$this->assert_order_tax( $order, 0.0, 0.0, 320.00 );
+		$this->assertSame( array(), $order->get_taxes(), 'Tax lines' );
+		$this->assertSame( 'yes', $order->get_meta( '_wc_connect_taxjar_no_tax_charged' ), 'Still no tax charged' );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox Without the record, the same edit asks TaxJar, as for a new order.
+	 */
+	public function test_edit_of_an_untaxed_order_without_the_record_is_looked_up() {
+		$fixture = $this->rest_create_untaxed();
+		$fixture['order']->delete_meta_data( '_wc_connect_taxjar_no_tax_charged' );
+		$fixture['order']->save();
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['b'],
+						'subtotal' => '300.00',
+						'total'    => '300.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		// Boulder 8%: A 0.80, B 24.00, shipping 0.80.
+		$this->assert_order_tax( $order, 24.80, 0.80, 345.60 );
+		$this->assertFalse( $order->meta_exists( '_wc_connect_taxjar_no_tax_charged' ), 'The order has tax' );
+	}
+
+	/**
+	 * @testdox An address change on an order TaxJar taxed none of asks TaxJar again, and the record goes once the order has tax.
+	 */
+	public function test_address_change_of_an_order_taxjar_taxed_none_of_is_looked_up() {
+		$fixture        = $this->rest_create_untaxed();
+		$this->requests = array();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array( 'shipping' => self::address( '80202', 'Denver' ) )
+		);
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked for the new address' );
+		// Denver 6%: A 0.60, B 1.20, shipping 0.60.
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+		$this->assertFalse( $order->meta_exists( '_wc_connect_taxjar_no_tax_charged' ), 'The order has tax' );
+	}
+
+	/**
+	 * @testdox A REST order whose second line TaxJar does not tax at the state rate gives that line no state tax.
+	 */
+	public function test_rest_line_taxjar_does_not_tax_at_a_rate_gets_no_tax_under_it() {
+		$this->state_threshold = true;
+		$order                 = $this->rest_create();
+
+		$ids   = array_keys( $order->get_items() );
+		$rates = array();
+		foreach ( $order->get_taxes() as $tax ) {
+			$rates[ $tax->get_rate_id() ] = $tax->get_label();
+		}
+		$state = array_search( 'State Tax', $rates, true );
+		$this->assertNotFalse( $state, 'The order has a state tax line: ' . wp_json_encode( $rates ) );
+
+		$a_taxes = $order->get_item( $ids[0] )->get_taxes()['total'];
+		$b_taxes = $order->get_item( $ids[1] )->get_taxes()['total'];
+		$this->assertArrayHasKey( $state, $a_taxes, 'A ($10) pays state tax' );
+		$this->assertArrayNotHasKey( $state, $b_taxes, 'B ($20) has no state tax' );
+		$this->assertCount( 1, $b_taxes, 'B pays city tax only' );
+	}
+
+	/**
+	 * @testdox A fee on a REST order TaxJar taxed none of gets no tax, and no note says it was left untaxed.
+	 */
+	public function test_fee_on_a_rest_order_taxjar_taxed_none_of_gets_no_tax() {
+		WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '6.0000',
+				'tax_rate_name'     => 'CO Tax',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+
+		$this->taxes_nothing = true;
+		$order               = $this->rest_create(
+			array(
+				'fee_lines' => array(
+					array(
+						'name'       => 'Gift wrap',
+						'total'      => '5.00',
+						'tax_status' => 'taxable',
+					),
+				),
+			)
+		);
+
+		$this->assert_order_tax( $order, 0.0, 0.0, 45.00 );
+		$this->assertSame( array(), $order->get_taxes(), 'Tax lines' );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox A REST line discounted to $0 gets no tax: TaxJar answers it at the full rate with nothing taxable.
+	 */
+	public function test_rest_line_discounted_to_zero_gets_no_tax() {
+		$order = $this->rest_create(
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $this->create_product( '10' )->get_id(),
+						'quantity'   => 1,
+					),
+					array(
+						'product_id' => $this->create_product( '20' )->get_id(),
+						'quantity'   => 1,
+						'subtotal'   => '20.00',
+						'total'      => '0.00',
+					),
+				),
+			)
+		);
+
+		$ids = array_keys( $order->get_items() );
+		$this->assertCount( 2, $order->get_item( $ids[0] )->get_taxes()['total'], 'The $10 line pays state and city tax' );
+		$this->assertSame( array(), $order->get_item( $ids[1] )->get_taxes()['total'], 'The line discounted to $0' );
+		// Boulder 8%: $10 0.80, shipping 0.80.
+		$this->assert_order_tax( $order, 0.80, 0.80, 21.60 );
 	}
 }
