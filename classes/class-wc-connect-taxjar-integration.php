@@ -259,6 +259,15 @@ class WC_Connect_TaxJar_Integration {
 	private $orders_answered_in_request = array();
 
 	/**
+	 * Order items a cart's TaxJar answer was applied to in this request, by
+	 * spl_object_id(). Checkout taxes a new order's items before the order is saved,
+	 * so they have no order id yet. See order_was_answered().
+	 *
+	 * @var array<int, true>
+	 */
+	private $order_items_answered_in_request = array();
+
+	/**
 	 * Order meta set when TaxJar answered for an order and taxed none of it. Such an order
 	 * has no tax lines, and its next edit keeps it at no tax instead of asking TaxJar
 	 * again as for a new order. See record_no_tax_charged().
@@ -2053,7 +2062,7 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$this->orders_answered_in_request[ (int) $item->get_order_id() ] = true;
+		$this->order_items_answered_in_request[ spl_object_id( $item ) ] = true;
 
 		$matching_rate_ids = $this->response_rate_ids[ $line_item_key ] ?? null;
 		$matching_line     = $this->response_line_items[ $line_item_key ] ?? null;
@@ -6020,7 +6029,12 @@ class WC_Connect_TaxJar_Integration {
 	 * @since 3.7.7
 	 */
 	public function drop_untaxed_order_shipping_taxes( $item ) {
-		if ( ! $item instanceof WC_Order_Item_Shipping || ! isset( $this->orders_answered_in_request[ (int) $item->get_order_id() ] ) ) {
+		if ( ! $item instanceof WC_Order_Item_Shipping ) {
+			return;
+		}
+
+		// A checkout order is taxed by the cart's answer, and may not have an id yet.
+		if ( ! isset( $this->orders_answered_in_request[ (int) $item->get_order_id() ] ) && empty( $this->response_line_items ) ) {
 			return;
 		}
 
@@ -6056,7 +6070,28 @@ class WC_Connect_TaxJar_Integration {
 
 		// Kept for the request: the admin Recalculate totals the order once while saving its
 		// items and again after taxing them.
-		$this->update_no_tax_charged( $order, isset( $this->orders_answered_in_request[ (int) $order->get_id() ] ) );
+		$this->update_no_tax_charged( $order, $this->order_was_answered( $order ) );
+	}
+
+	/**
+	 * Whether a TaxJar answer was applied to an order, or to one of its items, in this
+	 * request.
+	 *
+	 * @param WC_Order $order The order.
+	 * @return bool
+	 */
+	private function order_was_answered( WC_Order $order ) {
+		if ( isset( $this->orders_answered_in_request[ (int) $order->get_id() ] ) ) {
+			return true;
+		}
+
+		foreach ( $order->get_items() as $item ) {
+			if ( isset( $this->order_items_answered_in_request[ spl_object_id( $item ) ] ) ) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	/**

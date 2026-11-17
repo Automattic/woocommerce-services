@@ -609,6 +609,19 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		$this->assertCount( 3, WC()->cart->get_shipping_taxes(), 'Cart shipping taxes: City, Special and State' );
 		$this->assertNotContains( 0.0, array_map( 'floatval', WC()->cart->get_shipping_taxes() ), 'No $0 shipping tax' );
 
+		// Block checkout builds a new order from the cart and totals it before it has an id.
+		$customer = WC()->customer;
+		$block    = new WC_Order();
+		$block->set_shipping_country( $customer->get_shipping_country() );
+		$block->set_shipping_state( $customer->get_shipping_state() );
+		$block->set_shipping_postcode( $customer->get_shipping_postcode() );
+		$block->set_shipping_city( $customer->get_shipping_city() );
+		WC()->checkout->create_order_line_items( $block, WC()->cart );
+		WC()->checkout->create_order_shipping_lines( $block, WC()->session->get( 'chosen_shipping_methods' ), WC()->shipping()->get_packages() );
+		$block->calculate_totals();
+		$this->assertSame( array( 'City Tax', 'Special Tax', 'State Sales Tax' ), self::tax_item_names( $block ), 'Block checkout' );
+		$this->assertEqualsWithDelta( 0.83, (float) $block->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
+
 		$order = $this->classic_checkout_order();
 		$this->assertSame( array( 'City Tax', 'Special Tax', 'State Sales Tax' ), self::tax_item_names( $order ), 'Classic checkout' );
 		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );

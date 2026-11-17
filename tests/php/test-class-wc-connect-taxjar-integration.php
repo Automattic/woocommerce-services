@@ -4689,9 +4689,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * @param WC_Connect_TaxJar_Integration $integration  Integration under test.
 	 * @param bool                          $reload_items Total the order as loaded from the database, as a
 	 *                                                    draft order whose items an earlier request created.
+	 * @param bool                          $new_order    Build a new order that has no id until it is totalled,
+	 *                                                    as the Store API's first checkout request does.
 	 * @return WC_Order
 	 */
-	private function store_api_checkout( $integration, $reload_items = false ) {
+	private function store_api_checkout( $integration, $reload_items = false, $new_order = false ) {
 		$saved_route = $GLOBALS['wp']->query_vars['rest_route'] ?? null;
 
 		$GLOBALS['wp']->query_vars['rest_route'] = '/wc/store/v1/checkout';
@@ -4717,7 +4719,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 				'address_1' => '1 Test St',
 			);
 
-			$order = wc_create_order();
+			$order = $new_order ? new WC_Order() : wc_create_order();
 			$order->set_billing_address( $address );
 			$order->set_shipping_address( $address );
 			WC()->checkout->create_order_line_items( $order, WC()->cart );
@@ -5263,10 +5265,27 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * A cart whose only line TaxJar answered as exempt makes an order with no tax lines.
-	 * The order records that TaxJar charged it no tax.
+	 * Whether the Store API's order already has an id when it is taxed.
+	 *
+	 * @return array
 	 */
-	public function test_order_with_only_an_exempt_line_has_no_tax_lines() {
+	public function provide_checkout_order_ids() {
+		return array(
+			'draft order with an id' => array( false ),
+			'new order, no id yet'   => array( true ),
+		);
+	}
+
+	/**
+	 * A cart whose only line TaxJar answered as exempt makes an order with no tax lines.
+	 * The order records that TaxJar charged it no tax, also when checkout taxes it
+	 * before it has an id.
+	 *
+	 * @dataProvider provide_checkout_order_ids
+	 *
+	 * @param bool $new_order Whether the order has no id until it is totalled.
+	 */
+	public function test_order_with_only_an_exempt_line_has_no_tax_lines( $new_order ) {
 		update_option( 'woocommerce_calc_taxes', 'yes' );
 		$this->require_taxes_controller();
 		$this->reset_tax_rate_tables();
@@ -5277,7 +5296,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$integration = $this->michigan_integration( true, false, 60 );
 		add_action( 'woocommerce_order_after_calculate_totals', array( $integration, 'record_no_tax_charged' ), 20, 2 );
 		try {
-			$order = $this->store_api_checkout( $integration );
+			$order = $this->store_api_checkout( $integration, false, $new_order );
 		} finally {
 			remove_action( 'woocommerce_order_after_calculate_totals', array( $integration, 'record_no_tax_charged' ), 20 );
 		}
