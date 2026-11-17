@@ -199,6 +199,85 @@ class WP_Test_WC_Connect_Shipping_Label extends WC_Unit_Test_Case {
 		return new WC_Connect_Shipping_Label( $api_client, $settings_store, $service_schemas_store, $payment_methods_store );
 	}
 
+	/**
+	 * A shipping label class whose store fails the test if it's asked to fetch payment methods.
+	 *
+	 * @param array $stored_settings The stored account settings.
+	 * @return WC_Connect_Shipping_Label
+	 */
+	private function get_shipping_label_that_must_not_fetch( $stored_settings ) {
+		$settings_store = $this->getMockBuilder( 'WC_Connect_Service_Settings_Store' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'get_account_settings' ) )
+			->getMock();
+		$settings_store->method( 'get_account_settings' )->willReturn( $stored_settings );
+
+		$payment_methods_store = $this->getMockBuilder( 'WC_Connect_Payment_Methods_Store' )
+			->disableOriginalConstructor()
+			->setMethods( array( 'fetch_payment_methods_from_connect_server' ) )
+			->getMock();
+		$payment_methods_store->expects( $this->never() )->method( 'fetch_payment_methods_from_connect_server' );
+
+		return $this->get_shipping_label( false, $settings_store, false, $payment_methods_store );
+	}
+
+	/**
+	 * @testdox is_shipping_label_enabled() returns the stored setting without fetching payment methods.
+	 * @dataProvider stored_enabled_settings
+	 *
+	 * @param array $stored_settings The stored account settings.
+	 * @param bool  $expected        The expected result.
+	 */
+	public function test_is_shipping_label_enabled_reads_stored_setting( $stored_settings, $expected ) {
+		$shipping_label = $this->get_shipping_label_that_must_not_fetch( $stored_settings );
+
+		$this->assertSame( $expected, $shipping_label->is_shipping_label_enabled() );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function stored_enabled_settings() {
+		return array(
+			'enabled'          => array( array( 'enabled' => true ), true ),
+			'disabled'         => array( array( 'enabled' => false ), false ),
+			'missing'          => array( array(), true ),
+			'not a true/false' => array( array( 'enabled' => '0' ), true ),
+		);
+	}
+
+	/**
+	 * @testdox Deciding whether to show the label box fetches no payment methods, whichever way it decides.
+	 * @dataProvider meta_box_decisions
+	 *
+	 * @param array $stored_settings The stored account settings.
+	 * @param bool  $virtual         Whether the order's product is virtual.
+	 * @param bool  $expected        Whether the box should show.
+	 */
+	public function test_deciding_on_the_meta_box_fetches_no_payment_methods( $stored_settings, $virtual, $expected ) {
+		wp_set_current_user( $this->factory->user->create( array( 'role' => 'administrator' ) ) );
+		update_option( 'woocommerce_default_country', 'US:CA' );
+		update_option( 'woocommerce_currency', 'USD' );
+
+		$order = WC_Helper_Order::create_order( 1, $this->create_simple_product( $virtual ) );
+
+		$shipping_label = $this->get_shipping_label_that_must_not_fetch( $stored_settings );
+
+		$this->assertSame( $expected, $shipping_label->should_show_meta_box( $order ) );
+	}
+
+	/**
+	 * @return array
+	 */
+	public function meta_box_decisions() {
+		return array(
+			'labels on, shippable product'     => array( array( 'enabled' => true ), false, true ),
+			'labels on, no shippable product'  => array( array( 'enabled' => true ), true, false ),
+			'labels off, shippable product'    => array( array( 'enabled' => false ), false, false ),
+			'labels off, no shippable product' => array( array( 'enabled' => false ), true, false ),
+		);
+	}
+
 	private function create_mock_order() {
 		$mock_order = $this->getMockBuilder( 'WC_Order' )
 			->disableOriginalConstructor()

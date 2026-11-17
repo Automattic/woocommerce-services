@@ -347,6 +347,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * Hooked to rest_dispatch_request, which runs after the route's permission check, so
 		 * a user without access to the route gets WooCommerce's own error.
 		 *
+		 * @internal
+		 *
 		 * @since 3.7.7
 		 *
 		 * @param mixed           $dispatch_result Result from an earlier filter, or null to dispatch.
@@ -368,14 +370,32 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 
 			$changes_tos = false;
 
-			// Any change to wc_connect_options counts: other keys, such as the one that arms
-			// the after-connection banner, lead to an accepted ToS too.
-			if ( array_key_exists( 'wc_connect_options', $params ) ) {
-				$changes_tos = self::sort_keys_recursively( $params['wc_connect_options'] ) !== self::sort_keys_recursively( get_option( 'wc_connect_options' ) );
-			}
+			foreach ( $params as $name => $value ) {
+				$normalized_name = self::normalize_option_name( $name );
 
-			if ( ! $changes_tos && ! empty( $params['woocommerce_setup_jetpack_opted_in'] ) ) {
-				$changes_tos = WC_Connect_Jetpack::is_connected();
+				// The database collation can fold a non-ASCII name onto either guarded name.
+				if ( null === $normalized_name ) {
+					$changes_tos = true;
+					continue;
+				}
+
+				switch ( $normalized_name ) {
+					case 'wc_connect_options':
+						// Any change counts: other keys, such as the one that arms the
+						// after-connection banner, lead to an accepted ToS too. The stored
+						// value goes through JSON like the request did, so objects in it
+						// (such as cached payment methods) compare as arrays.
+						$stored = json_decode( (string) wp_json_encode( get_option( 'wc_connect_options' ) ), true );
+						if ( self::sort_keys_recursively( $value ) !== self::sort_keys_recursively( $stored ) ) {
+							$changes_tos = true;
+						}
+						break;
+					case 'woocommerce_setup_jetpack_opted_in':
+						if ( ! empty( $value ) && WC_Connect_Jetpack::is_connected() ) {
+							$changes_tos = true;
+						}
+						break;
+				}
 			}
 
 			if ( ! $changes_tos || self::current_user_can_accept_tos() ) {
@@ -406,6 +426,26 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		}
 
 		/**
+		 * Reduce an option name to the form the guard compares, or null when it is not ASCII.
+		 *
+		 * WooCommerce 11.1 lets an administrator write option names it does not allow-list on
+		 * a production site, and the database collation resolves " WC_Connect_Options" or
+		 * "ｗｃ_connect_options" to wc_connect_options. ASCII names are lowercased and
+		 * stripped to a-z, 0-9 and the underscore; non-ASCII names are left to the caller.
+		 *
+		 * @param int|string $name Option name as sent.
+		 * @return string|null
+		 */
+		private static function normalize_option_name( $name ) {
+			$name = (string) $name;
+			if ( preg_match( '/[^\x00-\x7F]/', $name ) ) {
+				return null;
+			}
+
+			return (string) preg_replace( '/[^a-z0-9_]/', '', strtolower( $name ) );
+		}
+
+		/**
 		 * Whether a REST handler is the WooCommerce core options update.
 		 *
 		 * @param array|mixed $handler Route handler used for the request.
@@ -414,7 +454,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		private static function is_core_options_update_handler( $handler ) {
 			$options_class = 'Automattic\WooCommerce\Admin\API\Options';
 
-			return class_exists( $options_class )
+			// No autoload: on a request the handler cannot match, the class need not load.
+			return class_exists( $options_class, false )
 				&& is_array( $handler )
 				&& isset( $handler['callback'] )
 				&& is_array( $handler['callback'] )

@@ -23,6 +23,13 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 		 */
 		protected $logger;
 
+		/**
+		 * Result of the fetch made in this page request, or null if there was none yet.
+		 *
+		 * @var bool|null
+		 */
+		private $fetch_result_in_request = null;
+
 		public function __construct(
 			WC_Connect_Service_Settings_Store $service_settings_store,
 			WC_Connect_API_Client $api_client,
@@ -64,6 +71,23 @@ if ( ! class_exists( 'WC_Connect_Payment_Methods_Store' ) ) {
 
 			$this->potentially_update_selected_payment_method_from_payment_methods( $payment_methods );
 			return true;
+		}
+
+		/**
+		 * Fetch stored payment methods from the server, at most once in a page request.
+		 *
+		 * A single label screen builds its account settings several times. Each page request
+		 * still fetches, so a card added or removed elsewhere shows up on the next page. A failed
+		 * fetch is remembered too, so a server that's down holds up the page only once.
+		 *
+		 * @return bool Were payment methods successfully retrieved?
+		 */
+		public function fetch_payment_methods_once() {
+			if ( null === $this->fetch_result_in_request ) {
+				$this->fetch_result_in_request = (bool) $this->fetch_payment_methods_from_connect_server();
+			}
+
+			return $this->fetch_result_in_request;
 		}
 
 		protected function potentially_update_selected_payment_method_from_payment_methods( $payment_methods ) {
