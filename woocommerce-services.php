@@ -805,15 +805,15 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 		/**
 		 * Whether the WooCommerce setup opt-in may be stored as an accepted ToS on this request.
 		 *
-		 * The opt-in can be set by any shop manager, or before the store has an owner (WooCommerce
-		 * sets it when Jetpack registers the site), so it is only turned into an accepted ToS on a
-		 * request by a user who can manage WooCommerce and may accept the terms: the connection
-		 * owner, or any such user in offline mode. Any other request, including logged-out, cron
-		 * and WP-CLI ones without --user, leaves the opt-in for the next request by such a user.
+		 * Any shop manager can set the opt-in, and WooCommerce sets it when Jetpack registers the
+		 * site, so only a user who can manage WooCommerce and may accept the terms (the connection
+		 * owner, or any such user in offline mode) turns it into an accepted ToS. Every other
+		 * request leaves it for that user.
 		 *
-		 * pre_wc_init() runs on before_woocommerce_init, which WooCommerce fires on init. WordPress
-		 * sets the logged-in user before init, and WP-CLI applies --user on init at priority 0,
-		 * ahead of WooCommerce.
+		 * This runs on before_woocommerce_init, during init. A user logged in with a cookie, and
+		 * WP-CLI's --user, are set by then. A REST request authenticated with an application
+		 * password or a WooCommerce API key, and an XML-RPC request, still run as user 0 here,
+		 * so they leave the opt-in.
 		 *
 		 * @since 3.7.8
 		 *
