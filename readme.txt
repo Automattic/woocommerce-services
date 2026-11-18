@@ -2,9 +2,9 @@
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: tax, vat, gst, woocommerce, payment
 Requires PHP: 7.4
-Requires at least: 7.0
+Requires at least: 7.1
 Requires Plugins: woocommerce
-Tested up to: 7.1
+Tested up to: 7.2
 WC requires at least: 11.1
 WC tested up to: 11.3
 Stable tag: 3.7.7
@@ -69,6 +69,9 @@ This plugin relies on the following external services:
 2. Checking on the health of WooCommerce Tax
 
 == Changelog ==
+
+= 3.7.8 - 2026-xx-xx =
+* Tweak - WordPress 7.2 Compatibility.
 
 = 3.7.7 - 2026-11-17 =
 * Add   - wc_services_cart_tax_lookup_timeout filter to change how long cart and checkout steps wait for a tax lookup.
