@@ -135,6 +135,28 @@ class WP_Test_WC_Connect_Loader_Setup_Opt_In extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Assert the request left the terms unaccepted, the flag stored and the plugin off.
+	 *
+	 * @param WC_Connect_Loader $loader The loader that ran pre_wc_init().
+	 */
+	private function assert_opt_in_waits( $loader ) {
+		$this->assertFalse( $this->tos_accepted(), 'The terms must stay unaccepted.' );
+		$this->assertTrue( $this->opt_in_kept(), 'The opt-in must be kept for a user who may accept.' );
+		$this->assertFalse( $this->plugin_enabled( $loader ), 'The plugin must stay off.' );
+	}
+
+	/**
+	 * Assert the request accepted the terms, deleted the flag and turned the plugin on.
+	 *
+	 * @param WC_Connect_Loader $loader The loader that ran pre_wc_init().
+	 */
+	private function assert_opt_in_accepted( $loader ) {
+		$this->assertTrue( $this->tos_accepted(), 'The terms must be accepted.' );
+		$this->assertFalse( $this->opt_in_kept(), 'The opt-in must be deleted once accepted.' );
+		$this->assertTrue( $this->plugin_enabled( $loader ), 'The plugin must be on for the rest of the request.' );
+	}
+
+	/**
 	 * Requests that must not consume the flag on a connected store.
 	 *
 	 * @return array
@@ -158,9 +180,7 @@ class WP_Test_WC_Connect_Loader_Setup_Opt_In extends WC_Unit_Test_Case {
 	public function test_opt_in_is_kept_for_users_who_may_not_accept( $user ) {
 		$loader = $this->run_pre_wc_init_as( null === $user ? 0 : $this->$user );
 
-		$this->assertFalse( $this->tos_accepted() );
-		$this->assertTrue( $this->opt_in_kept() );
-		$this->assertFalse( $this->plugin_enabled( $loader ) );
+		$this->assert_opt_in_waits( $loader );
 	}
 
 	/**
@@ -169,9 +189,22 @@ class WP_Test_WC_Connect_Loader_Setup_Opt_In extends WC_Unit_Test_Case {
 	public function test_owner_request_accepts_and_deletes_opt_in() {
 		$loader = $this->run_pre_wc_init_as( $this->owner );
 
-		$this->assertTrue( $this->tos_accepted() );
-		$this->assertFalse( $this->opt_in_kept() );
-		$this->assertTrue( $this->plugin_enabled( $loader ) );
+		$this->assert_opt_in_accepted( $loader );
+	}
+
+	/**
+	 * An owner who can no longer manage WooCommerce, such as one moved to the editor role,
+	 * does not accept the terms, so the capability check applies on a connected store too
+	 * and not only in offline mode.
+	 */
+	public function test_owner_without_store_access_keeps_opt_in() {
+		( new WP_User( $this->owner ) )->set_role( 'editor' );
+		$this->assertFalse( user_can( $this->owner, 'manage_woocommerce' ), 'Precondition: an editor cannot manage WooCommerce.' );
+		$this->assertTrue( WC_Connect_Jetpack::get_connection_manager()->is_connection_owner( $this->owner ), 'Precondition: the editor is still the connection owner.' );
+
+		$loader = $this->run_pre_wc_init_as( $this->owner );
+
+		$this->assert_opt_in_waits( $loader );
 	}
 
 	/**
@@ -182,7 +215,7 @@ class WP_Test_WC_Connect_Loader_Setup_Opt_In extends WC_Unit_Test_Case {
 
 		$this->run_pre_wc_init_as( $this->owner );
 
-		$this->assertFalse( $this->tos_accepted() );
+		$this->assertFalse( $this->tos_accepted(), 'Without the opt-in the terms must stay unaccepted.' );
 	}
 
 	/**
@@ -194,9 +227,7 @@ class WP_Test_WC_Connect_Loader_Setup_Opt_In extends WC_Unit_Test_Case {
 
 		$loader = $this->run_pre_wc_init_as( $this->shop_manager );
 
-		$this->assertTrue( $this->tos_accepted() );
-		$this->assertFalse( $this->opt_in_kept() );
-		$this->assertTrue( $this->plugin_enabled( $loader ) );
+		$this->assert_opt_in_accepted( $loader );
 	}
 
 	/**
@@ -214,9 +245,7 @@ class WP_Test_WC_Connect_Loader_Setup_Opt_In extends WC_Unit_Test_Case {
 
 		$loader = $this->run_pre_wc_init_as( null === $user ? 0 : $this->$user );
 
-		$this->assertFalse( $this->tos_accepted() );
-		$this->assertTrue( $this->opt_in_kept() );
-		$this->assertFalse( $this->plugin_enabled( $loader ) );
+		$this->assert_opt_in_waits( $loader );
 	}
 
 	/**
@@ -226,13 +255,11 @@ class WP_Test_WC_Connect_Loader_Setup_Opt_In extends WC_Unit_Test_Case {
 	public function test_site_only_connection_keeps_opt_in() {
 		Jetpack_Options::delete_option( array( 'user_tokens', 'master_user' ) );
 		WCS_Test_Jetpack_Connection::reset_caches();
-		$this->assertTrue( WC_Connect_Jetpack::is_site_only_connection() );
+		$this->assertTrue( WC_Connect_Jetpack::is_site_only_connection(), 'Precondition: the connection must be site-only.' );
 
 		$loader = $this->run_pre_wc_init_as( $this->other_admin );
 
-		$this->assertFalse( $this->tos_accepted() );
-		$this->assertTrue( $this->opt_in_kept() );
-		$this->assertFalse( $this->plugin_enabled( $loader ) );
+		$this->assert_opt_in_waits( $loader );
 	}
 
 	/**
@@ -243,17 +270,14 @@ class WP_Test_WC_Connect_Loader_Setup_Opt_In extends WC_Unit_Test_Case {
 		WCS_Test_Jetpack_Connection::reset();
 		WCS_Test_Jetpack_Connection::set_offline( false );
 
-		$this->run_pre_wc_init_as( $this->other_admin );
+		$loader = $this->run_pre_wc_init_as( $this->other_admin );
 
-		$this->assertFalse( $this->tos_accepted() );
-		$this->assertTrue( $this->opt_in_kept() );
+		$this->assert_opt_in_waits( $loader );
 
 		WCS_Test_Jetpack_Connection::connect( $this->other_admin );
 		$loader = $this->run_pre_wc_init_as( $this->other_admin );
 
-		$this->assertTrue( $this->tos_accepted() );
-		$this->assertFalse( $this->opt_in_kept() );
-		$this->assertTrue( $this->plugin_enabled( $loader ) );
+		$this->assert_opt_in_accepted( $loader );
 	}
 
 	/**
@@ -275,8 +299,6 @@ class WP_Test_WC_Connect_Loader_Setup_Opt_In extends WC_Unit_Test_Case {
 
 		$loader = $this->run_pre_wc_init_as( 0 );
 
-		$this->assertTrue( $this->tos_accepted() );
-		$this->assertFalse( $this->opt_in_kept() );
-		$this->assertTrue( $this->plugin_enabled( $loader ) );
+		$this->assert_opt_in_accepted( $loader );
 	}
 }
