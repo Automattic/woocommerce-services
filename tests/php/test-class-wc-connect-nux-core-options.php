@@ -153,6 +153,16 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 	}
 
 	/**
+	 * Run pre_wc_init() as the given user, as the start of their next request does.
+	 *
+	 * @param int $user_id User ID.
+	 */
+	private function run_next_request_as( $user_id ) {
+		wp_set_current_user( $user_id );
+		( new WC_Connect_Loader() )->pre_wc_init();
+	}
+
+	/**
 	 * Assert a response is the guard's refusal.
 	 *
 	 * @param WP_REST_Response $response Response.
@@ -547,6 +557,50 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 
 		$this->assertSame( 200, $response->get_status() );
 		$this->assertTrue( (bool) get_option( 'woocommerce_setup_jetpack_opted_in' ) );
+	}
+
+	/**
+	 * On a connected store the opt-in a shop manager tries to set is refused, and when
+	 * other code sets it (as WooCommerce does when Jetpack registers the site) their next
+	 * request accepts nothing. The owner's opt-in, as WooCommerce's tax task sends it, is
+	 * accepted on the owner's next request.
+	 */
+	public function test_opt_in_is_accepted_only_for_the_owner() {
+		wp_set_current_user( $this->shop_manager );
+		$this->assert_refused( $this->send( array( 'woocommerce_setup_jetpack_opted_in' => true ) ) );
+
+		update_option( 'woocommerce_setup_jetpack_opted_in', true );
+		$this->run_next_request_as( $this->shop_manager );
+		$this->assertFalse( $this->tos_accepted(), 'A shop manager request must not accept the terms.' );
+		$this->assertTrue( (bool) get_option( 'woocommerce_setup_jetpack_opted_in' ), 'The opt-in must wait for the owner.' );
+
+		delete_option( 'woocommerce_setup_jetpack_opted_in' );
+
+		wp_set_current_user( $this->owner );
+		$this->assertSame( 200, $this->send( array( 'woocommerce_setup_jetpack_opted_in' => true ) )->get_status() );
+
+		$this->run_next_request_as( $this->owner );
+		$this->assertTrue( $this->tos_accepted(), 'The owner request must accept the terms.' );
+		$this->assertFalse( (bool) get_option( 'woocommerce_setup_jetpack_opted_in' ), 'The accepted opt-in must be deleted.' );
+	}
+
+	/**
+	 * An opt-in a shop manager sets before the store connects waits for the owner: no
+	 * request accepts it until the store has an owner, and the owner's first request
+	 * after connecting does.
+	 */
+	public function test_opt_in_set_before_connecting_waits_for_the_owner() {
+		WCS_Test_Jetpack_Connection::reset();
+		WCS_Test_Jetpack_Connection::set_offline( false );
+		wp_set_current_user( $this->shop_manager );
+		$this->assertSame( 200, $this->send( array( 'woocommerce_setup_jetpack_opted_in' => true ) )->get_status() );
+
+		$this->run_next_request_as( $this->owner );
+		$this->assertFalse( $this->tos_accepted(), 'Without a connection nobody may accept the terms.' );
+
+		WCS_Test_Jetpack_Connection::connect( $this->owner );
+		$this->run_next_request_as( $this->owner );
+		$this->assertTrue( $this->tos_accepted(), 'The owner request after connecting must accept the terms.' );
 	}
 
 	/**
