@@ -695,7 +695,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	/**
 	 * The plugin leaves a row's Shipping checkbox as the merchant set it
 	 * (create_or_update_tax_rate()). With shipping unticked on the Round Rock rows,
-	 * shipping is not taxed.
+	 * shipping is not taxed, in the cart and on Recalculate.
 	 */
 	public function test_merchant_unticked_shipping_on_looked_up_rows_is_kept() {
 		$this->ship_to( self::$places['TX']['to'] );
@@ -709,6 +709,29 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->calculate_cart( array( $this->product() ) );
 		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+
+		$order = $this->admin_recalculate( $this->classic_checkout_order(), 'TX' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
+	}
+
+	/**
+	 * Unticking one of the town's own rows keeps only that rate off shipping. With the 1%
+	 * city row unticked, $10 shipping in Round Rock is taxed at the other 7.25%: $0.73.
+	 */
+	public function test_one_own_row_unticked_keeps_only_that_rate_off_shipping() {
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->hook( $this->taxjar( 'TX' ) );
+		$this->calculate_cart( array( $this->product() ) );
+
+		global $wpdb;
+		$wpdb->query( "UPDATE {$wpdb->prefix}woocommerce_tax_rates SET tax_rate_shipping = 0 WHERE tax_rate_priority = 1" ); // phpcs:ignore WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.DirectDatabaseQuery
+		WC_Cache_Helper::invalidate_cache_group( 'taxes' );
+
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 0.73, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
+
+		$order = $this->admin_recalculate( $this->classic_checkout_order(), 'TX' );
+		$this->assertEqualsWithDelta( 0.73, (float) $order->get_shipping_tax(), 0.011, 'Recalculate shipping tax' );
 	}
 
 	/**
@@ -826,23 +849,25 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * A merchant row limited to places, with Shipping ticked.
+	 * A merchant row limited to places, with Shipping ticked unless told otherwise.
 	 *
 	 * @param string $state     State.
 	 * @param string $postcodes Postcodes, `;` separated.
 	 * @param string $cities    Cities, `;` separated.
 	 * @param float  $rate      Percent.
+	 * @param int    $shipping  1 for Shipping ticked, 0 for unticked.
+	 * @param int    $priority  Priority.
 	 * @return int Rate id.
 	 */
-	private function merchant_local_rate( $state, $postcodes, $cities, $rate ) {
+	private function merchant_local_rate( $state, $postcodes, $cities, $rate, $shipping = 1, $priority = 1 ) {
 		$id = (int) WC_Tax::_insert_tax_rate(
 			array(
 				'tax_rate_country'  => 'US',
 				'tax_rate_state'    => $state,
 				'tax_rate_name'     => 'Merchant Local',
-				'tax_rate_priority' => 1,
+				'tax_rate_priority' => $priority,
 				'tax_rate_compound' => 0,
-				'tax_rate_shipping' => 1,
+				'tax_rate_shipping' => $shipping,
 				'tax_rate'          => (string) $rate,
 				'tax_rate_class'    => '',
 			)
@@ -1046,6 +1071,74 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		$order = $this->admin_recalculate( $order, 'TX' );
 		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.011, 'Recalculate shipping tax' );
 		$this->assertNotContains( $merchant, $this->shipping_line_rate_ids( $order ), 'Recalculate' );
+	}
+
+	/**
+	 * Round Rock rows a merchant can limit to a place, the three kinds WOOTAX-396 ranks.
+	 *
+	 * @return array[] [ postcodes, cities ]
+	 */
+	public function round_rock_local_rows() {
+		return array(
+			'ZIP list'     => array( '78664;78665', '' ),
+			'ZIP wildcard' => array( '786*', '' ),
+			'city'         => array( '', 'ROUND ROCK' ),
+		);
+	}
+
+	/**
+	 * A merchant's row covering Round Rock with Shipping unticked keeps shipping untaxed,
+	 * although TaxJar taxes it there. The items keep TaxJar's 8.25%: $100 and $10 shipping
+	 * come to $8.25 tax and $118.25, at checkout and on Recalculate.
+	 *
+	 * @dataProvider round_rock_local_rows
+	 *
+	 * @param string $postcodes Postcodes of the merchant's row.
+	 * @param string $cities    Cities of the merchant's row.
+	 */
+	public function test_merchant_local_row_with_shipping_unticked_keeps_shipping_untaxed( $postcodes, $cities ) {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$merchant = $this->merchant_local_rate( 'TX', $postcodes, $cities, 5, 0 );
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->hook( $this->taxjar( 'TX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 8.25, (float) WC()->cart->get_cart_contents_tax(), 0.011, 'Cart item tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+		$this->assertEqualsWithDelta( 118.25, (float) WC()->cart->get_total( 'edit' ), 0.011, 'Cart total' );
+
+		$order = $this->classic_checkout_order();
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
+		$this->assertSame( array(), $this->shipping_line_rate_ids( $order ), 'Classic checkout shipping line' );
+
+		// Block checkout re-taxes the order it builds from the cart.
+		$order->calculate_totals();
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
+		$this->assertEqualsWithDelta( 118.25, (float) $order->get_total(), 0.011, 'Block checkout total' );
+
+		$order = $this->admin_recalculate( $order, 'TX' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
+		$this->assertEqualsWithDelta( 8.25, (float) $order->get_cart_tax(), 0.011, 'Recalculate item tax' );
+		$this->assertNotContains( $merchant, $this->tax_item_rate_ids( $order ), 'Recalculate' );
+	}
+
+	/**
+	 * A merchant's row at a priority the lookup doesn't write, such as a local tax added on
+	 * top, takes no rate of ours. With its Shipping unticked, shipping still gets TaxJar's
+	 * 8.25%: $0.83 on $10.
+	 */
+	public function test_merchant_local_row_on_top_with_shipping_unticked_keeps_taxjar_shipping_tax() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$this->merchant_local_rate( 'TX', '78664;78665', '', 1, 0, 9 );
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->hook( $this->taxjar( 'TX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 0.83, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
+
+		$order = $this->admin_recalculate( $this->classic_checkout_order(), 'TX' );
+		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.011, 'Recalculate shipping tax' );
 	}
 
 	/**
