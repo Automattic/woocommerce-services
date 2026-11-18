@@ -3672,4 +3672,288 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
 		$this->assertSame( array(), $this->tax_notes( $order ) );
 	}
+
+	// -------------------------------------------------------------------------
+	// Review of the paid-order lock: subscriptions, Update, Add item, untaxed orders.
+
+	/**
+	 * Load an order as a subscription from now on, as WooCommerce Subscriptions does.
+	 *
+	 * @param int $order_id Order id.
+	 */
+	private function load_as_subscription( $order_id ) {
+		require_once __DIR__ . '/class-wc-subscription-test-double.php';
+		require_once __DIR__ . '/wcs-functions-test-double.php';
+		add_filter(
+			'woocommerce_order_class',
+			static function ( $classname, $order_type = null, $id = null ) use ( $order_id ) {
+				return (int) $id === (int) $order_id ? 'WC_Subscription' : $classname;
+			},
+			// After WooCommerce Admin's own filter, which gives its Order override class.
+			PHP_INT_MAX,
+			3
+		);
+		// An order already in WooCommerce's order cache is returned without the filter.
+		if ( class_exists( Automattic\WooCommerce\Caches\OrderCache::class ) ) {
+			wc_get_container()->get( Automattic\WooCommerce\Caches\OrderCache::class )->remove( $order_id );
+		}
+		$this->assertInstanceOf( 'WC_Subscription', wc_get_order( $order_id ) );
+	}
+
+	/**
+	 * Save an order's items as the order screen's Update button does: wc_save_order_items()
+	 * with the form's fields, outside AJAX, with no tax calculation.
+	 *
+	 * @param WC_Order $order Order.
+	 * @param array    $lines Line item and fee fields, keyed by item id: qty, total, tax.
+	 * @return WC_Order The order read back.
+	 */
+	private function admin_update( WC_Order $order, array $lines ) {
+		$items = array();
+		foreach ( $lines as $item_id => $line ) {
+			$items['order_item_id'][]                  = $item_id;
+			$items['order_item_qty'][ $item_id ]       = (string) $line['qty'];
+			$items['order_item_tax_class'][ $item_id ] = '';
+			$items['line_subtotal'][ $item_id ]        = $line['total'];
+			$items['line_total'][ $item_id ]           = $line['total'];
+			$items['line_subtotal_tax'][ $item_id ]    = array( $this->rate_id => $line['tax'] );
+			$items['line_tax'][ $item_id ]             = array( $this->rate_id => $line['tax'] );
+		}
+
+		wc_save_order_items( $order->get_id(), $items );
+
+		return wc_get_order( $order->get_id() );
+	}
+
+	/**
+	 * Press the order screen's Recalculate button: the wp_ajax_woocommerce_calc_line_taxes
+	 * action, with WooCommerce's handler (nonce, HTML, wp_die) swapped for the call it makes.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return WC_Order The order read back.
+	 */
+	private function press_recalculate( WC_Order $order ) {
+		global $wp_filter;
+
+		$post = array(
+			'order_id' => $order->get_id(),
+			'items'    => '',
+			'country'  => 'US',
+			'state'    => 'CO',
+			'postcode' => '80202',
+			'city'     => 'Denver',
+		);
+
+		$saved_hook = $wp_filter['wp_ajax_woocommerce_calc_line_taxes'] ?? null;
+		remove_all_actions( 'wp_ajax_woocommerce_calc_line_taxes' );
+		add_action(
+			'wp_ajax_woocommerce_calc_line_taxes',
+			static function () use ( $post ) {
+				wc_get_container()->get( Automattic\WooCommerce\Internal\Orders\TaxesController::class )->calc_line_taxes( $post );
+			}
+		);
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		try {
+			do_action( 'wp_ajax_woocommerce_calc_line_taxes' );
+		} finally {
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+			remove_all_actions( 'wp_ajax_woocommerce_calc_line_taxes' );
+			if ( null !== $saved_hook ) {
+				$wp_filter['wp_ajax_woocommerce_calc_line_taxes'] = $saved_hook; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restores the hook this helper swapped.
+			}
+		}
+
+		return wc_get_order( $order->get_id() );
+	}
+
+	/**
+	 * A paid order with one $10 line and no tax at all, as an order made in the admin and
+	 * saved as Processing before Recalculate was pressed is.
+	 *
+	 * @return WC_Order
+	 */
+	private function create_paid_untaxed_order() {
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+		$order->add_product( $this->create_product( '10' ), 1 );
+		$order->set_total( 10 );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+		$this->assertNotNull( $order->get_date_paid(), 'the order has a payment date' );
+		$this->assertSame( array(), $order->get_taxes(), 'the order has no tax' );
+
+		// WooCommerce's rate table gives Denver 6%, as a lookup would have left it.
+		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+
+		return wc_get_order( $order->get_id() );
+	}
+
+	/**
+	 * @testdox A subscription with a payment date is not locked: its tax follows a quantity change, so its renewals charge the new tax.
+	 */
+	public function test_paid_subscription_tax_follows_its_edits() {
+		$fixture = $this->create_paid_order();
+		$this->load_as_subscription( $fixture['order']->get_id() );
+
+		// Recalculated in code, as Subscriptions' own screens and routes do. The orders
+		// REST route builds a WC_Order whatever the class filter says.
+		$order = wc_get_order( $fixture['order']->get_id() );
+		$item  = $order->get_item( $fixture['a'] );
+		$item->set_quantity( 2 );
+		$item->set_subtotal( '20' );
+		$item->set_total( '20' );
+		$item->save();
+		$order->calculate_totals( true );
+		$order = wc_get_order( $order->get_id() );
+
+		// As on an unpaid order: A is now $20 at the order's 6%.
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assert_order_tax( $order, 2.40, 0.30, 47.70 );
+		$this->assertFalse( $this->has_kept_tax_note( $order ) );
+	}
+
+	/**
+	 * @testdox On a paid order, Update after a line was removed keeps the tax charged, though the lines left carry less.
+	 */
+	public function test_paid_order_update_after_removed_line_keeps_charged_tax() {
+		$fixture = $this->create_paid_order();
+		$this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['b'],
+						'quantity' => 0,
+					),
+				),
+			)
+		);
+		$this->start_new_request();
+
+		// The form shows A at its $0.60; the lines left carry $0.60 + $0.30 of the $2.10.
+		$order = $this->admin_update(
+			wc_get_order( $fixture['order']->get_id() ),
+			array(
+				$fixture['a'] => array(
+					'qty'   => 1,
+					'total' => '10',
+					'tax'   => '0.6',
+				),
+			)
+		);
+
+		$this->assert_order_tax( $order, 1.80, 0.30, 17.10 );
+		$this->assertCount( 1, $this->locked_order_notes( $order ), 'only the removal has a note: Update changed nothing' );
+	}
+
+	/**
+	 * @testdox On a paid order, Update with a new quantity keeps the tax charged, though the form scaled the line's tax, with a note.
+	 */
+	public function test_paid_order_update_with_new_quantity_keeps_charged_tax() {
+		$fixture = $this->create_paid_order();
+
+		// The order screen doubles A's tax field with its quantity.
+		$order = $this->admin_update(
+			$fixture['order'],
+			array(
+				$fixture['a'] => array(
+					'qty'   => 2,
+					'total' => '20',
+					'tax'   => '1.2',
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		// 20 + 20 + 5 + the $2.10 charged.
+		$this->assert_order_tax( $order, 1.80, 0.30, 47.10 );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Change: Dummy Product quantity changed from 1 to 2.', $notes[0] );
+	}
+
+	/**
+	 * @testdox On a paid order, a line added with the order screen's Add item(s) gets no tax and is in the note of the next Recalculate.
+	 */
+	public function test_paid_order_line_added_on_order_screen_is_noted_at_recalculate() {
+		$fixture = $this->create_paid_order();
+
+		// What the Add item(s) button does: save the line, recalculate nothing.
+		$order  = wc_get_order( $fixture['order']->get_id() );
+		$new_id = $order->add_product( $this->create_product( '50' ), 1, array( 'order' => $order ) );
+		do_action( 'woocommerce_ajax_order_items_added', array( $new_id => $order->get_item( $new_id ) ), $order );
+		$this->start_new_request();
+
+		$order = $this->press_recalculate( wc_get_order( $fixture['order']->get_id() ) );
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $new_id ), 0.001, 'the added line gets no tax' );
+		// 30 + 50 + 5 + the $2.10 charged.
+		$this->assert_order_tax( $order, 1.80, 0.30, 87.10 );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Change: Dummy Product added.', $notes[0] );
+		$this->assertStringContainsString( 'Items: from $30.00 to $80.00.', $notes[0] );
+
+		$this->start_new_request();
+		$order = $this->press_recalculate( $order );
+		$this->assert_order_tax( $order, 1.80, 0.30, 87.10 );
+		$this->assertCount( 1, $this->locked_order_notes( $order ), 'the next Recalculate has nothing to note' );
+	}
+
+	/**
+	 * @testdox A paid order with no tax gets its tax when Recalculate is pressed, with a note.
+	 */
+	public function test_recalculate_adds_tax_to_paid_order_without_tax() {
+		$order = $this->press_recalculate( $this->create_paid_untaxed_order() );
+
+		// The lookup finds TaxJar unreachable, so WooCommerce's 6% row applies, as on an unpaid order.
+		$this->assertEqualsWithDelta( 0.60, (float) $order->get_cart_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 10.60, (float) $order->get_total(), 0.001 );
+		$notes = preg_grep( '/^This order had no tax, and tax was added after the order was charged: \$0\.60\./', array_map( array( self::class, 'note_text' ), $this->tax_notes( $order ) ) );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Next step: if the customer must pay this tax, create a new order for it.', reset( $notes ) );
+
+		// It has tax now, so it is locked as any paid order.
+		$this->start_new_request();
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => current( $order->get_items() )->get_id(),
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+				),
+			)
+		);
+		$this->assertEqualsWithDelta( 0.60, (float) $order->get_cart_tax(), 0.001 );
+		$this->assertTrue( $this->has_kept_tax_note( $order ) );
+	}
+
+	/**
+	 * @testdox A paid order with no tax stays at no tax on any other tax calculation from the order screen.
+	 */
+	public function test_other_admin_calculation_keeps_paid_order_without_tax_untaxed() {
+		$order = $this->create_paid_untaxed_order();
+
+		// As the order screen's Add fee does: calculate_taxes() over AJAX, no Recalculate.
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		try {
+			$order->calculate_taxes();
+			$order->calculate_totals( false );
+		} finally {
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+		}
+
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 10.0, (float) $order->get_total(), 0.001 );
+	}
 }
