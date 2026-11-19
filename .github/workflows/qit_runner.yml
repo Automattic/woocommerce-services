@@ -96,7 +96,7 @@ jobs:
                   mkdir ${{ github.workspace }}/qit-results
 
             - name: Download the zip
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: ${{ inputs.artifact }}
                   path: ${{ github.workspace }}
@@ -280,7 +280,7 @@ jobs:
 
             - name: Upload results
               if: always()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: qit-results
                   path: ${{ github.workspace }}/qit-results/
@@ -343,7 +343,7 @@ jobs:
             ##############################
             - name: Checkout repository (custom e2e tests only)
               if: ${{ !cancelled() && inputs.test-e2e == 'true' }}
-              uses: actions/checkout@v4
+              uses: actions/checkout@v7
               with:
                   # Cone mode only takes directory prefixes; it is disabled so the
                   # qit.json file pattern is honoured. The checkout is read-only
@@ -474,7 +474,7 @@ jobs:
 
             - name: Upload Custom E2E results
               if: ${{ always() && inputs.test-e2e == 'true' }}
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   # The shared "Upload results" step runs before this step writes
                   # its results file, so the E2E output gets its own artifact.
