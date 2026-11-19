@@ -622,6 +622,10 @@ class WC_Connect_TaxJar_Integration {
 		// Rates TaxJar did not tax anything under get no tax line (see get_looked_up_rates()).
 		add_filter( 'woocommerce_calc_shipping_tax', array( $this, 'drop_untaxed_shipping_taxes' ), 10, 1 );
 		add_action( 'woocommerce_order_item_shipping_after_calculate_taxes', array( $this, 'drop_untaxed_order_shipping_taxes' ), 10, 1 );
+		add_filter( 'woocommerce_cart_totals_get_fees_from_cart_taxes', array( $this, 'drop_untaxed_fee_taxes' ), 10, 1 );
+		// A fee that adds to the order fires the hook every item fires; one that takes off, its own.
+		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this, 'drop_untaxed_order_fee_taxes' ), 10, 1 );
+		add_action( 'woocommerce_order_item_fee_after_calculate_taxes', array( $this, 'drop_untaxed_order_fee_taxes' ), 10, 1 );
 		add_action( 'woocommerce_order_after_calculate_totals', array( $this, 'record_no_tax_charged' ), 20, 2 );
 		add_action( 'woocommerce_checkout_create_order', array( $this, 'record_no_tax_charged_at_checkout' ), 10, 1 );
 		add_action( 'woocommerce_checkout_create_subscription', array( $this, 'record_no_tax_charged_at_checkout' ), 10, 1 );
@@ -4116,6 +4120,7 @@ class WC_Connect_TaxJar_Integration {
 		$snapshot['base_changes']   = $this->find_order_tax_base_changes( $order );
 		$snapshot['address_before'] = $this->find_order_tax_address_change( $order );
 		$snapshot['no_tax_charged'] = empty( $snapshot['tax_lines'] ) && $this->order_records_no_tax_charged( $order );
+		$snapshot                   = $this->find_what_no_tax_record_does_not_cover( $order, $snapshot );
 		$snapshot['lookup']         = $this->order_needs_tax_lookup( $snapshot );
 
 		// A refund records its tax against the order's rate ids. TaxJar's rates for a new
@@ -4250,11 +4255,14 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 
-		if ( ! empty( $reapplied['untaxed'] ) ) {
+		// An order that can't be edited and was charged no tax keeps it for what TaxJar
+		// never answered for too (see find_what_no_tax_record_does_not_cover()).
+		$untaxed = array_merge( $reapplied['untaxed'] ?? array(), is_array( $lookup ) ? array() : ( $snapshot['left_untaxed'] ?? array() ) );
+		if ( $untaxed ) {
 			$notes[] = sprintf(
 				/* translators: %s: comma-separated names of order items. */
 				__( 'No tax was added for %s, because the order has no recorded tax rate for it. Check the tax on this order.', 'woocommerce-services' ),
-				implode( ', ', array_map( 'wp_strip_all_tags', $reapplied['untaxed'] ) )
+				implode( ', ', array_map( 'wp_strip_all_tags', $untaxed ) )
 			);
 		}
 
@@ -5499,12 +5507,67 @@ class WC_Connect_TaxJar_Integration {
 			return true;
 		}
 
+		if ( ! empty( $snapshot['tax_lines'] ) ) {
+			return false;
+		}
+
 		// TaxJar already answered for an order with no tax lines, and taxed none of it.
-		if ( ! empty( $snapshot['tax_lines'] ) || ! empty( $snapshot['no_tax_charged'] ) ) {
+		// Something taxable it did not answer for is asked about, as on an order with no
+		// tax yet. See find_what_no_tax_record_does_not_cover().
+		if ( ! empty( $snapshot['no_tax_charged'] ) && empty( $snapshot['not_covered_by_record'] ) ) {
 			return false;
 		}
 
 		return ! empty( $snapshot['base_changes']['has_changes'] );
+	}
+
+	/**
+	 * Find the taxable items an order's "no tax charged" record says nothing about.
+	 *
+	 * The record holds TaxJar's answer for the items the order had then. It does not
+	 * cover a line or shipping added since, a line whose tax class or tax status
+	 * changed, or one that was $0 then: TaxJar answers a $0 line as taxing nothing,
+	 * whatever its rate. A line whose amount changed otherwise stays covered. Fees are
+	 * left out: a fee is taxed as the order's products are, which TaxJar answered for.
+	 *
+	 * An order that can be edited is looked up again for such an item. One that can't
+	 * be edited keeps the no tax it was charged, and a note names the item.
+	 *
+	 * @param WC_Order $order    The order about to be recalculated.
+	 * @param array    $snapshot Snapshot with no_tax_charged and base_changes.
+	 * @return array The snapshot with not_covered_by_record (the order is looked up) or
+	 *               left_untaxed (it isn't): the items' names, keyed by spl_object_id().
+	 */
+	private function find_what_no_tax_record_does_not_cover( $order, array $snapshot ) {
+		$snapshot['not_covered_by_record'] = array();
+		$snapshot['left_untaxed']          = array();
+
+		if ( empty( $snapshot['no_tax_charged'] ) ) {
+			return $snapshot;
+		}
+
+		$names = array();
+		foreach ( $order->get_items( array( 'line_item', 'shipping' ) ) as $item ) {
+			if ( 'taxable' !== $item->get_tax_status() || 0 >= (float) $item->get_total() ) {
+				continue;
+			}
+
+			$item_id = (int) $item->get_id();
+			$is_new  = ! $item_id || isset( $this->order_items_created_in_request['ids'][ $item_id ] );
+
+			if ( ! $is_new && ! isset( $snapshot['base_changes']['reclassed'][ $item_id ] ) ) {
+				$moved = in_array( $item_id, $snapshot['base_changes']['changed_ids'] ?? array(), true ) ? $this->order_item_tax_base_moved( $item ) : array();
+				if ( ! array_key_exists( 'total', $moved ) || 0.0 !== (float) $moved['total'] ) {
+					continue;
+				}
+			}
+
+			$names[ spl_object_id( $item ) ] = $item->get_name();
+		}
+
+		$snapshot[ $this->order_cannot_be_edited( $order ) ? 'left_untaxed' : 'not_covered_by_record' ] = $names;
+
+		return $snapshot;
 	}
 
 	/**
@@ -6002,7 +6065,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @param array $taxes Shipping taxes by rate id.
 	 * @return array
 	 *
-	 * @since 3.7.7
+	 * @since 3.7.8
 	 */
 	public function drop_untaxed_shipping_taxes( $taxes ) {
 		if ( ! is_array( $taxes ) || ! $this->rate_ids_written_in_request ) {
@@ -6026,13 +6089,59 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @param WC_Order_Item_Shipping $item The shipping line.
 	 *
-	 * @since 3.7.7
+	 * @since 3.7.8
 	 */
 	public function drop_untaxed_order_shipping_taxes( $item ) {
 		if ( ! $item instanceof WC_Order_Item_Shipping ) {
 			return;
 		}
 
+		$this->drop_untaxed_order_item_taxes( $item );
+	}
+
+	/**
+	 * Leave out the $0 fee taxes under rates TaxJar answered in this request.
+	 *
+	 * WooCommerce taxes a fee from the rate rows, as it does shipping. See
+	 * drop_untaxed_shipping_taxes().
+	 *
+	 * @internal Hooked to woocommerce_cart_totals_get_fees_from_cart_taxes.
+	 *
+	 * @param array $taxes Fee taxes by rate id.
+	 * @return array
+	 *
+	 * @since 3.7.8
+	 */
+	public function drop_untaxed_fee_taxes( $taxes ) {
+		return $this->drop_untaxed_shipping_taxes( $taxes );
+	}
+
+	/**
+	 * Leave out the $0 taxes of an order's fee under rates TaxJar answered for the order
+	 * in this request. See drop_untaxed_shipping_taxes().
+	 *
+	 * @internal Hooked to woocommerce_order_item_after_calculate_taxes and
+	 *           woocommerce_order_item_fee_after_calculate_taxes.
+	 *
+	 * @param WC_Order_Item $item The item; only a fee is changed.
+	 *
+	 * @since 3.7.8
+	 */
+	public function drop_untaxed_order_fee_taxes( $item ) {
+		if ( ! $item instanceof WC_Order_Item_Fee ) {
+			return;
+		}
+
+		$this->drop_untaxed_order_item_taxes( $item );
+	}
+
+	/**
+	 * Leave out the $0 taxes of an order's shipping line or fee under rates TaxJar
+	 * answered for the order in this request.
+	 *
+	 * @param WC_Order_Item_Shipping|WC_Order_Item_Fee $item The shipping line or fee.
+	 */
+	private function drop_untaxed_order_item_taxes( $item ) {
 		// A checkout order is taxed by the cart's answer, and may not have an id yet.
 		if ( ! isset( $this->orders_answered_in_request[ (int) $item->get_order_id() ] ) && empty( $this->response_line_items ) ) {
 			return;
@@ -6061,7 +6170,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @param bool              $and_taxes Whether taxes were recalculated. Unused.
 	 * @param WC_Abstract_Order $order     The order whose totals were recalculated. A refund comes here too.
 	 *
-	 * @since 3.7.7
+	 * @since 3.7.8
 	 */
 	public function record_no_tax_charged( $and_taxes, $order ) {
 		if ( ! $order instanceof WC_Order ) {
@@ -6103,7 +6212,7 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * @param WC_Order $order The order or subscription being created.
 	 *
-	 * @since 3.7.7
+	 * @since 3.7.8
 	 */
 	public function record_no_tax_charged_at_checkout( $order ) {
 		if ( ! $order instanceof WC_Order ) {

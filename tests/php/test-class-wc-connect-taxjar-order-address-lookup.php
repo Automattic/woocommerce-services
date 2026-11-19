@@ -2508,4 +2508,275 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		// Boulder 8%: $10 0.80, shipping 0.80.
 		$this->assert_order_tax( $order, 0.80, 0.80, 21.60 );
 	}
+
+	/**
+	 * A REST order of two items TaxJar does not tax (Zero rate, sent as exempt), $10 and
+	 * $20, with no shipping: TaxJar taxed none of it.
+	 *
+	 * @return array{order: WC_Order, a: int, b: int}
+	 */
+	private function rest_create_exempt_without_shipping() {
+		$a = $this->create_product( '10' );
+		$b = $this->create_product( '20' );
+		foreach ( array( $a, $b ) as $product ) {
+			$product->set_tax_class( 'zero-rate' );
+			$product->save();
+		}
+
+		$order = $this->rest_create(
+			array(
+				'line_items'     => array(
+					array(
+						'product_id' => $a->get_id(),
+						'quantity'   => 1,
+					),
+					array(
+						'product_id' => $b->get_id(),
+						'quantity'   => 1,
+					),
+				),
+				'shipping_lines' => array(),
+			)
+		);
+		$this->assertSame( 'yes', $order->get_meta( '_wc_connect_taxjar_no_tax_charged' ), 'TaxJar taxed none of it' );
+
+		$ids = array_keys( $order->get_items() );
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		return array(
+			'order' => $order,
+			'a'     => $ids[0],
+			'b'     => $ids[1],
+		);
+	}
+
+	/**
+	 * @testdox A taxable item added to an order TaxJar taxed none of asks TaxJar, as on an order with no tax yet.
+	 */
+	public function test_taxable_item_added_to_an_order_taxjar_taxed_none_of_is_looked_up() {
+		$fixture = $this->rest_create_exempt_without_shipping();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $this->create_product( '100' )->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		// Boulder 8% on the $100 item; the Zero rate items stay untaxed.
+		$this->assert_order_tax( $order, 8.00, 0.0, 138.00 );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001, 'A' );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['b'] ), 0.001, 'B' );
+		$this->assertFalse( $order->meta_exists( '_wc_connect_taxjar_no_tax_charged' ), 'The order has tax' );
+	}
+
+	/**
+	 * @testdox An item moved to a taxed class on an order TaxJar taxed none of asks TaxJar.
+	 */
+	public function test_item_reclassed_on_an_order_taxjar_taxed_none_of_is_looked_up() {
+		$fixture = $this->rest_create_exempt_without_shipping();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'        => $fixture['b'],
+						'tax_class' => '',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		// Boulder 8% on B ($20); A stays in Zero rate.
+		$this->assert_order_tax( $order, 1.60, 0.0, 31.60 );
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $fixture['a'] ), 0.001, 'A' );
+	}
+
+	/**
+	 * @testdox A line TaxJar answered at $0, set back to $100, asks TaxJar: its $0 answer said nothing about its tax.
+	 */
+	public function test_line_answered_at_zero_and_set_back_is_looked_up() {
+		// As at a checkout with a 100% coupon: TaxJar answers the line at $0.
+		$order = $this->rest_create(
+			array(
+				'line_items'     => array(
+					array(
+						'product_id' => $this->create_product( '100' )->get_id(),
+						'quantity'   => 1,
+						'subtotal'   => '100.00',
+						'total'      => '0.00',
+					),
+				),
+				'shipping_lines' => array(),
+			)
+		);
+
+		$line_id = array_keys( $order->get_items() )[0];
+		$this->assert_order_tax( $order, 0.0, 0.0, 0.0 );
+		$this->assertSame( 'yes', $order->get_meta( '_wc_connect_taxjar_no_tax_charged' ), 'TaxJar taxed none of it' );
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $line_id,
+						'subtotal' => '100.00',
+						'total'    => '100.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		// Boulder 8% on $100.
+		$this->assert_order_tax( $order, 8.00, 0.0, 108.00 );
+	}
+
+	/**
+	 * @testdox Shipping added to an order TaxJar taxed none of asks TaxJar: its answer said nothing about shipping.
+	 */
+	public function test_shipping_added_to_an_order_taxjar_taxed_none_of_is_looked_up() {
+		$fixture = $this->rest_create_exempt_without_shipping();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'method_id'    => 'flat_rate',
+						'method_title' => 'Flat rate',
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		// The fake TaxJar taxes Boulder shipping at 8%; the Zero rate items stay untaxed.
+		$this->assert_order_tax( $order, 0.0, 0.80, 40.80 );
+	}
+
+	/**
+	 * @testdox Removing an item, or an item TaxJar answered for that isn't taxable, doesn't ask TaxJar again.
+	 */
+	public function test_untaxable_edit_of_an_order_taxjar_taxed_none_of_is_not_looked_up() {
+		$fixture = $this->rest_create_exempt_without_shipping();
+		$product = $this->create_product( '100' );
+		$product->set_tax_status( 'none' );
+		$product->save();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 0,
+					),
+					array(
+						'product_id' => $product->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked again' );
+		$this->assert_order_tax( $order, 0.0, 0.0, 120.00 );
+		$this->assertSame( 'yes', $order->get_meta( '_wc_connect_taxjar_no_tax_charged' ), 'Still no tax charged' );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox A failed lookup for an item added to an order TaxJar taxed none of keeps the order at no tax, and says so.
+	 */
+	public function test_failed_lookup_for_an_item_added_to_an_order_taxjar_taxed_none_of_keeps_no_tax() {
+		$fixture = $this->rest_create_exempt_without_shipping();
+		// A merchant's Colorado row, so WooCommerce's own calculation would add tax.
+		WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '6.0000',
+				'tax_rate_name'     => 'CO Tax',
+				'tax_rate_priority' => 3,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+		$this->taxjar_down = true;
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $this->create_product( '100' )->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		$this->assert_order_tax( $order, 0.0, 0.0, 130.00 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
+	}
+
+	/**
+	 * @testdox A taxable item added to a paid order TaxJar taxed none of keeps it at no tax, with a note naming the item.
+	 */
+	public function test_taxable_item_added_to_a_paid_order_taxjar_taxed_none_of_keeps_no_tax_and_is_noted() {
+		$fixture = $this->rest_create_exempt_without_shipping();
+		$fixture['order']->set_status( 'processing' );
+		$fixture['order']->save();
+		$this->forget_created_in_request();
+
+		$product = $this->create_product( '100' );
+		$product->set_name( 'Lamp' );
+		$product->save();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $product->get_id(),
+						'quantity'   => 1,
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assert_order_tax( $order, 0.0, 0.0, 130.00 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'No tax was added for Lamp', $notes[0] );
+	}
+
+	/**
+	 * @testdox The fee handlers that leave out $0 taxes under TaxJar's rates are hooked where WooCommerce taxes fees.
+	 */
+	public function test_fee_tax_handlers_are_hooked() {
+		$this->assertSame( 10, has_filter( 'woocommerce_cart_totals_get_fees_from_cart_taxes', array( $this->integration, 'drop_untaxed_fee_taxes' ) ), 'Cart fees' );
+		$this->assertSame( 10, has_action( 'woocommerce_order_item_after_calculate_taxes', array( $this->integration, 'drop_untaxed_order_fee_taxes' ) ), 'Order fee that adds to the order' );
+		$this->assertSame( 10, has_action( 'woocommerce_order_item_fee_after_calculate_taxes', array( $this->integration, 'drop_untaxed_order_fee_taxes' ) ), 'Order fee that takes off' );
+	}
 }
