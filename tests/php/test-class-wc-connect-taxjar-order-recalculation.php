@@ -3730,14 +3730,15 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	 * action, with WooCommerce's handler (nonce, HTML, wp_die) swapped for the call it makes.
 	 *
 	 * @param WC_Order $order Order.
+	 * @param array    $items Optional: the order form's fields the button posts, see order_screen_form().
 	 * @return WC_Order The order read back.
 	 */
-	private function press_recalculate( WC_Order $order ) {
+	private function press_recalculate( WC_Order $order, array $items = array() ) {
 		global $wp_filter;
 
 		$post = array(
 			'order_id' => $order->get_id(),
-			'items'    => '',
+			'items'    => http_build_query( $items ),
 			'country'  => 'US',
 			'state'    => 'CO',
 			'postcode' => '80202',
@@ -3955,5 +3956,373 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order = wc_get_order( $order->get_id() );
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
 		$this->assertEqualsWithDelta( 10.0, (float) $order->get_total(), 0.001 );
+	}
+
+	// -------------------------------------------------------------------------
+	// Second review of the paid-order lock: the order screen's form, Add item(s) and
+	// delete, typed tax, the address pencil, and the note's figures.
+
+	/**
+	 * The order screen's item fields as the browser posts them (html-order-item.php,
+	 * html-order-shipping.php): every line has a tax field for each tax rate on the order,
+	 * holding the tax the line carries under that rate, or nothing.
+	 *
+	 * @param WC_Order $order Order.
+	 * @param array    $edits Optional changes, keyed by item id: 'qty', 'total' and 'tax' (for every rate).
+	 * @return array
+	 */
+	private function order_screen_form( WC_Order $order, array $edits = array() ) {
+		$rate_ids = array();
+		foreach ( $order->get_taxes() as $tax_line ) {
+			$rate_ids[] = (int) $tax_line->get_rate_id();
+		}
+
+		$form = array();
+		foreach ( $order->get_items( array( 'line_item', 'fee' ) ) as $item_id => $item ) {
+			$edit  = $edits[ $item_id ] ?? array();
+			$taxes = $item->get_taxes();
+
+			$form['order_item_id'][]                  = $item_id;
+			$form['order_item_name'][ $item_id ]      = $item->get_name();
+			$form['order_item_qty'][ $item_id ]       = (string) ( $edit['qty'] ?? $item->get_quantity() );
+			$form['order_item_tax_class'][ $item_id ] = $item->get_tax_class();
+			$form['line_subtotal'][ $item_id ]        = (string) ( $edit['total'] ?? $item->get_subtotal() );
+			$form['line_total'][ $item_id ]           = (string) ( $edit['total'] ?? $item->get_total() );
+			foreach ( $rate_ids as $rate_id ) {
+				$form['line_tax'][ $item_id ][ $rate_id ]          = (string) ( $edit['tax'] ?? ( $taxes['total'][ $rate_id ] ?? '' ) );
+				$form['line_subtotal_tax'][ $item_id ][ $rate_id ] = (string) ( $edit['tax'] ?? ( $taxes['subtotal'][ $rate_id ] ?? '' ) );
+			}
+		}
+
+		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
+			$taxes = $item->get_taxes();
+
+			$form['shipping_method_id'][]              = $item_id;
+			$form['shipping_method'][ $item_id ]       = $item->get_method_id();
+			$form['shipping_method_title'][ $item_id ] = $item->get_method_title();
+			$form['shipping_cost'][ $item_id ]         = (string) $item->get_total();
+			foreach ( $rate_ids as $rate_id ) {
+				$form['shipping_taxes'][ $item_id ][ $rate_id ] = (string) ( $taxes['total'][ $rate_id ] ?? '' );
+			}
+		}
+
+		return $form;
+	}
+
+	/**
+	 * Press the order screen's Add item(s) button: what WC_AJAX::maybe_add_order_item()
+	 * does to the order. It saves the line and recalculates nothing.
+	 *
+	 * @param WC_Order   $order   Order.
+	 * @param WC_Product $product Product to add.
+	 * @return int The new line's id.
+	 */
+	private function add_item_on_order_screen( WC_Order $order, WC_Product $product ) {
+		$order   = wc_get_order( $order->get_id() );
+		$item_id = $order->add_product( $product, 1, array( 'order' => $order ) );
+		do_action( 'woocommerce_ajax_order_items_added', array( $item_id => $order->get_item( $item_id ) ), $order );
+
+		return $item_id;
+	}
+
+	/**
+	 * Press a line's delete icon on the order screen: the wp_ajax_woocommerce_remove_order_item
+	 * action, with WooCommerce's handler (nonce, stock, HTML) swapped for what
+	 * WC_AJAX::remove_order_item() does to the order. When lines are being edited, the
+	 * form's fields are saved first.
+	 *
+	 * @param WC_Order $order   Order.
+	 * @param int      $item_id The line to delete.
+	 * @param array    $items   Optional: the form's fields, posted while lines are being edited.
+	 * @return WC_Order The order read back.
+	 */
+	private function press_delete_icon( WC_Order $order, $item_id, array $items = array() ) {
+		global $wp_filter;
+
+		$order_id   = $order->get_id();
+		$saved_hook = $wp_filter['wp_ajax_woocommerce_remove_order_item'] ?? null;
+		remove_all_actions( 'wp_ajax_woocommerce_remove_order_item' );
+		add_action(
+			'wp_ajax_woocommerce_remove_order_item',
+			static function () use ( $order_id, $item_id, $items ) {
+				if ( $items ) {
+					wc_save_order_items( $order_id, $items );
+				}
+				wc_delete_order_item( $item_id );
+
+				$order = wc_get_order( $order_id );
+				$order->calculate_taxes(
+					array(
+						'country'  => 'US',
+						'state'    => 'CO',
+						'postcode' => '80202',
+						'city'     => 'DENVER',
+					)
+				);
+				$order->calculate_totals( false );
+			}
+		);
+		add_filter( 'wp_doing_ajax', '__return_true' );
+
+		try {
+			do_action( 'wp_ajax_woocommerce_remove_order_item' );
+		} finally {
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+			remove_all_actions( 'wp_ajax_woocommerce_remove_order_item' );
+			if ( null !== $saved_hook ) {
+				$wp_filter['wp_ajax_woocommerce_remove_order_item'] = $saved_hook; // phpcs:ignore WordPress.WP.GlobalVariablesOverride.Prohibited -- Restores the hook this helper swapped.
+			}
+		}
+
+		return wc_get_order( $order_id );
+	}
+
+	/**
+	 * Press the order screen's Update button: woocommerce_process_shop_order_meta, with
+	 * WooCommerce's two order meta boxes at their priorities. The items box saves the
+	 * form's item fields (priority 10); the order data box then saves what the address
+	 * pencil and the status field changed, and recalculates nothing (priority 40).
+	 *
+	 * @param WC_Order $order Order.
+	 * @param array    $items The form's item fields, see order_screen_form().
+	 * @param array    $props Order props the order data box saves, such as 'shipping_city' or 'status'.
+	 * @return WC_Order The order read back.
+	 */
+	private function press_update( WC_Order $order, array $items, array $props = array() ) {
+		$order_id   = $order->get_id();
+		$save_items = static function ( $id ) use ( $items ) {
+			wc_save_order_items( $id, $items );
+		};
+		$save_order = static function ( $id ) use ( $props ) {
+			$order = wc_get_order( $id );
+			$order->set_props( $props );
+			$order->save();
+		};
+
+		add_action( 'woocommerce_process_shop_order_meta', $save_items, 10 );
+		add_action( 'woocommerce_process_shop_order_meta', $save_order, 40 );
+		try {
+			do_action( 'woocommerce_process_shop_order_meta', $order_id, $order );
+		} finally {
+			remove_action( 'woocommerce_process_shop_order_meta', $save_items, 10 );
+			remove_action( 'woocommerce_process_shop_order_meta', $save_order, 40 );
+		}
+
+		return wc_get_order( $order_id );
+	}
+
+	/**
+	 * @testdox The mark on a line added with Add item(s) is hidden on the order screen, so it can't be seen, edited or deleted there.
+	 */
+	public function test_mark_on_line_added_to_paid_order_is_hidden_on_order_screen() {
+		$fixture = $this->create_paid_order();
+		$new_id  = $this->add_item_on_order_screen( $fixture['order'], $this->create_product( '50' ) );
+
+		$item = wc_get_order( $fixture['order']->get_id() )->get_item( $new_id );
+		$keys = wp_list_pluck( $item->get_meta_data(), 'key' );
+		$ours = preg_grep( '/^_wc_connect/', $keys );
+		$this->assertNotEmpty( $ours, 'the line carries a mark' );
+
+		// What the order screen reads to leave meta out (html-order-item-meta.php).
+		$hidden = (array) apply_filters( 'woocommerce_hidden_order_itemmeta', array() );
+		foreach ( $ours as $key ) {
+			$this->assertContains( $key, $hidden );
+		}
+	}
+
+	/**
+	 * @testdox On a paid order, a line added with Add item(s) and deleted again writes no note: the order is back to what was sold.
+	 */
+	public function test_paid_order_line_added_then_deleted_writes_no_note() {
+		$fixture = $this->create_paid_order();
+		$new_id  = $this->add_item_on_order_screen( $fixture['order'], $this->create_product( '50' ) );
+		$this->start_new_request();
+
+		$order = $this->press_delete_icon( wc_get_order( $fixture['order']->get_id() ), $new_id );
+
+		$this->assertFalse( $order->get_item( $new_id ), 'the line is deleted' );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( array(), $this->locked_order_notes( $order ) );
+	}
+
+	/**
+	 * @testdox On a paid order, a line added with Add item(s) and deleted while lines are being edited writes no note either.
+	 */
+	public function test_paid_order_line_added_then_deleted_in_edit_mode_writes_no_note() {
+		$fixture = $this->create_paid_order();
+		$new_id  = $this->add_item_on_order_screen( $fixture['order'], $this->create_product( '50' ) );
+		$this->start_new_request();
+
+		$order = wc_get_order( $fixture['order']->get_id() );
+		$order = $this->press_delete_icon( $order, $new_id, $this->order_screen_form( $order ) );
+
+		$this->assertFalse( $order->get_item( $new_id ), 'the line is deleted' );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( array(), $this->locked_order_notes( $order ) );
+	}
+
+	/**
+	 * @testdox On a paid order, Recalculate after Add item(s) counts the new line in the tax the order would have now.
+	 */
+	public function test_paid_order_line_added_on_order_screen_counts_in_tax_as_it_is_now() {
+		$fixture = $this->create_paid_order();
+		$new_id  = $this->add_item_on_order_screen( $fixture['order'], $this->create_product( '50' ) );
+		$this->start_new_request();
+
+		$order = wc_get_order( $fixture['order']->get_id() );
+		$order = $this->press_recalculate( $order, $this->order_screen_form( $order ) );
+
+		$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $new_id ), 0.001, 'the added line gets no tax' );
+		// 30 + 50 + 5 + the $2.10 charged.
+		$this->assert_order_tax( $order, 1.80, 0.30, 87.10 );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Change: Dummy Product added.', $notes[0] );
+		// A $10, B $20, the new $50 and shipping $5, all at the order's 6%: $5.10, $3.00 more than charged.
+		$this->assertStringContainsString( 'Tax for the order as it is now: $5.10 (6% on $85.00). Difference: $3.00.', $notes[0] );
+	}
+
+	/**
+	 * @testdox On a paid order moved back to on hold, tax typed on a line and saved with Update stays at the tax charged, with a note.
+	 */
+	public function test_tax_typed_on_paid_order_on_hold_keeps_charged_tax_with_note() {
+		$fixture = $this->create_paid_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+		$order->set_status( 'on-hold' );
+		$order->save();
+		$this->start_new_request();
+
+		$order = wc_get_order( $order->get_id() );
+		$order = $this->press_update( $order, $this->order_screen_form( $order, array( $fixture['a'] => array( 'tax' => '1.00' ) ) ) );
+
+		$this->assertEqualsWithDelta( 0.60, $this->item_tax( $order, $fixture['a'] ), 0.001, 'A keeps the tax it was charged' );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Change: Dummy Product tax changed from $0.60 to $1.00.', $notes[0] );
+		$this->assertStringContainsString( 'Tax charged: $2.10 (6% on $35.00). The tax stays at $2.10.', $notes[0] );
+	}
+
+	/**
+	 * @testdox On a paid order, tax typed on a line and then Recalculate stays at the tax charged, with one note.
+	 */
+	public function test_tax_typed_on_paid_order_then_recalculate_keeps_charged_tax_with_note() {
+		$fixture = $this->create_paid_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+		$order   = $this->press_recalculate( $order, $this->order_screen_form( $order, array( $fixture['b'] => array( 'tax' => '0.50' ) ) ) );
+
+		$this->assertEqualsWithDelta( 1.20, $this->item_tax( $order, $fixture['b'] ), 0.001, 'B keeps the tax it was charged' );
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Change: Dummy Product tax changed from $1.20 to $0.50.', $notes[0] );
+	}
+
+	/**
+	 * @testdox On a paid order, a shipping address changed with the order screen's pencil and saved with Update keeps the tax, with the address note.
+	 */
+	public function test_paid_order_address_changed_on_order_screen_gets_address_note() {
+		$fixture = $this->create_paid_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$order = $this->press_update(
+			$order,
+			$this->order_screen_form( $order ),
+			array(
+				'shipping_city'     => 'Boulder',
+				'shipping_postcode' => '80301',
+			)
+		);
+
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$lines = explode( "\n", $notes[0] );
+		$this->assertSame( "This order's shipping address changed after its tax was charged.", $lines[0] );
+		$this->assertSame( 'Change: Shipping address changed from Denver, CO, 80202, US to Boulder, CO, 80301, US.', $lines[2] );
+		$this->assertSame( 'Order total: $37.10 (no change).', $lines[3] );
+		$this->assertStringContainsString( 'The tax for the new address was not calculated.', $notes[0] );
+		$this->assertStringContainsString( 'refund this order and create a new order with the new address', $notes[0] );
+	}
+
+	/**
+	 * @testdox On a paid order, an address and a quantity changed in one Update get one address note that lists both.
+	 */
+	public function test_paid_order_address_and_quantity_changed_on_order_screen_get_one_note() {
+		$fixture = $this->create_paid_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$order = $this->press_update(
+			$order,
+			$this->order_screen_form(
+				$order,
+				array(
+					$fixture['a'] => array(
+						'qty'   => 2,
+						'total' => '20',
+						'tax'   => '1.2',
+					),
+				)
+			),
+			array(
+				'shipping_city'     => 'Boulder',
+				'shipping_postcode' => '80301',
+			)
+		);
+
+		// 20 + 20 + 5 + the $2.10 charged.
+		$this->assert_order_tax( $order, 1.80, 0.30, 47.10 );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( "This order's shipping address changed after its tax was charged.", $notes[0] );
+		$this->assertStringContainsString( 'Change: Shipping address changed from Denver, CO, 80202, US to Boulder, CO, 80301, US. Dummy Product quantity changed from 1 to 2.', $notes[0] );
+		$this->assertStringContainsString( 'Items: from $30.00 to $40.00. Order total: from $37.10 to $47.10.', $notes[0] );
+		$this->assertStringNotContainsString( 'as it is now', $notes[0], 'the order\'s rates belong to the old address' );
+	}
+
+	/**
+	 * @testdox An unpaid order given an address and made Processing in one Update gets no note: its tax was not charged before that save.
+	 */
+	public function test_unpaid_order_given_address_and_paid_in_one_update_gets_no_note() {
+		$fixture = $this->create_placed_order();
+		$order   = wc_get_order( $fixture['order']->get_id() );
+
+		$order = $this->press_update(
+			$order,
+			$this->order_screen_form( $order ),
+			array(
+				'shipping_city'     => 'Boulder',
+				'shipping_postcode' => '80301',
+				'status'            => 'processing',
+			)
+		);
+
+		$this->assertNotNull( $order->get_date_paid(), 'the order is paid now' );
+		$this->assertSame( array(), $this->locked_order_notes( $order ) );
+	}
+
+	/**
+	 * @testdox On a paid order, a change that leaves the tax the order would have as it was shows a difference of $0.00, never -$0.00.
+	 */
+	public function test_paid_order_note_shows_no_negative_zero_difference() {
+		$fixture = $this->create_paid_order();
+
+		// $5.04 shipping at 6% is $0.3024, which rounds to the $0.30 charged.
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'id'    => $fixture['shipping'],
+						'total' => '5.04',
+					),
+				),
+			)
+		);
+
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Difference: $0.00.', $notes[0] );
+		$this->assertStringNotContainsString( '-$0.00', $notes[0] );
 	}
 }
