@@ -2138,7 +2138,7 @@ class WC_Connect_TaxJar_Integration {
 		 * Filters whether shipping prices include tax. A WooCommerce core filter, applied
 		 * here as WC_Tax::calc_shipping_tax() applies it.
 		 *
-		 * @since 3.7.7 Applied by this plugin.
+		 * @since 3.7.8 Applied by this plugin.
 		 *
 		 * @param bool $shipping_prices_include_tax Whether they do. Default false.
 		 */
@@ -3021,11 +3021,12 @@ class WC_Connect_TaxJar_Integration {
 	 * - Florida's rule, see is_florida_shipping_tax_required(): TaxJar says not taxable, and
 	 *   the rows are what charges it.
 	 *
-	 * Shipping unticked keeps shipping untaxed, on a town's own row and on a merchant's row
-	 * the table would use instead of one of ours (see has_unticked_local_row_for_shipping()).
-	 * A tick where TaxJar does not tax shipping can't be honored, since it can't be told
-	 * from the row a taxable order left behind. So a merchant can switch shipping tax off
-	 * for a place, but not on.
+	 * Shipping unticked keeps that rate off shipping, on a town's own row and on a merchant's
+	 * row the table would use instead of one of ours at its priority (see
+	 * get_priorities_unticked_for_shipping()). The other rates TaxJar answered for shipping
+	 * are still charged. A tick where TaxJar does not tax shipping can't be honored, since
+	 * it can't be told from the row a taxable order left behind. So a merchant can switch
+	 * shipping tax off for a rate, but not on.
 	 *
 	 * @param array       $taxes         The lookup's result, with the rows it wrote.
 	 * @param array       $location      Location in the `to_*` shape, as written.
@@ -3043,12 +3044,11 @@ class WC_Connect_TaxJar_Integration {
 				return null;
 			}
 
-			if ( ! $this->has_unticked_local_row_for_shipping( $location, $taxes['rate_ids']['shipping'] ) ) {
-				foreach ( $this->get_looked_up_rates( $taxes['rate_ids']['shipping'], $shipping_line ) as $rate_id => $rate ) {
-					$row = WC_Tax::_get_tax_rate( $rate_id );
-					if ( ! empty( $row['tax_rate_shipping'] ) ) {
-						$rates[ $rate_id ] = $rate;
-					}
+			$unticked = $this->get_priorities_unticked_for_shipping( $location );
+			foreach ( $this->get_looked_up_rates( $taxes['rate_ids']['shipping'], $shipping_line ) as $rate_id => $rate ) {
+				$row = WC_Tax::_get_tax_rate( $rate_id );
+				if ( ! empty( $row['tax_rate_shipping'] ) && ! in_array( (int) $row['tax_rate_priority'], $unticked, true ) ) {
+					$rates[ $rate_id ] = $rate;
 				}
 			}
 		} elseif ( $this->is_florida_shipping_tax_required( $location ) ) {
@@ -3064,50 +3064,41 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Whether a merchant's row limited to a ZIP list, a wildcard or a city has Shipping
-	 * unticked, and the table would use it for shipping instead of one of the rows the
-	 * lookup wrote.
+	 * Priorities at which the rate table, for the address looked up, uses a row with
+	 * Shipping unticked.
 	 *
-	 * Such a row outranks the town's own row at its priority, so on its own the table
-	 * charges no shipping tax at that priority. The merchant unticked it, and no lookup
-	 * writes or changes those rows, so the untick is the merchant's choice. Shipping is
-	 * then not taxed at all, as the merchant's Shipping setting says.
+	 * The table uses one row per priority. A merchant's row limited to a ZIP list, a
+	 * wildcard or a city outranks the town's own row at its priority, so on its own the
+	 * table charges no shipping tax at that priority when the merchant unticked it. No
+	 * lookup writes or changes those rows, so the untick is the merchant's choice. Shipping
+	 * then pays nothing at that priority, as the merchant's Shipping setting says, and
+	 * TaxJar's rates at the other priorities, as when one of the town's own rows is
+	 * unticked.
 	 *
 	 * A row at a priority the lookup did not write, such as a local tax the merchant adds
-	 * on top, takes no rate of ours. It doesn't change what TaxJar's answer charges. The
-	 * table only uses another row at a priority the lookup wrote when that row outranks the
-	 * town's own row: a merchant's local row. A state-wide row and the 0% rows a lookup
-	 * adds never do.
+	 * on top, takes no rate of ours, so it doesn't change what TaxJar's answer charges. A
+	 * state-wide row and the 0% rows a lookup adds never outrank the town's own row.
 	 *
 	 * @param array $location Location in the `to_*` shape, as written.
-	 * @param int[] $rate_ids Rows the lookup wrote for shipping.
-	 * @return bool
+	 * @return int[]
 	 */
-	private function has_unticked_local_row_for_shipping( array $location, array $rate_ids ) {
-		$rate_ids   = array_map( 'intval', $rate_ids );
-		$priorities = array();
-		foreach ( $rate_ids as $rate_id ) {
-			$row = WC_Tax::_get_tax_rate( $rate_id );
-			if ( $row ) {
-				$priorities[] = (int) $row['tax_rate_priority'];
-			}
-		}
-
+	private function get_priorities_unticked_for_shipping( array $location ) {
 		$address = $this->get_rate_table_address( $location, false );
 		$matched = WC_Tax::find_rates( $address->to_find_rates_args( '' ) );
 
+		$unticked = array();
 		foreach ( is_array( $matched ) ? $matched : array() as $rate_id => $rate ) {
-			if ( in_array( (int) $rate_id, $rate_ids, true ) || 'yes' === ( $rate['shipping'] ?? 'yes' ) ) {
+			if ( 'yes' === ( $rate['shipping'] ?? 'yes' ) ) {
 				continue;
 			}
 
 			$row = WC_Tax::_get_tax_rate( $rate_id );
-			if ( $row && in_array( (int) $row['tax_rate_priority'], $priorities, true ) ) {
-				return true;
+			if ( $row ) {
+				$unticked[] = (int) $row['tax_rate_priority'];
 			}
 		}
 
-		return false;
+		return $unticked;
 	}
 
 	/**

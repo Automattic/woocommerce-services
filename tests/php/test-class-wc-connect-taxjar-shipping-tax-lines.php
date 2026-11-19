@@ -1087,16 +1087,17 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * A merchant's row covering Round Rock with Shipping unticked keeps shipping untaxed,
-	 * although TaxJar taxes it there. The items keep TaxJar's 8.25%: $100 and $10 shipping
-	 * come to $8.25 tax and $118.25, at checkout and on Recalculate.
+	 * A merchant's row covering Round Rock with Shipping unticked, at the city's priority,
+	 * keeps that priority off shipping, although TaxJar taxes it there. Shipping pays the
+	 * other 7.25% TaxJar answered: $0.73 on $10. The items keep TaxJar's 8.25%: $100 and $10
+	 * shipping come to $8.98 tax and $118.98, at checkout and on Recalculate.
 	 *
 	 * @dataProvider round_rock_local_rows
 	 *
 	 * @param string $postcodes Postcodes of the merchant's row.
 	 * @param string $cities    Cities of the merchant's row.
 	 */
-	public function test_merchant_local_row_with_shipping_unticked_keeps_shipping_untaxed( $postcodes, $cities ) {
+	public function test_merchant_local_row_with_shipping_unticked_keeps_its_priority_off_shipping( $postcodes, $cities ) {
 		update_option( 'woocommerce_shipping_tax_class', '' );
 		$merchant = $this->merchant_local_rate( 'TX', $postcodes, $cities, 5, 0 );
 		$this->ship_to( self::$places['TX']['to'] );
@@ -1104,21 +1105,21 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->calculate_cart( array( $this->product() ) );
 		$this->assertEqualsWithDelta( 8.25, (float) WC()->cart->get_cart_contents_tax(), 0.011, 'Cart item tax' );
-		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
-		$this->assertEqualsWithDelta( 118.25, (float) WC()->cart->get_total( 'edit' ), 0.011, 'Cart total' );
+		$this->assertEqualsWithDelta( 0.73, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
+		$this->assertEqualsWithDelta( 118.98, (float) WC()->cart->get_total( 'edit' ), 0.011, 'Cart total' );
 
 		$order = $this->classic_checkout_order();
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
-		$this->assertSame( array(), $this->shipping_line_rate_ids( $order ), 'Classic checkout shipping line' );
+		$this->assertEqualsWithDelta( 0.73, (float) $order->get_shipping_tax(), 0.011, 'Classic checkout shipping tax' );
+		$this->assertNotContains( $merchant, $this->shipping_line_rate_ids( $order ), 'Classic checkout shipping line' );
 
 		// Block checkout re-taxes the order it builds from the cart.
 		$order->calculate_totals();
 		$order = wc_get_order( $order->get_id() );
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
-		$this->assertEqualsWithDelta( 118.25, (float) $order->get_total(), 0.011, 'Block checkout total' );
+		$this->assertEqualsWithDelta( 0.73, (float) $order->get_shipping_tax(), 0.011, 'Block checkout shipping tax' );
+		$this->assertEqualsWithDelta( 118.98, (float) $order->get_total(), 0.011, 'Block checkout total' );
 
 		$order = $this->admin_recalculate( $order, 'TX' );
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
+		$this->assertEqualsWithDelta( 0.73, (float) $order->get_shipping_tax(), 0.011, 'Recalculate shipping tax' );
 		$this->assertEqualsWithDelta( 8.25, (float) $order->get_cart_tax(), 0.011, 'Recalculate item tax' );
 		$this->assertNotContains( $merchant, $this->tax_item_rate_ids( $order ), 'Recalculate' );
 	}
@@ -1139,6 +1140,75 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$order = $this->admin_recalculate( $this->classic_checkout_order(), 'TX' );
 		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.011, 'Recalculate shipping tax' );
+	}
+
+	/**
+	 * The priorities the Round Rock lookup writes, one per component in TaxJar's order, and
+	 * what $10 shipping pays when the component at that priority is left off: the sum of
+	 * the other three of city 1%, county 0%, special 1% and state 6.25%.
+	 *
+	 * @return array[] [ priority, shipping tax ]
+	 */
+	public function round_rock_priorities() {
+		return array(
+			'city 1%'     => array( 1, 0.73 ),
+			'county 0%'   => array( 2, 0.83 ),
+			'special 1%'  => array( 3, 0.73 ),
+			'state 6.25%' => array( 4, 0.20 ),
+		);
+	}
+
+	/**
+	 * A merchant's 0% row for Round Rock ZIP codes with Shipping unticked, at a priority the
+	 * lookup writes, keeps only that priority off shipping, like unticking the town's own
+	 * row there. The other rates TaxJar answered for shipping are still charged, and the
+	 * items keep TaxJar's 8.25%.
+	 *
+	 * @dataProvider round_rock_priorities
+	 *
+	 * @param int   $priority Priority of the merchant's row.
+	 * @param float $expected Shipping tax on $10.
+	 */
+	public function test_merchant_local_row_with_shipping_unticked_keeps_only_its_priority_off_shipping( $priority, $expected ) {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$merchant = $this->merchant_local_rate( 'TX', '78664;78665', '', 0, 0, $priority );
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->hook( $this->taxjar( 'TX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 8.25, (float) WC()->cart->get_cart_contents_tax(), 0.011, 'Cart item tax' );
+		$this->assertEqualsWithDelta( $expected, (float) WC()->cart->get_shipping_tax(), 0.011, 'Cart shipping tax' );
+
+		$order = $this->classic_checkout_order();
+		$this->assertEqualsWithDelta( $expected, (float) $order->get_shipping_tax(), 0.011, 'Classic checkout shipping tax' );
+		$this->assertNotContains( $merchant, $this->shipping_line_rate_ids( $order ), 'Classic checkout' );
+
+		// Block checkout re-taxes the order it builds from the cart.
+		$order->calculate_totals();
+		$order = wc_get_order( $order->get_id() );
+		$this->assertEqualsWithDelta( $expected, (float) $order->get_shipping_tax(), 0.011, 'Block checkout shipping tax' );
+
+		$order = $this->admin_recalculate( $order, 'TX' );
+		$this->assertEqualsWithDelta( $expected, (float) $order->get_shipping_tax(), 0.011, 'Recalculate shipping tax' );
+		$this->assertEqualsWithDelta( 8.25, (float) $order->get_cart_tax(), 0.011, 'Recalculate item tax' );
+	}
+
+	/**
+	 * Two merchant rows with Shipping unticked, at the city's and the state's priority, keep
+	 * both off shipping. $10 shipping pays the county's 0% and the special 1% left: $0.10.
+	 */
+	public function test_merchant_local_rows_unticked_at_two_priorities_keep_both_off_shipping() {
+		update_option( 'woocommerce_shipping_tax_class', '' );
+		$this->merchant_local_rate( 'TX', '78664;78665', '', 0, 0, 1 );
+		$this->merchant_local_rate( 'TX', '78664;78665', '', 0, 0, 4 );
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->hook( $this->taxjar( 'TX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 0.10, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+
+		$order = $this->admin_recalculate( $this->classic_checkout_order(), 'TX' );
+		$this->assertEqualsWithDelta( 0.10, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
 	}
 
 	/**
