@@ -72,6 +72,7 @@ This plugin relies on the following external services:
 
 = 3.7.8 - 2026-xx-xx =
 * Fix   - Tax shipping at checkout and on Recalculate from what the tax service answered for that order. Shipping could be charged when the answer was that it is not taxable, or at the wrong rate, when a town's saved rates or your own tax rate for a list of ZIP codes, a ZIP code pattern such as 49* or a whole city said otherwise. For example, an order of only exempt clothing to Brooklyn paid tax on shipping after an earlier taxable order to the same town. A Shipping box ticked on a saved or manual tax rate no longer charges tax on shipping where the tax service says shipping isn't taxable. Shipping unticked on your own tax rate still keeps tax off shipping.
+* Fix   - Security update.
 
 = 3.7.7 - 2026-11-17 =
 * Add   - wc_services_cart_tax_lookup_timeout filter to change how long cart and checkout steps wait for a tax lookup.
