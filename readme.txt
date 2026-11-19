@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.8 - 2026-xx-xx =
+* Fix   - Security update.
 * Fix   - Stop adding $0 tax lines to orders and subscriptions for taxes that did not apply, such as "City Tax 0%" on a Michigan order or "State Tax 4%" with $0 on clothing under $110 in New York. Tax records showed a rate that was not charged. Tax amounts do not change, and orders placed before this update keep their tax lines.
 
 = 3.7.7 - 2026-11-17 =
