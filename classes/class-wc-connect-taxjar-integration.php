@@ -548,6 +548,7 @@ class WC_Connect_TaxJar_Integration {
 
 		// Calculate Taxes at Cart / Checkout
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
+			add_action( 'woocommerce_before_calculate_totals', Closure::fromCallable( array( $this, 'forget_answers_before_main_cart_total' ) ), PHP_INT_MIN );
 			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
 		} else {
 			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
@@ -1022,31 +1023,13 @@ class WC_Connect_TaxJar_Integration {
 		$is_main_cart = WC()->cart instanceof WC_Cart && WC()->cart === $wc_cart_object;
 
 		// Return if taxes could not be calculated: no tax applies, the lookup failed, or the
-		// address is incomplete. The cart is then taxed from the rate table. An answer an
-		// earlier total got stays here for the rest of the request, and the Store API batch
-		// route totals the cart once per change. So it is dropped, or this cart and its order
-		// would be taxed for that earlier address. A cart totalled inside the main cart's total
-		// leaves the main cart's answer alone.
+		// address is incomplete. The cart is then taxed from the rate table. WooCommerce has
+		// totalled the main cart with no answer held, see forget_answers_before_main_cart_total().
+		// A recurring cart Subscriptions totalled during that total can leave its own answer
+		// behind. It is dropped, or the order made from the main cart would be taxed with it.
 		if ( false === $taxes ) {
-			$is_nested = ! $is_main_cart && 0 < $this->main_cart_total_depth;
-			if ( $is_nested || ( empty( $this->response_rate_ids ) && empty( $this->response_line_items ) ) ) {
-				return;
-			}
-
-			$this->response_rate_ids       = null;
-			$this->response_line_items     = null;
-			$this->response_cart_item_keys = array();
-
-			// WooCommerce totalled this cart with the dropped answer before this hook ran.
-			if ( $is_main_cart ) {
-				++$this->main_cart_total_depth;
-			}
-			try {
-				$this->total_cart_again( $wc_cart_object );
-			} finally {
-				if ( $is_main_cart ) {
-					--$this->main_cart_total_depth;
-				}
+			if ( $is_main_cart && 0 === $this->main_cart_total_depth ) {
+				$this->forget_answers();
 			}
 			return;
 		}
@@ -1090,7 +1073,23 @@ class WC_Connect_TaxJar_Integration {
 				}
 			}
 
-			$this->total_cart_again( $wc_cart_object );
+			// Recalculate shipping package rates
+			foreach ( $wc_cart_object->get_shipping_packages() as $package_key => $package ) {
+				WC()->session->set( 'shipping_for_package_' . $package_key, null );
+			}
+
+			if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
+				do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
+				do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
+				new WC_Cart_Totals( $wc_cart_object );
+				remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+				do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
+				add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			} else {
+				remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+				$wc_cart_object->calculate_totals();
+				add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			}
 		} finally {
 			// Also when a callback throws, so the count and the answers stay right.
 			if ( $is_main_cart ) {
@@ -1103,31 +1102,32 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Total the cart again with the answers now held, without asking TaxJar again.
+	 * Drop the answers an earlier total got, before WooCommerce totals the main cart.
 	 *
-	 * WooCommerce has already totalled the cart when calculate_totals() runs, with the
-	 * answers held at that point.
+	 * The answers stay on this object for the rest of the request, and WooCommerce totals
+	 * the cart before calculate_totals() runs. The Store API batch route totals the cart
+	 * once per change, so without this a total for a new address or shipping method would
+	 * be taxed with the previous one's answer. Recurring carts Subscriptions totals inside
+	 * this total start with no answer too. When calculate_totals() totals the main cart
+	 * again with its new answers, they are kept.
 	 *
-	 * @param WC_Cart $wc_cart_object Cart.
+	 * Hooked to woocommerce_before_calculate_totals by init().
+	 *
+	 * @param WC_Cart $wc_cart_object The cart being totalled.
 	 */
-	private function total_cart_again( $wc_cart_object ) {
-		// Recalculate shipping package rates
-		foreach ( $wc_cart_object->get_shipping_packages() as $package_key => $package ) {
-			WC()->session->set( 'shipping_for_package_' . $package_key, null );
+	private function forget_answers_before_main_cart_total( $wc_cart_object ) {
+		if ( 0 === $this->main_cart_total_depth && WC()->cart instanceof WC_Cart && WC()->cart === $wc_cart_object ) {
+			$this->forget_answers();
 		}
+	}
 
-		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
-			do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
-			do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
-			new WC_Cart_Totals( $wc_cart_object );
-			remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-			do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
-			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-		} else {
-			remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-			$wc_cart_object->calculate_totals();
-			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-		}
+	/**
+	 * Drop the answers held from the last cart lookup.
+	 */
+	private function forget_answers() {
+		$this->response_rate_ids       = null;
+		$this->response_line_items     = null;
+		$this->response_cart_item_keys = array();
 	}
 
 	/**

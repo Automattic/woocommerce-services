@@ -71,7 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.8 - 2026-xx-xx =
-* Fix   - Stop showing the tax for the store's address after a customer switches from local pickup to shipping, when the checkout sends both changes at once, as some checkout plugins do. The cart showed that tax for an address it doesn't apply to, and the total differed from the order.
+* Fix   - Stop the cart showing tax for an earlier address or shipping method when the checkout sends several changes at once.
 * Fix   - Security update.
 
 = 3.7.7 - 2026-11-17 =

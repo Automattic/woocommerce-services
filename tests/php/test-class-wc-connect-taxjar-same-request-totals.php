@@ -44,6 +44,13 @@ class WP_Test_WC_Connect_TaxJar_Same_Request_Totals extends WC_Unit_Test_Case {
 	private $integration;
 
 	/**
+	 * The integration's woocommerce_before_calculate_totals callback, hooked as init() hooks it.
+	 *
+	 * @var Closure|null
+	 */
+	private $forget_answers_before_main_cart_total;
+
+	/**
 	 * $100 product in the cart.
 	 *
 	 * @var WC_Product|null
@@ -88,7 +95,9 @@ class WP_Test_WC_Connect_TaxJar_Same_Request_Totals extends WC_Unit_Test_Case {
 		$this->product->set_regular_price( 100 );
 		$this->product->save();
 
-		$this->integration = $this->new_integration();
+		$this->integration                           = $this->new_integration();
+		$this->forget_answers_before_main_cart_total = ( new ReflectionMethod( 'WC_Connect_TaxJar_Integration', 'forget_answers_before_main_cart_total' ) )->getClosure( $this->integration );
+		add_action( 'woocommerce_before_calculate_totals', $this->forget_answers_before_main_cart_total, PHP_INT_MIN );
 		add_action( 'woocommerce_after_calculate_totals', array( $this->integration, 'maybe_calculate_totals' ), 20 );
 		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this->integration, 'override_cart_item_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_calc_tax', array( $this->integration, 'override_woocommerce_tax_rates' ), 10, 3 );
@@ -101,6 +110,7 @@ class WP_Test_WC_Connect_TaxJar_Same_Request_Totals extends WC_Unit_Test_Case {
 	 * Undo set_up().
 	 */
 	public function tear_down() {
+		remove_action( 'woocommerce_before_calculate_totals', $this->forget_answers_before_main_cart_total, PHP_INT_MIN );
 		remove_action( 'woocommerce_after_calculate_totals', array( $this->integration, 'maybe_calculate_totals' ), 20 );
 		remove_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this->integration, 'override_cart_item_tax_rates' ), 10 );
 		remove_filter( 'woocommerce_calc_tax', array( $this->integration, 'override_woocommerce_tax_rates' ), 10 );
@@ -396,5 +406,76 @@ class WP_Test_WC_Connect_TaxJar_Same_Request_Totals extends WC_Unit_Test_Case {
 		$rates         = $this->integration->override_cart_item_tax_rates( array( 'table' => array() ), $item, WC()->cart );
 
 		$this->assertSame( array( 'table' => array() ), $rates, 'The main cart got the recurring cart\'s answer.' );
+	}
+
+	/**
+	 * Another cart totalled on its own, like a copy of the cart a plugin totals, whose
+	 * lookup fails, leaves the main cart's answer for the checkout order.
+	 */
+	public function test_failed_lookup_for_a_cart_totalled_on_its_own_keeps_the_main_cart_answer() {
+		$this->ship_to( 'TX', '78701', 'Austin' );
+		$cart_item_key = WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$this->choose_shipping( 'flat_rate' );
+		$this->assertEqualsWithDelta( 8.25, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Austin is answered.' );
+
+		$other_cart           = clone WC()->cart;
+		$this->taxjar_answers = false;
+		$other_cart->calculate_totals();
+
+		$item          = new stdClass();
+		$item->product = $this->product;
+		$item->key     = $cart_item_key;
+		$rates         = $this->integration->override_cart_item_tax_rates( array( 'table' => array() ), $item, WC()->cart );
+
+		$this->assertArrayNotHasKey( 'table', $rates, 'The main cart lost its answer.' );
+		$this->assertEqualsWithDelta( 8.25, array_sum( array_column( $rates, 'rate' ) ), 0.001, 'Main cart rates' );
+	}
+
+	/**
+	 * Subscriptions totals its recurring carts from the woocommerce_calculated_total filter,
+	 * at priority 1000. That runs inside WooCommerce's own total of the main cart, before
+	 * the integration's hook. A customer answered in Austin moves to New York in the same
+	 * request. Out of state, no tax applies: the main cart is $100 and $10 shipping with no
+	 * tax, and so is the recurring cart.
+	 */
+	public function test_out_of_state_address_after_an_answered_one_with_a_recurring_cart_totalled_inside_the_main_total() {
+		$recurring_cart = null;
+		$in_recurring   = false;
+		// Like WC_Subscriptions_Cart::calculate_subscription_totals(), which skips the recurring
+		// cart's own total.
+		$subscriptions = function ( $total ) use ( &$recurring_cart, &$in_recurring ) {
+			if ( $in_recurring ) {
+				return $total;
+			}
+			$in_recurring = true;
+			try {
+				$recurring_cart                     = clone WC()->cart;
+				$recurring_cart->recurring_cart_key = '2026_11_19_monthly';
+				$recurring_cart->calculate_totals();
+			} finally {
+				$in_recurring = false;
+			}
+
+			return $total;
+		};
+		add_filter( 'woocommerce_calculated_total', $subscriptions, 1000 );
+		try {
+			$this->ship_to( 'TX', '78701', 'Austin' );
+			WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+			$this->choose_shipping( 'flat_rate' );
+			$this->assertEqualsWithDelta( 8.25, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Austin is answered.' );
+
+			$this->ship_to( 'NY', '10118', 'New York' );
+			WC()->cart->calculate_totals();
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $subscriptions, 1000 );
+		}
+
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Main cart item tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Main cart shipping tax' );
+		$this->assertEqualsWithDelta( 110.0, (float) WC()->cart->get_total( 'edit' ), 0.001, 'Main cart total' );
+		$this->assertInstanceOf( WC_Cart::class, $recurring_cart, 'The recurring cart was totalled.' );
+		$this->assertEqualsWithDelta( 0.0, (float) $recurring_cart->get_cart_contents_tax(), 0.001, 'Recurring cart item tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) $recurring_cart->get_shipping_tax(), 0.001, 'Recurring cart shipping tax' );
 	}
 }
