@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.8 - 2026-xx-xx =
+* Fix   - Security update.
 * Tweak - WordPress 7.2 Compatibility.
 
 = 3.7.7 - 2026-11-17 =
