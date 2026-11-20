@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.8 - 2026-xx-xx =
+* Fix   - Stop the cart showing tax for an earlier address or shipping method when the checkout sends several changes at once.
 * Fix   - Security update.
 
 = 3.7.7 - 2026-11-17 =
