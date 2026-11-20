@@ -1,0 +1,60 @@
+# Copied from woocommerce/escargot-dev-environment tools/changelog-sweep/changelog-placement.yml
+# and .github/actions/changelog-check/action.yml at c8355f6ac5629d8f2d2f62d4a9641085abc411b3.
+# This repo is public, and GitHub shares actions from a private repo with private
+# repos only. So the scripts are vendored in .github/changelog-placement/ and the
+# action's run step is inlined below. To update the check, copy the three scripts
+# again from a newer commit and update the SHA in their headers and here.
+
+name: Changelog placement
+
+on:
+  # A release commit (woorelease dates the unreleased section) or any merge
+  # that touches the changelog: re-check every open PR that targets trunk.
+  push:
+    branches: [trunk]
+    paths: [changelog.txt, readme.txt]
+  # Changes to the PR itself: new commits, a title/body edit (the
+  # [changelog-amend] override), a label added or removed.
+  # pull_request_target runs this file as it is on trunk, never the PR's copy,
+  # and the job never checks out PR code - it reads the changelog through the API.
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, labeled, unlabeled, ready_for_review]
+  # Rollout: give every open PR a status.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  statuses: write
+
+concurrency:
+  group: changelog-placement-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # The scripts come from trunk, never from the PR head.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+          sparse-checkout: .github/changelog-placement
+          sparse-checkout-cone-mode: false
+
+      - name: Check changelog placement
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Inputs go through the environment, never into the script text.
+          CHECK_PR: ${{ github.event.pull_request.number }}
+        run: |
+          args=( --write --repo "$GITHUB_REPOSITORY" )
+          if [ -n "$CHECK_PR" ]; then
+            args+=( --pr "$CHECK_PR" )
+          else
+            args+=( --base "$GITHUB_REF_NAME" )
+          fi
+          node .github/changelog-placement/sweep.mjs "${args[@]}"
