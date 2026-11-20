@@ -12,6 +12,7 @@ import {
 	filter,
 	find,
 	flatten,
+	get,
 	includes,
 	isBoolean,
 	isEqual,
@@ -37,6 +38,7 @@ import {
 	getFirstErroneousStep,
 	getShippingLabel,
 	getFormErrors,
+	getSelectedRate,
 	shouldFulfillOrder,
 	shouldEmailDetails,
 	isCustomsFormRequired
@@ -346,6 +348,12 @@ export const getDefaultBoxSelection = ( orderId, siteId, getState ) => {
 
 /**
  * If no service has been selected for this package, then get the last used service.
+ *
+ * The last used service is only offered when the rates that were just retrieved still
+ * carry it. Carriers offer different services per destination, so the service from the
+ * previous label is often missing from, say, an international shipment's rates, and
+ * selecting it would leave the form pointing at a rate that cannot be purchased.
+ *
  * @param {Number} orderId order ID
  * @param {Number} siteId site ID
  * @param {Function} getState getState function
@@ -359,9 +367,26 @@ export const getDefaultServiceSelection = ( orderId, siteId, getState ) => {
 	const packageId = labelState.openedPackageId;
 	const pckg = selected[ packageId ];
 
-	if ( pckg && userMeta.last_service_id && userMeta.last_carrier_id ) {
-		return { packageId, serviceId: userMeta.last_service_id, carrierId: userMeta.last_carrier_id };
+	if ( ! pckg || ! userMeta.last_service_id || ! userMeta.last_carrier_id ) {
+		return;
 	}
+
+	const availableRates = get(
+		labelState.form.rates.available,
+		[ packageId, 'default', 'rates' ],
+		[]
+	);
+
+	if ( ! find(
+		availableRates,
+		rate =>
+			userMeta.last_service_id === rate.service_id &&
+			userMeta.last_carrier_id === rate.carrier_id
+	) ) {
+		return;
+	}
+
+	return { packageId, serviceId: userMeta.last_service_id, carrierId: userMeta.last_carrier_id };
 }
 
 export const openPrintingFlow = ( orderId, siteId ) => ( dispatch, getState ) => {
@@ -1164,28 +1189,48 @@ export const purchaseLabel = ( orderId, siteId ) => ( dispatch, getState ) => {
 			const customsItems = isCustomsFormRequired( getState(), orderId, siteId )
 				? form.customs.items
 				: null;
+			const packages = map( form.packages.selected, ( pckg, pckgId ) => {
+				const selectedRate = form.rates.values[ pckgId ];
+				const rate = getSelectedRate( form.rates.available, pckgId, selectedRate );
+				// The retrieved rates no longer carry the selected service, so there is
+				// nothing to buy for this package. Report it instead of sending a request
+				// that cannot succeed.
+				if ( ! rate ) {
+					return null;
+				}
+				const packageFields = convertToApiPackage( pckg, customsItems );
+				const packageData = {
+					...packageFields,
+					shipment_id: rate.shipment_id,
+					rate_id: rate.rate_id,
+					service_id: selectedRate.serviceId,
+					carrier_id: rate.carrier_id,
+					service_name: rate.title,
+					products: flatten(
+						pckg.items.map( item => fill( new Array( item.quantity ), item.product_id ) )
+					),
+				};
+				return packageData;
+			} );
+
+			if ( includes( packages, null ) ) {
+				dispatch(
+					NoticeActions.errorNotice(
+						translate(
+							'The shipping rate that was selected is no longer available. Please choose a rate and try again.'
+						)
+					)
+				);
+				dispatch( clearAvailableRates( orderId, siteId ) );
+				tryGetLabelRates( orderId, siteId, dispatch, getState );
+				return;
+			}
+
 			const formData = {
 				async: true,
 				origin: getAddressValues( form.origin ),
 				destination: getAddressValues( form.destination ),
-				packages: map( form.packages.selected, ( pckg, pckgId ) => {
-					const { serviceId, signatureRequired } = form.rates.values[ pckgId ];
-					const rateType = ( signatureRequired in form.rates.available[ pckgId ] ) ? signatureRequired : 'default';
-					const packageFields = convertToApiPackage( pckg, customsItems );
-					const rate = find( form.rates.available[ pckgId ][ rateType ].rates, r => serviceId === r.service_id );
-					const packageData = {
-						...packageFields,
-						shipment_id: rate.shipment_id,
-						rate_id: rate.rate_id,
-						service_id: serviceId,
-						carrier_id: rate.carrier_id,
-						service_name: rate.title,
-						products: flatten(
-							pckg.items.map( item => fill( new Array( item.quantity ), item.product_id ) )
-						),
-					};
-					return packageData;
-				} ),
+				packages,
 			};
 
 			//compatibility - only add the email_receipt if the plugin and the server support it
