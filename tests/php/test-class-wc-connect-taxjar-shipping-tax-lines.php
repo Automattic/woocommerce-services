@@ -262,6 +262,13 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 			array( 'woocommerce_matched_rates', 'allow_street_address_for_matched_rates', 10, 2 ),
 			array( 'woocommerce_cart_totals_get_item_tax_rates', 'override_cart_item_tax_rates', 10, 3 ),
 			array( 'woocommerce_order_item_after_calculate_taxes', 'override_order_item_taxes', 10, 2 ),
+			array( 'woocommerce_calc_shipping_tax', 'drop_untaxed_shipping_taxes', 10, 1 ),
+			array( 'woocommerce_order_item_shipping_after_calculate_taxes', 'drop_untaxed_order_shipping_taxes', 10, 1 ),
+			array( 'woocommerce_cart_totals_get_fees_from_cart_taxes', 'drop_untaxed_fee_taxes', 10, 1 ),
+			array( 'woocommerce_order_item_after_calculate_taxes', 'drop_untaxed_order_fee_taxes', 10, 1 ),
+			array( 'woocommerce_order_item_fee_after_calculate_taxes', 'drop_untaxed_order_fee_taxes', 10, 1 ),
+			array( 'woocommerce_order_after_calculate_totals', 'record_no_tax_charged', 20, 2 ),
+			array( 'woocommerce_checkout_create_order', 'record_no_tax_charged_at_checkout', 10, 1 ),
 			// Registered by some versions of the fix only.
 			array( 'woocommerce_order_item_shipping_after_calculate_taxes', 'override_order_shipping_taxes', 10, 1 ),
 			array( 'woocommerce_calc_shipping_tax', 'override_cart_shipping_taxes', 10, 2 ),
@@ -566,11 +573,11 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * Before any 0% row existed, a Michigan order already carried a $0 tax item for
-	 * each of TaxJar's 0% components (City, County, Special District): products are
-	 * taxed at every rate id TaxJar returned, and WooCommerce makes a tax item per id.
+	 * A Michigan order has a tax item for the state only. TaxJar answers City, County and
+	 * Special District at 0%, so nothing is taxed under them and the order has no tax
+	 * line saying they applied. A rate row is still written for each.
 	 */
-	public function test_michigan_orders_carry_zero_tax_items_for_taxjar_zero_rate_components() {
+	public function test_michigan_orders_have_no_tax_item_for_taxjar_zero_rate_components() {
 		$this->ship_to( self::$places['MI']['to'] );
 		$this->hook( $this->taxjar( 'MI' ) );
 
@@ -585,13 +592,108 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->assertSame(
 			array(
-				'MARQUETTE GWINN : City Tax'        => 0.0,
-				'MARQUETTE GWINN : County Tax'      => 0.0,
-				'MARQUETTE GWINN : Special Tax'     => 0.0,
 				'MARQUETTE GWINN : State Sales Tax' => 6.0,
 			),
 			$amounts
 		);
+	}
+
+	/**
+	 * Texas taxes shipping and answers County at 0%. Neither the product nor shipping
+	 * gets a County tax, so the order has no County tax line, at checkout or after
+	 * Recalculate.
+	 */
+	public function test_shipping_gets_no_tax_under_a_component_taxjar_answers_at_zero() {
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->hook( $this->taxjar( 'TX' ) );
+
+		$this->calculate_cart( array( $this->product() ) );
+		$this->assertEqualsWithDelta( 0.83, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+		$this->assertCount( 3, WC()->cart->get_shipping_taxes(), 'Cart shipping taxes: City, Special and State' );
+		$this->assertNotContains( 0.0, array_map( 'floatval', WC()->cart->get_shipping_taxes() ), 'No $0 shipping tax' );
+
+		// Block checkout builds a new order from the cart and totals it before it has an id.
+		$customer = WC()->customer;
+		$block    = new WC_Order();
+		$block->set_shipping_country( $customer->get_shipping_country() );
+		$block->set_shipping_state( $customer->get_shipping_state() );
+		$block->set_shipping_postcode( $customer->get_shipping_postcode() );
+		$block->set_shipping_city( $customer->get_shipping_city() );
+		WC()->checkout->create_order_line_items( $block, WC()->cart );
+		WC()->checkout->create_order_shipping_lines( $block, WC()->session->get( 'chosen_shipping_methods' ), WC()->shipping()->get_packages() );
+		$block->calculate_totals();
+		$this->assertSame( array( 'City Tax', 'Special Tax', 'State Sales Tax' ), self::tax_item_names( $block ), 'Block checkout' );
+		$this->assertEqualsWithDelta( 0.83, (float) $block->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
+
+		$order = $this->classic_checkout_order();
+		$this->assertSame( array( 'City Tax', 'Special Tax', 'State Sales Tax' ), self::tax_item_names( $order ), 'Classic checkout' );
+		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
+
+		$order = $this->admin_recalculate( $order, 'TX' );
+		$this->assertSame( array( 'City Tax', 'Special Tax', 'State Sales Tax' ), self::tax_item_names( $order ), 'Recalculate' );
+		$this->assertEqualsWithDelta( 0.83, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
+	}
+
+	/**
+	 * Texas answers County at 0%. A taxable $5 fee is taxed from the rate rows, as
+	 * shipping is, so it gets no County tax either: no County tax line at checkout
+	 * (block and classic) or after Recalculate. The fee's tax is 8.25%, as before.
+	 */
+	public function test_fee_gets_no_tax_under_a_component_taxjar_answers_at_zero() {
+		$this->ship_to( self::$places['TX']['to'] );
+		$this->hook( $this->taxjar( 'TX' ) );
+		$add_fee = static function ( $cart ) {
+			$cart->add_fee( 'Handling', 5, true );
+		};
+		add_action( 'woocommerce_cart_calculate_fees', $add_fee );
+
+		try {
+			$this->calculate_cart( array( $this->product() ) );
+			$fees = array_values( WC()->cart->get_fees() );
+			$this->assertCount( 1, $fees );
+			$this->assertEqualsWithDelta( 0.41, (float) $fees[0]->tax, 0.006, 'Cart fee tax' );
+			$this->assertCount( 3, $fees[0]->tax_data, 'Cart fee taxes: City, Special and State' );
+
+			// Block checkout builds a new order from the cart and totals it before it has an id.
+			$customer = WC()->customer;
+			$block    = new WC_Order();
+			$block->set_shipping_country( $customer->get_shipping_country() );
+			$block->set_shipping_state( $customer->get_shipping_state() );
+			$block->set_shipping_postcode( $customer->get_shipping_postcode() );
+			$block->set_shipping_city( $customer->get_shipping_city() );
+			WC()->checkout->create_order_line_items( $block, WC()->cart );
+			WC()->checkout->create_order_fee_lines( $block, WC()->cart );
+			WC()->checkout->create_order_shipping_lines( $block, WC()->session->get( 'chosen_shipping_methods' ), WC()->shipping()->get_packages() );
+			$block->calculate_totals();
+			$this->assertSame( array( 'City Tax', 'Special Tax', 'State Sales Tax' ), self::tax_item_names( $block ), 'Block checkout' );
+
+			$order = $this->classic_checkout_order();
+			$this->assertSame( array( 'City Tax', 'Special Tax', 'State Sales Tax' ), self::tax_item_names( $order ), 'Classic checkout' );
+		} finally {
+			remove_action( 'woocommerce_cart_calculate_fees', $add_fee );
+		}
+
+		$order = $this->admin_recalculate( $order, 'TX' );
+		$this->assertSame( array( 'City Tax', 'Special Tax', 'State Sales Tax' ), self::tax_item_names( $order ), 'Recalculate' );
+		$fee_taxes = array_values( $order->get_fees() )[0]->get_taxes()['total'];
+		$this->assertCount( 3, $fee_taxes, 'Fee taxes after Recalculate' );
+		$this->assertEqualsWithDelta( 0.41, array_sum( array_map( 'floatval', $fee_taxes ) ), 0.006, 'Fee tax after Recalculate' );
+	}
+
+	/**
+	 * The component names of an order's tax items, sorted.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return string[]
+	 */
+	private static function tax_item_names( $order ) {
+		$names = array();
+		foreach ( $order->get_taxes() as $tax ) {
+			$names[] = preg_replace( '/^.* : /', '', $tax->get_label() );
+		}
+		sort( $names );
+
+		return $names;
 	}
 
 	/**
@@ -760,7 +862,8 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 	/**
 	 * A merchant row at priority 1 is outranked by the City component, so nothing
-	 * is added beside it and the order is taxed as before.
+	 * is added beside it and the order is taxed as before. Its one tax item is the
+	 * state's: TaxJar answers the other three components at 0%.
 	 */
 	public function test_merchant_rate_at_priority_one_is_unchanged() {
 		$merchant = $this->merchant_state_rate( 'MI', 6, 1 );
@@ -775,7 +878,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$order = $this->classic_checkout_order();
 		$this->assertNotContains( $merchant, $this->tax_item_rate_ids( $order ) );
-		$this->assertCount( 4, $order->get_taxes() );
+		$this->assertCount( 1, $order->get_taxes() );
 	}
 
 	/**
