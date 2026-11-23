@@ -5962,9 +5962,10 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * The items and the tax no longer match, so every edit that changes something gets
 	 * a note that says what changed, the tax that was charged, and what to do next. A
-	 * plain re-save writes no note. Recalculate on an order that was charged no tax gets
-	 * a note even when nothing changed: the merchant pressed it to get tax, and the note
-	 * says how to charge it instead (see get_untaxed_locked_order_recalculate_note()).
+	 * plain re-save writes no note. Recalculate on an order that was charged no tax (see
+	 * snapshot_charged_no_tax()) gets a note even when nothing changed: the merchant
+	 * pressed it to get tax, and the note says how to charge it instead (see
+	 * get_untaxed_locked_order_recalculate_note()).
 	 *
 	 * @param WC_Order $order      The recalculated order.
 	 * @param array    $snapshot   Snapshot taken before the recalculation.
@@ -5994,15 +5995,28 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( $this->locked_order_edit_needs_note( $snapshot ) ) {
 			$this->add_order_tax_note( $order, $this->get_locked_order_tax_note( $order, $snapshot, $now ) );
-		} elseif ( empty( $snapshot['tax_lines'] ) && doing_action( 'wp_ajax_woocommerce_calc_line_taxes' ) ) {
+		} elseif ( $this->snapshot_charged_no_tax( $snapshot ) && doing_action( 'wp_ajax_woocommerce_calc_line_taxes' ) ) {
 			$this->add_order_tax_note( $order, $this->get_untaxed_locked_order_recalculate_note( $order ) );
 		}
 	}
 
 	/**
-	 * The note for Recalculate on a locked order that was charged no tax, when the edit
-	 * changed nothing else. The tax stays at $0: tax is never added to a paid order in
-	 * place. The note says how to charge it with a new order.
+	 * Whether the order in a snapshot was charged no tax: its total tax, items and
+	 * shipping, rounds to $0.00. That is an order with no tax lines, and also one whose
+	 * tax lines are all $0.00, such as an exempt order with a 0% rate.
+	 *
+	 * @param array $snapshot Snapshot returned by snapshot_order_taxes().
+	 * @return bool
+	 */
+	private function snapshot_charged_no_tax( array $snapshot ) {
+		return 0.0 === (float) wc_round_tax_total( (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'] );
+	}
+
+	/**
+	 * The note for Recalculate on a locked order that was charged no tax (see
+	 * snapshot_charged_no_tax()), when the edit changed nothing else. The tax stays at
+	 * $0: tax is never added to a paid order in place. The note says how to charge it
+	 * with a new order.
 	 *
 	 * @param WC_Order $order The order.
 	 * @return string

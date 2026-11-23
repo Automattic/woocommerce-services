@@ -3786,6 +3786,84 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Assert the order kept the tax on the items it was charged, no shipping tax, and its
+	 * one tax line, as create_paid_order_with_tax_line() made them.
+	 *
+	 * @param WC_Order $order        Order.
+	 * @param float    $cart_tax     Tax on the items.
+	 * @param float    $rate_percent Rate the tax line records.
+	 * @param float    $total        Expected order total.
+	 */
+	private function assert_tax_line_kept( WC_Order $order, $cart_tax, $rate_percent, $total ) {
+		$this->assertEqualsWithDelta( $cart_tax, (float) $order->get_cart_tax(), 0.00001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.00001, 'shipping tax' );
+		$this->assertEqualsWithDelta( $total, (float) $order->get_total(), 0.001, 'order total' );
+
+		$taxes = $order->get_taxes();
+		$this->assertCount( 1, $taxes, 'the tax line is kept' );
+		$line = reset( $taxes );
+		$this->assertEqualsWithDelta( $rate_percent, (float) $line->get_rate_percent(), 0.0001, 'at the rate it was sold at' );
+		$this->assertEqualsWithDelta( $cart_tax, (float) $line->get_tax_total(), 0.00001, 'tax line cart tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) $line->get_shipping_tax_total(), 0.00001, 'tax line shipping tax' );
+	}
+
+	/**
+	 * A paid order with one $10 line, $5 shipping and one tax line with the given tax, as
+	 * an exempt order with a $0.00 line at 0% has. The rate table gives 6% now, so a
+	 * recalculation that does not keep the tax adds it.
+	 *
+	 * @param string $cart_tax     Tax on the line.
+	 * @param string $shipping_tax Tax on shipping.
+	 * @param float  $rate_percent Rate the tax line records.
+	 * @return WC_Order
+	 */
+	private function create_paid_order_with_tax_line( $cart_tax, $shipping_tax, $rate_percent = 6.0 ) {
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+		$item_id = $order->add_product( $this->create_product( '10' ), 1 );
+		$order->get_item( $item_id, false )->set_taxes(
+			array(
+				'total'    => array( $this->rate_id => $cart_tax ),
+				'subtotal' => array( $this->rate_id => $cart_tax ),
+			)
+		);
+
+		$shipping = new WC_Order_Item_Shipping();
+		$shipping->set_method_title( 'Flat rate' );
+		$shipping->set_method_id( 'flat_rate' );
+		$shipping->set_total( '5' );
+		$shipping->set_taxes( array( 'total' => array( $this->rate_id => $shipping_tax ) ) );
+		$order->add_item( $shipping );
+
+		$tax_line = new WC_Order_Item_Tax();
+		$tax_line->set_rate_id( $this->rate_id );
+		$tax_line->set_rate_code( 'US-CO-CO TAX-1' );
+		$tax_line->set_label( 'CO Tax' );
+		$tax_line->set_rate_percent( $rate_percent );
+		$tax_line->set_compound( false );
+		$tax_line->set_tax_total( $cart_tax );
+		$tax_line->set_shipping_tax_total( $shipping_tax );
+		$order->add_item( $tax_line );
+
+		$order->set_shipping_total( '5' );
+		$order->set_cart_tax( $cart_tax );
+		$order->set_shipping_tax( $shipping_tax );
+		$order->set_total( 15 + (float) $cart_tax + (float) $shipping_tax );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+		$this->assertNotNull( $order->get_date_paid(), 'the order has a payment date' );
+
+		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+		update_option( 'woocommerce_store_postcode', '80202' );
+
+		return wc_get_order( $order->get_id() );
+	}
+
+	/**
 	 * A paid order with one $10 line and no tax at all, as an order made in the admin and
 	 * saved as Processing before Recalculate was pressed is.
 	 *
@@ -3990,6 +4068,95 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		// 30 + 5 + the $2.10 charged.
 		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
 		$this->assertSame( $notes, $this->tax_notes( $order ), 'no new note' );
+	}
+
+	/**
+	 * Tax lines whose tax is $0.00 as the order shows it, so the order was charged no tax.
+	 *
+	 * @return array<string, array{0: string, 1: float}> Tax on the items and the rate the tax line records.
+	 */
+	public function provide_zero_tax_lines() {
+		return array(
+			'all $0.00 at 0%'                        => array( '0', 0.0 ),
+			// Tax rounded at subtotal keeps the unrounded sum on the order: $0.07 at 6%.
+			'under half a cent, rounded at subtotal' => array( '0.0042', 6.0 ),
+		);
+	}
+
+	/**
+	 * @testdox A paid order whose tax lines come to $0.00 stays at no tax when Recalculate is pressed, with the note on how to charge it.
+	 * @dataProvider provide_zero_tax_lines
+	 *
+	 * @param string $cart_tax     Tax on the items.
+	 * @param float  $rate_percent Rate the tax line records.
+	 */
+	public function test_recalculate_keeps_paid_order_with_zero_tax_lines_at_no_tax( $cart_tax, $rate_percent ) {
+		$order = $this->press_recalculate( $this->create_paid_order_with_tax_line( $cart_tax, '0', $rate_percent ) );
+
+		// WooCommerce's 6% row would give $0.60 on the line and $0.30 on shipping.
+		$this->assert_tax_line_kept( $order, (float) $cart_tax, $rate_percent, 15.0 );
+		$this->assertSame( 0, $this->tax_service_requests, 'the tax service is not asked' );
+
+		$notes = array_map( array( self::class, 'note_text' ), $this->tax_notes( $order ) );
+		$this->assertCount( 1, $notes );
+		$this->assertStringStartsWith( "No tax was charged on this order. The tax stays at $0.00.\nChanged: ", $notes[0] );
+	}
+
+	/**
+	 * Tax lines whose tax is not $0.00, so the order was charged tax.
+	 *
+	 * @return array<string, array{0: string, 1: string}> Cart tax and shipping tax of the order.
+	 */
+	public function provide_charged_tax_lines() {
+		return array(
+			'one cent on the items'    => array( '0.01', '0' ),
+			'half a cent on the items' => array( '0.005', '0' ),
+			'tax on shipping only'     => array( '0', '0.3' ),
+		);
+	}
+
+	/**
+	 * @testdox Recalculate with no change on a paid order charged a little tax keeps it and writes no note.
+	 * @dataProvider provide_charged_tax_lines
+	 *
+	 * @param string $cart_tax     Tax on the items.
+	 * @param string $shipping_tax Tax on shipping.
+	 */
+	public function test_recalculate_without_change_keeps_small_charged_tax_without_note( $cart_tax, $shipping_tax ) {
+		$order = $this->press_recalculate( $this->create_paid_order_with_tax_line( $cart_tax, $shipping_tax ) );
+
+		// The order total is in whole cents.
+		$this->assert_order_tax( $order, (float) $cart_tax, (float) $shipping_tax, round( 15.0 + (float) $cart_tax + (float) $shipping_tax, 2 ) );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'no note' );
+	}
+
+	/**
+	 * @testdox Recalculate after a quantity change on a paid order whose tax lines are all $0.00 keeps no tax and writes only the edited-order note.
+	 */
+	public function test_recalculate_with_a_change_keeps_paid_order_with_zero_tax_lines_at_no_tax() {
+		$order   = $this->create_paid_order_with_tax_line( '0', '0', 0.0 );
+		$item_id = current( $order->get_items() )->get_id();
+
+		$order = $this->press_recalculate(
+			$order,
+			$this->order_screen_form(
+				$order,
+				array(
+					$item_id => array(
+						'qty'   => 2,
+						'total' => '20',
+					),
+				)
+			)
+		);
+
+		$this->assert_tax_line_kept( $order, 0.0, 0.0, 25.0 );
+		$this->assertSame( 0, $this->tax_service_requests, 'the tax service is not asked' );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'quantity changed from 1 to 2.', $notes[0] );
+		$this->assertStringContainsString( 'The tax stays at $0.00.', $notes[0] );
+		$this->assertCount( 1, $this->tax_notes( $order ), 'only that note' );
 	}
 
 	/**
