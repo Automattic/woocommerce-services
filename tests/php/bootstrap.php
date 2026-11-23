@@ -34,6 +34,34 @@ if ( ! file_exists( $wp_tests_dir . '/includes/functions.php' ) ) {
 	exit( 1 );
 }
 
+// Use this plugin's own wp-tests-config.php, written by tests/bin/run-tests.sh
+// with this plugin's DB_HOST. The copy in the shared WP test library is
+// rewritten by other plugins' setups, so a run that read it could connect to,
+// and wipe, another plugin's test database.
+if ( ! defined( 'WP_TESTS_CONFIG_FILE_PATH' ) ) {
+	$plugin_wp_tests_config = getenv( 'WP_TESTS_CONFIG_FILE_PATH' );
+	if ( $plugin_wp_tests_config && ! is_readable( $plugin_wp_tests_config ) ) {
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- CLI bootstrap error before WP loads; WP_Filesystem unavailable.
+		fwrite( STDERR, "WP_TESTS_CONFIG_FILE_PATH points to {$plugin_wp_tests_config}, which cannot be read. Run composer test." . PHP_EOL );
+		exit( 1 );
+	}
+	if ( ! $plugin_wp_tests_config ) {
+		// vendor/bin/phpunit run by hand: use the file the last `composer test` wrote.
+		$plugin_wp_tests_config = dirname( __DIR__ ) . '/.wp-tests-config.php';
+	}
+	if ( is_readable( $plugin_wp_tests_config ) ) {
+		define( 'WP_TESTS_CONFIG_FILE_PATH', $plugin_wp_tests_config );
+	} elseif ( ! getenv( 'CI' ) ) {
+		// Without this plugin's file, WordPress would load the shared one, which names
+		// whichever DB the last plugin to set it up used, and install the tables there.
+		// CI has one plugin per runner and sets up the shared file itself, so it may use it.
+		// phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_fwrite -- CLI bootstrap error before WP loads; WP_Filesystem unavailable.
+		fwrite( STDERR, "{$plugin_wp_tests_config} is missing. Run composer test once first: it sets up the test environment and writes this file, which vendor/bin/phpunit then uses." . PHP_EOL );
+		exit( 1 );
+	}
+	unset( $plugin_wp_tests_config );
+}
+
 // load test function so tests_add_filter() is available.
 require_once $wp_tests_dir . '/includes/functions.php';
 
