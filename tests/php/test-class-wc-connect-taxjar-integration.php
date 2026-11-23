@@ -7913,8 +7913,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 *
 	 * The convention is "append TaxJar's code as the final segment of the class
 	 * name". Expected codes come from that convention, not from either builder. The
-	 * three multi-word rows are the ones the order path used to drop, including two
-	 * that extend WooCommerce's own built-in class names.
+	 * rows with more than one word before the code are the ones the order path used
+	 * to drop, including two that extend WooCommerce's own built-in class names.
 	 *
 	 * @return array[] Tax class name, expected slug, expected product_tax_code.
 	 */
