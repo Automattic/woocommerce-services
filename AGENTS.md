@@ -65,13 +65,16 @@ npm run env:start && npm run test:e2e-playwright:local   # Playwright E2E (see b
   coordinates changes to them, so several plugins can run their suites at the same time.
   Each run writes this checkout's own `tests/.wp-tests-config.php` (gitignored), which the
   bootstrap loads through `WP_TESTS_CONFIG_FILE_PATH`, so a run never uses another
-  plugin's DB. `vendor/bin/phpunit` by hand uses the file the last `composer test` wrote.
+  plugin's DB. `vendor/bin/phpunit` by hand reads that file, but it uses the default trees.
+  After a pinned run, first export `WC_DEVELOP_DIR`, `WP_CORE_DIR` and `WP_TESTS_DIR` with
+  the `WC`, `WP` and `WP tests` paths `composer test` prints in its `==> Running PHPUnit`
+  line. In a checkout where `composer test` never ran, the file is missing and a hand run
+  stops and says so (outside CI, which uses the shared file).
 - To run a second checkout of this plugin at the same time, override the compose name and
   ports: `WC_TEST_COMPOSE_PROJECT=wcservices_test2 WC_TEST_DB_PORT=4417
   WC_TEST_ADMINER_PORT=8063 composer test`.
-- The WC clone builds with its own modern Node via the WC checkout's `.nvmrc`; this is
-  independent of the plugin's own pinned Node (`.nvmrc` = 24.21.0) and PHPUnit needs no
-  Node at all.
+- PHPUnit needs no Node. The installer does not build WooCommerce's JS, so the plugin's
+  pinned Node (`.nvmrc` = 24.21.0) does not matter for `composer test`.
 - By default the installer clones the **latest** WooCommerce release, whereas CI tests
   the 3 latest WC minors — so a local `composer test` can run against a different WC than
   the merge gate. To test a specific version, pin it: `WC_VERSION=9.4.0 composer test`
