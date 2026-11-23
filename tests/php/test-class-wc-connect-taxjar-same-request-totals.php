@@ -481,6 +481,10 @@ class WP_Test_WC_Connect_TaxJar_Same_Request_Totals extends WC_Unit_Test_Case {
 
 	/**
 	 * init() hooks the drop before WooCommerce totals the main cart.
+	 *
+	 * A failed lookup prices the cart again when a shipping answer is held (see
+	 * forget_shipping_answer()), which also takes the earlier answer off the lines. So
+	 * the drop shows in the number of totals: with nothing held, there is no second one.
 	 */
 	public function test_init_hooks_the_drop_before_the_main_cart_total() {
 		remove_action( 'woocommerce_before_calculate_totals', $this->forget_answers_before_main_cart_total, PHP_INT_MIN );
@@ -492,8 +496,10 @@ class WP_Test_WC_Connect_TaxJar_Same_Request_Totals extends WC_Unit_Test_Case {
 		$this->ship_to( 'NY', '10118', 'New York' );
 		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
 		$this->choose_shipping( 'local_pickup:1' );
+		$totals_before = did_action( 'woocommerce_before_calculate_totals' );
 		$this->choose_shipping( 'flat_rate' );
 
 		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
+		$this->assertSame( 1, did_action( 'woocommerce_before_calculate_totals' ) - $totals_before, 'The cart was totalled once.' );
 	}
 }
