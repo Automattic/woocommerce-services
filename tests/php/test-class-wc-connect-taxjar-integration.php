@@ -175,6 +175,65 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * init() no longer hooks the deprecated override_woocommerce_tax_rates() on
+	 * woocommerce_calc_tax, while it still registers the tax hooks next to it.
+	 */
+	public function test_init_does_not_hook_deprecated_calc_tax_override() {
+		update_option( WC_Connect_TaxJar_Integration::OPTION_NAME, 'yes' );
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		$this->integration->init();
+
+		// init() got as far as the tax calculation hooks.
+		$this->assertSame( 10, has_filter( 'woocommerce_matched_rates', array( $this->integration, 'allow_street_address_for_matched_rates' ) ) );
+		$this->assertSame( 10, has_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this->integration, 'override_cart_item_tax_rates' ) ) );
+		$this->assertFalse( has_filter( 'woocommerce_calc_tax', array( $this->integration, 'override_woocommerce_tax_rates' ) ) );
+
+		remove_all_filters( 'woocommerce_matched_rates' );
+		remove_all_filters( 'woocommerce_cart_totals_get_item_tax_rates' );
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		delete_option( WC_Connect_TaxJar_Integration::OPTION_NAME );
+	}
+
+	/**
+	 * Calling the deprecated override_woocommerce_tax_rates() raises a deprecation notice
+	 * and returns the taxes it was given, even when the old per-line match would apply.
+	 */
+	public function test_deprecated_calc_tax_override_returns_its_input() {
+		$this->setExpectedDeprecated( 'WC_Connect_TaxJar_Integration::override_woocommerce_tax_rates' );
+
+		// The one-id-per-line shape the old body matched on, with a line answer that
+		// differs from the calculated tax, so any override would show.
+		$set = function ( $name, $value ) {
+			$property = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $name );
+			$property->setAccessible( true );
+			$property->setValue( $this->integration, $value );
+		};
+		$set( 'response_rate_ids', array( 'line-0' => 7 ) );
+		$set(
+			'response_line_items',
+			array(
+				'line-0' => (object) array(
+					'line_total'      => 10,
+					'tax_collectable' => 9.99,
+				),
+			)
+		);
+
+		$taxes = array( 7 => wc_add_number_precision( 0.825 ) );
+		$rates = array(
+			7 => array(
+				'rate'     => 8.25,
+				'label'    => 'Tax',
+				'shipping' => 'yes',
+				'compound' => 'no',
+			),
+		);
+
+		$this->assertSame( $taxes, $this->integration->override_woocommerce_tax_rates( $taxes, wc_add_number_precision( 10 ), $rates ) );
+	}
+
+	/**
 	 * Whether any callback registered on a hook is a method of an instance of the given class.
 	 *
 	 * @param string $hook_name  Hook to inspect.
