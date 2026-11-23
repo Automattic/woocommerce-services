@@ -2849,6 +2849,55 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A line discounted to $0, alone in its tax class, that is still $0 after an edit gets no tax and no note.
+	 */
+	public function test_line_still_at_zero_after_an_edit_gets_no_note() {
+		$reduced = $this->create_product( '100' );
+		$reduced->set_tax_class( 'reduced-rate' );
+		$reduced->save();
+
+		$order = $this->rest_create(
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $this->create_product( '100' )->get_id(),
+						'quantity'   => 1,
+					),
+					array(
+						'product_id' => $reduced->get_id(),
+						'quantity'   => 1,
+						'subtotal'   => '100.00',
+						'total'      => '0.00',
+					),
+				),
+			)
+		);
+
+		$ids = array_keys( $order->get_items() );
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $ids[1],
+						'subtotal' => '200.00',
+						'total'    => '0.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assertSame( array(), $order->get_item( $ids[1] )->get_taxes()['total'], 'The line still at $0' );
+		// Boulder 8% on the $100 line and $10 shipping, as before the edit.
+		$this->assert_order_tax( $order, 8.00, 0.80, 118.80 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
 	 * @testdox Shipping added to an order TaxJar taxed none of asks TaxJar: its answer said nothing about shipping.
 	 */
 	public function test_shipping_added_to_an_order_taxjar_taxed_none_of_is_looked_up() {
