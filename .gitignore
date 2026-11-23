@@ -29,6 +29,9 @@ dist/
 tests/e2e-tests/screenshots
 .phpunit.result.cache
 
+# Per-checkout WP test config, written by tests/bin/run-tests.sh
+tests/.wp-tests-config.php
+
 # docker data for local development
 docker/data
 docker/wordpress
