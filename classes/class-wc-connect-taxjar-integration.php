@@ -7191,11 +7191,17 @@ class WC_Connect_TaxJar_Integration {
 			$response_line           = $lookup['response_lines'][ $line_id ] ?? null;
 			$line_rates[ $item_key ] = $this->get_looked_up_rates( $lookup['rate_ids'][ $line_id ], $response_line );
 
-			// A fee takes the first product's rates. Also when TaxJar taxed none of that
-			// product: the fee then gets no tax, as it got 0% before.
-			$answered_untaxed = is_object( $response_line ) && ! self::answer_taxes_line( $response_line );
-			if ( ! array_key_exists( $item->get_tax_class(), $rates_by_class ) && ( $line_rates[ $item_key ] || $answered_untaxed ) ) {
-				$rates_by_class[ $item->get_tax_class() ] = $line_rates[ $item_key ];
+			// A fee takes the first product's rates, at the percentages TaxJar answered for
+			// it, also when TaxJar taxed none of the product's amount, as for a line
+			// discounted to $0. A product TaxJar answered at 0% gives the fee no tax, as
+			// it got 0% before.
+			$fee_line = is_object( $response_line ) ? clone $response_line : null;
+			if ( $fee_line ) {
+				unset( $fee_line->taxable_amount );
+			}
+			$fee_rates = $this->get_looked_up_rates( $lookup['rate_ids'][ $line_id ], $fee_line );
+			if ( ! array_key_exists( $item->get_tax_class(), $rates_by_class ) && ( $fee_rates || ( $fee_line && ! self::answer_taxes_line( $fee_line ) ) ) ) {
+				$rates_by_class[ $item->get_tax_class() ] = $fee_rates;
 			}
 		}
 		$shipping_rates = empty( $lookup['rate_ids']['shipping'] ) ? array() : $this->get_looked_up_rates( $lookup['rate_ids']['shipping'] );

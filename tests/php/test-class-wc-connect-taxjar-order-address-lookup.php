@@ -2485,6 +2485,43 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A fee on a REST order whose first line is discounted to $0 is taxed at the rates TaxJar answered for that line, as before.
+	 */
+	public function test_fee_beside_a_first_line_discounted_to_zero_keeps_its_tax() {
+		$order = $this->rest_create(
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $this->create_product( '20' )->get_id(),
+						'quantity'   => 1,
+						'subtotal'   => '20.00',
+						'total'      => '0.00',
+					),
+					array(
+						'product_id' => $this->create_product( '10' )->get_id(),
+						'quantity'   => 1,
+					),
+				),
+				'fee_lines'  => array(
+					array(
+						'name'       => 'Gift wrap',
+						'total'      => '5.00',
+						'tax_status' => 'taxable',
+					),
+				),
+			)
+		);
+
+		$ids = array_keys( $order->get_items() );
+		$fee = array_values( $order->get_fees() )[0];
+		$this->assertSame( array(), $order->get_item( $ids[0] )->get_taxes()['total'], 'The line discounted to $0' );
+		$this->assertEqualsWithDelta( 0.40, array_sum( array_map( 'floatval', $fee->get_taxes()['total'] ) ), 0.001, 'The fee, at 8%' );
+		// Boulder 8% on the $10 line and the $5 fee, rounded per rate (state 0.435, city
+		// 0.765); shipping 0.80.
+		$this->assert_order_tax( $order, 1.21, 0.80, 27.01 );
+	}
+
+	/**
 	 * @testdox A REST line discounted to $0 gets no tax: TaxJar answers it at the full rate with nothing taxable.
 	 */
 	public function test_rest_line_discounted_to_zero_gets_no_tax() {
