@@ -2339,6 +2339,39 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A negative fee moved to another tax class and changed on an unpaid order is split again.
+	 */
+	public function test_negative_fee_moved_and_changed_is_split_again() {
+		$fixture = $this->create_placed_order_with_negative_fee();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'        => $fixture['fee'],
+						'tax_class' => 'reduced-rate',
+						'total'     => '-9.00',
+					),
+				),
+			)
+		);
+
+		// A is $10 of $30, R $20: -$3 of the fee at Standard's 6%, -$6 at Reduced rate's 2%.
+		$this->assertEqualsWithDelta(
+			array(
+				$this->rate_id              => -0.18,
+				$fixture['reduced_rate_id'] => -0.12,
+			),
+			$this->item_taxes_by_rate( $order, $fixture['fee'] ),
+			0.000001,
+			'the fee is split by the order\'s classes, not taxed in its new one'
+		);
+		$this->assertEqualsWithDelta( 0.70, (float) $order->get_cart_tax(), 0.001, 'cart tax: 0.60 + 0.40 - 0.18 - 0.12' );
+		$this->assertEqualsWithDelta( 21.70, (float) $order->get_total(), 0.001, 'order total: 10 + 20 - 9 + 0.70' );
+	}
+
+	/**
 	 * @testdox A negative fee changed to add to an unpaid order is taxed at its own class's rate only.
 	 */
 	public function test_negative_fee_made_positive_takes_only_its_class_rate() {
