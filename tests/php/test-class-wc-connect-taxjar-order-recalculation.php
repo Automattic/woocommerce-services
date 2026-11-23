@@ -2392,6 +2392,11 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		);
 		$this->assertEqualsWithDelta( 0.80, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
 		$this->assertTrue( $this->has_kept_tax_note( $order ) );
+
+		// The note's estimate splits the fee too: 0.60 + 0.40 - 0.20 - 0.13.
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Tax for the order as it is now: $0.67. Difference: -$0.13.', $notes[0] );
 	}
 
 	/**
