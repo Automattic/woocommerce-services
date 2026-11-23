@@ -114,6 +114,21 @@ class WC_Connect_TaxJar_Integration {
 	private $admin_recalculation_rate_ids = array();
 
 	/**
+	 * What the cart's lookup said about shipping, see get_shipping_answer().
+	 *
+	 * @var array{address: string[], rates: array}|null
+	 */
+	private $response_shipping_answer = null;
+
+	/**
+	 * What an admin recalculation's lookup said about shipping, by order id and then
+	 * shipping item id. Kept apart for the same reason as $admin_recalculation_rate_ids.
+	 *
+	 * @var array<int, array<int, array{address: string[], rates: array}>>
+	 */
+	private $admin_recalculation_shipping_answers = array();
+
+	/**
 	 * Tax snapshots captured before an out-of-cart recalculation, keyed by order id,
 	 * so they can be restored after WC recalculates the order totals.
 	 *
@@ -586,6 +601,8 @@ class WC_Connect_TaxJar_Integration {
 		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this, 'override_cart_item_tax_rates' ), 10, 3 );
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'remember_order_item_cart_item_key' ), 10, 2 );
 		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this, 'override_order_item_taxes' ), 10, 2 );
+		add_filter( 'woocommerce_calc_shipping_tax', array( $this, 'override_cart_shipping_taxes' ), 10, 2 );
+		add_action( 'woocommerce_order_item_shipping_after_calculate_taxes', array( $this, 'override_order_shipping_taxes' ), 10, 2 );
 
 		add_filter( 'woocommerce_rate_label', array( $this, 'cleanup_tax_label' ) );
 		add_filter( 'woocommerce_cart_tax_totals', array( $this, 'aggregate_tax_totals' ), 10, 2 );
@@ -1017,6 +1034,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 		// Return if taxes could not be calculated.
 		if ( false === $taxes ) {
+			$this->forget_shipping_answer( $wc_cart_object );
 			return;
 		}
 
@@ -1027,7 +1045,7 @@ class WC_Connect_TaxJar_Integration {
 		$is_main_cart      = WC()->cart instanceof WC_Cart && WC()->cart === $wc_cart_object;
 		$main_cart_answers = null;
 		if ( ! $is_main_cart && 0 < $this->main_cart_total_depth ) {
-			$main_cart_answers = array( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys );
+			$main_cart_answers = array( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys, $this->response_shipping_answer );
 		}
 		if ( $is_main_cart ) {
 			++$this->main_cart_total_depth;
@@ -1037,6 +1055,8 @@ class WC_Connect_TaxJar_Integration {
 			$this->response_rate_ids       = $taxes['rate_ids'];
 			$this->response_line_items     = $taxes['line_items'];
 			$this->response_cart_item_keys = wp_list_pluck( $line_items, 'id' );
+
+			$this->response_shipping_answer = $taxes['shipping_answer'] ?? null;
 
 			if ( isset( $this->response_line_items ) ) {
 				foreach ( $this->response_line_items as $response_line_item_key => $response_line_item ) {
@@ -1064,30 +1084,89 @@ class WC_Connect_TaxJar_Integration {
 				}
 			}
 
-			// Recalculate shipping package rates
-			foreach ( $wc_cart_object->get_shipping_packages() as $package_key => $package ) {
-				WC()->session->set( 'shipping_for_package_' . $package_key, null );
-			}
-
-			if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
-				do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
-				do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
-				new WC_Cart_Totals( $wc_cart_object );
-				remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-				do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
-				add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-			} else {
-				remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-				$wc_cart_object->calculate_totals();
-				add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
-			}
+			$this->calculate_cart_totals_again( $wc_cart_object );
 		} finally {
 			// Also when a callback throws, so the count and the answers stay right.
 			if ( $is_main_cart ) {
 				--$this->main_cart_total_depth;
 			}
 			if ( null !== $main_cart_answers ) {
-				list( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys ) = $main_cart_answers;
+				list( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys, $this->response_shipping_answer ) = $main_cart_answers;
+			}
+		}
+	}
+
+	/**
+	 * Total a cart again after its lookup, without looking it up again.
+	 *
+	 * The shipping packages are cleared, so shipping is priced again too.
+	 *
+	 * @param WC_Cart $wc_cart_object The cart.
+	 */
+	private function calculate_cart_totals_again( $wc_cart_object ) {
+		// Recalculate shipping package rates
+		foreach ( $wc_cart_object->get_shipping_packages() as $package_key => $package ) {
+			WC()->session->set( 'shipping_for_package_' . $package_key, null );
+		}
+
+		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
+			do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
+			do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
+			new WC_Cart_Totals( $wc_cart_object );
+			remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
+			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+		} else {
+			remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			$wc_cart_object->calculate_totals();
+			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+		}
+	}
+
+	/**
+	 * Drop the shipping answer after a failed lookup, and price shipping again without it.
+	 *
+	 * WooCommerce prices shipping before the lookup runs, so a cart totalled again in the
+	 * same request, such as after its contents changed, has just priced shipping from the
+	 * earlier answer. With no answer, the saved rates decide, as they do when the first
+	 * lookup fails.
+	 *
+	 * The cart is totalled again with no answer for its lines either, so only its shipping
+	 * changes. The answers held can be another cart's: Subscriptions totals each recurring
+	 * cart inside the main cart's total, after the main cart's lines were taxed, and the
+	 * recurring cart shares its item keys. The line answers are put back afterwards.
+	 *
+	 * Another cart totalled during the main cart's total gives the main cart's answer back,
+	 * as it does after a lookup that answered.
+	 *
+	 * @param WC_Cart $wc_cart_object The cart whose lookup failed.
+	 */
+	private function forget_shipping_answer( $wc_cart_object ) {
+		if ( null === $this->response_shipping_answer ) {
+			return;
+		}
+
+		$is_main_cart     = WC()->cart instanceof WC_Cart && WC()->cart === $wc_cart_object;
+		$main_cart_answer = ! $is_main_cart && 0 < $this->main_cart_total_depth ? $this->response_shipping_answer : null;
+		$line_answers     = array( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys );
+
+		$this->response_shipping_answer = null;
+		$this->response_rate_ids        = null;
+		$this->response_line_items      = null;
+		$this->response_cart_item_keys  = array();
+		if ( $is_main_cart ) {
+			++$this->main_cart_total_depth;
+		}
+
+		try {
+			$this->calculate_cart_totals_again( $wc_cart_object );
+		} finally {
+			if ( $is_main_cart ) {
+				--$this->main_cart_total_depth;
+			}
+			list( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys ) = $line_answers;
+			if ( null !== $main_cart_answer ) {
+				$this->response_shipping_answer = $main_cart_answer;
 			}
 		}
 	}
@@ -1156,6 +1235,14 @@ class WC_Connect_TaxJar_Integration {
 						'line'     => $taxes['line_items'][ $line_item['id'] ] ?? null,
 					);
 				}
+			}
+		}
+
+		// WooCommerce taxes shipping from the rate table too; see get_shipping_answer().
+		$this->admin_recalculation_shipping_answers[ (int) $order_id ] = array();
+		if ( is_array( $taxes ) && is_array( $taxes['shipping_answer'] ?? null ) ) {
+			foreach ( $order->get_shipping_methods() as $item_id => $item ) {
+				$this->admin_recalculation_shipping_answers[ (int) $order_id ][ (int) $item_id ] = $taxes['shipping_answer'];
 			}
 		}
 
@@ -1319,9 +1406,13 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	protected function calculate_taxes_by_location( $items_by_location, $shipping_amount ) {
 		$merged_taxes = array(
-			'rate_ids'   => array(),
-			'line_items' => array(),
+			'rate_ids'        => array(),
+			'line_items'      => array(),
+			'shipping_answer' => null,
 		);
+
+		// The items that travel with the shipping are the ones its tax depends on.
+		$shipping_location = $this->is_local_pickup() ? 'base' : get_option( 'woocommerce_tax_based_on', 'shipping' );
 
 		foreach ( $items_by_location as $location_type => $items ) {
 			$address = $this->get_address( $location_type );
@@ -1352,6 +1443,10 @@ class WC_Connect_TaxJar_Integration {
 			// array_merge() would be incorrect as it re-indexes numeric keys.
 			$merged_taxes['rate_ids']   += $taxes['rate_ids'];
 			$merged_taxes['line_items'] += $taxes['line_items'];
+
+			if ( $location_type === $shipping_location ) {
+				$merged_taxes['shipping_answer'] = $taxes['shipping_answer'] ?? null;
+			}
 		}
 
 		// If no group produced any taxes (e.g. all groups were cross-state), return false
@@ -2028,6 +2123,91 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$this->set_order_item_taxes_from_rate_ids( $item, $matching_rate_ids, $matching_line );
+	}
+
+	/**
+	 * Tax a shipping rate from what the cart's lookup said about shipping.
+	 *
+	 * Runs for every method offered, at its own price, on the pass after the lookup:
+	 * calculate_totals() clears the saved package rates so they are worked out again.
+	 *
+	 * @internal Hooked to woocommerce_calc_shipping_tax.
+	 *
+	 * @param mixed $taxes Taxes WooCommerce worked out from the rate table.
+	 * @param mixed $price Price of the shipping rate.
+	 * @return mixed
+	 */
+	public function override_cart_shipping_taxes( $taxes, $price ) {
+		$answer = $this->response_shipping_answer;
+
+		if ( ! is_array( $answer ) || ! is_numeric( $price ) || ! $this->is_shipping_answer_for_address( $answer, Address::from_taxable_tuple( WC_Tax::get_tax_location() ) ) ) {
+			return $taxes;
+		}
+
+		/**
+		 * Filters whether shipping prices include tax. A WooCommerce core filter, applied
+		 * here as WC_Tax::calc_shipping_tax() applies it.
+		 *
+		 * @since 3.7.8 Applied by this plugin.
+		 *
+		 * @param bool $shipping_prices_include_tax Whether they do. Default false.
+		 */
+		if ( wc_string_to_bool( apply_filters( 'woocommerce_shipping_prices_include_tax', false ) ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
+			return WC_Tax::calc_inclusive_tax( (float) $price, $answer['rates'] );
+		}
+
+		return WC_Tax::calc_exclusive_tax( (float) $price, $answer['rates'] );
+	}
+
+	/**
+	 * Tax an order's shipping line from what a lookup said about shipping.
+	 *
+	 * @internal Hooked to woocommerce_order_item_shipping_after_calculate_taxes.
+	 *
+	 * @param WC_Order_Item_Shipping $item              The shipping line.
+	 * @param array                  $calculate_tax_for Address and tax class WooCommerce taxed it for.
+	 */
+	public function override_order_shipping_taxes( $item, $calculate_tax_for = array() ) {
+		if ( ! ( $item instanceof WC_Order_Item_Shipping ) || 'taxable' !== $item->get_tax_status() ) {
+			return;
+		}
+
+		$order_id = (int) $item->get_order_id();
+		$item_id  = (int) $item->get_id();
+		$answer   = $this->admin_recalculation_shipping_answers[ $order_id ][ $item_id ] ?? null;
+
+		if ( null !== $answer ) {
+			// It applies to the recalculation it was looked up for, not to a later one.
+			unset( $this->admin_recalculation_shipping_answers[ $order_id ][ $item_id ] );
+		} else {
+			$answer = $this->response_shipping_answer;
+
+			// An order going elsewhere than the cart, created in the same request.
+			$address = is_array( $calculate_tax_for ) ? Address::from_taxable_tuple( array( $calculate_tax_for['country'] ?? '', $calculate_tax_for['state'] ?? '', $calculate_tax_for['postcode'] ?? '', $calculate_tax_for['city'] ?? '' ) ) : Address::empty();
+			if ( ! is_array( $answer ) || ! $this->is_shipping_answer_for_address( $answer, $address ) ) {
+				return;
+			}
+		}
+
+		$item->set_taxes( $answer['rates'] ? array( 'total' => WC_Tax::calc_tax( $item->get_total(), $answer['rates'], false ) ) : false );
+	}
+
+	/**
+	 * Whether a shipping answer is about the address WooCommerce is taxing.
+	 *
+	 * It can be taxing another one: a plugin shipping a cart's packages to several
+	 * addresses moves the customer for each of them.
+	 *
+	 * Case doesn't count, as in the rate table. For local pickup the cart is answered for
+	 * the store with its city upper-cased, while the order is taxed at the store's city as
+	 * entered in the settings.
+	 *
+	 * @param array   $answer  A shipping answer, see get_shipping_answer().
+	 * @param Address $address The address being taxed.
+	 * @return bool
+	 */
+	private function is_shipping_answer_for_address( array $answer, Address $address ) {
+		return Address::from_taxable_tuple( $answer['address'] )->jurisdiction_key() === $address->jurisdiction_key();
 	}
 
 	/**
@@ -2823,9 +3003,144 @@ class WC_Connect_TaxJar_Integration {
 					$this->shadow_unscoped_rates_above_components( $location, (string) $tax_class, $class_written['priorities'], $jurisdictions );
 				}
 			}
+
+			$taxes['shipping_answer'] = $this->get_shipping_answer( $taxes, $location, $taxjar_taxes->breakdown->shipping ?? null );
 		}
 
 		return $taxes;
+	}
+
+	/**
+	 * What a lookup says about the tax on shipping, for the order it was asked about.
+	 *
+	 * WooCommerce always taxes shipping from the rate table, which cannot say this. Whether
+	 * shipping is taxed can depend on what is in the cart: TaxJar taxes shipping to Brooklyn
+	 * with a standard item, and not with only exempt clothing. The table holds one row per
+	 * town and tax class, kept from whichever order wrote it. And a merchant's row limited
+	 * to a ZIP list, a wildcard or a city can outrank the row for the town, so its rate and
+	 * Shipping setting would apply to an address TaxJar has answered for.
+	 *
+	 * The answer is the rates to tax shipping at, none when shipping is not taxed. Their
+	 * percentages are TaxJar's for shipping, not what the shared row holds. The rate table
+	 * is left as it is, so everything that reads it without a lookup still gets what it
+	 * did. A lookup that decides nothing about shipping gives null, and WooCommerce's result
+	 * from the table stands:
+	 *
+	 * - A merchant's own shipping tax class, whose rows the merchant chose.
+	 * - A taxable answer without a shipping breakdown, which has no rates to use.
+	 * - Florida's rule, see is_florida_shipping_tax_required(): TaxJar says not taxable, and
+	 *   the rows are what charges it.
+	 *
+	 * Shipping unticked keeps that rate off shipping, on a town's own row and on a merchant's
+	 * row the table would use instead of one of ours at its priority (see
+	 * get_priorities_unticked_for_shipping()). The other rates TaxJar answered for shipping
+	 * are still charged. A tick where TaxJar does not tax shipping can't be honored, since
+	 * it can't be told from the row a taxable order left behind. So a merchant can switch
+	 * shipping tax off for a rate, but not on.
+	 *
+	 * @param array       $taxes         The lookup's result, with the rows it wrote.
+	 * @param array       $location      Location in the `to_*` shape, as written.
+	 * @param object|null $shipping_line The answer's breakdown line for shipping.
+	 * @return array{address: string[], rates: array}|null
+	 */
+	private function get_shipping_answer( array $taxes, array $location, $shipping_line = null ) {
+		if ( ! in_array( (string) get_option( 'woocommerce_shipping_tax_class' ), array( '', 'inherit' ), true ) ) {
+			return null;
+		}
+
+		$rates = array();
+		if ( $taxes['freight_taxable'] ) {
+			if ( empty( $taxes['rate_ids']['shipping'] ) ) {
+				return null;
+			}
+
+			$unticked = $this->get_priorities_unticked_for_shipping( $location );
+			foreach ( $this->get_looked_up_rates( $taxes['rate_ids']['shipping'], $shipping_line ) as $rate_id => $rate ) {
+				$row = WC_Tax::_get_tax_rate( $rate_id );
+				if ( ! empty( $row['tax_rate_shipping'] ) && ! in_array( (int) $row['tax_rate_priority'], $unticked, true ) ) {
+					$rates[ $rate_id ] = $rate;
+				}
+			}
+		} elseif ( $this->is_florida_shipping_tax_required( $location ) ) {
+			return null;
+		}
+
+		$address = $this->get_rate_table_address( $location, false );
+
+		return array(
+			'address' => array( $address->country(), $address->state(), $address->postcode(), $address->city() ),
+			'rates'   => $rates,
+		);
+	}
+
+	/**
+	 * Priorities at which the rate table, for the address looked up, uses a row with
+	 * Shipping unticked.
+	 *
+	 * The table uses one row per priority. A merchant's row limited to a ZIP list, a
+	 * wildcard or a city outranks the town's own row at its priority, so on its own the
+	 * table charges no shipping tax at that priority when the merchant unticked it. No
+	 * lookup writes or changes those rows, so the untick is the merchant's choice. Shipping
+	 * then pays nothing at that priority, as the merchant's Shipping setting says, and
+	 * TaxJar's rates at the other priorities, as when one of the town's own rows is
+	 * unticked.
+	 *
+	 * A row at a priority the lookup did not write, such as a local tax the merchant adds
+	 * on top, takes no rate of ours, so it doesn't change what TaxJar's answer charges. A
+	 * state-wide row and the 0% rows a lookup adds never outrank the town's own row.
+	 *
+	 * @param array $location Location in the `to_*` shape, as written.
+	 * @return int[]
+	 */
+	private function get_priorities_unticked_for_shipping( array $location ) {
+		$address = $this->get_rate_table_address( $location, false );
+		$matched = WC_Tax::find_rates( $address->to_find_rates_args( '' ) );
+
+		$unticked = array();
+		foreach ( is_array( $matched ) ? $matched : array() as $rate_id => $rate ) {
+			if ( 'yes' === ( $rate['shipping'] ?? 'yes' ) ) {
+				continue;
+			}
+
+			$row = WC_Tax::_get_tax_rate( $rate_id );
+			if ( $row ) {
+				$unticked[] = (int) $row['tax_rate_priority'];
+			}
+		}
+
+		return $unticked;
+	}
+
+	/**
+	 * Whether shipping is taxed in Florida although TaxJar says it is not.
+	 *
+	 * @see https://github.com/Automattic/woocommerce-services/issues/2531
+	 * @see https://floridarevenue.com/faq/Pages/FAQDetails.aspx?FAQID=1277&IsDlg=1
+	 *
+	 * According to the Florida Department of Revenue, sales tax must be charged on
+	 * shipping costs if the customer does not have an option to avoid paying the
+	 * merchant for shipping costs by either picking up the merchandise themselves
+	 * or arranging for a third party to pick up the merchandise and deliver it to
+	 * them.
+	 *
+	 * Normally TaxJar enables taxes on shipping by default for Florida to
+	 * Florida shipping, but because WooCommerce uses a single account, a nexus
+	 * cannot be added for Florida (or any state) which means the shipping tax
+	 * is not enabled. So, we will enable it here by default and give merchants
+	 * the option to disable it if needed via filter.
+	 *
+	 * @param array $location Location in the `to_*` shape, with `from_state`.
+	 * @return bool
+	 */
+	private function is_florida_shipping_tax_required( $location ) {
+		/**
+		 * Filters whether shipping is taxed from Florida to Florida.
+		 *
+		 * @since 1.26.0
+		 *
+		 * @param bool $enabled Whether it is. Default true.
+		 */
+		return true === apply_filters( 'woocommerce_taxjar_enable_florida_shipping_tax', true ) && 'US' === $location['to_country'] && 'FL' === $location['from_state'] && 'FL' === $location['to_state'];
 	}
 
 	/**
@@ -2960,25 +3275,7 @@ class WC_Connect_TaxJar_Integration {
 		 */
 		$address = $this->get_rate_table_address( $location, 'VAT' === $tax_rate_name );
 
-		/**
-		 * @see https://github.com/Automattic/woocommerce-services/issues/2531
-		 * @see https://floridarevenue.com/faq/Pages/FAQDetails.aspx?FAQID=1277&IsDlg=1
-		 *
-		 * According to the Florida Department of Revenue, sales tax must be charged on
-		 * shipping costs if the customer does not have an option to avoid paying the
-		 * merchant for shipping costs by either picking up the merchandise themselves
-		 * or arranging for a third party to pick up the merchandise and deliver it to
-		 * them.
-		 *
-		 * Normally TaxJar enables taxes on shipping by default for Florida to
-		 * Florida shipping, but because WooCommerce uses a single account, a nexus
-		 * cannot be added for Florida (or any state) which means the shipping tax
-		 * is not enabled. So, we will enable it here by default and give merchants
-		 * the option to disable it if needed via filter.
-		 *
-		 * @since 1.26.0
-		 */
-		if ( true === apply_filters( 'woocommerce_taxjar_enable_florida_shipping_tax', true ) && 'US' === $location['to_country'] && 'FL' === $location['from_state'] && 'FL' === $location['to_state'] ) {
+		if ( $this->is_florida_shipping_tax_required( $location ) ) {
 			$freight_taxable = 1;
 		}
 
@@ -3447,8 +3744,8 @@ class WC_Connect_TaxJar_Integration {
 	 * The row is not marked for shipping, and it still keeps the merchant's row off
 	 * shipping: `WC_Tax::find_shipping_rates()` picks one row per priority first and
 	 * only then drops the rows not marked for shipping. Marked for shipping, it would
-	 * put a $0 tax line on every order that ships to the address, since checkout,
-	 * order creation and Recalculate all tax shipping from the table.
+	 * put a $0 tax line on every order that ships to the address and taxes shipping from
+	 * the table: a REST or POS order, or checkout when TaxJar does not answer.
 	 *
 	 * Only rows with no postcode or city are covered; a merchant's own local rows are
 	 * left as they are. Nothing is added for VAT rows, which are country-wide, or for
