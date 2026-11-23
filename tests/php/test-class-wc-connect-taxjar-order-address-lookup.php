@@ -2648,6 +2648,57 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A line TaxJar answered at $0 beside a taxed line, set back to $100, is taxed at the rates of the taxed line, with a note.
+	 */
+	public function test_line_answered_at_zero_beside_a_taxed_line_and_set_back_takes_its_class_rates() {
+		$order = $this->rest_create(
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $this->create_product( '100' )->get_id(),
+						'quantity'   => 1,
+					),
+					// As at a checkout with a 100% coupon on this line: TaxJar answers it at $0.
+					array(
+						'product_id' => $this->create_product( '100' )->get_id(),
+						'quantity'   => 1,
+						'subtotal'   => '100.00',
+						'total'      => '0.00',
+					),
+				),
+			)
+		);
+
+		$ids = array_keys( $order->get_items() );
+		$this->assertSame( array(), $order->get_item( $ids[1] )->get_taxes()['total'], 'The $0 line has no tax' );
+		// Boulder 8%: $100 8.00, $10 shipping 0.80.
+		$this->assert_order_tax( $order, 8.00, 0.80, 118.80 );
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $ids[1],
+						'subtotal' => '100.00',
+						'total'    => '100.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests, 'The rates already on the order are used' );
+		// 8% of each $100 line, and of $10 shipping.
+		$this->assert_order_tax( $order, 16.00, 0.80, 226.80 );
+		$this->assertEqualsWithDelta( 8.00, $this->item_tax( $order, $ids[1] ), 0.001, 'The line set back' );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Tax updated from', $notes[0] );
+	}
+
+	/**
 	 * @testdox Shipping added to an order TaxJar taxed none of asks TaxJar: its answer said nothing about shipping.
 	 */
 	public function test_shipping_added_to_an_order_taxjar_taxed_none_of_is_looked_up() {

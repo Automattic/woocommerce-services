@@ -2231,6 +2231,14 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		// A line with no price is not sent to TaxJar (see get_backend_line_items()), so the
+		// order's lookup has no answer for it. Its tax is $0 at any rate: it gets none,
+		// instead of a $0 tax under each rate row WooCommerce found.
+		if ( $item instanceof \WC_Order_Item_Product && isset( $this->orders_answered_in_request[ (int) $item->get_order_id() ] ) && 0.0 === (float) $item->get_subtotal() && 0.0 === (float) $item->get_total() ) {
+			$item->set_taxes( false );
+			return;
+		}
+
 		// Only act on TaxJar's answers from this request. A cart whose every line was answered
 		// as exempt has answers but no rate ids, and must not be taxed from the rows below.
 		if ( ! is_array( $this->response_rate_ids ) || ( empty( $this->response_rate_ids ) && empty( $this->response_line_items ) ) ) {
@@ -5810,6 +5818,12 @@ class WC_Connect_TaxJar_Integration {
 			$is_known    = in_array( (int) $item_id, $known_ids, true );
 			// Whether the rates it was charged at still apply: not after its class or status changed.
 			$is_rated = $is_known && ! isset( $reclassed[ (int) $item_id ] );
+
+			// A line that was $0 after its discounts was charged no tax at any rate, which
+			// says nothing about its rates. Given an amount, it is taxed as a new line is.
+			if ( $is_rated && $item instanceof \WC_Order_Item_Product && empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
+				$is_rated = 0.0 !== (float) $this->get_order_item_saved_base( $item )['total'];
+			}
 
 			if ( $is_known && ! in_array( (int) $item_id, $changed_ids, true ) ) {
 				if ( isset( $snapshot['item_taxes'][ $key ] ) ) {

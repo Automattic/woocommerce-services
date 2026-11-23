@@ -688,6 +688,48 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A line set to $0 on the order screen, then Recalculate: it is not sent to TaxJar,
+	 * because it has no price, and gets no tax. WooCommerce would tax it from the rate
+	 * rows at $0 each, which adds a City, County and Special Tax line at $0. Set back to
+	 * $100, it pays Michigan's 6% again.
+	 *
+	 * @testWith [1]
+	 *           [2]
+	 *
+	 * @param int $lines How many $100 lines the order has; the last one is set to $0.
+	 */
+	public function test_line_set_to_zero_on_the_order_screen_gets_no_zero_tax_lines( $lines ) {
+		$this->ship_to( self::$places['MI']['to'] );
+		$this->hook( $this->taxjar( 'MI' ) );
+
+		$this->calculate_cart( 2 === $lines ? array( $this->product(), $this->product() ) : array( $this->product() ) );
+		$order = $this->classic_checkout_order();
+		$items = array_values( $order->get_items() );
+		$item  = $items[ $lines - 1 ];
+
+		// The order screen saves the line's new cost before Recalculate.
+		$item->set_subtotal( 0 );
+		$item->set_total( 0 );
+		$item->save();
+		$order = $this->admin_recalculate( wc_get_order( $order->get_id() ), 'MI' );
+
+		$this->assertSame( 2 === $lines ? array( 'State Sales Tax' ) : array(), self::tax_item_names( $order ), 'Tax lines with the line at $0' );
+		$this->assertSame( array(), $order->get_item( $item->get_id() )->get_taxes()['total'], 'The $0 line' );
+		// 6% of the other $100 line.
+		$this->assertEqualsWithDelta( 2 === $lines ? 6.0 : 0.0, (float) $order->get_cart_tax(), 0.001, 'Cart tax with the line at $0' );
+
+		$item = $order->get_item( $item->get_id() );
+		$item->set_subtotal( 100 );
+		$item->set_total( 100 );
+		$item->save();
+		$order = $this->admin_recalculate( wc_get_order( $order->get_id() ), 'MI' );
+
+		$this->assertSame( array( 'State Sales Tax' ), self::tax_item_names( $order ), 'Tax lines with the line set back' );
+		// 6% of each $100 line.
+		$this->assertEqualsWithDelta( 6.0 * $lines, (float) $order->get_cart_tax(), 0.001, 'Cart tax with the line set back' );
+	}
+
+	/**
 	 * The component names of an order's tax items, sorted.
 	 *
 	 * @param WC_Order $order Order.
