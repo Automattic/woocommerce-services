@@ -22,7 +22,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout latest WCS
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
@@ -68,7 +68,7 @@ jobs:
             echo "SVN is already installed."
           fi
       - name: Checkout WCS&T
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Checkout WooCommerce
         run: git clone --depth=1 --branch=${{ env.WC_VERSION }} https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
       - name: Setup PHP
@@ -79,10 +79,10 @@ jobs:
         id: get_wc_pnpm_version
         run: echo "WC_PNPM=$( grep packageManager /tmp/woocommerce/package.json | sed -nr 's/.+packageManager.+pnpm@([[:digit:].]+).+/\1/p' )" >> "$GITHUB_OUTPUT"
       - name: Setup PNPM
-        uses: pnpm/action-setup@eae0cfeb286e66ffb5155f1a79b90583a127a68b # v2.4.1
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
         with:
           version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
-      - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.nvmrc'
       - name: Build WooCommerce essentials for running tests
