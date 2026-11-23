@@ -308,7 +308,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	/**
 	 * Build the placed fixture order described in the class docblock.
 	 *
-	 * @param array $overrides Optional: 'a_tax' (hand-typed tax on A), 'shipping_method'.
+	 * @param array $overrides Optional: 'a_tax' (hand-typed tax on A), 'shipping_method', 'status'
+	 *                         (default on-hold with no payment date, so its tax is not locked).
 	 * @return array{order: WC_Order, a: int, b: int}
 	 */
 	private function create_placed_order( array $overrides = array() ) {
@@ -372,7 +373,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$order->set_cart_tax( $cart_tax );
 		$order->set_shipping_tax( '0.6' );
 		$order->set_total( 30 + 10 + $cart_tax + 0.6 );
-		$order->set_status( 'processing' );
+		$order->set_status( $overrides['status'] ?? 'on-hold' );
 		$order->save();
 		$this->forget_created_in_request();
 
@@ -1704,9 +1705,9 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox On an untaxed order that can't be edited, a tax class and address change whose lookup fails keeps no tax, with one note that agrees.
+	 * @testdox On an untaxed paid order, a tax class and address change keeps no tax without a lookup, with one address note.
 	 */
-	public function test_failed_lookup_keeps_no_tax_on_untaxed_locked_order() {
+	public function test_address_and_class_change_keeps_no_tax_on_untaxed_locked_order() {
 		$fixture           = $this->create_untaxed_placed_order();
 		$this->taxjar_down = true;
 
@@ -1723,21 +1724,22 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 			)
 		);
 
-		// Without the guard, the CO row gives B $1.20 and shipping $0.60.
-		$this->assertCount( 1, $this->requests );
+		// A paid order is not looked up. Without the guard, the CO row gives B $1.20 and shipping $0.60.
+		$this->assertCount( 0, $this->requests );
 		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['a'] )->get_tax_class() );
 		$this->assert_order_tax( $order, 0.0, 0.0, 40.00 );
 		$this->assertCount( 0, $order->get_taxes() );
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
-		$this->assertStringContainsString( 'the change is saved but not used for tax', $notes[0] );
+		$this->assertStringContainsString( "This order's shipping address changed after its tax was charged.", $notes[0] );
+		$this->assertStringContainsString( 'tax class changed from Standard to Reduced rate.', $notes[0] );
+		$this->assertStringContainsString( 'The tax for the new address was not calculated.', $notes[0] );
 	}
 
 	/**
-	 * @testdox On an untaxed order that can't be edited, a line added while the lookup fails is left untaxed like the rest.
+	 * @testdox On an untaxed paid order, a line added is left untaxed like the rest, without a lookup.
 	 */
-	public function test_failed_lookup_leaves_added_line_untaxed_on_untaxed_locked_order() {
+	public function test_added_line_stays_untaxed_on_untaxed_locked_order() {
 		$fixture           = $this->create_untaxed_placed_order();
 		$this->taxjar_down = true;
 
@@ -1753,15 +1755,16 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 			)
 		);
 
-		// Without the guard, the CO row gives 6% of $35 and of $10 shipping.
-		$this->assertCount( 1, $this->requests );
+		// A paid order is not looked up. Without the guard, the CO row gives 6% of $35 and of $10 shipping.
+		$this->assertCount( 0, $this->requests );
 		$this->assert_order_tax( $order, 0.0, 0.0, 45.00 );
 		foreach ( $order->get_items() as $item_id => $item ) {
 			$this->assertEqualsWithDelta( 0.0, $this->item_tax( $order, $item_id ), 0.001, $item->get_name() );
 		}
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'could not be calculated', $notes[0] );
+		$this->assertStringContainsString( 'This order changed after its tax was charged.', $notes[0] );
+		$this->assertStringContainsString( 'added.', $notes[0] );
 	}
 
 	/**
@@ -1818,10 +1821,10 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox A tax calculation that isn't preserved drops the snapshot an admin save took for an order that can't be edited.
+	 * @testdox A tax calculation that isn't preserved drops the snapshot an admin save took for a paid order.
 	 */
 	public function test_rejected_calculation_drops_pre_save_snapshot() {
-		$fixture  = $this->create_placed_order();
+		$fixture  = $this->create_placed_order( array( 'status' => 'processing' ) );
 		$order_id = $fixture['order']->get_id();
 		$property = new ReflectionProperty( $this->integration, 'pre_save_tax_snapshots' );
 		$property->setAccessible( true );
@@ -2740,7 +2743,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox A taxable item added to a paid order TaxJar taxed none of keeps it at no tax, with a note naming the item.
+	 * @testdox A taxable item added to a paid order TaxJar taxed none of keeps it at no tax, with the locked order's note naming the item.
 	 */
 	public function test_taxable_item_added_to_a_paid_order_taxjar_taxed_none_of_keeps_no_tax_and_is_noted() {
 		$fixture = $this->rest_create_exempt_without_shipping();
@@ -2768,7 +2771,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assert_order_tax( $order, 0.0, 0.0, 130.00 );
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'No tax was added for Lamp', $notes[0] );
+		$this->assertStringContainsString( 'Lamp added', $notes[0] );
+		$this->assertStringContainsString( 'The tax stays at', $notes[0] );
 	}
 
 	/**
@@ -2778,5 +2782,109 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertSame( 10, has_filter( 'woocommerce_cart_totals_get_fees_from_cart_taxes', array( $this->integration, 'drop_untaxed_fee_taxes' ) ), 'Cart fees' );
 		$this->assertSame( 10, has_action( 'woocommerce_order_item_after_calculate_taxes', array( $this->integration, 'drop_untaxed_order_fee_taxes' ) ), 'Order fee that adds to the order' );
 		$this->assertSame( 10, has_action( 'woocommerce_order_item_fee_after_calculate_taxes', array( $this->integration, 'drop_untaxed_order_fee_taxes' ) ), 'Order fee that takes off' );
+	}
+
+	// -------------------------------------------------------------------------
+	// A paid order keeps the tax it was charged when its address changes.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * The notes written for edits of a locked order, as a merchant reads them.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return string[]
+	 */
+	private function locked_order_notes( WC_Order $order ) {
+		return array_values(
+			array_map(
+				static function ( $note ) {
+					return html_entity_decode( wp_strip_all_tags( $note ), ENT_QUOTES, 'UTF-8' );
+				},
+				preg_grep( '/after its tax was charged/', $this->tax_notes( $order ) )
+			)
+		);
+	}
+
+	/**
+	 * @testdox On a paid order, a shipping address change keeps the tax charged without a lookup, with the address note.
+	 */
+	public function test_paid_order_shipping_address_change_keeps_charged_tax_with_note() {
+		$fixture = $this->create_placed_order( array( 'status' => 'processing' ) );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array( 'shipping' => self::address( '80301', 'Boulder', '2 Pearl St' ) )
+		);
+
+		$this->assertCount( 0, $this->requests, 'a paid order is not looked up' );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$lines = explode( "\n", $notes[0] );
+		$this->assertSame( "This order's shipping address changed after its tax was charged.", $lines[0] );
+		$this->assertMatchesRegularExpression( '/^Changed: .+\.$/', $lines[1] );
+		$this->assertSame(
+			array(
+				'Change: Shipping address changed from 1 Main St, Denver, CO, 80202, US to 2 Pearl St, Boulder, CO, 80301, US.',
+				'Order total: $42.40 (no change).',
+				// A $10, B $20 and shipping $10, all at 6%.
+				'Tax charged: $2.40 (6% on $40.00). The tax stays at $2.40.',
+				'The tax for the new address was not calculated. It can be different, even in the same state.',
+				'No payment or refund was made for this change.',
+				'Next step: if the new address has a different tax rate, refund this order and create a new order with the new address. If you sent the customer an invoice for this order, also issue a corrective document that refers to that invoice.',
+			),
+			array_slice( $lines, 2 )
+		);
+	}
+
+	/**
+	 * @testdox On a paid order taxed on its shipping address, a billing address change gets no note.
+	 */
+	public function test_paid_order_other_address_change_gets_no_note() {
+		$fixture = $this->create_placed_order( array( 'status' => 'processing' ) );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array( 'billing' => self::address( '80301', 'Boulder' ) )
+		);
+
+		$this->assertCount( 0, $this->requests );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox On a paid order, an address and quantity change in one edit get one address note that lists both.
+	 */
+	public function test_paid_order_address_and_quantity_change_get_one_address_note() {
+		$fixture = $this->create_placed_order( array( 'status' => 'processing' ) );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'shipping'   => self::address( '80301', 'Boulder' ),
+				'line_items' => array(
+					array(
+						'id'       => $fixture['a'],
+						'quantity' => 2,
+						'subtotal' => '20.00',
+						'total'    => '20.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests );
+		// The $2.40 charged stays; 40 + 10 + 1.80 + 0.60.
+		$this->assert_order_tax( $order, 1.80, 0.60, 52.40 );
+
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( "This order's shipping address changed after its tax was charged.", $notes[0] );
+		$this->assertStringContainsString( 'Change: Shipping address changed from 1 Main St, Denver, CO, 80202, US to 1 Main St, Boulder, CO, 80301, US. Dummy Product quantity changed from 1 to 2.', $notes[0] );
+		$this->assertStringContainsString( 'Items: from $30.00 to $40.00. Order total: from $42.40 to $52.40.', $notes[0] );
+		$this->assertStringNotContainsString( 'as it is now', $notes[0], 'the order\'s rates belong to the old address' );
+		$this->assertStringContainsString( 'refund this order and create a new order with the new address', $notes[0] );
 	}
 }
