@@ -2275,15 +2275,15 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 			)
 		);
 
-		// A is $10 of the $30 the order's products cost, R $20. So -$3.33 of the fee at
-		// Standard's 6% and -$6.67 at Reduced rate's 2%.
+		// A is $10 of the $30 the order's products cost, R $20. So -$3.333333 of the fee
+		// at Standard's 6% and -$6.666667 at Reduced rate's 2%, not rounded per share.
 		$this->assertEqualsWithDelta(
 			array(
 				$std     => -0.20,
-				$reduced => -0.13,
+				$reduced => -0.133333,
 			),
 			$this->item_taxes_by_rate( $order, $fixture['fee'] ),
-			0.006,
+			0.000001,
 			'the fee is split as WooCommerce splits it'
 		);
 		$this->assertEqualsWithDelta( array( $std => 0.60 ), $this->item_taxes_by_rate( $order, $fixture['a'] ), 0.001, 'A keeps its tax' );
