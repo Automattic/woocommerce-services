@@ -349,6 +349,8 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Orders noted in this request as having no tax because the lookup got no answer, by order id.
 	 *
+	 * The order also gets UNTAXED_ORDER_NOTED_META, which a later request reads.
+	 *
 	 * @var array<int, true>
 	 */
 	private $untaxed_orders_noted = array();
@@ -413,6 +415,18 @@ class WC_Connect_TaxJar_Integration {
 	 * remember_items_added_after_tax_charged().
 	 */
 	private const ADDED_AFTER_TAX_CHARGED_META = '_wc_connect_added_after_tax_charged';
+
+	/**
+	 * Hidden order meta: the order has the note that it got no tax because the tax service
+	 * did not answer, and has had no tax since. A checkout resumed or retried for the same
+	 * order, or a Recalculate in the same outage, adds no second note. Taken off when the
+	 * order gets tax (see forget_untaxed_order_noted()), so a later outage notes it again.
+	 *
+	 * Its value is the order's id. Code that copies an order's meta to another order, as
+	 * WooCommerce Subscriptions does to a subscription and its renewals, copies the mark
+	 * with it, and the copy must not count as noted.
+	 */
+	private const UNTAXED_ORDER_NOTED_META = '_wc_connect_untaxed_order_noted';
 
 	/**
 	 * WooCommerce's after-calculate-taxes hook for each order item type.
@@ -639,6 +653,7 @@ class WC_Connect_TaxJar_Integration {
 		add_action( 'woocommerce_store_api_checkout_order_processed', Closure::fromCallable( array( $this, 'note_untaxed_checkout_order' ) ), 10, 1 );
 		add_action( 'woocommerce_order_before_calculate_taxes', Closure::fromCallable( array( $this, 'start_unanswered_recalculation' ) ), 10, 2 );
 		add_action( 'woocommerce_order_after_calculate_totals', Closure::fromCallable( array( $this, 'note_unanswered_recalculation' ) ), 30, 2 );
+		add_action( 'woocommerce_before_order_object_save', Closure::fromCallable( array( $this, 'forget_untaxed_order_noted' ) ), 10, 1 );
 
 		// Calculate Taxes at Cart / Checkout
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
@@ -4861,7 +4876,7 @@ class WC_Connect_TaxJar_Integration {
 				$notes[] = __( 'Tax could not be calculated for this order, because the store address has no country or has a ZIP code that is not valid. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' );
 			} elseif ( false === $lookup && $this->unanswered_lookups > $unanswered_before && $this->order_got_no_tax( $order ) ) {
 				// The tax service did not answer and no saved rate applied: the order has no tax.
-				if ( ! isset( $this->untaxed_orders_noted[ $order_id ] ) ) {
+				if ( ! $this->untaxed_order_is_noted( $order ) ) {
 					$notes[] = $this->get_untaxed_order_note();
 					$this->record_untaxed_order( $order );
 				}
@@ -6281,13 +6296,14 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Add the note to an order that got no tax because the tax service did not answer, and list it in the admin notice.
 	 *
-	 * Once per order per request. A checkout draft gets neither (see add_order_tax_note()
-	 * and record_untaxed_order()): the order placed from it is noted.
+	 * Once per order, until the order gets tax (see untaxed_order_is_noted()). A checkout
+	 * draft gets neither (see add_order_tax_note() and record_untaxed_order()): the order
+	 * placed from it is noted.
 	 *
 	 * @param WC_Order $order The order.
 	 */
 	private function note_untaxed_order( WC_Order $order ) {
-		if ( isset( $this->untaxed_orders_noted[ (int) $order->get_id() ] ) ) {
+		if ( $this->untaxed_order_is_noted( $order ) ) {
 			return;
 		}
 
@@ -6296,7 +6312,23 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * List an order that got no tax because the tax service did not answer in the admin notice.
+	 * Whether the order already has the note that it got no tax because the tax service did not answer.
+	 *
+	 * In this request, or in an earlier one: WooCommerce resumes a pending or failed order
+	 * for the same cart at checkout, and the Store API retries one, so the same order
+	 * is placed again.
+	 *
+	 * @param WC_Order $order The order.
+	 * @return bool
+	 */
+	private function untaxed_order_is_noted( WC_Order $order ) {
+		$order_id = (int) $order->get_id();
+
+		return isset( $this->untaxed_orders_noted[ $order_id ] ) || ( 0 !== $order_id && (int) $order->get_meta( self::UNTAXED_ORDER_NOTED_META ) === $order_id );
+	}
+
+	/**
+	 * Mark an order that got no tax because the tax service did not answer as noted, and list it in the admin notice.
 	 *
 	 * @param WC_Order $order The order.
 	 */
@@ -6306,9 +6338,34 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$this->untaxed_orders_noted[ (int) $order->get_id() ] = true;
+		// Saved now: a checkout does not save the order again after it is placed.
+		$order->update_meta_data( self::UNTAXED_ORDER_NOTED_META, (string) $order->get_id() );
+		$order->save_meta_data();
 
 		if ( null !== $this->untaxed_orders_notice ) {
 			$this->untaxed_orders_notice->record( $order );
+		}
+	}
+
+	/**
+	 * Take the mark of record_untaxed_order() off an order that now has tax.
+	 *
+	 * The note is then about the past, and a later outage that leaves the order with no
+	 * tax again notes it again.
+	 *
+	 * Hooked to woocommerce_before_order_object_save by init(), so the save that gives the
+	 * order its tax also takes the mark off.
+	 *
+	 * @param WC_Order|mixed $order The order about to be saved.
+	 */
+	private function forget_untaxed_order_noted( $order ) {
+		if ( ! $order instanceof WC_Order || ! $order->get_id() || 0.0 === (float) $order->get_total_tax() ) {
+			return;
+		}
+
+		if ( '' !== (string) $order->get_meta( self::UNTAXED_ORDER_NOTED_META ) ) {
+			$order->delete_meta_data( self::UNTAXED_ORDER_NOTED_META );
+			unset( $this->untaxed_orders_noted[ (int) $order->get_id() ] );
 		}
 	}
 

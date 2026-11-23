@@ -98,13 +98,7 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 		$this->lookups      = 0;
 		$this->failed_carts = array();
 
-		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
-		$api_client->method( 'proxy_request' )->willReturnCallback( array( $this, 'fake_taxjar' ) );
-		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
-		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock();
-
-		$this->integration = new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks, new StoreNoticesNotifier( false ) );
-		$this->integration->init();
+		$this->integration = $this->make_integration();
 
 		add_action(
 			'woocommerce_services_cart_tax_lookup_failed',
@@ -118,10 +112,54 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A new integration, hooked by init() as on a store.
+	 *
+	 * @return WC_Connect_TaxJar_Integration
+	 */
+	private function make_integration() {
+		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
+		$api_client->method( 'proxy_request' )->willReturnCallback( array( $this, 'fake_taxjar' ) );
+		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
+		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock();
+
+		$integration = new WC_Connect_TaxJar_Integration( $api_client, $logger, 'https://example.com', $tracks, new StoreNoticesNotifier( false ) );
+		$integration->init();
+
+		return $integration;
+	}
+
+	/**
+	 * Start the next request: unhook the integration and hook a new one, which remembers
+	 * nothing from this request. The order, the session and the cart stay, as they do
+	 * between page loads.
+	 */
+	private function start_new_request() {
+		global $wp_filter;
+
+		foreach ( $wp_filter as $hook_name => $hook ) {
+			foreach ( $hook->callbacks as $priority => $callbacks ) {
+				foreach ( $callbacks as $callback ) {
+					$function = $callback['function'];
+					$owner    = is_array( $function ) ? $function[0] : null;
+					if ( $function instanceof Closure ) {
+						$owner = ( new ReflectionFunction( $function ) )->getClosureThis();
+					}
+					if ( $owner === $this->integration ) {
+						remove_filter( $hook_name, $function, $priority );
+					}
+				}
+			}
+		}
+
+		$this->integration = $this->make_integration();
+	}
+
+	/**
 	 * Remove the fixture rows, products, options and request state.
 	 */
 	public function tear_down() {
 		WC()->cart->empty_cart();
+		WC()->session->set( 'order_awaiting_payment', null );
 		$this->reset_rate_table();
 
 		global $wpdb;
@@ -369,11 +407,17 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 	/**
 	 * Create the order from the cart as the Store API's checkout does, and fire its action.
 	 *
-	 * @param string $status Status the order has when the action fires.
+	 * @param string        $status Status the order has when the action fires.
+	 * @param WC_Order|null $retry  An unpaid order for the same cart, which the Store API
+	 *                              places again when the checkout is retried.
 	 * @return WC_Order
 	 */
-	private function store_api_order( $status = 'pending' ) {
+	private function store_api_order( $status = 'pending', $retry = null ) {
 		$order = new WC_Order();
+		if ( null !== $retry ) {
+			$order = wc_get_order( $retry->get_id() );
+			$order->remove_order_items();
+		}
 		WC()->checkout()->set_data_from_cart( $order );
 		$order->set_status( $status );
 		$order->save();
@@ -664,6 +708,130 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 
 		$this->assertSame( array(), $this->untaxed_notes( $order ) );
 		$this->assertSame( array(), $this->noticed_order_ids() );
+	}
+
+	// -------------------------------------------------------------------------
+	// The same order placed again: a resumed or retried checkout
+	// -------------------------------------------------------------------------
+
+	/**
+	 * @testdox A checkout resumed in a later request for the same order during the outage adds no second note.
+	 */
+	public function test_resumed_checkout_during_an_outage_notes_the_order_once() {
+		$this->taxjar = 503;
+		$this->fill_cart_at_checkout();
+		$order = $this->checkout_order();
+		$this->assert_untaxed_and_told( $order );
+		// The payment did not go through: WooCommerce keeps the order for the cart.
+		WC()->session->set( 'order_awaiting_payment', $order->get_id() );
+
+		$this->start_new_request();
+		WC()->cart->calculate_totals();
+		$resumed = $this->checkout_order();
+
+		$this->assertSame( $order->get_id(), $resumed->get_id(), 'WooCommerce resumed the same order.' );
+		$this->assert_untaxed_and_told( $resumed );
+		$this->assertSame( 1, ( new UntaxedOrdersNotice() )->get_stored()['count'], 'The notice counts the order once.' );
+	}
+
+	/**
+	 * @testdox A block checkout retried in a later request for the same order during the outage adds no second note, and does not list the order again after a dismiss.
+	 */
+	public function test_retried_block_checkout_during_an_outage_notes_the_order_once() {
+		$this->taxjar = 'timeout';
+		$this->fill_cart_at_checkout();
+		$order = $this->store_api_order();
+		$this->assert_untaxed_and_told( $order );
+		// The merchant dismissed the notice: they have been told about this order.
+		delete_option( UntaxedOrdersNotice::OPTION_NAME );
+
+		$this->start_new_request();
+		WC()->cart->calculate_totals();
+		$retried = $this->store_api_order( 'pending', $order );
+
+		$this->assertSame( $order->get_id(), $retried->get_id(), 'The Store API placed the same order again.' );
+		$this->assertEqualsWithDelta( 0.0, (float) $retried->get_total_tax(), 0.001 );
+		$this->assertCount( 1, $this->untaxed_notes( $retried ), 'One note. Notes: ' . wp_json_encode( $this->notes( $retried ) ) );
+		$this->assertSame( array(), $this->noticed_order_ids(), 'The order is not listed again.' );
+	}
+
+	/**
+	 * @testdox Recalculate in a later request during the same outage adds no second note to an order noted at checkout.
+	 */
+	public function test_recalculate_during_the_same_outage_notes_a_checkout_order_once() {
+		$this->taxjar = 503;
+		$this->fill_cart_at_checkout();
+		$order = $this->checkout_order();
+
+		$this->start_new_request();
+		$order = $this->press_recalculate( $order );
+
+		$this->assertGreaterThan( 1, $this->lookups, 'Recalculate asked again.' );
+		$this->assert_untaxed_and_told( $order );
+	}
+
+	/**
+	 * @testdox A REST update in a later request during the same outage adds no second note to an order noted when it was made.
+	 */
+	public function test_rest_update_during_the_same_outage_notes_the_order_once() {
+		$this->taxjar = 503;
+		$order        = $this->rest_create();
+		$this->assert_untaxed_and_told( $order );
+		$lookups = $this->lookups;
+
+		$this->start_new_request();
+		$request = new WP_REST_Request( 'PUT', '/wc/v3/orders/' . $order->get_id() );
+		$request->set_header( 'Content-Type', 'application/json' );
+		$request->set_body( wp_json_encode( array( 'shipping' => array_merge( self::address(), array( 'postcode' => '80203' ) ) ) ) );
+		$response = rest_get_server()->dispatch( $request );
+		$this->assertSame( 200, $response->get_status(), 'REST request failed: ' . wp_json_encode( $response->get_data() ) );
+		$order = wc_get_order( $order->get_id() );
+
+		$this->assertGreaterThan( $lookups, $this->lookups, 'The new address was looked up.' );
+		$this->assert_untaxed_and_told( $order );
+		$this->assertCount( 1, $this->notes( $order ), 'Only that note: ' . wp_json_encode( $this->notes( $order ) ) );
+	}
+
+	/**
+	 * @testdox An order taxed since its note is noted again when a later outage leaves it with no tax.
+	 */
+	public function test_order_taxed_since_its_note_is_noted_again_in_a_later_outage() {
+		$this->taxjar = 503;
+		$this->fill_cart_at_checkout();
+		$order = $this->checkout_order();
+
+		$this->start_new_request();
+		$this->taxjar = 'answer';
+		$order        = $this->press_recalculate( $order );
+		$this->assertEqualsWithDelta( 6.0, (float) $order->get_total_tax(), 0.001, 'Taxed once the tax service answered.' );
+
+		$this->start_new_request();
+		$this->reset_rate_table();
+		$this->forget_cached_answers();
+		$this->taxjar = 503;
+		$order        = $this->press_recalculate( $order );
+
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertCount( 2, $this->untaxed_notes( $order ), 'Noted for each outage. Notes: ' . wp_json_encode( $this->notes( $order ) ) );
+		$this->assertSame( array( $order->get_id() ), $this->noticed_order_ids() );
+	}
+
+	/**
+	 * @testdox The mark copied to another order, as Subscriptions copies meta to a renewal, does not count as noted.
+	 */
+	public function test_a_copied_mark_does_not_count_as_noted() {
+		$this->taxjar = 503;
+		$this->fill_cart_at_checkout();
+		$noted = $this->checkout_order();
+		$copy  = $this->admin_order();
+		foreach ( $noted->get_meta_data() as $meta ) {
+			$copy->update_meta_data( $meta->key, $meta->value );
+		}
+		$copy->save();
+		delete_option( UntaxedOrdersNotice::OPTION_NAME );
+
+		$this->start_new_request();
+		$this->assert_untaxed_and_told( $this->press_recalculate( $copy ) );
 	}
 
 	// -------------------------------------------------------------------------
