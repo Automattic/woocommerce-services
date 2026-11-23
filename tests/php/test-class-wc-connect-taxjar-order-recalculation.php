@@ -3977,6 +3977,22 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox Recalculate with no change on a paid order with tax keeps its tax and writes no note.
+	 */
+	public function test_recalculate_without_change_keeps_paid_order_tax_without_note() {
+		$fixture = $this->create_paid_order();
+		$this->start_new_request();
+		$order = wc_get_order( $fixture['order']->get_id() );
+		$notes = $this->tax_notes( $order );
+
+		$order = $this->press_recalculate( $order, $this->order_screen_form( $order ) );
+
+		// 30 + 5 + the $2.10 charged.
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( $notes, $this->tax_notes( $order ), 'no new note' );
+	}
+
+	/**
 	 * @testdox A paid order with no tax stays at no tax on any other tax calculation from the order screen.
 	 */
 	public function test_other_admin_calculation_keeps_paid_order_without_tax_untaxed() {
@@ -3994,6 +4010,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order = wc_get_order( $order->get_id() );
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
 		$this->assertEqualsWithDelta( 10.0, (float) $order->get_total(), 0.001 );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'only Recalculate writes the note' );
 	}
 
 	// -------------------------------------------------------------------------
