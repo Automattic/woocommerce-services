@@ -1147,17 +1147,25 @@ class WC_Connect_TaxJar_Integration {
 			WC()->session->set( 'shipping_for_package_' . $package_key, null );
 		}
 
+		// The hook is put back only if it was there. A cart totalled again while another one
+		// is, like a recurring cart Subscriptions totals from the main cart's
+		// woocommerce_after_calculate_totals, would otherwise hook it back in the middle of
+		// that action, and the main cart would be looked up again.
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
 			do_action( 'woocommerce_cart_reset', $wc_cart_object, false );
 			do_action( 'woocommerce_before_calculate_totals', $wc_cart_object );
 			new WC_Cart_Totals( $wc_cart_object );
-			remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			$was_hooked = remove_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
 			do_action( 'woocommerce_after_calculate_totals', $wc_cart_object );
-			add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			if ( $was_hooked ) {
+				add_action( 'woocommerce_after_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			}
 		} else {
-			remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			$was_hooked = remove_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
 			$wc_cart_object->calculate_totals();
-			add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			if ( $was_hooked ) {
+				add_action( 'woocommerce_calculate_totals', array( $this, 'maybe_calculate_totals' ), 20 );
+			}
 		}
 	}
 
