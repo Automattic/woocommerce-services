@@ -1,4 +1,4 @@
-// Vendored from woocommerce/escargot-dev-environment tools/changelog-sweep/sweep.mjs at c8355f6ac5629d8f2d2f62d4a9641085abc411b3.
+// Vendored from woocommerce/escargot-dev-environment tools/changelog-sweep/sweep.mjs at 7473416bca7870fa7dc9fbadeaa369546c9641b3.
 // Do not edit here; change the source and copy it again (see .github/workflows/changelog-placement.yml).
 /**
  * Finds open PRs whose changelog entry would land inside an already-released
@@ -27,7 +27,7 @@ import { readFileSync, appendFileSync, existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { classifyTargeted, hasOverride } from './detect.mjs';
-import { LABEL, LABEL_COLOR, LABEL_DESCRIPTION, STATUS_CONTEXT, planPr, statusFor } from './plan.mjs';
+import { LABEL, LABEL_COLOR, LABEL_DESCRIPTION, STATUS_CONTEXT, duplicateReports, planPr, statusFor } from './plan.mjs';
 
 const HERE = dirname( fileURLToPath( import.meta.url ) );
 const ROOT = join( HERE, '..', '..' );
@@ -177,6 +177,12 @@ async function applyPlan( repo, pr, plan, ctx ) {
 	if ( plan.comment?.op === 'create' ) {
 		await send( repo, `/issues/${ pr.number }/comments`, 'POST', { body: plan.comment.body } );
 		done.push( 'comment posted' );
+		// Another run may have posted the same report at the same time.
+		for ( const id of duplicateReports( await apiAll( repo, `/issues/${ pr.number }/comments` ) ) ) {
+			// 404: the other run deleted it first.
+			await api( repo, `/issues/comments/${ id }`, { method: 'DELETE' } );
+			done.push( 'duplicate comment removed' );
+		}
 	} else if ( plan.comment?.op === 'update' ) {
 		await send( repo, `/issues/comments/${ plan.comment.id }`, 'PATCH', { body: plan.comment.body } );
 		done.push( 'comment updated' );

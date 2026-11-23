@@ -1,5 +1,5 @@
 # Copied from woocommerce/escargot-dev-environment tools/changelog-sweep/changelog-placement.yml
-# and .github/actions/changelog-check/action.yml at c8355f6ac5629d8f2d2f62d4a9641085abc411b3.
+# and .github/actions/changelog-check/action.yml at 7473416bca7870fa7dc9fbadeaa369546c9641b3.
 # This repo is public, and GitHub shares actions from a private repo with private
 # repos only. So the scripts are vendored in .github/changelog-placement/ and the
 # action's run step is inlined below. To update the check, copy the three scripts
@@ -28,6 +28,9 @@ permissions:
   issues: write
   statuses: write
 
+# A PR run and a push sweep can still check the same PR at once. The script
+# removes the second report if both post one; see tools/changelog-sweep/README.md
+# in escargot-dev-environment.
 concurrency:
   group: changelog-placement-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true

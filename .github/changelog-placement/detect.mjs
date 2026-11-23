@@ -1,4 +1,4 @@
-// Vendored from woocommerce/escargot-dev-environment tools/changelog-sweep/detect.mjs at c8355f6ac5629d8f2d2f62d4a9641085abc411b3.
+// Vendored from woocommerce/escargot-dev-environment tools/changelog-sweep/detect.mjs at 7473416bca7870fa7dc9fbadeaa369546c9641b3.
 // Do not edit here; change the source and copy it again (see .github/workflows/changelog-placement.yml).
 /**
  * Pure detection logic for misplaced changelog entries.

@@ -1,4 +1,4 @@
-// Vendored from woocommerce/escargot-dev-environment tools/changelog-sweep/plan.mjs at c8355f6ac5629d8f2d2f62d4a9641085abc411b3.
+// Vendored from woocommerce/escargot-dev-environment tools/changelog-sweep/plan.mjs at 7473416bca7870fa7dc9fbadeaa369546c9641b3.
 // Do not edit here; change the source and copy it again (see .github/workflows/changelog-placement.yml).
 /**
  * Decides what to write on a PR - commit status, comment, label - from the
@@ -18,6 +18,9 @@
 export const MARKER = '<!-- escargot:changelog-sweep -->';
 // Deliberately not a superstring of MARKER, so the two never match each other.
 export const RESOLVED_MARKER = '<!-- escargot:changelog-sweep:resolved -->';
+// The account the workflow's GITHUB_TOKEN posts as. Only its comments count:
+// on a public repo anyone can post a comment that contains the markers.
+export const BOT_LOGIN = 'github-actions[bot]';
 export const LABEL = 'changelog-misplaced';
 export const LABEL_COLOR = 'd93f0b';
 export const LABEL_DESCRIPTION = 'Changelog entry lands in an already-released section';
@@ -46,6 +49,21 @@ export function statusFor( outcome ) {
 
 export const isResolved = ( comment ) => Boolean( comment?.body?.includes( RESOLVED_MARKER ) );
 
+const isOurs = ( comment, author ) => comment?.user?.login === author && Boolean( comment.body?.includes( MARKER ) );
+
+/**
+ * Changelog text is written by the PR author, so it is shown, never rendered:
+ * in a code block an @mention notifies nobody and a #123 links nothing. A
+ * marker inside an entry is broken up with a zero-width space, or the comment
+ * would read as resolved (or as a second report).
+ */
+function quoteEntries( entries ) {
+	const lines = entries.map( ( e ) => e.trim().replaceAll( '<!--', '<!\u200b--' ) );
+	const longestRun = Math.max( 0, ...lines.flatMap( ( l ) => ( l.match( /`+/g ) || [] ).map( ( r ) => r.length ) ) );
+	const fence = '`'.repeat( Math.max( 3, longestRun + 1 ) );
+	return [ `${ fence }text`, ...lines, fence ];
+}
+
 export function flaggedBody( findings ) {
 	const lines = [
 		MARKER,
@@ -56,9 +74,7 @@ export function flaggedBody( findings ) {
 	];
 	for ( const f of findings ) {
 		lines.push( `**\`${ f.file }\`** — entries landing in the shipped \`${ f.version }\`:` );
-		lines.push( '' );
-		for ( const e of f.entries ) lines.push( `> ${ e.trim() }` );
-		lines.push( '' );
+		lines.push( '', ...quoteEntries( f.entries ), '' );
 	}
 	lines.push(
 		'**To fix:** merge the base branch, then move these entries into a new unreleased section at the top (next patch version, placeholder date). Leave `Version:`, `*_VERSION`, `package.json` and `Stable tag:` alone — woorelease sets those at release time.',
@@ -97,11 +113,12 @@ export function resolvedBody( previousBody, outcome, headSha ) {
  * @param {object}   args
  * @param {object}   args.outcome  see the header
  * @param {string[]} args.labels   label names currently on the PR
- * @param {Array}    args.comments the PR's comments, oldest first ({ id, body })
+ * @param {Array}    args.comments the PR's comments, oldest first ({ id, body, user: { login } })
  * @param {string}   args.headSha  the PR head the verdict is for
+ * @param {string}   [args.author] the login the check posts as
  * @returns {{ status: {state, description}, comment: null|{op:'create'|'update', id?, body}, label: null|'add'|'remove' }}
  */
-export function planPr( { outcome, labels = [], comments = [], headSha } ) {
+export function planPr( { outcome, labels = [], comments = [], headSha, author = BOT_LOGIN } ) {
 	const status = statusFor( outcome );
 
 	// A PR that could not be checked keeps whatever it had: clearing a flag on
@@ -112,7 +129,7 @@ export function planPr( { outcome, labels = [], comments = [], headSha } ) {
 
 	const flagged = outcome.kind === 'misplaced';
 	const hasLabel = labels.includes( LABEL );
-	const latest = [ ...comments ].reverse().find( ( c ) => c.body?.includes( MARKER ) ) || null;
+	const latest = [ ...comments ].reverse().find( ( c ) => isOurs( c, author ) ) || null;
 
 	let comment = null;
 	if ( flagged ) {
@@ -130,4 +147,21 @@ export function planPr( { outcome, labels = [], comments = [], headSha } ) {
 	else if ( ! flagged && hasLabel ) label = 'remove';
 
 	return { status, comment, label };
+}
+
+/**
+ * A PR run and the push sweep are in different concurrency groups, so both can
+ * find no open report on a PR and post one. Each run calls this after it posts:
+ * the run whose post landed last sees every report, so the PR ends with one.
+ * Returns the ids to delete: every open report after the latest resolved one,
+ * except the oldest.
+ *
+ * @param {Array}  comments the PR's comments, oldest first
+ * @param {string} [author] the login the check posts as
+ * @returns {number[]}
+ */
+export function duplicateReports( comments, author = BOT_LOGIN ) {
+	const ours = comments.filter( ( c ) => isOurs( c, author ) );
+	const lastResolved = ours.findLastIndex( isResolved );
+	return ours.slice( lastResolved + 2 ).map( ( c ) => c.id );
 }
