@@ -813,6 +813,23 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox Recalculate on a VAT exempt order with no answer adds no note: WooCommerce took its tax off, not a missing rate.
+	 */
+	public function test_recalculate_of_a_vat_exempt_order_adds_no_note() {
+		$order = $this->admin_order();
+		$order->update_meta_data( 'is_vat_exempt', 'yes' );
+		$order->save();
+		$this->taxjar = 503;
+
+		$order = $this->press_recalculate( $order );
+
+		$this->assertGreaterThan( 0, $this->lookups, 'The lookup ran.' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertSame( array(), $this->untaxed_notes( $order ) );
+		$this->assertSame( array(), $this->noticed_order_ids() );
+	}
+
+	/**
 	 * @testdox A paid order that has no tax keeps it on Recalculate with no answer, and gets no note: its tax is locked.
 	 */
 	public function test_recalculate_of_a_paid_order_without_tax_adds_no_note() {

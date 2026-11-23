@@ -6236,13 +6236,27 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * After a lookup that got no answer, WooCommerce taxes the order from the store's
 	 * saved rates. This is how it ended when none applied. An order with nothing taxable
-	 * on it, or with only free lines, is not one.
+	 * on it, or with only free lines, is not one. Nor is a VAT exempt order: WooCommerce
+	 * takes its tax off whatever the rates are.
 	 *
 	 * @param WC_Order $order The order.
 	 * @return bool
 	 */
 	private function order_got_no_tax( WC_Order $order ) {
 		if ( 0.0 !== (float) $order->get_total_tax() ) {
+			return false;
+		}
+
+		/**
+		 * Filters whether an order is VAT exempt. A WooCommerce core filter, applied here
+		 * with the same arguments WC_Abstract_Order::calculate_taxes() passes.
+		 *
+		 * @since 3.7.8 Applied by this plugin here.
+		 *
+		 * @param bool     $is_vat_exempt Whether the order is VAT exempt.
+		 * @param WC_Order $order         The order.
+		 */
+		if ( apply_filters( 'woocommerce_order_is_vat_exempt', 'yes' === $order->get_meta( 'is_vat_exempt' ), $order ) ) { // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
 			return false;
 		}
 
