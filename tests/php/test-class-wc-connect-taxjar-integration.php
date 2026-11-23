@@ -7929,7 +7929,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			// The built-in Zero rate class is sent as exempt, whatever its tax status says.
 			'built-in Zero rate, no code'     => array( 'Zero rate', 'zero-rate', '99999' ),
 			'two-word custom class with code' => array( 'Digital Goods 31000', 'digital-goods-31000', '31000' ),
-			'eight-digit code'                => array( 'Gift Cards 10105001', 'gift-cards-10105001', '10105001' ),
+			'eight-digit code'                => array( 'AIaaS 10105001', 'aiaas-10105001', '10105001' ),
 			// WordPress stores the slug in lower case; TaxJar only reads the code as listed.
 			'letter code'                     => array( 'SaaS 81162000A0000', 'saas-81162000a0000', '81162000A0000' ),
 			'letter code with a dash'         => array( 'Software - 43230000A1200', 'software-43230000a1200', '43230000A1200' ),
@@ -7954,7 +7954,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			'word'                           => array( 'reduced-rate', '' ),
 			'five digits'                    => array( 'digital-goods-31000', '31000' ),
 			'exempt'                         => array( 'exempt-99999', '99999' ),
-			'eight digits'                   => array( 'food-50021001', '50021001' ),
+			'eight digits'                   => array( 'fitness-50021001', '50021001' ),
 			'slug is only the code'          => array( '81162000a0000', '81162000A0000' ),
 			'letter code'                    => array( 'saas-81162000a0000', '81162000A0000' ),
 			'letter code already upper case' => array( 'saas-81162000A0000', '81162000A0000' ),
