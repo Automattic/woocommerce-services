@@ -11,6 +11,9 @@ concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build project
@@ -23,7 +26,9 @@ jobs:
     name: QIT tests
     needs: build
     uses: ./.github/workflows/qit_runner.yml
-    secrets: inherit
+    secrets:
+      PARTNER_SECRET: ${{ secrets.PARTNER_SECRET }}
+      PARTNER_USER: ${{ secrets.PARTNER_USER }}
     with:
       extension: ${{ needs.build.outputs.plugin_name }}
       artifact: ${{ needs.build.outputs.plugin_name }}

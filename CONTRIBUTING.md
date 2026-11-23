@@ -16,44 +16,20 @@ Please refer to our [documentation](https://docs.woocommerce.com/document/woocom
 
 ## Running PHPUnit Tests
 
-The WooCommerce Tax client tests use [WooCommerce's tests installer](https://github.com/woocommerce/woocommerce/blob/master/tests/bin/install.sh) to get up and running.
+The PHPUnit suite runs against a throwaway MariaDB container. You need:
 
-In order to successfully bootstrap your testing environment, you'll need the following:
+* Docker (with `docker compose`)
+* `git`, `svn`, `curl`, `composer` and PHP
 
-* `mysql`
-* `mysqladmin`
-* `svn`
-* `git`
-* `phpunit`
+A local `mysql` / `mysqladmin` client is not needed: the test scripts always run them inside the DB container.
 
-Once you have the prerequisites, run the tests installer:
+From the root of the `woocommerce-services` plugin directory, run:
 
-`./tests/bin/install-wc-tests.sh <db-name> <db-user> <db-pass> [db-host] [wp-version] [wc-version]`
+`composer test`
 
-For example, if you had a `mysql` database running on `localhost` and with the default `root` user, you could run:
+The first run starts the DB container (`tests/docker-compose.yml`, port 4416) and installs WordPress and WooCommerce test dependencies under the system temp dir. Later runs check the environment and repair only what is missing. To pin a version, run for example `WC_VERSION=9.4.0 composer test`. For a full reinstall, run `bash tests/bin/install-wc-tests.sh --force`.
 
-`./tests/bin/install-wc-tests.sh wcc_tests root ''`
-
-After the tests installer has completed, simply run `phpunit` from the root of the `woocommerce-services` plugin directory.
-
-If everything is running correctly, you'll see output like the following:
-
-```
-Installing...
-Running as single site... To run multisite, use -c tests/phpunit/multisite.xml
-Installing WooCommerce...
-Not running ajax tests. To execute these, use --group ajax.
-Not running ms-files tests. To execute these, use --group ms-files.
-Not running external-http tests. To execute these, use --group external-http.
-
-PHPUnit 4.8.24 by Sebastian Bergmann and contributors.
-
-...............................................
-
-Time: 2.55 seconds, Memory: 32.00Mb
-
-OK (47 tests, 105 assertions)
-```
+See the "PHPUnit test environment" section in [`AGENTS.md`](/AGENTS.md) for details.
 
 ## We're Here To Help
 

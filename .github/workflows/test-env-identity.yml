@@ -1,0 +1,42 @@
+# Template for each plugin repo that uses the shared PHPUnit test env:
+# copy to .github/workflows/test-env-identity.yml unchanged.
+#
+# It fails when a script in tests/bin/ differs from tests/bin/test-env.sha256,
+# the manifest of the canonical version the plugin pins. To change a script,
+# change it in woocommerce/escargot-dev-environment (tools/phpunit-test-env/)
+# and copy the new version in with `manifest.sh vendor <plugin checkout>`.
+#
+# The job reads only files in this repo, so it needs no access to the private
+# escargot-dev-environment repo. fleet-check.sh there checks that each
+# plugin's manifest is a released one.
+
+name: Test-env scripts identity
+
+on:
+  pull_request:
+    paths:
+      - 'tests/bin/**'
+      - '.github/workflows/test-env-identity.yml'
+  push:
+    branches: [trunk]
+    paths:
+      - 'tests/bin/**'
+      - '.github/workflows/test-env-identity.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  identity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Compare tests/bin/ with its pinned canonical version
+        working-directory: tests/bin
+        run: |
+          echo "Pinned version: $(cat test-env.version)"
+          if ! sha256sum --strict -c test-env.sha256; then
+            echo "::error::A script in tests/bin/ differs from canonical version $(cat test-env.version). Change it in woocommerce/escargot-dev-environment (tools/phpunit-test-env/) and copy it in with manifest.sh vendor."
+            exit 1
+          fi
