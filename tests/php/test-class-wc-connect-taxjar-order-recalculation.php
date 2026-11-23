@@ -2535,6 +2535,110 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Build a placed order on which nothing was taxed, as TaxJar leaves an order of only
+	 * exempt products: each line keeps the rate id at $0, and the tax line still shows
+	 * the rate's 6%.
+	 *
+	 *   Product A (Standard)   $10.00  tax 0 (exempt)
+	 *   Product B (Standard)   $20.00  tax 0 (exempt)
+	 *   Discount fee           -$6.00  tax 0
+	 *   ---------------------------------------------------
+	 *   cart tax 0, no shipping
+	 *
+	 * @return array{order: WC_Order, fee: int}
+	 */
+	private function create_placed_exempt_order_with_negative_fee() {
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+
+		foreach ( array( '10', '20' ) as $price ) {
+			$item_id = $order->add_product( $this->create_product( $price ), 1 );
+			$order->get_item( $item_id, false )->set_taxes(
+				array(
+					'total'    => array( $this->rate_id => '0' ),
+					'subtotal' => array( $this->rate_id => '0' ),
+				)
+			);
+		}
+
+		$fee = new WC_Order_Item_Fee();
+		$fee->set_name( 'Discount' );
+		$fee->set_tax_class( '' );
+		$fee->set_tax_status( 'taxable' );
+		$fee->set_total( '-6' );
+		$fee->set_taxes( array( 'total' => array( $this->rate_id => '0' ) ) );
+		$order->add_item( $fee );
+
+		$tax_line = new WC_Order_Item_Tax();
+		$tax_line->set_rate_id( $this->rate_id );
+		$tax_line->set_rate_code( 'US-CO-CO TAX-1' );
+		$tax_line->set_label( 'CO Tax' );
+		$tax_line->set_rate_percent( 6.0 );
+		$tax_line->set_compound( false );
+		$tax_line->set_tax_total( 0 );
+		$tax_line->set_shipping_tax_total( 0 );
+		$order->add_item( $tax_line );
+
+		$order->set_cart_tax( 0 );
+		$order->set_total( 24 );
+		$order->set_status( 'on-hold' );
+		$order->save();
+		$this->forget_created_in_request();
+
+		return array(
+			'order' => $order,
+			'fee'   => $fee->get_id(),
+		);
+	}
+
+	/**
+	 * A negative fee changed to -$10, or a new -$10 fee.
+	 *
+	 * @return array
+	 */
+	public function provide_negative_fee_edits() {
+		return array(
+			'fee changed' => array( 'changed' ),
+			'fee added'   => array( 'added' ),
+		);
+	}
+
+	/**
+	 * @testdox A negative fee on an unpaid order takes no tax off at a rate the order's items paid nothing under.
+	 *
+	 * @dataProvider provide_negative_fee_edits
+	 *
+	 * @param string $edit 'changed' or 'added'.
+	 */
+	public function test_negative_fee_takes_no_tax_off_where_items_paid_none( $edit ) {
+		$fixture = $this->create_placed_exempt_order_with_negative_fee();
+
+		$fee_line = 'changed' === $edit
+			? array(
+				'id'    => $fixture['fee'],
+				'total' => '-10.00',
+			)
+			: array(
+				'name'       => 'New discount',
+				'total'      => '-10.00',
+				'tax_status' => 'taxable',
+				'tax_class'  => '',
+			);
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'fee_lines' => array( $fee_line ) ) );
+
+		// Neither product paid tax at the 6% rate, so no share of the fee takes tax off.
+		foreach ( $order->get_fees() as $fee ) {
+			$this->assertSame( array(), $this->item_taxes_by_rate( $order, $fee->get_id() ), $fee->get_name() . ' takes no tax off' );
+		}
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'the order\'s tax stays at $0, not below' );
+		$this->assertEqualsWithDelta( 'changed' === $edit ? 20.0 : 14.0, (float) $order->get_total(), 0.001, 'order total: 10 + 20 - the fees' );
+	}
+
+	/**
 	 * @testdox A saved item that cannot be loaded does not break the edit.
 	 */
 	public function test_unloadable_saved_item_is_skipped() {
