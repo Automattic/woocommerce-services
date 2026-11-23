@@ -1693,4 +1693,135 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->assertSame( array( 'main' ), $property->getValue( $integration ) );
 	}
+
+	/**
+	 * A cart totalled during the main cart's total whose lookup fails is priced again
+	 * without the main cart's answers, and gives them all back afterwards.
+	 */
+	public function test_nested_cart_with_a_failed_lookup_gives_the_main_cart_its_answers_back() {
+		$this->ship_to( self::$places['MI']['to'] );
+		$integration = $this->hook( $this->taxjar( 'MI', false ) );
+		WC()->cart->add_to_cart( $this->product()->get_id(), 1 );
+
+		$main = array(
+			'response_rate_ids'        => array( 'main-line' => array( 1 ) ),
+			'response_line_items'      => array( 'main-line' => (object) array( 'line_total' => 100 ) ),
+			'response_cart_item_keys'  => array( 'main-key' => 'main-line' ),
+			'response_shipping_answer' => array( 'main' ),
+		);
+		foreach ( $main as $name => $value ) {
+			$property = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $name );
+			$property->setAccessible( true );
+			$property->setValue( $integration, $value );
+		}
+		$depth = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', 'main_cart_total_depth' );
+		$depth->setAccessible( true );
+		$depth->setValue( $integration, 1 );
+
+		$other = clone WC()->cart;
+		$integration->calculate_totals( $other );
+
+		foreach ( $main as $name => $value ) {
+			$property = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $name );
+			$property->setAccessible( true );
+			$this->assertEquals( $value, $property->getValue( $integration ), $name );
+		}
+	}
+
+	/**
+	 * When the main cart's lookup fails, pricing its shipping again does not tax its lines
+	 * with another cart's answer. Subscriptions totals each recurring cart from
+	 * woocommerce_calculated_total, inside the main cart's own total and before the main
+	 * cart's lookup, so the recurring cart's answer is the one held when that lookup fails.
+	 * The recurring cart shares the main cart's item keys. Here its answer is 0%, as for
+	 * clothing under $110 in New York, while the main cart's line is taxed from the rate
+	 * table, as on a failed lookup without the recurring cart.
+	 */
+	public function test_failed_main_lookup_does_not_tax_its_lines_with_a_recurring_carts_answer() {
+		$this->merchant_state_rate( 'NY', 8, 1 );
+		$zero = (int) WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'NY',
+				'tax_rate_name'     => 'Answered',
+				'tax_rate_priority' => 2,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate'          => '0',
+				'tax_rate_class'    => '',
+			)
+		);
+		$this->ship_to( self::$places['NY']['to'] );
+
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )
+			->disableOriginalConstructor()
+			->onlyMethods( array( 'calculate_taxes_by_location', 'get_store_settings', '_log' ) )
+			->getMock();
+
+		// The recurring cart's lookups answer 0%. The main cart's fail.
+		$totalling_recurring_cart = false;
+		$lookups                  = array(
+			'answered' => 0,
+			'failed'   => 0,
+		);
+		$integration->method( 'calculate_taxes_by_location' )->willReturnCallback(
+			function ( $items_by_location ) use ( &$totalling_recurring_cart, &$lookups, $zero ) {
+				if ( ! $totalling_recurring_cart ) {
+					++$lookups['failed'];
+					return false;
+				}
+				++$lookups['answered'];
+
+				$answer = array(
+					'rate_ids'        => array(),
+					'line_items'      => array(),
+					'shipping_answer' => array(
+						'address' => array( 'US', 'NY', '10001', 'NEW YORK' ),
+						'rates'   => array(),
+					),
+				);
+				foreach ( $items_by_location as $items ) {
+					foreach ( $items as $item ) {
+						$answer['rate_ids'][ $item['id'] ]   = array( $zero );
+						$answer['line_items'][ $item['id'] ] = (object) array(
+							'combined_tax_rate'    => 0.0,
+							'state_sales_tax_rate' => 0.0,
+						);
+					}
+				}
+
+				return $answer;
+			}
+		);
+		$this->hook( $integration );
+
+		// add_to_cart() totals the cart. The recurring cart joins the next total, so the
+		// request totals the main cart once, as in the store.
+		WC()->cart->add_to_cart( $this->product()->get_id(), 1 );
+		add_filter(
+			'woocommerce_calculated_total',
+			function ( $total, $cart ) use ( &$totalling_recurring_cart ) {
+				if ( $totalling_recurring_cart || WC()->cart !== $cart ) {
+					return $total;
+				}
+				$totalling_recurring_cart = true;
+				$recurring_cart                     = clone $cart;
+				$recurring_cart->recurring_cart_key = 'monthly';
+				$recurring_cart->calculate_totals();
+				$totalling_recurring_cart = false;
+
+				return $total;
+			},
+			1000,
+			2
+		);
+
+		WC()->cart->calculate_totals();
+		remove_all_filters( 'woocommerce_calculated_total' );
+
+		$this->assertGreaterThan( 0, $lookups['answered'], 'The recurring cart was answered' );
+		$this->assertGreaterThan( 0, $lookups['failed'], 'The main cart was looked up' );
+		$this->assertEqualsWithDelta( 8.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
+		$this->assertEqualsWithDelta( 0.8, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+	}
 }

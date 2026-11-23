@@ -1131,6 +1131,11 @@ class WC_Connect_TaxJar_Integration {
 	 * earlier answer. With no answer, the saved rates decide, as they do when the first
 	 * lookup fails.
 	 *
+	 * The cart is totalled again with no answer for its lines either, so only its shipping
+	 * changes. The answers held can be another cart's: Subscriptions totals each recurring
+	 * cart inside the main cart's total, after the main cart's lines were taxed, and the
+	 * recurring cart shares its item keys. The line answers are put back afterwards.
+	 *
 	 * Another cart totalled during the main cart's total gives the main cart's answer back,
 	 * as it does after a lookup that answered.
 	 *
@@ -1143,8 +1148,12 @@ class WC_Connect_TaxJar_Integration {
 
 		$is_main_cart     = WC()->cart instanceof WC_Cart && WC()->cart === $wc_cart_object;
 		$main_cart_answer = ! $is_main_cart && 0 < $this->main_cart_total_depth ? $this->response_shipping_answer : null;
+		$line_answers     = array( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys );
 
 		$this->response_shipping_answer = null;
+		$this->response_rate_ids        = null;
+		$this->response_line_items      = null;
+		$this->response_cart_item_keys  = array();
 		if ( $is_main_cart ) {
 			++$this->main_cart_total_depth;
 		}
@@ -1155,6 +1164,7 @@ class WC_Connect_TaxJar_Integration {
 			if ( $is_main_cart ) {
 				--$this->main_cart_total_depth;
 			}
+			list( $this->response_rate_ids, $this->response_line_items, $this->response_cart_item_keys ) = $line_answers;
 			if ( null !== $main_cart_answer ) {
 				$this->response_shipping_answer = $main_cart_answer;
 			}
