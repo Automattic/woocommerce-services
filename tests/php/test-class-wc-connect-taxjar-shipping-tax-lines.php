@@ -693,17 +693,28 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	 * rows at $0 each, which adds a City, County and Special Tax line at $0. Set back to
 	 * $100, it pays Michigan's 6% again.
 	 *
+	 * Without shipping, an order whose only line is $0 has nothing to send to TaxJar.
+	 *
 	 * @testWith [1]
 	 *           [2]
+	 *           [1, false]
 	 *
-	 * @param int $lines How many $100 lines the order has; the last one is set to $0.
+	 * @param int  $lines    How many $100 lines the order has; the last one is set to $0.
+	 * @param bool $shipping Whether the order keeps its shipping line.
 	 */
-	public function test_line_set_to_zero_on_the_order_screen_gets_no_zero_tax_lines( $lines ) {
+	public function test_line_set_to_zero_on_the_order_screen_gets_no_zero_tax_lines( $lines, $shipping = true ) {
 		$this->ship_to( self::$places['MI']['to'] );
 		$this->hook( $this->taxjar( 'MI' ) );
 
 		$this->calculate_cart( 2 === $lines ? array( $this->product(), $this->product() ) : array( $this->product() ) );
 		$order = $this->classic_checkout_order();
+		if ( ! $shipping ) {
+			// As the order screen's delete icon does: the totals follow.
+			foreach ( array_keys( $order->get_shipping_methods() ) as $shipping_id ) {
+				$order->remove_item( $shipping_id );
+			}
+			$order->calculate_totals( false );
+		}
 		$items = array_values( $order->get_items() );
 		$item  = $items[ $lines - 1 ];
 

@@ -2513,6 +2513,55 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A REST order whose only line is $0, with no shipping, has no tax lines: TaxJar has nothing to be asked about, and the line's tax is $0 at any rate.
+	 */
+	public function test_rest_order_of_only_a_zero_line_gets_no_tax_lines() {
+		// An earlier Boulder order wrote the rate rows WooCommerce would tax the line from.
+		$this->rest_create();
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		$order = $this->rest_create(
+			array(
+				'line_items'     => array(
+					array(
+						'product_id' => $this->create_product( '100' )->get_id(),
+						'quantity'   => 1,
+						'subtotal'   => '0.00',
+						'total'      => '0.00',
+					),
+				),
+				'shipping_lines' => array(),
+			)
+		);
+
+		$line_id = array_keys( $order->get_items() )[0];
+		$this->assertCount( 0, $this->requests, 'Nothing to ask TaxJar about' );
+		$this->assertSame( array(), $order->get_item( $line_id )->get_taxes()['total'], 'The $0 line' );
+		$this->assertSame( array(), $order->get_taxes(), 'Tax lines' );
+		$this->assert_order_tax( $order, 0.0, 0.0, 0.0 );
+		$this->assertFalse( $order->meta_exists( '_wc_connect_taxjar_no_tax_charged' ), 'TaxJar did not answer for it' );
+		$this->forget_created_in_request();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $line_id,
+						'subtotal' => '100.00',
+						'total'    => '100.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests, 'Priced later, it is asked about' );
+		// Boulder 8% on $100.
+		$this->assert_order_tax( $order, 8.00, 0.0, 108.00 );
+	}
+
+	/**
 	 * A REST order of two items TaxJar does not tax (Zero rate, sent as exempt), $10 and
 	 * $20, with no shipping: TaxJar taxed none of it.
 	 *

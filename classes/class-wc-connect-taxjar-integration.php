@@ -291,6 +291,14 @@ class WC_Connect_TaxJar_Integration {
 	private $orders_answered_in_request = array();
 
 	/**
+	 * Orders TaxJar is to be asked about in this request, by order id, also when it is
+	 * not asked because the order has nothing to send. See override_order_item_taxes().
+	 *
+	 * @var array<int, true>
+	 */
+	private $orders_looked_up_in_request = array();
+
+	/**
 	 * Order items a cart's TaxJar answer was applied to in this request, by
 	 * spl_object_id(). Checkout taxes a new order's items before the order is saved,
 	 * so they have no order id yet. See order_was_answered().
@@ -1328,6 +1336,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$this->reset_rate_row_memory();
+		$this->orders_looked_up_in_request[ (int) $order_id ] = true;
 
 		$address    = $this->fill_missing_backend_street( $this->get_backend_address(), $order );
 		$line_items = $this->get_backend_line_items( $order );
@@ -2233,8 +2242,10 @@ class WC_Connect_TaxJar_Integration {
 
 		// A line with no price is not sent to TaxJar (see get_backend_line_items()), so the
 		// order's lookup has no answer for it. Its tax is $0 at any rate: it gets none,
-		// instead of a $0 tax under each rate row WooCommerce found.
-		if ( $item instanceof \WC_Order_Item_Product && isset( $this->orders_answered_in_request[ (int) $item->get_order_id() ] ) && 0.0 === (float) $item->get_subtotal() && 0.0 === (float) $item->get_total() ) {
+		// instead of a $0 tax under each rate row WooCommerce found. Also when no line has
+		// a price and the order has no shipping, so TaxJar has nothing to be asked about.
+		$order_id = (int) $item->get_order_id();
+		if ( $item instanceof \WC_Order_Item_Product && ( isset( $this->orders_answered_in_request[ $order_id ] ) || isset( $this->orders_looked_up_in_request[ $order_id ] ) ) && 0.0 === (float) $item->get_subtotal() && 0.0 === (float) $item->get_total() ) {
 			$item->set_taxes( false );
 			return;
 		}
@@ -4625,6 +4636,9 @@ class WC_Connect_TaxJar_Integration {
 		$snapshot['kept_for_refunds'] = $snapshot['lookup'] && ! empty( $snapshot['tax_lines'] ) && 0.0 !== (float) $order->get_total_tax_refunded();
 		if ( $snapshot['kept_for_refunds'] ) {
 			$snapshot['lookup'] = false;
+		}
+		if ( $snapshot['lookup'] ) {
+			$this->orders_looked_up_in_request[ (int) $order->get_id() ] = true;
 		}
 
 		// An order charged no tax stays at no tax, unless a lookup gives it some: WC's rate
