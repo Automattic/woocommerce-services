@@ -4,6 +4,7 @@ use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
 use Automattic\WCServices\Tax\Address;
 use Automattic\WCServices\Tax\StoreAddressNotice;
 use Automattic\WCServices\Tax\StoreAddressVerifier;
+use Automattic\WCServices\Tax\UntaxedOrdersNotice;
 
 class WC_Connect_TaxJar_Integration {
 
@@ -317,6 +318,49 @@ class WC_Connect_TaxJar_Integration {
 	private $is_cart_lookup = false;
 
 	/**
+	 * How many lookups in this request got no answer from the tax service.
+	 *
+	 * Counted by calculate_tax(): a request that failed or timed out, an answer other
+	 * than 200, 400 or 404, a failure remembered from earlier, or a 200 that could not
+	 * be read. A 400 or 404 is an answer about the address, and is not counted. Callers
+	 * compare it before and after their lookup.
+	 *
+	 * @var int
+	 */
+	private $unanswered_lookups = 0;
+
+	/**
+	 * Whether the main cart's last lookup in this request got no answer.
+	 *
+	 * Reset before every total of the main cart. Read when an order is created from it.
+	 *
+	 * @var bool
+	 */
+	private $main_cart_lookup_unanswered = false;
+
+	/**
+	 * Orders whose Recalculate lookup got no answer, by order id. 'looked_up' until
+	 * WooCommerce starts calculating their taxes, then 'calculating'.
+	 *
+	 * @var array<int, string>
+	 */
+	private $unanswered_recalculations = array();
+
+	/**
+	 * Orders noted in this request as having no tax because the lookup got no answer, by order id.
+	 *
+	 * @var array<int, true>
+	 */
+	private $untaxed_orders_noted = array();
+
+	/**
+	 * The admin notice that lists those orders. Null when its class could not be loaded.
+	 *
+	 * @var UntaxedOrdersNotice|null
+	 */
+	private $untaxed_orders_notice = null;
+
+	/**
 	 * Words in rate row names, translated into the site's language, by site locale.
 	 *
 	 * Filled only by a request that had to switch to the site's language to build them.
@@ -584,6 +628,17 @@ class WC_Connect_TaxJar_Integration {
 			$store_address_verifier->init();
 			( new StoreAddressNotice( $store_address_verifier ) )->init();
 		}
+
+		// Tell the merchant about orders that got no tax because the tax service did not
+		// answer and no saved rate applied. Guarded like the store address check above.
+		if ( class_exists( UntaxedOrdersNotice::class ) ) {
+			$this->untaxed_orders_notice = new UntaxedOrdersNotice();
+			$this->untaxed_orders_notice->init();
+		}
+		add_action( 'woocommerce_checkout_order_created', Closure::fromCallable( array( $this, 'note_untaxed_checkout_order' ) ), 10, 1 );
+		add_action( 'woocommerce_store_api_checkout_order_processed', Closure::fromCallable( array( $this, 'note_untaxed_checkout_order' ) ), 10, 1 );
+		add_action( 'woocommerce_order_before_calculate_taxes', Closure::fromCallable( array( $this, 'start_unanswered_recalculation' ) ), 10, 2 );
+		add_action( 'woocommerce_order_after_calculate_totals', Closure::fromCallable( array( $this, 'note_unanswered_recalculation' ) ), 30, 2 );
 
 		// Calculate Taxes at Cart / Checkout
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
@@ -1057,6 +1112,7 @@ class WC_Connect_TaxJar_Integration {
 
 		// Nobody waits at checkout on a phone order cart, and its order is created from it, so it keeps the long limit.
 		$this->is_cart_lookup = ! $this->is_opted_in_admin_ajax_cart( $wc_cart_object );
+		$unanswered_before    = $this->unanswered_lookups;
 		try {
 			$taxes = $this->calculate_taxes_by_location( $items_by_location, $shipping_amount );
 		} finally {
@@ -1077,6 +1133,27 @@ class WC_Connect_TaxJar_Integration {
 			$this->forget_shipping_answer( $wc_cart_object );
 			if ( $is_main_cart && 0 === $this->main_cart_total_depth ) {
 				$this->forget_answers();
+				$this->main_cart_lookup_unanswered = $this->unanswered_lookups > $unanswered_before;
+			}
+
+			if ( $this->unanswered_lookups > $unanswered_before ) {
+				/**
+				 * Fires when a cart's tax lookup got no answer from the tax service.
+				 *
+				 * The tax service failed, timed out, or failed moments ago and was not asked
+				 * again. The cart has been totalled with the store's saved tax rates for the
+				 * address, if it has any, so check $cart->get_total_tax(): with none it has
+				 * no tax. A phone or manual order plugin can use this to tell the shop
+				 * manager in its own screen. An address the tax service refused does not
+				 * fire it.
+				 *
+				 * It can fire more than once per request, as the cart is totalled again.
+				 *
+				 * @since 3.7.8
+				 *
+				 * @param WC_Cart $cart The cart that was totalled.
+				 */
+				do_action( 'woocommerce_services_cart_tax_lookup_failed', $wc_cart_object );
 			}
 			return;
 		}
@@ -1234,6 +1311,7 @@ class WC_Connect_TaxJar_Integration {
 	private function forget_answers_before_main_cart_total( $wc_cart_object ) {
 		if ( 0 === $this->main_cart_total_depth && WC()->cart instanceof WC_Cart && WC()->cart === $wc_cart_object ) {
 			$this->forget_answers();
+			$this->main_cart_lookup_unanswered = false;
 		}
 	}
 
@@ -1293,7 +1371,8 @@ class WC_Connect_TaxJar_Integration {
 		} else {
 			$shipping = $order->get_total_shipping(); // Woo 2.6
 		}
-		$taxes = $this->calculate_tax(
+		$unanswered_before = $this->unanswered_lookups;
+		$taxes             = $this->calculate_tax(
 			array(
 				'to_country'      => $address['to_country'],
 				'to_state'        => $address['to_state'],
@@ -1304,6 +1383,14 @@ class WC_Connect_TaxJar_Integration {
 				'line_items'      => $line_items,
 			)
 		);
+
+		// WooCommerce then taxes the order from the rate table. If the lookup got no answer
+		// and no saved rate applies, the order gets no tax, and a note (see
+		// note_unanswered_recalculation()). A locked order keeps its tax and is not noted.
+		unset( $this->unanswered_recalculations[ (int) $order_id ] );
+		if ( $this->unanswered_lookups > $unanswered_before && doing_action( 'wp_ajax_woocommerce_calc_line_taxes' ) && ! $this->order_tax_is_locked( $order ) ) {
+			$this->unanswered_recalculations[ (int) $order_id ] = 'looked_up';
+		}
 
 		/*
 		 * WooCommerce recalculates the order after this hook by reading the rate table
@@ -2904,6 +2991,12 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! isset( $response ) || ! $response ) {
 			$this->_log( 'Received: none.' );
 
+			// False is an answer about the address (400, 404) or a request our own
+			// validation stopped. Anything else means the tax service did not answer.
+			if ( false !== $response ) {
+				++$this->unanswered_lookups;
+			}
+
 			return false;
 		}
 
@@ -2915,6 +3008,8 @@ class WC_Connect_TaxJar_Integration {
 		// Bail on a malformed response: maybe_override_taxjar_tax() and
 		// get_itemized_tax_rates() both access `tax` as an object.
 		if ( empty( $taxjar_response->tax ) || ! is_object( $taxjar_response->tax ) ) {
+			++$this->unanswered_lookups;
+
 			return false;
 		}
 
@@ -4750,8 +4845,9 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		$lookup    = $snapshot['lookup'] ? $this->lookup_order_taxes( $order ) : null;
-		$reapplied = null;
+		$unanswered_before = $this->unanswered_lookups;
+		$lookup            = $snapshot['lookup'] ? $this->lookup_order_taxes( $order ) : null;
+		$reapplied         = null;
 		// Everything to say about this recalculation goes in one note.
 		$notes = array();
 
@@ -4763,6 +4859,12 @@ class WC_Connect_TaxJar_Integration {
 				$notes[] = __( 'Tax could not be calculated for this order, because its address is incomplete or has a state or ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' );
 			} elseif ( self::ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS === $lookup ) {
 				$notes[] = __( 'Tax could not be calculated for this order, because the store address has no country or has a ZIP code that is not valid. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' );
+			} elseif ( false === $lookup && $this->unanswered_lookups > $unanswered_before && $this->order_got_no_tax( $order ) ) {
+				// The tax service did not answer and no saved rate applied: the order has no tax.
+				if ( ! isset( $this->untaxed_orders_noted[ $order_id ] ) ) {
+					$notes[] = $this->get_untaxed_order_note();
+					$this->record_untaxed_order( $order );
+				}
 			} elseif ( false === $lookup ) {
 				$notes[] = __( 'Tax could not be calculated for this order, because the tax service did not answer or did not accept the order\'s address. Check the order\'s address and its tax.', 'woocommerce-services' );
 			}
@@ -6067,6 +6169,133 @@ class WC_Connect_TaxJar_Integration {
 		);
 
 		$this->add_order_tax_note( $order, implode( "\n", $lines ) );
+	}
+
+	/**
+	 * Note an order placed from a cart whose lookup got no answer, when it has no tax.
+	 *
+	 * The cart was taxed from the rate table instead. With no saved rate for the address,
+	 * the order is placed with no tax, and the merchant is told: a note on the order and
+	 * the admin notice. Orders made by WC_Checkout::create_order(), as classic checkout
+	 * and phone order plugins make them, and by the Store API's checkout.
+	 *
+	 * Hooked to woocommerce_checkout_order_created and
+	 * woocommerce_store_api_checkout_order_processed by init().
+	 *
+	 * @param WC_Order|mixed $order The order placed.
+	 */
+	private function note_untaxed_checkout_order( $order ) {
+		if ( ! $this->main_cart_lookup_unanswered || ! $order instanceof WC_Order || ! $this->order_got_no_tax( $order ) ) {
+			return;
+		}
+
+		$this->note_untaxed_order( $order );
+	}
+
+	/**
+	 * Mark a Recalculate whose lookup got no answer as reaching WooCommerce's tax calculation.
+	 *
+	 * WooCommerce totals the order once while it saves its items, before it calculates
+	 * the taxes, and once after. Only the second total shows the tax Recalculate gave.
+	 *
+	 * Hooked to woocommerce_order_before_calculate_taxes by init().
+	 *
+	 * @param array                   $args  Args passed to calculate_taxes(). Unused.
+	 * @param WC_Abstract_Order|mixed $order The order being recalculated.
+	 */
+	private function start_unanswered_recalculation( $args, $order ) {
+		if ( $order instanceof WC_Order && isset( $this->unanswered_recalculations[ (int) $order->get_id() ] ) ) {
+			$this->unanswered_recalculations[ (int) $order->get_id() ] = 'calculating';
+		}
+	}
+
+	/**
+	 * Note an order Recalculate left with no tax because its lookup got no answer.
+	 *
+	 * See calculate_backend_totals().
+	 *
+	 * Hooked to woocommerce_order_after_calculate_totals by init().
+	 *
+	 * @param bool                    $and_taxes Whether taxes were recalculated. Unused: Recalculate passes false.
+	 * @param WC_Abstract_Order|mixed $order     The order whose totals were recalculated.
+	 */
+	private function note_unanswered_recalculation( $and_taxes, $order ) {
+		if ( ! $order instanceof WC_Order || 'calculating' !== ( $this->unanswered_recalculations[ (int) $order->get_id() ] ?? null ) ) {
+			return;
+		}
+
+		unset( $this->unanswered_recalculations[ (int) $order->get_id() ] );
+
+		if ( $this->order_got_no_tax( $order ) ) {
+			$this->note_untaxed_order( $order );
+		}
+	}
+
+	/**
+	 * Whether an order has no tax although something on it could be taxed.
+	 *
+	 * After a lookup that got no answer, WooCommerce taxes the order from the store's
+	 * saved rates. This is how it ended when none applied. An order with nothing taxable
+	 * on it, or with only free lines, is not one.
+	 *
+	 * @param WC_Order $order The order.
+	 * @return bool
+	 */
+	private function order_got_no_tax( WC_Order $order ) {
+		if ( 0.0 !== (float) $order->get_total_tax() ) {
+			return false;
+		}
+
+		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item ) {
+			if ( 'taxable' === $item->get_tax_status() && 0.0 < (float) $item->get_total() ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * The note for an order that got no tax because the tax service did not answer.
+	 *
+	 * @return string
+	 */
+	private function get_untaxed_order_note() {
+		return __( 'Tax could not be calculated for this order, because the tax service did not answer and the store has no saved tax rates for the order\'s address. The order has no tax. Check whether tax is due on it.', 'woocommerce-services' );
+	}
+
+	/**
+	 * Add the note to an order that got no tax because the tax service did not answer, and list it in the admin notice.
+	 *
+	 * Once per order per request. A checkout draft gets neither (see add_order_tax_note()
+	 * and record_untaxed_order()): the order placed from it is noted.
+	 *
+	 * @param WC_Order $order The order.
+	 */
+	private function note_untaxed_order( WC_Order $order ) {
+		if ( isset( $this->untaxed_orders_noted[ (int) $order->get_id() ] ) ) {
+			return;
+		}
+
+		$this->add_order_tax_note( $order, $this->get_untaxed_order_note() );
+		$this->record_untaxed_order( $order );
+	}
+
+	/**
+	 * List an order that got no tax because the tax service did not answer in the admin notice.
+	 *
+	 * @param WC_Order $order The order.
+	 */
+	private function record_untaxed_order( WC_Order $order ) {
+		if ( 'checkout-draft' === $order->get_status() ) {
+			return;
+		}
+
+		$this->untaxed_orders_noted[ (int) $order->get_id() ] = true;
+
+		if ( null !== $this->untaxed_orders_notice ) {
+			$this->untaxed_orders_notice->record( $order );
+		}
 	}
 
 	/**
