@@ -2898,6 +2898,224 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Create over REST an order with a $100 Standard line and a $100 Reduced rate line
+	 * TaxJar answers at $0, as at a checkout with a 100% coupon on it. The Reduced rate
+	 * line is the only one in its tax class, so its class has no rates on the order.
+	 *
+	 * @return array{order: WC_Order, standard: int, reduced: int}
+	 */
+	private function rest_create_with_a_reduced_line_at_zero() {
+		$reduced = $this->create_product( '100' );
+		$reduced->set_name( 'Reduced Product' );
+		$reduced->set_tax_class( 'reduced-rate' );
+		$reduced->save();
+
+		$order = $this->rest_create(
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $this->create_product( '100' )->get_id(),
+						'quantity'   => 1,
+					),
+					array(
+						'product_id' => $reduced->get_id(),
+						'quantity'   => 1,
+						'subtotal'   => '100.00',
+						'total'      => '0.00',
+					),
+				),
+			)
+		);
+
+		$ids = array_keys( $order->get_items() );
+		$this->assertSame( array(), $order->get_item( $ids[1] )->get_taxes()['total'], 'The $0 line has no tax' );
+		// Boulder 8%: $100 8.00, $10 shipping 0.80.
+		$this->assert_order_tax( $order, 8.00, 0.80, 118.80 );
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		return array(
+			'order'    => $order,
+			'standard' => $ids[0],
+			'reduced'  => $ids[1],
+		);
+	}
+
+	/**
+	 * Set an order's line to $100 over REST.
+	 *
+	 * @param WC_Order $order   Order.
+	 * @param int      $item_id The line.
+	 * @return WC_Order
+	 */
+	private function rest_set_line_to_100( WC_Order $order, $item_id ) {
+		return $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $item_id,
+						'subtotal' => '100.00',
+						'total'    => '100.00',
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * @testdox A line discounted to $0, alone in its tax class, set back to $100 on an unpaid order, asks TaxJar and is taxed at its class's rates.
+	 *
+	 * Its class has no rates on the order to take: the other line is in another class.
+	 */
+	public function test_line_discounted_to_zero_alone_in_its_class_and_set_back_is_looked_up() {
+		$fixture = $this->rest_create_with_a_reduced_line_at_zero();
+
+		$order = $this->rest_set_line_to_100( $fixture['order'], $fixture['reduced'] );
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		// Boulder 8% on each $100 line, and on $10 shipping.
+		$this->assert_order_tax( $order, 16.00, 0.80, 226.80 );
+		$this->assertEqualsWithDelta( 8.00, $this->item_tax( $order, $fixture['reduced'] ), 0.001, 'The line set back' );
+		$this->assertEqualsWithDelta( 8.00, $this->item_tax( $order, $fixture['standard'] ), 0.001, 'The Standard line' );
+
+		$rate_ids = array_keys( array_filter( $order->get_item( $fixture['reduced'] )->get_taxes()['total'] ) );
+		$this->assertCount( 2, $rate_ids, 'State and city' );
+		foreach ( $rate_ids as $rate_id ) {
+			$this->assertSame( 'reduced-rate', WC_Tax::_get_tax_rate( $rate_id )['tax_rate_class'], 'A rate of its own class' );
+		}
+
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Tax recalculated from', $notes[0] );
+		$this->assertStringNotContainsString( 'No tax was added', $notes[0] );
+	}
+
+	/**
+	 * @testdox When TaxJar does not answer for a line discounted to $0, alone in its tax class and set back, the order keeps its tax, and the note says so.
+	 */
+	public function test_failed_lookup_for_a_line_alone_in_its_class_and_set_back_keeps_the_tax() {
+		$fixture           = $this->rest_create_with_a_reduced_line_at_zero();
+		$this->taxjar_down = true;
+
+		$order = $this->rest_set_line_to_100( $fixture['order'], $fixture['reduced'] );
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		$this->assertSame( array(), $order->get_item( $fixture['reduced'] )->get_taxes()['total'], 'The line set back' );
+		// The Standard line and shipping keep their tax.
+		$this->assert_order_tax( $order, 8.00, 0.80, 218.80 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
+		$this->assertStringContainsString( 'No tax was added for Reduced Product', $notes[0] );
+		$this->assertStringNotContainsString( 'new address', $notes[0] );
+	}
+
+	/**
+	 * @testdox A line discounted to $0, alone in its tax class, set back to $100 on a paid order, does not ask TaxJar: the order keeps the tax it was charged.
+	 */
+	public function test_line_alone_in_its_class_set_back_on_a_paid_order_is_not_looked_up() {
+		$fixture = $this->rest_create_with_a_reduced_line_at_zero();
+		$fixture['order']->set_status( 'processing' );
+		$fixture['order']->save();
+		$this->forget_created_in_request();
+
+		$order = $this->rest_set_line_to_100( $fixture['order'], $fixture['reduced'] );
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assertSame( array(), $order->get_item( $fixture['reduced'] )->get_taxes()['total'], 'The line set back' );
+		$this->assert_order_tax( $order, 8.00, 0.80, 218.80 );
+		$this->assertCount( 1, $this->locked_order_notes( $order ), 'The locked order note' );
+	}
+
+	/**
+	 * @testdox A line discounted to $0, alone in its tax class, set back on an order with refunded tax does not ask TaxJar: the refunds are recorded against the order's rates.
+	 */
+	public function test_line_alone_in_its_class_set_back_on_an_order_with_refunded_tax_is_not_looked_up() {
+		$fixture  = $this->rest_create_with_a_reduced_line_at_zero();
+		$rate_ids = array_keys( array_filter( $fixture['order']->get_item( $fixture['standard'] )->get_taxes()['total'] ) );
+		wc_create_refund(
+			array(
+				'order_id'   => $fixture['order']->get_id(),
+				'amount'     => 1.00,
+				'line_items' => array(
+					$fixture['standard'] => array(
+						'qty'          => 0,
+						'refund_total' => 0,
+						'refund_tax'   => array( $rate_ids[0] => 1.00 ),
+					),
+				),
+			)
+		);
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		$order = $this->rest_set_line_to_100( wc_get_order( $fixture['order']->get_id() ), $fixture['reduced'] );
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assertSame( array(), $order->get_item( $fixture['reduced'] )->get_taxes()['total'], 'The line set back' );
+		$this->assert_order_tax( $order, 8.00, 0.80, 218.80 );
+		$notes = $this->tax_notes( $order );
+		$this->assertStringContainsString( 'No tax was added for Reduced Product', $notes[0] );
+		$this->assertStringNotContainsString( 'new address', $notes[0] );
+	}
+
+	/**
+	 * @testdox A line TaxJar answered as exempt, alone in its tax class, whose amount changes does not ask TaxJar: it was answered with its amount.
+	 */
+	public function test_exempt_line_alone_in_its_class_with_a_new_amount_is_not_looked_up() {
+		$created = WC_Tax::create_tax_class( 'Exempt 99999' );
+		$this->assertIsArray( $created );
+
+		try {
+			$exempt = $this->create_product( '20' );
+			$exempt->set_tax_class( $created['slug'] );
+			$exempt->save();
+
+			$order = $this->rest_create(
+				array(
+					'line_items' => array(
+						array(
+							'product_id' => $this->create_product( '100' )->get_id(),
+							'quantity'   => 1,
+						),
+						array(
+							'product_id' => $exempt->get_id(),
+							'quantity'   => 1,
+						),
+					),
+				)
+			);
+
+			$ids = array_keys( $order->get_items() );
+			$this->assertSame( array(), $order->get_item( $ids[1] )->get_taxes()['total'], 'TaxJar answered the line at 0%' );
+			$this->forget_created_in_request();
+			$this->requests = array();
+
+			$order = $this->rest_update(
+				$order->get_id(),
+				array(
+					'line_items' => array(
+						array(
+							'id'       => $ids[1],
+							'quantity' => 2,
+							'subtotal' => '40.00',
+							'total'    => '40.00',
+						),
+					),
+				)
+			);
+
+			$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+			$this->assertSame( array(), $order->get_item( $ids[1] )->get_taxes()['total'], 'The exempt line' );
+			// Boulder 8% on the $100 line and $10 shipping, as before the edit.
+			$this->assert_order_tax( $order, 8.00, 0.80, 158.80 );
+		} finally {
+			WC_Tax::delete_tax_class_by( 'slug', $created['slug'] );
+		}
+	}
+
+	/**
 	 * @testdox Shipping added to an order TaxJar taxed none of asks TaxJar: its answer said nothing about shipping.
 	 */
 	public function test_shipping_added_to_an_order_taxjar_taxed_none_of_is_looked_up() {

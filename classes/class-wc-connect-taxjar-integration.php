@@ -4625,6 +4625,7 @@ class WC_Connect_TaxJar_Integration {
 		$snapshot['address_before'] = $this->find_order_tax_address_change( $order );
 		$snapshot['no_tax_charged'] = empty( $snapshot['tax_lines'] ) && $this->order_records_no_tax_charged( $order );
 		$snapshot                   = $this->find_what_no_tax_record_does_not_cover( $order, $snapshot );
+		$snapshot['unrated_lines']  = $this->find_lines_without_class_rates( $order, $snapshot );
 
 		// A locked order is not looked up again: its tax stays at what was charged.
 		$snapshot['lookup'] = ! $snapshot['locked'] && $this->order_needs_tax_lookup( $snapshot );
@@ -4836,13 +4837,7 @@ class WC_Connect_TaxJar_Integration {
 				$this->restore_order_taxes( $order, $snapshot );
 			}
 
-			if ( self::ORDER_TAX_LOOKUP_BAD_ADDRESS === $lookup ) {
-				$notes[] = __( 'Tax could not be calculated for this order, because its address is incomplete or has a state or ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' );
-			} elseif ( self::ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS === $lookup ) {
-				$notes[] = __( 'Tax could not be calculated for this order, because the store address has no country or has a ZIP code that is not valid. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' );
-			} elseif ( false === $lookup ) {
-				$notes[] = __( 'Tax could not be calculated for this order, because the tax service did not answer or did not accept the order\'s address. Check the order\'s address and its tax.', 'woocommerce-services' );
-			}
+			$notes[] = $this->get_failed_order_tax_lookup_note( $lookup );
 		} elseif ( empty( $snapshot['base_changes']['has_changes'] ) ) {
 			$this->restore_order_taxes( $order, $snapshot );
 		} elseif ( ! $this->snapshot_records_tax_rates( $snapshot ) ) {
@@ -4852,8 +4847,14 @@ class WC_Connect_TaxJar_Integration {
 			$reapplied = $this->reapply_order_tax_rates( $order, $snapshot );
 		}
 
+		// TaxJar was asked only about a line with no rates in its tax class (see
+		// find_lines_without_class_rates()). The edit is applied as it is without a lookup.
+		if ( ! is_array( $lookup ) && null !== $lookup && ! empty( $snapshot['tax_lines'] ) && null === $snapshot['address_before'] ) {
+			$notes[] = $this->get_failed_order_tax_lookup_note( $lookup );
+		}
+
 		// A note about the new address says what was done instead, with the tax change.
-		if ( ! is_array( $lookup ) && null !== $lookup && ! empty( $snapshot['tax_lines'] ) ) {
+		if ( ! is_array( $lookup ) && null !== $lookup && ! empty( $snapshot['tax_lines'] ) && null !== $snapshot['address_before'] ) {
 			$notes[] = $this->get_failed_order_tax_update_note( $order, $lookup, $reapplied );
 		} elseif ( ! empty( $snapshot['kept_for_refunds'] ) ) {
 			$notes[] = $this->get_kept_order_tax_note(
@@ -4879,11 +4880,35 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 
+		$notes = array_filter( $notes );
 		if ( $notes ) {
 			$this->add_order_tax_note( $order, implode( ' ', $notes ) );
 		}
 
 		$this->forget_order_tax_edit( $order );
+	}
+
+	/**
+	 * A note for a lookup of an order's tax that failed, when the order's address did
+	 * not change.
+	 *
+	 * @param mixed $lookup What lookup_order_taxes() returned.
+	 * @return string The note, or '' when the lookup did not fail.
+	 */
+	private function get_failed_order_tax_lookup_note( $lookup ) {
+		if ( self::ORDER_TAX_LOOKUP_BAD_ADDRESS === $lookup ) {
+			return __( 'Tax could not be calculated for this order, because its address is incomplete or has a state or ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' );
+		}
+
+		if ( self::ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS === $lookup ) {
+			return __( 'Tax could not be calculated for this order, because the store address has no country or has a ZIP code that is not valid. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' );
+		}
+
+		if ( false === $lookup ) {
+			return __( 'Tax could not be calculated for this order, because the tax service did not answer or did not accept the order\'s address. Check the order\'s address and its tax.', 'woocommerce-services' );
+		}
+
+		return '';
 	}
 
 	/**
@@ -5761,6 +5786,79 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * The rate ids each tax class has on an order, for a line that has none of its own.
+	 *
+	 * They are the rates the order's saved lines and fees were taxed at, by the class
+	 * they were taxed in, and those of items the edit removed when it removed the last
+	 * one of a class. A negative fee is left out: it carries the rates of every class on
+	 * the order.
+	 *
+	 * @param WC_Order $order    The order.
+	 * @param array    $snapshot Snapshot with item_taxes and base_changes.
+	 * @return array Rate ids, keyed by tax class.
+	 */
+	private function get_order_rate_ids_by_class( $order, array $snapshot ) {
+		$rate_ids_by_class = array();
+		foreach ( $order->get_items( array( 'line_item', 'fee' ) ) as $item_id => $item ) {
+			if ( ! in_array( (int) $item_id, $snapshot['base_changes']['known_ids'], true ) || empty( $snapshot['item_taxes'][ $item_id ]['total'] ) || $this->is_negative_fee( $item ) ) {
+				continue;
+			}
+
+			// An item moved to another class was taxed in, and leaves its rates to, the old one.
+			$tax_class                       = $snapshot['base_changes']['reclassed'][ (int) $item_id ] ?? $item->get_tax_class();
+			$rate_ids_by_class[ $tax_class ] = array_unique( array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), array_keys( $snapshot['item_taxes'][ $item_id ]['total'] ) ) );
+		}
+
+		return $rate_ids_by_class + $snapshot['base_changes']['removed_rate_ids']['classes'];
+	}
+
+	/**
+	 * Find the lines that get an amount again and have no rates in their tax class on
+	 * the order.
+	 *
+	 * A line that was $0 after its discounts was charged no tax at any rate, so it has no
+	 * rates of its own. Given an amount, it takes the rates of the other lines in its tax
+	 * class (see plan_reapplied_order_taxes()). When it is the only line in its class,
+	 * there are none, and TaxJar is asked about the order, as for an order with no tax
+	 * yet. A line that is still $0 is not.
+	 *
+	 * Not on a locked order: it keeps the tax it was charged. Not on an order with
+	 * refunded tax either: its refunds are recorded against the rates it has.
+	 *
+	 * @param WC_Order $order    The order about to be recalculated.
+	 * @param array    $snapshot Snapshot with tax_lines, item_taxes, locked and base_changes.
+	 * @return string[] The lines' names, keyed by item id.
+	 */
+	private function find_lines_without_class_rates( $order, array $snapshot ) {
+		if ( empty( $snapshot['tax_lines'] ) || ! empty( $snapshot['locked'] ) || 0.0 !== (float) $order->get_total_tax_refunded() ) {
+			return array();
+		}
+
+		$order_rate_ids    = array_map( 'intval', wp_list_pluck( $snapshot['tax_lines'], 'rate_id' ) );
+		$rate_ids_by_class = null;
+		$names             = array();
+		foreach ( $order->get_items() as $item_id => $item ) {
+			if ( 'taxable' !== $item->get_tax_status() || 0 >= (float) $item->get_total() || ! empty( $snapshot['item_taxes'][ $item_id ]['total'] ) ) {
+				continue;
+			}
+
+			// A saved line, in the class it was taxed in, that was $0.
+			if ( ! in_array( (int) $item_id, $snapshot['base_changes']['known_ids'], true ) || isset( $snapshot['base_changes']['reclassed'][ (int) $item_id ] ) || 0.0 !== (float) $this->get_order_item_saved_base( $item )['total'] ) {
+				continue;
+			}
+
+			$rate_ids_by_class = $rate_ids_by_class ?? $this->get_order_rate_ids_by_class( $order, $snapshot );
+			if ( array_intersect( array_map( 'intval', $rate_ids_by_class[ $item->get_tax_class() ] ?? array() ), $order_rate_ids ) ) {
+				continue;
+			}
+
+			$names[ (int) $item_id ] = $item->get_name();
+		}
+
+		return $names;
+	}
+
+	/**
 	 * Work out the tax each item gets when an order's recorded rates are re-applied.
 	 *
 	 * See reapply_order_tax_rates() for the rules. Changes nothing: the order and its
@@ -5790,36 +5888,26 @@ class WC_Connect_TaxJar_Integration {
 		$changed_ids = $snapshot['base_changes']['changed_ids'];
 		$reclassed   = $snapshot['base_changes']['reclassed'];
 
-		// Rates already on the order, per tax class and for shipping, for new items. A
-		// negative fee is left out: it carries the rates of every class on the order.
-		$rate_ids_by_class = array();
+		// Rates already on the order, per tax class and for shipping, for new items.
+		$rate_ids_by_class = $this->get_order_rate_ids_by_class( $order, $snapshot );
 		$shipping_rate_ids = array();
 		$untaxed_shipping  = $snapshot['base_changes']['removed_rate_ids']['untaxed_shipping'];
-		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
-			$key = 'shipping' === $item->get_type() ? 'shipping_' . $item_id : $item_id;
+		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
 			if ( ! in_array( (int) $item_id, $known_ids, true ) ) {
 				continue;
 			}
 
-			if ( empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
+			if ( empty( $snapshot['item_taxes'][ 'shipping_' . $item_id ]['total'] ) ) {
 				// Shipping the order did not tax: a new shipping line at no tax is expected.
-				$untaxed_shipping = $untaxed_shipping || ( 'shipping' === $item->get_type() && $this->shipping_line_could_carry_tax( $item ) );
+				$untaxed_shipping = $untaxed_shipping || $this->shipping_line_could_carry_tax( $item );
 				continue;
 			}
 
-			$item_rate_ids = array_keys( $snapshot['item_taxes'][ $key ]['total'] );
-			if ( 'shipping' === $item->get_type() ) {
-				$shipping_rate_ids = array_unique( array_merge( $shipping_rate_ids, $item_rate_ids ) );
-			} elseif ( ! $this->is_negative_fee( $item ) ) {
-				// An item moved to another class was taxed in, and leaves its rates to, the old one.
-				$tax_class                       = $reclassed[ (int) $item_id ] ?? $item->get_tax_class();
-				$rate_ids_by_class[ $tax_class ] = array_unique( array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), $item_rate_ids ) );
-			}
+			$shipping_rate_ids = array_unique( array_merge( $shipping_rate_ids, array_keys( $snapshot['item_taxes'][ 'shipping_' . $item_id ]['total'] ) ) );
 		}
 
-		// When the edit removed the last item of a class (or all the shipping), a new one
-		// takes the rates the removed ones were taxed at.
-		$rate_ids_by_class += $snapshot['base_changes']['removed_rate_ids']['classes'];
+		// When the edit removed all the shipping, new shipping takes the rates the removed
+		// lines were taxed at.
 		if ( empty( $shipping_rate_ids ) ) {
 			$shipping_rate_ids = $snapshot['base_changes']['removed_rate_ids']['shipping'];
 		}
@@ -6807,8 +6895,9 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * Asked when the address the order is taxed on changed, or when the order has no
 	 * tax yet and its items changed. A new order counts: its items are first saved in
-	 * the same request. Everything else re-uses the rates recorded on the order, with
-	 * no request.
+	 * the same request. Also when a line gets an amount again and its tax class has no
+	 * rates on the order (see find_lines_without_class_rates()). Everything else re-uses
+	 * the rates recorded on the order, with no request.
 	 *
 	 * @param array $snapshot Snapshot with base_changes and address_before.
 	 * @return bool
@@ -6820,6 +6909,12 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		if ( null !== $snapshot['address_before'] ) {
+			return true;
+		}
+
+		// A line that gets an amount again, with no rates in its tax class on the order.
+		// See find_lines_without_class_rates().
+		if ( ! empty( $snapshot['unrated_lines'] ) ) {
 			return true;
 		}
 
