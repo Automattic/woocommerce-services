@@ -3907,35 +3907,50 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox A paid order with no tax gets its tax when Recalculate is pressed, with a note.
+	 * @testdox A paid order with no tax stays at no tax when Recalculate is pressed, with a note on how to charge it.
 	 */
-	public function test_recalculate_adds_tax_to_paid_order_without_tax() {
+	public function test_recalculate_keeps_paid_order_without_tax_at_no_tax() {
 		$order = $this->press_recalculate( $this->create_paid_untaxed_order() );
 
-		// The lookup finds TaxJar unreachable, so WooCommerce's 6% row applies, as on an unpaid order.
-		$this->assertEqualsWithDelta( 0.60, (float) $order->get_cart_tax(), 0.001 );
-		$this->assertEqualsWithDelta( 10.60, (float) $order->get_total(), 0.001 );
-		$notes = preg_grep( '/^This order had no tax, and tax was added after the order was charged: \$0\.60\./', array_map( array( self::class, 'note_text' ), $this->tax_notes( $order ) ) );
-		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'Next step: if the customer must pay this tax, create a new order for it.', reset( $notes ) );
+		// WooCommerce's 6% row would give $0.60: the tax stays at none.
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 10.0, (float) $order->get_total(), 0.001 );
+		$this->assertSame( array(), $order->get_taxes(), 'no tax lines' );
 
-		// It has tax now, so it is locked as any paid order.
-		$this->start_new_request();
-		$order = $this->rest_update(
-			$order->get_id(),
-			array(
-				'line_items' => array(
-					array(
-						'id'       => current( $order->get_items() )->get_id(),
-						'quantity' => 2,
-						'subtotal' => '20.00',
-						'total'    => '20.00',
+		$notes = array_map( array( self::class, 'note_text' ), $this->tax_notes( $order ) );
+		$this->assertCount( 1, $notes );
+		$this->assertStringStartsWith( "No tax was charged on this order. The tax stays at $0.00.\nChanged: ", $notes[0] );
+		$this->assertStringContainsString( "\nThe tax for the order as it is now was not calculated.\nNo payment or refund was made for this change.\n", $notes[0] );
+		$this->assertStringEndsWith( 'Next step: if tax must be charged, refund this order and create a new order with the same items. The new order gets its own tax. If you sent the customer an invoice for this order, also issue a corrective document that refers to that invoice.', $notes[0] );
+	}
+
+	/**
+	 * @testdox Recalculate after a quantity change on a paid order with no tax keeps no tax and writes the edited-order note.
+	 */
+	public function test_recalculate_with_a_change_keeps_paid_order_without_tax_at_no_tax() {
+		$order   = $this->create_paid_untaxed_order();
+		$item_id = current( $order->get_items() )->get_id();
+
+		$order = $this->press_recalculate(
+			$order,
+			$this->order_screen_form(
+				$order,
+				array(
+					$item_id => array(
+						'qty'   => 2,
+						'total' => '20',
 					),
-				),
+				)
 			)
 		);
-		$this->assertEqualsWithDelta( 0.60, (float) $order->get_cart_tax(), 0.001 );
-		$this->assertTrue( $this->has_kept_tax_note( $order ) );
+
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 20.0, (float) $order->get_total(), 0.001 );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'quantity changed from 1 to 2.', $notes[0] );
+		$this->assertStringContainsString( 'The tax stays at $0.00.', $notes[0] );
+		$this->assertCount( 1, $this->tax_notes( $order ), 'only that note' );
 	}
 
 	/**
