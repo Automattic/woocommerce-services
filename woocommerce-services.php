@@ -10,7 +10,7 @@
  * Domain Path: /i18n/languages/
  * License: GPLv2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
- * Version: 3.7.6
+ * Version: 3.7.7
  * Requires Plugins: woocommerce
  * Requires PHP: 7.4
  * Requires at least: 7.0
@@ -774,7 +774,7 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			// Prevent presenting users with TOS they've already
 			// accepted in the core WC Setup Wizard or on WP.com.
 			if ( ! $tos_accepted &&
-			( get_option( 'woocommerce_setup_jetpack_opted_in' ) || WC_Connect_Jetpack::is_atomic_site() )
+			( $this->can_accept_tos_from_setup_opt_in() || WC_Connect_Jetpack::is_atomic_site() )
 			) {
 				WC_Connect_Options::update_option( 'tos_accepted', true );
 				delete_option( 'woocommerce_setup_jetpack_opted_in' );
@@ -785,6 +785,8 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			add_action( 'admin_init', array( $this, 'admin_enqueue_scripts' ) );
 			add_action( 'admin_init', array( $this->nux, 'set_up_nux_notices' ) );
 			add_filter( 'all_plugins', array( $this, 'maybe_rename_plugin' ) );
+			// Last, so a later filter that returns null cannot discard the refusal.
+			add_filter( 'rest_dispatch_request', array( 'WC_Connect_Nux', 'restrict_tos_change_through_core_options' ), PHP_INT_MAX, 4 );
 
 			if ( WC_Connect_Nux::JETPACK_NOT_CONNECTED === $this->nux->get_jetpack_install_status() ) {
 				return;
@@ -798,6 +800,29 @@ if ( ! class_exists( 'WC_Connect_Loader' ) ) {
 			}
 
 			add_action( 'woocommerce_init', array( $this, 'after_wc_init' ) );
+		}
+
+		/**
+		 * Whether the WooCommerce setup opt-in may be stored as an accepted ToS on this request.
+		 *
+		 * Any shop manager can set the opt-in, and WooCommerce sets it when Jetpack registers the
+		 * site, so only a user who can manage WooCommerce and may accept the terms (the connection
+		 * owner, or any such user in offline mode) turns it into an accepted ToS. Every other
+		 * request leaves it for that user.
+		 *
+		 * This runs on before_woocommerce_init, during init. A user logged in with a cookie, and
+		 * WP-CLI's --user, are set by then. A REST request authenticated with an application
+		 * password or a WooCommerce API key, and an XML-RPC request, still run as user 0 here,
+		 * so they leave the opt-in.
+		 *
+		 * @since 3.7.8
+		 *
+		 * @return bool
+		 */
+		private function can_accept_tos_from_setup_opt_in() {
+			return get_option( 'woocommerce_setup_jetpack_opted_in' )
+				&& current_user_can( 'manage_woocommerce' )
+				&& WC_Connect_Nux::current_user_can_accept_tos();
 		}
 
 		public function get_service_schema_defaults( $schema ) {
