@@ -478,4 +478,22 @@ class WP_Test_WC_Connect_TaxJar_Same_Request_Totals extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 0.0, (float) $recurring_cart->get_cart_contents_tax(), 0.001, 'Recurring cart item tax' );
 		$this->assertEqualsWithDelta( 0.0, (float) $recurring_cart->get_shipping_tax(), 0.001, 'Recurring cart shipping tax' );
 	}
+
+	/**
+	 * init() hooks the drop before WooCommerce totals the main cart.
+	 */
+	public function test_init_hooks_the_drop_before_the_main_cart_total() {
+		remove_action( 'woocommerce_before_calculate_totals', $this->forget_answers_before_main_cart_total, PHP_INT_MIN );
+		require_once __DIR__ . '/../../classes/class-wc-connect-custom-surcharge.php';
+		update_option( WC_Connect_TaxJar_Integration::OPTION_NAME, 'yes' );
+		$this->integration->api_client = $this->createMock( 'WC_Connect_API_Client' );
+		$this->integration->init();
+
+		$this->ship_to( 'NY', '10118', 'New York' );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		$this->choose_shipping( 'local_pickup:1' );
+		$this->choose_shipping( 'flat_rate' );
+
+		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
+	}
 }
