@@ -1316,7 +1316,7 @@ class WC_Connect_TaxJar_Integration {
 		$this->admin_recalculation_rate_ids[ (int) $order_id ] = array();
 		if ( is_array( $taxes ) && ! empty( $taxes['rate_ids'] ) ) {
 			foreach ( $line_items as $item_key => $line_item ) {
-				// None for a line answered at 0%, which is then not taxed.
+				// An empty list when every rate of the line was answered at 0%: the line is not taxed.
 				$rate_ids = $taxes['rate_ids'][ $line_item['id'] ?? '' ] ?? null;
 				if ( is_array( $rate_ids ) ) {
 					$this->admin_recalculation_rate_ids[ (int) $order_id ][ (int) $item_key ] = array(
@@ -3229,7 +3229,8 @@ class WC_Connect_TaxJar_Integration {
 
 		$rates = array();
 		if ( $taxes['freight_taxable'] ) {
-			// An empty list: every rate was answered at 0%. Shipping is not taxed.
+			// No shipping breakdown. An empty list, every rate answered at 0%, gives no rates
+			// below: shipping is not taxed.
 			if ( ! isset( $taxes['rate_ids']['shipping'] ) ) {
 				return null;
 			}
@@ -3973,7 +3974,8 @@ class WC_Connect_TaxJar_Integration {
 	 * state-wide one, so nothing more is added.
 	 *
 	 * The rows are inserted directly rather than through create_or_update_tax_rate(),
-	 * which matches by position and could otherwise update a merchant's local row.
+	 * which would update a row at that priority limited to exactly the address, such as
+	 * a merchant's own.
 	 *
 	 * @param array  $location      Location in the `to_*` shape, as written.
 	 * @param string $tax_class     Tax class the components were written in.
