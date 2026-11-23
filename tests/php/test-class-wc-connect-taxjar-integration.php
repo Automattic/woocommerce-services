@@ -5429,6 +5429,35 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A later answer that taxes the line at every rate but the last keeps the row of the
+	 * last rate, as stored by an earlier answer. It is the highest priority the address
+	 * has, and an answer that ends at a lower priority removes the rows above it.
+	 */
+	public function test_partly_exempt_answer_keeps_the_row_of_its_last_rate() {
+		$this->reset_tax_rate_tables();
+
+		$this->lookup_michigan_taxes( $this->michigan_integration_taxing_every_rate(), '49841', 'Gwinn' );
+		$state_rows = $this->tax_rate_ids_at_priority( 4 );
+		$this->assertCount( 1, $state_rows, 'State row after the first answer' );
+
+		// City, County and Special still 1% each; State answered at 0%.
+		$partly_exempt = array(
+			'combined_tax_rate'    => 0.03,
+			'city_tax_rate'        => 0.01,
+			'county_tax_rate'      => 0.01,
+			'special_tax_rate'     => 0.01,
+			'state_sales_tax_rate' => 0.0,
+		);
+		$taxes         = $this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $partly_exempt ), '49841', 'Gwinn' );
+
+		$this->assertSame( 4, $this->count_tax_rate_rows(), 'A row was removed.' );
+		$this->assertSame( $state_rows, $this->tax_rate_ids_at_priority( 4 ), 'The State row was replaced.' );
+		$this->assertSame( '3.0000', WC_Tax::_get_tax_rate( $state_rows[0] )['tax_rate'], 'The State rate was lowered.' );
+		$this->assertNotContains( $state_rows[0], $this->looked_up_rate_ids( $taxes ), 'The line is taxed under the State row.' );
+		$this->assertEqualsWithDelta( 6.0, $this->michigan_rates_from_table( '49841', 'Gwinn' )['percent'], 0.0001, 'What the table charges the town' );
+	}
+
+	/**
 	 * A rate answered at 0% where a 0% row was added beside a merchant's state-wide rate
 	 * leaves that row as it is. It still keeps the merchant's rate from adding to
 	 * TaxJar's in the table, and is not one of the line's rates.
