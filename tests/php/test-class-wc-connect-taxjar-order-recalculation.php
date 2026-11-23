@@ -40,6 +40,13 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	private $rate_id;
 
 	/**
+	 * How many requests the tax service got in this test.
+	 *
+	 * @var int
+	 */
+	private $tax_service_requests = 0;
+
+	/**
 	 * Products created for the fixture, deleted on tear down.
 	 *
 	 * @var WC_Product[]
@@ -70,7 +77,13 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
 		// Nothing here is about TaxJar's answer: a lookup that does run finds it unreachable.
-		$api_client->method( 'proxy_request' )->willReturn( new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' ) );
+		$this->tax_service_requests = 0;
+		$api_client->method( 'proxy_request' )->willReturnCallback(
+			function () {
+				++$this->tax_service_requests;
+				return new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' );
+			}
+		);
 		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
 		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock();
 
@@ -3754,10 +3767,14 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 			}
 		);
 		add_filter( 'wp_doing_ajax', '__return_true' );
+		// The button posts the address too, which a tax lookup reads from $_POST.
+		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Saved to restore after the simulated request.
+		$_POST      = $post;
 
 		try {
 			do_action( 'wp_ajax_woocommerce_calc_line_taxes' );
 		} finally {
+			$_POST = $saved_post;
 			remove_filter( 'wp_doing_ajax', '__return_true' );
 			remove_all_actions( 'wp_ajax_woocommerce_calc_line_taxes' );
 			if ( null !== $saved_hook ) {
@@ -3790,6 +3807,9 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		// WooCommerce's rate table gives Denver 6%, as a lookup would have left it.
 		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+
+		// A store ZIP code, without which a lookup stops before it asks the tax service.
+		update_option( 'woocommerce_store_postcode', '80202' );
 
 		return wc_get_order( $order->get_id() );
 	}
@@ -3916,6 +3936,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
 		$this->assertEqualsWithDelta( 10.0, (float) $order->get_total(), 0.001 );
 		$this->assertSame( array(), $order->get_taxes(), 'no tax lines' );
+		$this->assertSame( 0, $this->tax_service_requests, 'the tax service is not asked' );
 
 		$notes = array_map( array( self::class, 'note_text' ), $this->tax_notes( $order ) );
 		$this->assertCount( 1, $notes );
@@ -3946,6 +3967,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
 		$this->assertEqualsWithDelta( 20.0, (float) $order->get_total(), 0.001 );
+		$this->assertSame( array(), $order->get_taxes(), 'no tax lines' );
+		$this->assertSame( 0, $this->tax_service_requests, 'the tax service is not asked' );
 		$notes = $this->locked_order_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'quantity changed from 1 to 2.', $notes[0] );
