@@ -1316,8 +1316,9 @@ class WC_Connect_TaxJar_Integration {
 		$this->admin_recalculation_rate_ids[ (int) $order_id ] = array();
 		if ( is_array( $taxes ) && ! empty( $taxes['rate_ids'] ) ) {
 			foreach ( $line_items as $item_key => $line_item ) {
+				// None for a line answered at 0%, which is then not taxed.
 				$rate_ids = $taxes['rate_ids'][ $line_item['id'] ?? '' ] ?? null;
-				if ( is_array( $rate_ids ) && $rate_ids ) {
+				if ( is_array( $rate_ids ) ) {
 					$this->admin_recalculation_rate_ids[ (int) $order_id ][ (int) $item_key ] = array(
 						'rate_ids' => $rate_ids,
 						'line'     => $taxes['line_items'][ $line_item['id'] ] ?? null,
@@ -2147,6 +2148,12 @@ class WC_Connect_TaxJar_Integration {
 
 		$matching_rate_ids = null === $line_item_key ? null : ( $this->response_rate_ids[ $line_item_key ] ?? null );
 
+		// TaxJar answered every rate of the line at 0%. WooCommerce's rates would be the
+		// rows', which hold another order's rate or a merchant's state-wide one.
+		if ( array() === $matching_rate_ids ) {
+			return array();
+		}
+
 		if ( empty( $matching_rate_ids ) || ! is_array( $matching_rate_ids ) ) {
 			return $item_tax_rates;
 		}
@@ -2453,6 +2460,12 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private function set_order_item_taxes_from_rate_ids( $item, array $rate_ids, $response_line = null ) {
 		if ( 'taxable' !== $item->get_tax_status() ) {
+			return;
+		}
+
+		// TaxJar answered every rate of the item at 0%.
+		if ( array() === $rate_ids ) {
+			$item->set_taxes( false );
 			return;
 		}
 
@@ -3038,13 +3051,14 @@ class WC_Connect_TaxJar_Integration {
 
 				$_tax_rates = (array) $line_item;
 				$priority   = 1;
+				$rate_ids   = array();
 				foreach ( $_tax_rates as $tax_rate_name => $tax_rate ) {
 					if ( 'combined_tax_rate' === $tax_rate_name || false === strpos( $tax_rate_name, '_tax_rate' ) ) {
 						continue;
 					}
 					$rate_name = self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions );
 
-					$taxes['rate_ids'][ $line_item_key ][] = $this->create_or_update_tax_rate(
+					$stored = $this->store_answered_rate(
 						$location,
 						$this->get_rate_to_store( $location, $tax_class, $priority, round( $tax_rate * 100, 4 ) ),
 						$tax_class,
@@ -3053,14 +3067,27 @@ class WC_Connect_TaxJar_Integration {
 						$rate_name
 					);
 
-					$this->record_written_priority( $written, $tax_class, $priority, $rate_name );
+					// Keyed by the rate's position in the answer, see get_looked_up_rates().
+					if ( null !== $stored['rate_id'] ) {
+						$rate_ids[ $priority - 1 ] = $stored['rate_id'];
+					}
+					if ( $stored['has_row'] ) {
+						$this->record_written_priority( $written, $tax_class, $priority, $rate_name );
+					}
 					++$priority;
+				}
+
+				// A line with no rate id had every rate answered at 0%. It is still TaxJar's
+				// answer: an empty list says the line is not taxed.
+				if ( 1 < $priority ) {
+					$taxes['rate_ids'][ $line_item_key ] = $rate_ids;
 				}
 			}
 
 			// Add shipping tax rate.
 			$_tax_rates = isset( $taxjar_taxes->breakdown->shipping ) ? (array) $taxjar_taxes->breakdown->shipping : array();
 			$priority   = 1;
+			$rate_ids   = array();
 			foreach ( $_tax_rates as $tax_rate_name => $tax_rate ) {
 				if ( 'combined_tax_rate' === $tax_rate_name || false === strpos( $tax_rate_name, '_tax_rate' ) ) {
 					continue;
@@ -3071,7 +3098,7 @@ class WC_Connect_TaxJar_Integration {
 				$shipping_rate = round( $tax_rate * 100, 4 );
 				$this->shipping_rates_stored[ self::get_rate_row_key( $location, '', $priority ) ] = $shipping_rate;
 
-				$taxes['rate_ids']['shipping'][] = $this->create_or_update_tax_rate(
+				$stored = $this->store_answered_rate(
 					$location,
 					$shipping_rate,
 					'',
@@ -3080,8 +3107,17 @@ class WC_Connect_TaxJar_Integration {
 					$rate_name
 				);
 
-				$this->record_written_priority( $written, '', $priority, $rate_name );
+				if ( null !== $stored['rate_id'] ) {
+					$rate_ids[ $priority - 1 ] = $stored['rate_id'];
+				}
+				if ( $stored['has_row'] ) {
+					$this->record_written_priority( $written, '', $priority, $rate_name );
+				}
 				++$priority;
+			}
+
+			if ( 1 < $priority ) {
+				$taxes['rate_ids']['shipping'] = $rate_ids;
 			}
 
 			foreach ( $written as $tax_class => $class_written ) {
@@ -3096,6 +3132,61 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $taxes;
+	}
+
+	/**
+	 * Store a rate TaxJar answered in the address's rate row, unless the rate is 0%.
+	 *
+	 * The rows are what WooCommerce charges when a lookup fails, and every order the
+	 * table taxes without one. A 0% answer is often about one order rather than the
+	 * address: clothing under $110 in New York, say. Stored, it would lower the rate
+	 * for every later order to the address, so a failed lookup would charge them no
+	 * tax. So a 0% rate adds no row and leaves an existing row as it is. A failed lookup
+	 * then charges the last rate above 0% stored for the address, or no tax when there
+	 * never was one. When a rate drops to 0% for everyone, as in a tax holiday, the row
+	 * keeps the old rate until a lookup answers above 0% again.
+	 *
+	 * A 0% rate gets no rate id, so the line is not taxed under it. A 0% row added
+	 * beside a state-wide rate (see shadow_unscoped_rates_above_components()) stays as
+	 * it is. A priority with no row is not reported, so that 0% row is still added where
+	 * a merchant's state-wide rate would add to the rates TaxJar answered.
+	 *
+	 * @param array  $location        Location in the `to_*` shape.
+	 * @param float  $rate            Rate to store, as a percentage.
+	 * @param string $tax_class       Tax class of the row.
+	 * @param int    $freight_taxable Whether shipping is taxed.
+	 * @param int    $priority        Priority of the row.
+	 * @param string $rate_name       Name of the row.
+	 *
+	 * @return array{rate_id: int|null, has_row: bool} The id to tax the line under, null for a 0% rate,
+	 *                                                 and whether the address has a row at the priority.
+	 */
+	private function store_answered_rate( array $location, $rate, $tax_class, $freight_taxable, $priority, $rate_name ) {
+		if ( 0.0 !== (float) $rate ) {
+			return array(
+				'rate_id' => (int) $this->create_or_update_tax_rate( $location, $rate, $tax_class, $freight_taxable, $priority, $rate_name ),
+				'has_row' => true,
+			);
+		}
+
+		$address = $this->get_rate_table_address( $location, 'VAT' === $rate_name );
+		$row     = $this->find_rate_row_to_reuse( $address, $tax_class, absint( $priority ), $rate_name );
+
+		if ( empty( $row ) ) {
+			$this->_log( ':: Not Storing A 0% Rate At Priority ' . absint( $priority ) . ' ::' );
+
+			return array(
+				'rate_id' => null,
+				'has_row' => false,
+			);
+		}
+
+		$this->_log( ':: Keeping Tax Rate ' . key( $row ) . ' For A 0% Rate ::' );
+
+		return array(
+			'rate_id' => null,
+			'has_row' => true,
+		);
 	}
 
 	/**
@@ -3138,7 +3229,8 @@ class WC_Connect_TaxJar_Integration {
 
 		$rates = array();
 		if ( $taxes['freight_taxable'] ) {
-			if ( empty( $taxes['rate_ids']['shipping'] ) ) {
+			// An empty list: every rate was answered at 0%. Shipping is not taxed.
+			if ( ! isset( $taxes['rate_ids']['shipping'] ) ) {
 				return null;
 			}
 
@@ -3250,6 +3342,8 @@ class WC_Connect_TaxJar_Integration {
 	 * can be lower than a line's, and WooCommerce charges shipping that row's rate. So once
 	 * shipping has answered for a row in this request, this returns shipping's answer, or a
 	 * later lookup with no shipping breakdown would charge shipping a line's higher rate.
+	 * Not when shipping answered 0%, which is not stored (see store_answered_rate()): the
+	 * row then holds the lines' rate, and a line taxed above 0% always has a row to carry it.
 	 *
 	 * @param array  $location  Address the row is for.
 	 * @param string $tax_class Tax class of the row.
@@ -3263,7 +3357,11 @@ class WC_Connect_TaxJar_Integration {
 
 		$this->highest_rates_stored[ $row ] = max( (float) $rate, $this->highest_rates_stored[ $row ] ?? 0.0 );
 
-		return $this->shipping_rates_stored[ $row ] ?? $this->highest_rates_stored[ $row ];
+		if ( 0.0 !== (float) ( $this->shipping_rates_stored[ $row ] ?? 0.0 ) ) {
+			return $this->shipping_rates_stored[ $row ];
+		}
+
+		return $this->highest_rates_stored[ $row ];
 	}
 
 	/**
@@ -3381,40 +3479,7 @@ class WC_Connect_TaxJar_Integration {
 			'tax_rate_class'    => $tax_class,
 		);
 
-		$wc_rates = WC_Tax::find_rates( $address->to_find_rates_args( $tax_class ) );
-
-		$wc_rates_ids = is_array( $wc_rates ) ? array_keys( $wc_rates ) : array();
-		if ( isset( $wc_rates_ids[ $rate_priority - 1 ] ) ) {
-			$wc_rate[ $wc_rates_ids[ $rate_priority - 1 ] ] = $wc_rates[ $wc_rates_ids[ $rate_priority - 1 ] ];
-		} else {
-			$wc_rate = array();
-		}
-
-		/*
-		 * Only repurpose a row limited to exactly the postcode and city this method
-		 * writes for the address. Any other match covers more than the address: a
-		 * merchant's state-wide row, or one limited to a ZIP list, a ZIP wildcard or a
-		 * whole city. Rewriting it in place would turn it into, say, a 0% City component
-		 * that still matches every place it covered.
-		 *
-		 * The row for the address goes beside it instead. `WC_Tax::find_rates()` keeps
-		 * one row per priority and ranks rows by how many postcodes and cities match, and
-		 * then by age, so it can keep returning the merchant's row first for this address
-		 * too. The next lookup therefore looks for the address's own row at this priority
-		 * and reuses it, rather than adding one on every calculation.
-		 *
-		 * VAT rows are country-wide by design and addresses without a postcode or city
-		 * write no scope, so both keep reusing the matched row. Otherwise they would
-		 * insert a new row on every calculation.
-		 */
-		if ( ! empty( $wc_rate ) && 'VAT' !== $tax_rate_name ) {
-			$wanted_locations = $address->to_rate_table_locations();
-			$wants_scope      = '' !== $wanted_locations['postcode'] || '' !== $wanted_locations['city'];
-
-			if ( $wants_scope ) {
-				$wc_rate = $this->get_rate_for_address( $address, $tax_class, $rate_priority, (int) key( $wc_rate ) );
-			}
-		}
+		$wc_rate = $this->find_rate_row_to_reuse( $address, $tax_class, $rate_priority, $tax_rate_name );
 
 		if ( ! empty( $wc_rate ) ) {
 			$this->_log( ':: Tax Rate Found ::' );
@@ -3452,6 +3517,72 @@ class WC_Connect_TaxJar_Integration {
 		$this->_log( 'Tax Rate ID Set for ' . $rate_id );
 
 		return $rate_id;
+	}
+
+	/**
+	 * The rate row create_or_update_tax_rate() writes a rate to for an address, if there is one.
+	 *
+	 * The row `WC_Tax::find_rates()` matched at the priority. `find_rates()` keeps one row
+	 * per priority, so a priority with no row leaves a gap in its list: a 0% rate is not
+	 * stored (see store_answered_rate()), and a merchant can number rows as they like.
+	 * Taking the row at the priority's position in the list would take another
+	 * priority's row.
+	 *
+	 * @param Address $address       Address, as written.
+	 * @param string  $tax_class     Tax class.
+	 * @param int     $rate_priority Priority of the row being written.
+	 * @param string  $tax_rate_name Name of the row being written; 'VAT' for a country-wide row.
+	 *
+	 * @return array The row in the shape `WC_Tax::find_rates()` returns, keyed by its id. Empty when there is none.
+	 */
+	private function find_rate_row_to_reuse( Address $address, $tax_class, $rate_priority, $tax_rate_name ) {
+		$wc_rates = WC_Tax::find_rates( $address->to_find_rates_args( $tax_class ) );
+
+		$wc_rate = array();
+		foreach ( is_array( $wc_rates ) ? $wc_rates : array() as $matched_id => $matched ) {
+			$row = WC_Tax::_get_tax_rate( $matched_id );
+			if ( ! $row ) {
+				continue;
+			}
+
+			// find_rates() lists the rows by priority, lowest first.
+			if ( (int) $row['tax_rate_priority'] > $rate_priority ) {
+				break;
+			}
+
+			if ( (int) $row['tax_rate_priority'] === $rate_priority ) {
+				$wc_rate = array( $matched_id => $matched );
+				break;
+			}
+		}
+
+		/*
+		 * Only repurpose a row limited to exactly the postcode and city this method
+		 * writes for the address. Any other match covers more than the address: a
+		 * merchant's state-wide row, or one limited to a ZIP list, a ZIP wildcard or a
+		 * whole city. Rewriting it in place would turn it into, say, a 0% City component
+		 * that still matches every place it covered.
+		 *
+		 * The row for the address goes beside it instead. `WC_Tax::find_rates()` keeps
+		 * one row per priority and ranks rows by how many postcodes and cities match, and
+		 * then by age, so it can keep returning the merchant's row first for this address
+		 * too. The next lookup therefore looks for the address's own row at this priority
+		 * and reuses it, rather than adding one on every calculation.
+		 *
+		 * VAT rows are country-wide by design and addresses without a postcode or city
+		 * write no scope, so both keep reusing the matched row. Otherwise they would
+		 * insert a new row on every calculation.
+		 */
+		if ( ! empty( $wc_rate ) && 'VAT' !== $tax_rate_name ) {
+			$wanted_locations = $address->to_rate_table_locations();
+			$wants_scope      = '' !== $wanted_locations['postcode'] || '' !== $wanted_locations['city'];
+
+			if ( $wants_scope ) {
+				$wc_rate = $this->get_rate_for_address( $address, $tax_class, $rate_priority, (int) key( $wc_rate ) );
+			}
+		}
+
+		return $wc_rate;
 	}
 
 	/**
@@ -7149,7 +7280,8 @@ class WC_Connect_TaxJar_Integration {
 	 * The percentage comes from the answer when it is given: it is what TaxJar charged
 	 * this line, while the shared row may since hold another line's rate.
 	 *
-	 * @param array       $rate_ids      Rate ids, in the order the answer's rates were stored.
+	 * @param array       $rate_ids      Rate ids, keyed by the position of the answer's rate they
+	 *                                   were stored for. A 0% rate can have none, see store_answered_rate().
 	 * @param object|null $response_line The answer's breakdown line for this item.
 	 * @return array
 	 */
@@ -7166,7 +7298,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$rates = array();
-		foreach ( array_values( $rate_ids ) as $index => $rate_id ) {
+		foreach ( $rate_ids as $index => $rate_id ) {
 			$row = WC_Tax::_get_tax_rate( absint( $rate_id ) );
 			if ( ! $row ) {
 				continue;

@@ -2248,12 +2248,12 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		}
 		sort( $persisted );
 
-		// One row per jurisdiction component (city, county, state, special district).
-		$this->assertCount( 4, $persisted );
-		$this->assertEqualsWithDelta( 0.0, $persisted[0], 0.0001, 'Special district rate.' );
-		$this->assertEqualsWithDelta( 1.25, $persisted[1], 0.0001, 'County rate.' );
-		$this->assertEqualsWithDelta( 1.5, $persisted[2], 0.0001, 'City rate.' );
-		$this->assertEqualsWithDelta( 4.225, $persisted[3], 0.0001, 'State rate.' );
+		// One row per jurisdiction component (city, county, state). The special
+		// district's 0% is not stored.
+		$this->assertCount( 3, $persisted );
+		$this->assertEqualsWithDelta( 1.25, $persisted[0], 0.0001, 'County rate.' );
+		$this->assertEqualsWithDelta( 1.5, $persisted[1], 0.0001, 'City rate.' );
+		$this->assertEqualsWithDelta( 4.225, $persisted[2], 0.0001, 'State rate.' );
 
 		// The combined persisted rate must equal the real 6.975%, never the zeroed
 		// top-level rate. This is the core guard against the zeroing-out regression.
@@ -4384,7 +4384,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$merchant_id = $this->insert_michigan_rate( $priority, '6.0000', 'Tax', $postcodes, $cities );
 		$merchant    = $this->tax_rate_snapshot( $merchant_id );
 
-		$integration = $this->michigan_integration();
+		$integration = $this->michigan_integration_taxing_every_rate();
 		$first       = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $integration, $zip, $city ) );
 
 		$this->assertSame( $merchant, $this->tax_rate_snapshot( $merchant_id ), 'The merchant row changed.' );
@@ -4417,7 +4417,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$row_id = $this->insert_michigan_rate( 1, '6.0000', 'Tax', '49841', 'GWINN' );
 
-		$looked_up = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' ) );
+		$looked_up = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $this->michigan_integration_taxing_every_rate(), '49841', 'Gwinn' ) );
 
 		$this->assertSame( $row_id, $looked_up[0] );
 		$this->assertSame( 'MARQUETTE GWINN : City Tax', $this->tax_rate_snapshot( $row_id )['name'] );
@@ -4505,6 +4505,29 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		);
 
 		return $integration;
+	}
+
+	/**
+	 * An integration whose TaxJar answer for any Michigan request taxes every component:
+	 * City, County and Special 1% each, State 3%. 6% in all, as michigan_integration()
+	 * answers. A 0% component is not stored, so this is what writes a row at each of the
+	 * four priorities.
+	 *
+	 * @return WC_Connect_TaxJar_Integration
+	 */
+	private function michigan_integration_taxing_every_rate() {
+		return $this->michigan_integration(
+			true,
+			false,
+			null,
+			array(
+				'combined_tax_rate'    => 0.06,
+				'city_tax_rate'        => 0.01,
+				'county_tax_rate'      => 0.01,
+				'special_tax_rate'     => 0.01,
+				'state_sales_tax_rate' => 0.03,
+			)
+		);
 	}
 
 	/**
@@ -5265,10 +5288,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * A cart whose only line TaxJar answered as exempt keeps its tax lines at 0%, so an edit
-	 * of the order leaves it untaxed instead of looking it up again as new.
+	 * A cart whose only line TaxJar answered as exempt, at an address with no rate rows,
+	 * makes an order with no tax lines: a 0% rate is not stored, so there is no row to
+	 * make one from.
 	 */
-	public function test_order_with_only_an_exempt_line_keeps_its_tax_lines() {
+	public function test_order_with_only_an_exempt_line_has_no_tax_lines() {
 		update_option( 'woocommerce_calc_taxes', 'yes' );
 		$this->require_taxes_controller();
 		$this->reset_tax_rate_tables();
@@ -5279,9 +5303,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ) );
 
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'TaxJar answered the $50 line as exempt' );
-		$lines = self::tax_lines_by_priority( $order );
-		$this->assertEqualsWithDelta( 0.0, $lines[4][0], 0.001, 'State tax line percent' );
-		$this->assertEqualsWithDelta( 0.0, $lines[4][1], 0.001, 'State tax line amount' );
+		$this->assertSame( array(), self::tax_lines_by_priority( $order ), 'Tax lines' );
+		$this->assertSame( 0, $this->count_tax_rate_rows(), 'Rate rows' );
 	}
 
 	/**
@@ -5310,6 +5333,287 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertSame( array(), $shirt_item->get_taxes()['total'] );
 
 		$shirt->delete( true );
+	}
+
+	/**
+	 * Check a cart out as an order of its own, in a request of its own: new cart, new
+	 * integration, no answers or rate memory left from an earlier order.
+	 *
+	 * @param float $price Price of the one product in the cart.
+	 * @return WC_Order
+	 */
+	private function check_out_in_a_new_request( $price ) {
+		remove_all_actions( 'woocommerce_after_calculate_totals', 20 );
+		WC()->cart->empty_cart();
+
+		$product = $this->priced_product( $price );
+		WC()->cart->add_to_cart( $product->get_id(), 1 );
+
+		$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ) );
+
+		WC()->cart->empty_cart();
+		$product->delete( true );
+
+		return $order;
+	}
+
+	/**
+	 * A later order TaxJar answers as exempt doesn't lower the rate an earlier order
+	 * stored for the address. When a lookup then fails, the next cart is charged that
+	 * rate, not $0. Each order is checked out in a request of its own.
+	 */
+	public function test_later_exempt_order_leaves_the_rate_of_an_earlier_taxed_order() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		// 1. A $100 order, taxed at the 6% state rate.
+		$this->assertEqualsWithDelta( 6.0, (float) $this->check_out_in_a_new_request( 100 )->get_cart_tax(), 0.001, 'First order' );
+		$state_rows = $this->tax_rate_ids_at_priority( 4 );
+		$this->assertCount( 1, $state_rows );
+		$this->assertSame( '6.0000', WC_Tax::_get_tax_rate( $state_rows[0] )['tax_rate'] );
+
+		// 2. A later $50 order, which TaxJar answers as exempt. WooCommerce still finds the
+		// row for its tax line, at $0.
+		$exempt = $this->check_out_in_a_new_request( 50 );
+		$this->assertEqualsWithDelta( 0.0, (float) $exempt->get_cart_tax(), 0.001, 'Exempt order' );
+		$this->assertSame( array( 4 => array( 6.0, 0.0 ) ), self::tax_lines_by_priority( $exempt ), 'Exempt order tax lines' );
+		$this->assertSame( $state_rows, $this->tax_rate_ids_at_priority( 4 ) );
+		$this->assertSame( '6.0000', WC_Tax::_get_tax_rate( $state_rows[0] )['tax_rate'], 'The exempt order lowered the stored rate.' );
+
+		// 3. TaxJar does not answer for the next cart.
+		$this->assertEqualsWithDelta( 6.0, $this->tax_when_a_later_lookup_fails(), 0.001, '6% of a new $100 cart' );
+	}
+
+	/**
+	 * At an address with no rows, an exempt order stores none, so a failed lookup later
+	 * charges no tax: there never was a rate above 0% for the address.
+	 */
+	public function test_exempt_order_at_a_new_address_stores_no_rate() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->assertEqualsWithDelta( 0.0, (float) $this->check_out_in_a_new_request( 50 )->get_cart_tax(), 0.001, 'Exempt order' );
+		$this->assertSame( 0, $this->count_tax_rate_rows() );
+		$this->assertEqualsWithDelta( 0.0, $this->tax_when_a_later_lookup_fails(), 0.001, 'No rate was ever stored' );
+	}
+
+	/**
+	 * A line taxed at the state rate only stores the state rate. City, County and
+	 * Special District answered at 0% get no row and no rate id, and the line keeps
+	 * the State rate at its position in the answer. A repeat lookup finds the same row
+	 * at priority 4, though the table has none at 1 to 3, and adds nothing.
+	 */
+	public function test_lookup_stores_only_the_rates_above_zero() {
+		$this->reset_tax_rate_tables();
+
+		$integration = $this->michigan_integration();
+		$taxes       = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$this->assertSame( 1, $this->count_tax_rate_rows() );
+		$state_rows = $this->tax_rate_ids_at_priority( 4 );
+		$this->assertCount( 1, $state_rows );
+		$this->assertSame( array( 3 => $state_rows[0] ), $this->looked_up_rate_ids( $taxes ) );
+		$this->assertSame( '6.0000', WC_Tax::_get_tax_rate( $state_rows[0] )['tax_rate'] );
+
+		// What checkout charges the line: its answer's 6%, under the State row.
+		$line_key = $this->product->get_id() . '-abcdefabcdef-0';
+		$rates    = $this->invoke_protected_method( 'get_looked_up_rates', array( $taxes['rate_ids'][ $line_key ], $taxes['line_items'][ $line_key ] ) );
+		$this->assertSame( array( $state_rows[0] ), array_keys( $rates ) );
+		$this->assertEqualsWithDelta( 6.0, $rates[ $state_rows[0] ]['rate'], 0.0001 );
+
+		$again = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+		$this->assertSame( 1, $this->count_tax_rate_rows(), 'A repeat lookup added rows.' );
+		$this->assertSame( $this->looked_up_rate_ids( $taxes ), $this->looked_up_rate_ids( $again ) );
+	}
+
+	/**
+	 * A rate answered at 0% where a 0% row was added beside a merchant's state-wide rate
+	 * leaves that row as it is. It still keeps the merchant's rate from adding to
+	 * TaxJar's in the table, and is not one of the line's rates.
+	 */
+	public function test_zero_rate_leaves_the_rate_added_beside_a_state_wide_rate() {
+		$this->reset_tax_rate_tables();
+
+		// At priority 1, where TaxJar answers City at 0%.
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		$catch_all    = $this->tax_rate_snapshot( $catch_all_id );
+
+		$integration = $this->michigan_integration();
+		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$nullified = $this->nullified_rate_ids();
+		$this->assertCount( 1, $nullified, 'Expected a 0% row beside the merchant row.' );
+		$this->assertSame( 1, $this->tax_rate_snapshot( $nullified[0] )['priority'] );
+		$snapshot = $this->tax_rate_snapshot( $nullified[0] );
+
+		$taxes = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
+
+		$this->assertSame( $nullified, $this->nullified_rate_ids() );
+		$this->assertSame( $snapshot, $this->tax_rate_snapshot( $nullified[0] ), 'The 0% row changed.' );
+		$this->assertSame( $catch_all, $this->tax_rate_snapshot( $catch_all_id ), 'The merchant row changed.' );
+		$this->assertSame( 3, $this->count_tax_rate_rows(), 'Expected the merchant row, the State row and one 0% row.' );
+		$this->assertNotContains( $nullified[0], $this->looked_up_rate_ids( $taxes ) );
+
+		// The table gives the town TaxJar's 6%, not the merchant's 6% on top.
+		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
+		$this->assertEqualsWithDelta( 6.0, $gwinn['percent'], 0.0001 );
+		$this->assertNotContains( $catch_all_id, $gwinn['ids'] );
+	}
+
+	/**
+	 * Recalculate keeps an order whose only line TaxJar answered as exempt untaxed, at an
+	 * address with no rows of its own, though a merchant's state-wide rate applies there.
+	 */
+	public function test_admin_recalculate_keeps_an_exempt_line_untaxed_beside_a_state_wide_rate() {
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 4 ) );
+
+		$order = $this->create_michigan_order( '49841', 'Gwinn' );
+		$item  = current( $order->get_items() );
+		$item->set_subtotal( 50 );
+		$item->set_total( 50 );
+		$item->save();
+
+		$this->integration = $this->michigan_integration( true, false, 60 );
+		$order             = $this->admin_recalculate( $this->integration, $order, '49841', 'Gwinn' );
+
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'TaxJar answered the $50 line as exempt' );
+		$this->assertSame( array(), $this->order_tax_rate_ids( $order ) );
+		$this->assertSame( 1, $this->count_tax_rate_rows(), 'Only the merchant row' );
+	}
+
+	/**
+	 * A recurring cart whose only line TaxJar answered as exempt stays untaxed, at an
+	 * address with no rows of its own, though a merchant's state-wide rate applies there.
+	 * A recurring cart's exempt line is not marked as not taxable, so the cart's own
+	 * answer is what keeps WooCommerce from taxing it at the merchant's rate.
+	 */
+	public function test_exempt_recurring_cart_stays_untaxed_beside_a_state_wide_rate() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->reset_tax_rate_tables();
+
+		$catch_all_id = $this->insert_michigan_catch_all_rate();
+		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 4 ) );
+
+		$this->product = $this->priced_product( 50 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+		WC()->customer->set_billing_location( 'US', 'MI', '49841', 'Gwinn' );
+		WC()->customer->set_shipping_location( 'US', 'MI', '49841', 'Gwinn' );
+
+		// As Subscriptions builds it: a clone of the cart, with its key set.
+		$recurring_cart                     = clone WC()->cart;
+		$recurring_cart->recurring_cart_key = 'monthly';
+
+		$integration = $this->michigan_integration( true, false, 60 );
+		$saved_route = $GLOBALS['wp']->query_vars['rest_route'] ?? null;
+
+		$GLOBALS['wp']->query_vars['rest_route'] = '/wc/store/v1/checkout';
+		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $integration, 'override_cart_item_tax_rates' ), 10, 3 );
+		try {
+			$recurring_cart->calculate_totals();
+			$integration->calculate_totals( $recurring_cart );
+		} finally {
+			remove_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $integration, 'override_cart_item_tax_rates' ), 10 );
+			remove_all_actions( 'woocommerce_after_calculate_totals', 20 );
+			$GLOBALS['wp']->query_vars['rest_route'] = $saved_route;
+		}
+
+		$this->assertSame( 'taxable', $this->product->get_tax_status(), 'The recurring cart marked its line as not taxable.' );
+		$this->assertEqualsWithDelta( 0.0, (float) $recurring_cart->get_cart_contents_tax(), 0.001, 'Recurring cart tax' );
+		$this->assertSame( 1, $this->count_tax_rate_rows(), 'Only the merchant row' );
+	}
+
+	/**
+	 * Shipping answered at 0% stores no row either, and the answer says shipping is not
+	 * taxed rather than leaving it to the table.
+	 */
+	public function test_shipping_answered_at_zero_stores_no_rate() {
+		$this->reset_tax_rate_tables();
+
+		$no_tax = array(
+			'combined_tax_rate'    => 0.0,
+			'city_tax_rate'        => 0.0,
+			'county_tax_rate'      => 0.0,
+			'special_tax_rate'     => 0.0,
+			'state_sales_tax_rate' => 0.0,
+		);
+
+		$taxes = $this->lookup_michigan_taxes( $this->michigan_integration( true, true, null, $no_tax ), '49841', 'Gwinn', 10 );
+
+		$this->assertSame( 0, $this->count_tax_rate_rows() );
+		$this->assertSame( array(), $taxes['rate_ids']['shipping'] );
+		$this->assertIsArray( $taxes['shipping_answer'] );
+		$this->assertSame( array(), $taxes['shipping_answer']['rates'] );
+	}
+
+	/**
+	 * A line taxed in a later lookup of the request gets a row, though shipping answered
+	 * 0% for that row in an earlier one, before any line had written it.
+	 */
+	public function test_line_taxed_after_shipping_answered_zero_gets_a_row() {
+		$this->reset_tax_rate_tables();
+
+		$no_tax   = array(
+			'combined_tax_rate'    => 0.0,
+			'city_tax_rate'        => 0.0,
+			'county_tax_rate'      => 0.0,
+			'special_tax_rate'     => 0.0,
+			'state_sales_tax_rate' => 0.0,
+		);
+		$line_tax = static function ( $line_item ) use ( $no_tax ) {
+			if ( (float) $line_item['unit_price'] < 60 ) {
+				return $no_tax;
+			}
+
+			return array_merge(
+				$no_tax,
+				array(
+					'combined_tax_rate'    => 0.06,
+					'state_sales_tax_rate' => 0.06,
+				)
+			);
+		};
+
+		$integration   = $this->michigan_integration( true, true, null, $no_tax, $line_tax );
+		$this->product = WC_Helper_Product::create_simple_product();
+		$lookup        = function ( $price, $shipping ) use ( $integration ) {
+			return $integration->calculate_tax(
+				array(
+					'to_country'      => 'US',
+					'to_state'        => 'MI',
+					'to_zip'          => '49841',
+					'to_city'         => 'Gwinn',
+					'to_street'       => '1 Test St',
+					'shipping_amount' => $shipping,
+					'line_items'      => array(
+						array(
+							'id'               => $this->product->get_id() . '-abcdefabcdef-0',
+							'quantity'         => 1,
+							'product_tax_code' => '',
+							'unit_price'       => $price,
+							'discount'         => 0,
+						),
+					),
+				)
+			);
+		};
+
+		// An exempt line, and shipping at 0%: nothing is stored.
+		$lookup( 50, 10 );
+		$this->assertSame( 0, $this->count_tax_rate_rows() );
+
+		// A recurring cart's line taxed at 6%, with no shipping.
+		$taxes = $lookup( 100, 0 );
+
+		$state_rows = $this->tax_rate_ids_at_priority( 4 );
+		$this->assertCount( 1, $state_rows );
+		$this->assertSame( '6.0000', WC_Tax::_get_tax_rate( $state_rows[0] )['tax_rate'] );
+		$this->assertSame( array( 3 => $state_rows[0] ), $this->looked_up_rate_ids( $taxes ) );
 	}
 
 	/**
@@ -5427,16 +5731,16 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function test_shipping_answer_is_what_the_row_holds_after_a_higher_line() {
 		$this->reset_tax_rate_tables();
 
-		$no_shipping_tax = array(
-			'combined_tax_rate'    => 0.0,
+		$shipping_tax = array(
+			'combined_tax_rate'    => 0.02,
 			'city_tax_rate'        => 0.0,
 			'county_tax_rate'      => 0.0,
 			'special_tax_rate'     => 0.0,
-			'state_sales_tax_rate' => 0.0,
+			'state_sales_tax_rate' => 0.02,
 		);
-		$line_tax        = static function () use ( $no_shipping_tax ) {
+		$line_tax     = static function () use ( $shipping_tax ) {
 			return array_merge(
-				$no_shipping_tax,
+				$shipping_tax,
 				array(
 					'combined_tax_rate'    => 0.06,
 					'state_sales_tax_rate' => 0.06,
@@ -5444,16 +5748,16 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			);
 		};
 
-		$integration = $this->michigan_integration( true, true, null, $no_shipping_tax, $line_tax );
+		$integration = $this->michigan_integration( true, true, null, $shipping_tax, $line_tax );
 		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 10 );
 
 		$state_rows = $this->tax_rate_ids_at_priority( 4 );
-		$this->assertSame( '0.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'] );
+		$this->assertSame( '2.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'] );
 
 		// A second lookup in the request, as a recurring cart makes, ends the same way.
 		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 10 );
 
-		$this->assertSame( '0.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'], 'After a second lookup' );
+		$this->assertSame( '2.0000', WC_Tax::_get_tax_rate( reset( $state_rows ) )['tax_rate'], 'After a second lookup' );
 	}
 
 	/**
@@ -5467,16 +5771,16 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	public function test_lookup_without_shipping_keeps_the_row_on_shippings_answer() {
 		$this->reset_tax_rate_tables();
 
-		$no_shipping_tax = array(
-			'combined_tax_rate'    => 0.0,
+		$shipping_tax = array(
+			'combined_tax_rate'    => 0.02,
 			'city_tax_rate'        => 0.0,
 			'county_tax_rate'      => 0.0,
 			'special_tax_rate'     => 0.0,
-			'state_sales_tax_rate' => 0.0,
+			'state_sales_tax_rate' => 0.02,
 		);
-		$line_tax        = static function () use ( $no_shipping_tax ) {
+		$line_tax     = static function () use ( $shipping_tax ) {
 			return array_merge(
-				$no_shipping_tax,
+				$shipping_tax,
 				array(
 					'combined_tax_rate'    => 0.06,
 					'state_sales_tax_rate' => 0.06,
@@ -5484,7 +5788,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			);
 		};
 
-		$integration = $this->michigan_integration( true, true, null, $no_shipping_tax, $line_tax );
+		$integration = $this->michigan_integration( true, true, null, $shipping_tax, $line_tax );
 		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 10 );
 		// The synced sign-up order of WOOTAX-399: $0 shipping, after the recurring cart's lookup.
 		$taxes = $this->lookup_michigan_taxes( $integration, '49841', 'Gwinn', 0 );
@@ -5493,7 +5797,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$state_rows = $this->tax_rate_ids_at_priority( 4 );
 		$this->assertCount( 1, $state_rows );
 		$state_row = WC_Tax::_get_tax_rate( reset( $state_rows ) );
-		$this->assertSame( '0.0000', $state_row['tax_rate'], 'State rate' );
+		$this->assertSame( '2.0000', $state_row['tax_rate'], 'State rate' );
 		$this->assertSame( '1', (string) $state_row['tax_rate_shipping'], 'The row still applies to shipping.' );
 	}
 
@@ -5782,7 +6086,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$saved = $this->record_new_tax_items();
 
-		$this->integration = $this->michigan_integration();
+		$this->integration = $this->michigan_integration_taxing_every_rate();
 		$order             = $this->admin_recalculate( $this->integration, $this->create_michigan_order( '49841', 'Gwinn' ), '49841', 'Gwinn' );
 
 		$this->assertArrayNotHasKey( 'wpdb::prepare', $this->caught_doing_it_wrong );
@@ -5828,7 +6132,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$order = $this->create_michigan_order( '49841', 'Gwinn' );
 		$saved = $this->record_new_tax_items();
 
-		$this->integration = $this->michigan_integration();
+		$this->integration = $this->michigan_integration_taxing_every_rate();
 
 		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Saved to restore after the simulated request.
 		$_POST      = array(
@@ -5956,7 +6260,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => $priority ) );
 		$catch_all = $this->tax_rate_snapshot( $catch_all_id );
 
-		$taxes = $this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' );
+		$taxes = $this->lookup_michigan_taxes( $this->michigan_integration_taxing_every_rate(), '49841', 'Gwinn' );
 
 		$this->assertSame( 6, $this->count_tax_rate_rows(), 'Expected the merchant row, four components and one 0% row.' );
 		$this->assertSame( $catch_all, $this->tax_rate_snapshot( $catch_all_id ), 'The merchant row changed.' );
@@ -6010,7 +6314,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => $priority ) );
 
-		$taxes = $this->lookup_michigan_taxes( $this->michigan_integration(), '49841', 'Gwinn' );
+		$taxes = $this->lookup_michigan_taxes( $this->michigan_integration_taxing_every_rate(), '49841', 'Gwinn' );
 
 		$this->assertSame( 5, $this->count_tax_rate_rows() );
 		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
@@ -6029,7 +6333,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
 		$catch_all = $this->tax_rate_snapshot( $catch_all_id );
 
-		$integration = $this->michigan_integration();
+		$integration = $this->michigan_integration_taxing_every_rate();
 
 		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
 		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
@@ -6127,7 +6431,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
 
-		$this->integration = $this->michigan_integration();
+		$this->integration = $this->michigan_integration_taxing_every_rate();
 		$taxes             = $this->lookup_michigan_taxes( $this->integration, '49841', 'Gwinn' );
 
 		$shadow_ids = array_values( array_diff( $this->tax_rate_ids_at_priority( 5 ), array( $catch_all_id ) ) );
@@ -6304,16 +6608,16 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		return array(
 			array(
 				'combined_tax_rate'    => 0.07,
-				'city_tax_rate'        => 0.0,
-				'county_tax_rate'      => 0.0,
+				'city_tax_rate'        => 0.005,
+				'county_tax_rate'      => 0.005,
 				'special_tax_rate'     => 0.01,
-				'state_sales_tax_rate' => 0.06,
+				'state_sales_tax_rate' => 0.05,
 			),
 			array(
 				'combined_tax_rate'    => 0.06,
-				'city_tax_rate'        => 0.0,
-				'county_tax_rate'      => 0.0,
-				'state_sales_tax_rate' => 0.06,
+				'city_tax_rate'        => 0.005,
+				'county_tax_rate'      => 0.005,
+				'state_sales_tax_rate' => 0.05,
 			),
 		);
 	}
@@ -6334,7 +6638,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '49841', 'Gwinn' );
 		$this->assertSame( 4, $this->count_tax_rate_rows() );
-		// 0% + 0% + 1% + 6%.
+		// 0.5% + 0.5% + 1% + 5%.
 		$this->assertEqualsWithDelta( 7.0, $this->michigan_rates_from_table( '49841', 'Gwinn' )['percent'], 0.0001 );
 
 		$taxes = $this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $after ), '49841', 'Gwinn' );
@@ -6342,7 +6646,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertSame( 3, $this->count_tax_rate_rows() );
 		$this->assertSame( array(), $this->tax_rate_ids_at_priority( 4 ) );
 
-		// 0% + 0% + 6%, from exactly the rows checkout applies.
+		// 0.5% + 0.5% + 5%, from exactly the rows checkout applies.
 		$gwinn = $this->michigan_rates_from_table( '49841', 'Gwinn' );
 		$this->assertSame( $this->looked_up_rate_ids( $taxes ), $gwinn['ids'] );
 		$this->assertEqualsWithDelta( 6.0, $gwinn['percent'], 0.0001 );
@@ -6363,10 +6667,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		list( $before, $after ) = $this->gwinn_answers_before_and_after_a_special_district_ends();
 		$rate_ids               = $this->looked_up_rate_ids( $this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $before ), '49841', 'Gwinn' ) );
 
-		// The $100 item taxed at City, County, Special (1%) and State (6%), as checkout records it.
+		// The $100 item taxed at City, County (0.5% each), Special (1%) and State (5%), as checkout records it.
 		$order = $this->create_michigan_order( '49841', 'Gwinn' );
 		$item  = current( $order->get_items() );
-		$taxes = array_combine( $rate_ids, array( '0', '0', '1', '6' ) );
+		$taxes = array_combine( $rate_ids, array( '0.5', '0.5', '1', '5' ) );
 		$item->set_taxes(
 			array(
 				'total'    => $taxes,
@@ -6379,7 +6683,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		// The second lookup reuses the rows at priorities 1 to 3 and removes State's at 4.
 		$removed_id = $rate_ids[3];
 		$recorded   = $this->tax_line_details( $order, $removed_id );
-		$this->assertEqualsWithDelta( 6.0, $recorded['rate_percent'], 0.0001 );
+		$this->assertEqualsWithDelta( 5.0, $recorded['rate_percent'], 0.0001 );
 
 		$this->lookup_michigan_taxes( $this->michigan_integration( true, false, null, $after ), '49841', 'Gwinn' );
 		$this->assertEmpty( WC_Tax::_get_tax_rate( $removed_id ), 'The second lookup removed the row at priority 4.' );
@@ -6666,7 +6970,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
 
-		$integration = $this->michigan_integration();
+		$integration = $this->michigan_integration_taxing_every_rate();
 		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
 		$this->assertCount( 1, $this->nullified_rate_ids() );
 
@@ -6706,7 +7010,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			)
 		);
 
-		$integration = $this->michigan_integration();
+		$integration = $this->michigan_integration_taxing_every_rate();
 		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
 		$nullified = $this->nullified_rate_ids();
 		$this->assertCount( 1, $nullified );
@@ -6729,7 +7033,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
 
-		$integration = $this->michigan_integration();
+		$integration = $this->michigan_integration_taxing_every_rate();
 		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
 
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 6 ) );
@@ -6759,7 +7063,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
 
-		$integration = $this->michigan_integration();
+		$integration = $this->michigan_integration_taxing_every_rate();
 		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
 
 		$gwinn_nullified = $this->nullified_rate_ids();
@@ -6840,7 +7144,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$row = WC_Tax::_get_tax_rate( $nullified[0] );
 		$this->assertSame( 'MARQUETTE GWINN : State Sales Tax', $row['tax_rate_name'], 'Expected the State component in the 0% row.' );
 		$this->assertSame( $expected_shipping, (string) $row['tax_rate_shipping'] );
-		// 0% + 0% + 1% + 6%, the merchant's row still outranked.
+		// 0.5% + 0.5% + 1% + 5%, the merchant's row still outranked.
 		$this->assertEqualsWithDelta( $expected_percent, $this->gwinn_shipping_tax_percent(), 0.0001 );
 	}
 
@@ -6871,7 +7175,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 
 		$row = WC_Tax::_get_tax_rate( $row_id );
 		$this->assertSame( 'MARQUETTE GWINN : State Sales Tax', $row['tax_rate_name'], 'Expected the State component in the row.' );
-		$this->assertSame( '6.0000', $row['tax_rate'] );
+		$this->assertSame( '5.0000', $row['tax_rate'] );
 		$this->assertSame( '0', (string) $row['tax_rate_shipping'], "The merchant's Shipping setting was overwritten." );
 	}
 
@@ -8157,7 +8461,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$catch_all_id = $this->insert_michigan_catch_all_rate();
 		WC_Tax::_update_tax_rate( $catch_all_id, array( 'tax_rate_priority' => 5 ) );
 
-		$integration = $this->michigan_integration();
+		$integration = $this->michigan_integration_taxing_every_rate();
 		$this->lookup_michigan_taxes( $integration, '49841', 'Gwinn' );
 		$this->assertCount( 1, $this->nullified_rate_ids() );
 

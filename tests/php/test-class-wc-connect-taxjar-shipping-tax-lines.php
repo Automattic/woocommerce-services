@@ -71,11 +71,12 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 				'special_tax_rate'     => 0.0,
 				'state_sales_tax_rate' => 0.06,
 			),
+			// Above 0%: a 0% rate is not stored, so it can't be what a row holds.
 			'shipping_components' => array(
 				'city_tax_rate'        => 0.0,
 				'county_tax_rate'      => 0.0,
 				'special_tax_rate'     => 0.0,
-				'state_sales_tax_rate' => 0.0,
+				'state_sales_tax_rate' => 0.02,
 			),
 			'freight_taxable'     => true,
 		),
@@ -529,11 +530,11 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	/**
 	 * Shipping taxable at a lower rate than a line in the same lookup. They share the
 	 * Standard rows, and WooCommerce charges shipping what the row holds, so the rows keep
-	 * shipping's 0%. $100 at 6% and $10 at 0% come to $6.00 tax at the cart, at checkout
+	 * shipping's 2%. $100 at 6% and $10 at 2% come to $6.20 tax at the cart, at checkout
 	 * and on Recalculate, which all look the tax up.
 	 *
-	 * A later calculation with no lookup has only the rows, so it taxes the line at 0%
-	 * too: $110 with no tax. That is the trade-off of rows holding shipping's answer.
+	 * A later calculation with no lookup has only the rows, so it taxes the line at 2%
+	 * too: $110 with $2.20 tax. That is the trade-off of rows holding shipping's answer.
 	 */
 	public function test_shipping_taxed_lower_than_a_line_pays_its_own_answer() {
 		// What stores run; configure_tax_settings() writes it on every load.
@@ -544,21 +545,21 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->calculate_cart( array( $this->product() ) );
 		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
-		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+		$this->assertEqualsWithDelta( 0.2, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
 
 		$order = $this->classic_checkout_order();
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
-		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Classic checkout total' );
+		$this->assertEqualsWithDelta( 0.2, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.2, (float) $order->get_total(), 0.001, 'Classic checkout total' );
 
 		// Block checkout re-taxes the order it builds from the cart.
 		$order->calculate_totals();
 		$order = wc_get_order( $order->get_id() );
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
-		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Block checkout total' );
+		$this->assertEqualsWithDelta( 0.2, (float) $order->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.2, (float) $order->get_total(), 0.001, 'Block checkout total' );
 
 		$order = $this->admin_recalculate( $order, 'XX' );
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
-		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Recalculate total' );
+		$this->assertEqualsWithDelta( 0.2, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
+		$this->assertEqualsWithDelta( 116.2, (float) $order->get_total(), 0.001, 'Recalculate total' );
 
 		// A later request with no lookup, as a REST or app edit can be: only the rows are left.
 		foreach ( $this->hooked as $integration ) {
@@ -567,17 +568,17 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		$this->hooked = array();
 		$order->calculate_totals();
 		$order = wc_get_order( $order->get_id() );
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Shipping tax with no lookup' );
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'Line tax with no lookup' );
-		$this->assertEqualsWithDelta( 110.0, (float) $order->get_total(), 0.001, 'Total with no lookup' );
+		$this->assertEqualsWithDelta( 0.2, (float) $order->get_shipping_tax(), 0.001, 'Shipping tax with no lookup' );
+		$this->assertEqualsWithDelta( 2.0, (float) $order->get_cart_tax(), 0.001, 'Line tax with no lookup' );
+		$this->assertEqualsWithDelta( 112.2, (float) $order->get_total(), 0.001, 'Total with no lookup' );
 	}
 
 	/**
-	 * Before any 0% row existed, a Michigan order already carried a $0 tax item for
-	 * each of TaxJar's 0% components (City, County, Special District): products are
-	 * taxed at every rate id TaxJar returned, and WooCommerce makes a tax item per id.
+	 * A Michigan order carries no tax item for TaxJar's 0% components (City, County,
+	 * Special District): a 0% rate is not stored, so it has no rate id to make one from.
+	 * Before, each got a $0 tax item.
 	 */
-	public function test_michigan_orders_carry_zero_tax_items_for_taxjar_zero_rate_components() {
+	public function test_michigan_orders_carry_no_tax_items_for_taxjar_zero_rate_components() {
 		$this->ship_to( self::$places['MI']['to'] );
 		$this->hook( $this->taxjar( 'MI' ) );
 
@@ -592,9 +593,6 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->assertSame(
 			array(
-				'MARQUETTE GWINN : City Tax'        => 0.0,
-				'MARQUETTE GWINN : County Tax'      => 0.0,
-				'MARQUETTE GWINN : Special Tax'     => 0.0,
 				'MARQUETTE GWINN : State Sales Tax' => 6.0,
 			),
 			$amounts
@@ -789,8 +787,9 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * A merchant row at priority 1 is outranked by the City component, so nothing
-	 * is added beside it and the order is taxed as before.
+	 * A merchant row at priority 1, where TaxJar answers City at 0%. The 0% City rate is
+	 * not stored, so a 0% row is added beside the merchant's for the town instead, and
+	 * the order is taxed at TaxJar's State rate alone.
 	 */
 	public function test_merchant_rate_at_priority_one_is_unchanged() {
 		$merchant = $this->merchant_state_rate( 'MI', 6, 1 );
@@ -799,13 +798,15 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 
 		$this->calculate_cart( array( $this->product() ) );
 
-		$this->assertSame( array(), $this->nullified_rate_ids() );
+		$nullified = $this->nullified_rate_ids();
+		$this->assertCount( 1, $nullified );
 		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001 );
 		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001 );
 
 		$order = $this->classic_checkout_order();
 		$this->assertNotContains( $merchant, $this->tax_item_rate_ids( $order ) );
-		$this->assertCount( 4, $order->get_taxes() );
+		$this->assertNotContains( $nullified[0], $this->tax_item_rate_ids( $order ) );
+		$this->assertCount( 1, $order->get_taxes() );
 	}
 
 	/**
@@ -1214,8 +1215,8 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	/**
 	 * Shipping taxable at a lower rate than a line in the same lookup. They share the
 	 * Standard rows, so what a row holds may be the line's rate. Shipping pays TaxJar's
-	 * answer for shipping whichever it holds: $100 at 6% and $10 at 0% are $6.00 tax and
-	 * $116.00 in all.
+	 * answer for shipping whichever it holds: $100 at 6% and $10 at 2% are $6.20 tax and
+	 * $116.20 in all.
 	 *
 	 * @dataProvider data_row_holding_the_line_rate
 	 *
@@ -1247,21 +1248,21 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( $expected_row_rate, max( array_map( 'floatval', $row_rates ) ), 0.001, 'What the Standard row holds' );
 
 		$this->assertEqualsWithDelta( 6.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart item tax' );
-		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
+		$this->assertEqualsWithDelta( 0.2, (float) WC()->cart->get_shipping_tax(), 0.001, 'Cart shipping tax' );
 
 		$order = $this->classic_checkout_order();
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
-		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Classic checkout total' );
+		$this->assertEqualsWithDelta( 0.2, (float) $order->get_shipping_tax(), 0.001, 'Classic checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.2, (float) $order->get_total(), 0.001, 'Classic checkout total' );
 
 		// Block checkout re-taxes the order it builds from the cart.
 		$order->calculate_totals();
 		$order = wc_get_order( $order->get_id() );
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
-		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Block checkout total' );
+		$this->assertEqualsWithDelta( 0.2, (float) $order->get_shipping_tax(), 0.001, 'Block checkout shipping tax' );
+		$this->assertEqualsWithDelta( 116.2, (float) $order->get_total(), 0.001, 'Block checkout total' );
 
 		$order = $this->admin_recalculate( $order, 'XX' );
-		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
-		$this->assertEqualsWithDelta( 116.0, (float) $order->get_total(), 0.001, 'Recalculate total' );
+		$this->assertEqualsWithDelta( 0.2, (float) $order->get_shipping_tax(), 0.001, 'Recalculate shipping tax' );
+		$this->assertEqualsWithDelta( 116.2, (float) $order->get_total(), 0.001, 'Recalculate total' );
 	}
 
 	/**
@@ -1271,7 +1272,7 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 	 */
 	public function data_row_holding_the_line_rate() {
 		return array(
-			'the row holds the answer for shipping' => array( false, 0.0 ),
+			'the row holds the answer for shipping' => array( false, 2.0 ),
 			'the row holds the rate of the line'    => array( true, 6.0 ),
 		);
 	}
