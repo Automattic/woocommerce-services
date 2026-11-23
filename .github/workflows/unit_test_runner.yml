@@ -13,13 +13,16 @@ on:
                 required: true
                 type: string
 
+permissions:
+  contents: read
+
 jobs:
   php_lint:
     name: PHP Syntax Check
     runs-on: ubuntu-latest
     steps:
       - name: Checkout latest WCS
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Setup PHP
         uses: shivammathur/setup-php@7c071dfe9dc99bdf297fa79cb49ea005b9fcadbc # 2.37.1
         with:
@@ -65,7 +68,7 @@ jobs:
             echo "SVN is already installed."
           fi
       - name: Checkout WCS&T
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - name: Checkout WooCommerce
         run: git clone --depth=1 --branch=${{ env.WC_VERSION }} https://github.com/woocommerce/woocommerce.git /tmp/woocommerce
       - name: Setup PHP
@@ -79,7 +82,7 @@ jobs:
         uses: pnpm/action-setup@eae0cfeb286e66ffb5155f1a79b90583a127a68b # v2.4.1
         with:
           version: ${{ steps.get_wc_pnpm_version.outputs.WC_PNPM }}
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@3235b876344d2a9aa001b8d1453c930bba69e610 # v3
         with:
           node-version-file: '.nvmrc'
       - name: Build WooCommerce essentials for running tests

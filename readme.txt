@@ -71,6 +71,7 @@ This plugin relies on the following external services:
 == Changelog ==
 
 = 3.7.8 - 2026-xx-xx =
+* Fix   - Tax shipping at checkout and on Recalculate from what the tax service answered for that order. Shipping could be charged when the answer was that it is not taxable, or at the wrong rate, when a town's saved rates or your own tax rate for a list of ZIP codes, a ZIP code pattern such as 49* or a whole city said otherwise. For example, an order of only exempt clothing to Brooklyn paid tax on shipping after an earlier taxable order to the same town. A Shipping box ticked on a saved or manual tax rate no longer charges tax on shipping where the tax service says shipping isn't taxable. Shipping unticked on your own tax rate still keeps tax off shipping at that rate's priority.
 * Fix   - Stop the cart showing tax for an earlier address or shipping method when the checkout sends several changes at once.
 * Fix   - Security update.
 
