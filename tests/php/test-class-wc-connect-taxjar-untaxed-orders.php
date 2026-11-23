@@ -27,8 +27,9 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 
 	/**
 	 * How the fake tax service answers: 'answer', 'no_tax' (an answer of 0%, as for an
-	 * exempt product), 'timeout', an HTTP status for an outage, or 'zip_not_in_state'
-	 * for a 400 about the address.
+	 * exempt product), 'timeout', an HTTP status for an outage, 'unreadable' for a 200
+	 * that is not an answer, or 'zip_not_in_state' (a 400) or 'not_found' (a 404) for
+	 * an answer about the address.
 	 *
 	 * @var string|int
 	 */
@@ -183,6 +184,20 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 			);
 		}
 
+		if ( 'unreadable' === $this->taxjar ) {
+			return array(
+				'response' => array( 'code' => 200 ),
+				'body'     => '<html><body>Bad gateway</body></html>',
+			);
+		}
+
+		if ( 'not_found' === $this->taxjar ) {
+			return array(
+				'response' => array( 'code' => 404 ),
+				'body'     => '{"status":404,"error":"Not Found","detail":"No tax rates found for the address"}',
+			);
+		}
+
 		if ( 'zip_not_in_state' === $this->taxjar ) {
 			return array(
 				'response' => array( 'code' => 400 ),
@@ -244,6 +259,19 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 			'server error 500' => array( 500 ),
 			'unavailable 503'  => array( 503 ),
 			'rate limited 429' => array( 429 ),
+			'unreadable 200'   => array( 'unreadable' ),
+		);
+	}
+
+	/**
+	 * Ways the tax service answers about the address instead of with tax.
+	 *
+	 * @return array
+	 */
+	public function provide_refused_address() {
+		return array(
+			'zip not in state 400' => array( 'zip_not_in_state' ),
+			'not found 404'        => array( 'not_found' ),
 		);
 	}
 
@@ -545,9 +573,13 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 
 	/**
 	 * @testdox Checkout for an address the tax service refused is not this case: no note.
+	 *
+	 * @dataProvider provide_refused_address
+	 *
+	 * @param string $refusal How the tax service refuses the address.
 	 */
-	public function test_checkout_for_a_refused_address_adds_no_note() {
-		$this->taxjar = 'zip_not_in_state';
+	public function test_checkout_for_a_refused_address_adds_no_note( $refusal ) {
+		$this->taxjar = $refusal;
 		$this->fill_cart_at_checkout();
 		$order = $this->checkout_order();
 
@@ -833,9 +865,13 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 
 	/**
 	 * @testdox A new REST order for an address the tax service refused keeps its note from before, and is not listed.
+	 *
+	 * @dataProvider provide_refused_address
+	 *
+	 * @param string $refusal How the tax service refuses the address.
 	 */
-	public function test_rest_order_for_a_refused_address_keeps_the_old_note() {
-		$this->taxjar = 'zip_not_in_state';
+	public function test_rest_order_for_a_refused_address_keeps_the_old_note( $refusal ) {
+		$this->taxjar = $refusal;
 
 		$order = $this->rest_create();
 
