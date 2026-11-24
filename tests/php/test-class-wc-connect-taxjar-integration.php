@@ -5458,6 +5458,54 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Storing an answered rate gives the id of the address's row at the priority, also
+	 * for a 0% rate that leaves the row as it is. The line is taxed only under the id
+	 * of a rate above 0%.
+	 */
+	public function test_storing_a_rate_gives_the_id_of_the_row_it_keeps_or_writes() {
+		$this->reset_tax_rate_tables();
+
+		$location = array(
+			'from_country' => 'US',
+			'from_state'   => 'MI',
+			'to_country'   => 'US',
+			'to_state'     => 'MI',
+			'to_zip'       => '49841',
+			'to_city'      => 'Gwinn',
+		);
+		$row_id   = (int) $this->integration->create_or_update_tax_rate( $location, 6.0, '', 0, 4, 'MI STATE TAX' );
+
+		$this->assertSame(
+			array(
+				'rate_id' => null,
+				'row_id'  => $row_id,
+			),
+			$this->invoke_protected_method( 'store_answered_rate', array( $location, 0.0, '', 0, 4, 'MI STATE TAX' ) ),
+			'A 0% rate where the address has a row'
+		);
+		$this->assertSame( '6.0000', WC_Tax::_get_tax_rate( $row_id )['tax_rate'], 'The kept row was changed.' );
+
+		$this->assertSame(
+			array(
+				'rate_id' => $row_id,
+				'row_id'  => $row_id,
+			),
+			$this->invoke_protected_method( 'store_answered_rate', array( $location, 5.0, '', 0, 4, 'MI STATE TAX' ) ),
+			'A rate above 0% where the address has a row'
+		);
+
+		$this->assertSame(
+			array(
+				'rate_id' => null,
+				'row_id'  => null,
+			),
+			$this->invoke_protected_method( 'store_answered_rate', array( $location, 0.0, '', 0, 3, 'MI SPECIAL TAX' ) ),
+			'A 0% rate where the address has no row'
+		);
+		$this->assertSame( 1, $this->count_tax_rate_rows(), 'A row was added.' );
+	}
+
+	/**
 	 * A rate answered at 0% where a 0% row was added beside a merchant's state-wide rate
 	 * leaves that row as it is. It still keeps the merchant's rate from adding to
 	 * TaxJar's in the table, and is not one of the line's rates.

@@ -3071,7 +3071,7 @@ class WC_Connect_TaxJar_Integration {
 					if ( null !== $stored['rate_id'] ) {
 						$rate_ids[ $priority - 1 ] = $stored['rate_id'];
 					}
-					if ( $stored['has_row'] ) {
+					if ( null !== $stored['row_id'] ) {
 						$this->record_written_priority( $written, $tax_class, $priority, $rate_name );
 					}
 					++$priority;
@@ -3110,7 +3110,7 @@ class WC_Connect_TaxJar_Integration {
 				if ( null !== $stored['rate_id'] ) {
 					$rate_ids[ $priority - 1 ] = $stored['rate_id'];
 				}
-				if ( $stored['has_row'] ) {
+				if ( null !== $stored['row_id'] ) {
 					$this->record_written_priority( $written, '', $priority, $rate_name );
 				}
 				++$priority;
@@ -3158,14 +3158,17 @@ class WC_Connect_TaxJar_Integration {
 	 * @param int    $priority        Priority of the row.
 	 * @param string $rate_name       Name of the row.
 	 *
-	 * @return array{rate_id: int|null, has_row: bool} The id to tax the line under, null for a 0% rate,
-	 *                                                 and whether the address has a row at the priority.
+	 * @return array{rate_id: int|null, row_id: int|null} The id to tax the line under, null for a 0% rate,
+	 *                                                     and the id of the address's row at the priority,
+	 *                                                     written or kept, null when there is none.
 	 */
 	private function store_answered_rate( array $location, $rate, $tax_class, $freight_taxable, $priority, $rate_name ) {
 		if ( 0.0 !== (float) $rate ) {
+			$rate_id = (int) $this->create_or_update_tax_rate( $location, $rate, $tax_class, $freight_taxable, $priority, $rate_name );
+
 			return array(
-				'rate_id' => (int) $this->create_or_update_tax_rate( $location, $rate, $tax_class, $freight_taxable, $priority, $rate_name ),
-				'has_row' => true,
+				'rate_id' => $rate_id,
+				'row_id'  => $rate_id,
 			);
 		}
 
@@ -3177,15 +3180,16 @@ class WC_Connect_TaxJar_Integration {
 
 			return array(
 				'rate_id' => null,
-				'has_row' => false,
+				'row_id'  => null,
 			);
 		}
 
-		$this->_log( ':: Keeping Tax Rate ' . key( $row ) . ' For A 0% Rate ::' );
+		$row_id = (int) key( $row );
+		$this->_log( ':: Keeping Tax Rate ' . $row_id . ' For A 0% Rate ::' );
 
 		return array(
 			'rate_id' => null,
-			'has_row' => true,
+			'row_id'  => $row_id,
 		);
 	}
 
@@ -7300,6 +7304,9 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$rates = array();
+		// Keep the keys as they are: they can have gaps where a rate was answered at 0%,
+		// and each one is the position of its rate in $percents. Renumbering them (with
+		// array_values(), say) would pair a rate id with another rate's percentage.
 		foreach ( $rate_ids as $index => $rate_id ) {
 			$row = WC_Tax::_get_tax_rate( absint( $rate_id ) );
 			if ( ! $row ) {
