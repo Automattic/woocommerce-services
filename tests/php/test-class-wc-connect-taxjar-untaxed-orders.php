@@ -541,7 +541,7 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 			array_filter(
 				$this->notes( $order ),
 				static function ( $note ) {
-					return false !== strpos( $note, 'the tax service did not answer and the store has no saved tax rates' );
+					return 'Sales tax could not be calculated for this order, because the sales tax service did not answer and the store has no saved tax rates for the order\'s address.' === $note;
 				}
 			)
 		);
@@ -1289,12 +1289,26 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 
 		$html = $this->render_notice( 'woocommerce_page_wc-settings' );
 
-		$this->assertStringContainsString( '7 orders got no tax', $html );
+		$this->assertStringContainsString( '7 orders got no sales tax, because the sales tax service did not answer and the store has no saved tax rates for their addresses. Each order has a note about it. Check whether tax is due on them.', $html );
 		$this->assertStringContainsString( 'notice-dismiss', $html );
 		$this->assertStringContainsString( '#' . $orders[6]->get_order_number(), $html, 'Newest is linked.' );
 		$this->assertStringNotContainsString( '#' . $orders[1]->get_order_number() . '<', $html, 'Only the 5 latest are linked.' );
 		$this->assertNotSame( '', $this->render_notice( 'dashboard' ) );
 		$this->assertSame( '', $this->render_notice( 'edit-post' ), 'Not on other screens.' );
+	}
+
+	/**
+	 * @testdox The notice for one order says so in the singular.
+	 */
+	public function test_notice_for_one_order() {
+		$order = wc_create_order();
+		( new UntaxedOrdersNotice() )->record( $order );
+
+		$html = $this->render_notice( 'dashboard' );
+
+		$this->assertStringContainsString( '1 order got no sales tax, because the sales tax service did not answer and the store has no saved tax rates for its address. The order has a note about it. Check whether tax is due on it.', $html );
+		$this->assertStringContainsString( 'Latest: <a href="', $html );
+		$this->assertStringContainsString( '#' . $order->get_order_number() . '</a>', $html );
 	}
 
 	/**

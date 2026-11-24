@@ -6314,7 +6314,7 @@ class WC_Connect_TaxJar_Integration {
 	 * @return string
 	 */
 	private function get_untaxed_order_note() {
-		return __( 'Tax could not be calculated for this order, because the tax service did not answer and the store has no saved tax rates for the order\'s address. The order has no tax. Check whether tax is due on it.', 'woocommerce-services' );
+		return __( 'Sales tax could not be calculated for this order, because the sales tax service did not answer and the store has no saved tax rates for the order\'s address.', 'woocommerce-services' );
 	}
 
 	/**

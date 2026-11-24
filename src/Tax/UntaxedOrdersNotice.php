@@ -150,8 +150,8 @@ final class UntaxedOrdersNotice {
 			sprintf(
 				/* translators: %d: number of orders. */
 				_n(
-					'%d order got no tax, because the tax service did not answer and the store has no saved tax rates for its address. The order has a note about it. Check whether tax is due on it.',
-					'%d orders got no tax, because the tax service did not answer and the store has no saved tax rates for their addresses. Each order has a note about it. Check whether tax is due on them.',
+					'%d order got no sales tax, because the sales tax service did not answer and the store has no saved tax rates for its address. The order has a note about it. Check whether tax is due on it.',
+					'%d orders got no sales tax, because the sales tax service did not answer and the store has no saved tax rates for their addresses. Each order has a note about it. Check whether tax is due on them.',
 					$stored['count'],
 					'woocommerce-services'
 				),
