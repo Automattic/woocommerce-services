@@ -8,11 +8,12 @@
 /**
  * Class WP_Test_WC_Connect_TaxJar_Locked_Order_Tax_Hint
  *
- * The rule: with automated taxes on, an order whose tax is locked (it has a payment date)
- * keeps its charged tax when Recalculate is pressed, so the order items box says so next
- * to the button. WooCommerce shows Recalculate only while the order can be edited (pending,
- * on hold), so the hint shows only then. Nothing is shown for an order that isn't locked,
- * for a subscription (never locked), or when automated taxes are off.
+ * The rule: with automated taxes on, an order whose tax is locked (it has a payment date
+ * or a shipment marked fulfilled) keeps its charged tax when Recalculate is pressed, so the
+ * order items box says so next to the button. WooCommerce shows Recalculate only while the
+ * order can be edited (pending, on hold), so the hint shows only then. Nothing is shown for
+ * an order that isn't locked, for a subscription (never locked), or when automated taxes
+ * are off.
  */
 class WP_Test_WC_Connect_TaxJar_Locked_Order_Tax_Hint extends WC_Unit_Test_Case {
 
@@ -97,6 +98,42 @@ class WP_Test_WC_Connect_TaxJar_Locked_Order_Tax_Hint extends WC_Unit_Test_Case 
 	}
 
 	/**
+	 * Turn on WooCommerce's order fulfillments and add a shipment for a new line of an order.
+	 *
+	 * @param WC_Order $order  Order.
+	 * @param string   $status 'fulfilled', or 'unfulfilled' for a draft shipment.
+	 */
+	private function add_shipment( WC_Order $order, $status ) {
+		if ( ! class_exists( Automattic\WooCommerce\Admin\Features\Fulfillments\Fulfillment::class ) ) {
+			$this->markTestSkipped( 'Order fulfillments need WooCommerce 10.2 or later.' );
+		}
+
+		$item_id = $order->add_product( WC_Helper_Product::create_simple_product(), 1 );
+		$order->save();
+
+		update_option( 'woocommerce_feature_fulfillments_enabled', 'yes' );
+		wc_get_container()->get( Automattic\WooCommerce\Admin\Features\Fulfillments\FulfillmentsController::class )->initialize_fulfillments();
+
+		$fulfillment = new Automattic\WooCommerce\Admin\Features\Fulfillments\Fulfillment();
+		$fulfillment->set_props(
+			array(
+				'entity_type' => WC_Order::class,
+				'entity_id'   => (string) $order->get_id(),
+				'status'      => $status,
+			)
+		);
+		$fulfillment->set_items(
+			array(
+				array(
+					'item_id' => $item_id,
+					'qty'     => 1,
+				),
+			)
+		);
+		$fulfillment->save();
+	}
+
+	/**
 	 * Load an order as a subscription from now on, as WooCommerce Subscriptions does.
 	 *
 	 * @param int $order_id Order id.
@@ -169,6 +206,40 @@ class WP_Test_WC_Connect_TaxJar_Locked_Order_Tax_Hint extends WC_Unit_Test_Case 
 		$order = $this->create_order( 'on-hold', false );
 
 		$this->assertSame( '', $this->render_buttons_action( $order ) );
+	}
+
+	/**
+	 * @testdox An unpaid order on hold with a shipment marked fulfilled shows the hint: its tax is locked.
+	 */
+	public function test_unpaid_order_with_fulfilled_shipment_shows_hint() {
+		$this->make_integration( true );
+		$order = $this->create_order( 'on-hold', false );
+		try {
+			$this->add_shipment( $order, 'fulfilled' );
+
+			$html = $this->render_buttons_action( wc_get_order( $order->get_id() ) );
+		} finally {
+			update_option( 'woocommerce_feature_fulfillments_enabled', 'no' );
+		}
+
+		$this->assertStringContainsString( self::HINT, $html );
+	}
+
+	/**
+	 * @testdox An unpaid order on hold with only a draft shipment shows no hint: its tax is not locked.
+	 */
+	public function test_unpaid_order_with_draft_shipment_shows_no_hint() {
+		$this->make_integration( true );
+		$order = $this->create_order( 'on-hold', false );
+		try {
+			$this->add_shipment( $order, 'unfulfilled' );
+
+			$html = $this->render_buttons_action( wc_get_order( $order->get_id() ) );
+		} finally {
+			update_option( 'woocommerce_feature_fulfillments_enabled', 'no' );
+		}
+
+		$this->assertSame( '', $html );
 	}
 
 	/**
