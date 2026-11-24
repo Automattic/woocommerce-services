@@ -3895,6 +3895,27 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox With tax rounded at subtotal, the note's difference is $0.00 when the tax as it is now prints the same as the tax charged.
+	 */
+	public function test_paid_order_note_difference_is_zero_when_tax_prints_the_same_at_subtotal() {
+		// 2.5% on $5.00 is 0.125 exactly, which prints as $0.13.
+		$fixture = $this->create_paid_order_at_rates( array( 2.5 ), array( '5.00' ), null, true );
+
+		// Two at $2.50: still $5.00, so the tax is 0.125 again.
+		$order = $this->set_line_quantity( $fixture['order'], $fixture['items'][0], 2, '5.00' );
+
+		// The tax as it is now is rounded before the difference: 0.13 - 0.13 = 0.
+		// Not rounded, 0.125 - 0.13 = -0.005 prints as a difference of -$0.01.
+		$this->assertSame(
+			array(
+				'Tax charged: $0.13 (2.5% on $5.00). The tax stays at $0.13.',
+				'Tax for the order as it is now: $0.13 (2.5% on $5.00). Difference: $0.00.',
+			),
+			$this->locked_order_tax_lines( $order )
+		);
+	}
+
+	/**
 	 * @testdox On a paid order, saving again with nothing changed writes no note.
 	 */
 	public function test_paid_order_resave_writes_no_note() {
