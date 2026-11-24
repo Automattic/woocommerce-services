@@ -3864,6 +3864,82 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A paid order with one $10 line, $5 shipping and two tax lines, one for each of two
+	 * rates, as a state and a county rate give. Each rate puts the given tax on the line
+	 * and none on shipping.
+	 *
+	 * @param string $tax_per_line Tax on the line under each rate.
+	 * @return array{order: WC_Order, rate_ids: int[]}
+	 */
+	private function create_paid_order_with_two_tax_lines( $tax_per_line ) {
+		$county   = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '0.0000',
+				'tax_rate_name'     => 'County',
+				'tax_rate_priority' => 2,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 1,
+				'tax_rate_class'    => '',
+			)
+		);
+		$rate_ids = array( $this->rate_id, $county );
+		$by_rate  = array_fill_keys( $rate_ids, $tax_per_line );
+
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+		$item_id = $order->add_product( $this->create_product( '10' ), 1 );
+		$order->get_item( $item_id, false )->set_taxes(
+			array(
+				'total'    => $by_rate,
+				'subtotal' => $by_rate,
+			)
+		);
+
+		$shipping = new WC_Order_Item_Shipping();
+		$shipping->set_method_title( 'Flat rate' );
+		$shipping->set_method_id( 'flat_rate' );
+		$shipping->set_total( '5' );
+		$shipping->set_taxes( array( 'total' => array_fill_keys( $rate_ids, '0' ) ) );
+		$order->add_item( $shipping );
+
+		foreach ( $rate_ids as $i => $rate_id ) {
+			$tax_line = new WC_Order_Item_Tax();
+			$tax_line->set_rate_id( $rate_id );
+			$tax_line->set_rate_code( 'US-CO-CO TAX-' . ( $i + 1 ) );
+			$tax_line->set_label( 0 === $i ? 'CO Tax' : 'County Tax' );
+			$tax_line->set_rate_percent( 0.03 );
+			$tax_line->set_compound( false );
+			$tax_line->set_tax_total( $tax_per_line );
+			$tax_line->set_shipping_tax_total( '0' );
+			$order->add_item( $tax_line );
+		}
+
+		$cart_tax = 2 * (float) $tax_per_line;
+		$order->set_shipping_total( '5' );
+		$order->set_cart_tax( $cart_tax );
+		$order->set_shipping_tax( '0' );
+		$order->set_total( 15 + $cart_tax );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+		$this->assertNotNull( $order->get_date_paid(), 'the order has a payment date' );
+
+		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+		update_option( 'woocommerce_store_postcode', '80202' );
+
+		return array(
+			'order'    => wc_get_order( $order->get_id() ),
+			'rate_ids' => $rate_ids,
+		);
+	}
+
+	/**
 	 * A paid order with one $10 line and no tax at all, as an order made in the admin and
 	 * saved as Processing before Recalculate was pressed is.
 	 *
@@ -4129,6 +4205,28 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		// The order total is in whole cents.
 		$this->assert_order_tax( $order, (float) $cart_tax, (float) $shipping_tax, round( 15.0 + (float) $cart_tax + (float) $shipping_tax, 2 ) );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'no note' );
+	}
+
+	/**
+	 * @testdox Recalculate with no change on a paid order with two tax lines under half a cent each keeps the cent they add up to and writes no note.
+	 */
+	public function test_recalculate_without_change_keeps_tax_lines_under_half_a_cent_each_without_note() {
+		$fixture = $this->create_paid_order_with_two_tax_lines( '0.003' );
+
+		$order = $this->press_recalculate( $fixture['order'] );
+
+		// Each line is $0.003, which rounds to $0.00 alone; together they are $0.006, the
+		// cent in the $15.01 total. WooCommerce's 6% row would give $0.60 on the line.
+		$this->assertEqualsWithDelta( 0.006, (float) $order->get_cart_tax(), 0.00001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.00001, 'shipping tax' );
+		$this->assertEqualsWithDelta( 15.01, (float) $order->get_total(), 0.001, 'order total' );
+		$by_rate = array();
+		foreach ( $order->get_taxes() as $line ) {
+			$by_rate[ (int) $line->get_rate_id() ] = (float) $line->get_tax_total();
+		}
+		$this->assertEqualsWithDelta( array_fill_keys( $fixture['rate_ids'], 0.003 ), $by_rate, 0.00001, 'both tax lines are kept' );
+		$this->assertSame( 0, $this->tax_service_requests, 'the tax service is not asked' );
 		$this->assertSame( array(), $this->tax_notes( $order ), 'no note' );
 	}
 
