@@ -1286,7 +1286,15 @@ class WC_Connect_TaxJar_Integration {
 
 		$this->reset_rate_row_memory();
 
-		$address    = $this->fill_missing_backend_street( $this->get_backend_address(), $order );
+		// WooCommerce taxes an order at the store address when it uses local pickup or
+		// taxes are based on the store, whatever address the form posted, and taxes its
+		// fees there. Its products are asked about there too, as the REST path does.
+		$address = $this->get_backend_address();
+		if ( 'base' === $this->get_order_tax_location_type( $order, $this->get_backend_shipping_method_ids( $order ) ) ) {
+			$address = Address::from_store_settings( $this->get_store_settings() )->to_legacy_options();
+		} else {
+			$address = $this->fill_missing_backend_street( $address, $order );
+		}
 		$line_items = $this->get_backend_line_items( $order );
 		if ( method_exists( $order, 'get_shipping_total' ) ) {
 			$shipping = $order->get_shipping_total(); // Woo 3.0+
@@ -1668,6 +1676,36 @@ class WC_Connect_TaxJar_Integration {
 		$address['to_street'] = $saved->street();
 
 		return $address;
+	}
+
+	/**
+	 * Shipping method ids of an order whose items are about to be saved from the order screen.
+	 *
+	 * Recalculate posts the items form, and WooCommerce saves it before it taxes the
+	 * order, so a method changed in the form decides where WooCommerce taxes the order.
+	 * This runs before that save: a posted method is read from the form, and every
+	 * other line keeps its saved method.
+	 *
+	 * @param WC_Order $order The order.
+	 * @return string[]
+	 */
+	private function get_backend_shipping_method_ids( $order ) {
+		$posted = array();
+		// Core verified the nonce and capability before woocommerce_before_save_order_items.
+		if ( isset( $_POST['items'] ) && is_string( $_POST['items'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$items = array();
+			parse_str( wp_unslash( $_POST['items'] ), $items ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Parsed like core's wc_save_order_items() input; each value is cleaned below.
+			if ( isset( $items['shipping_method'] ) && is_array( $items['shipping_method'] ) ) {
+				$posted = $items['shipping_method'];
+			}
+		}
+
+		$method_ids = array();
+		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
+			$method_ids[] = isset( $posted[ $item_id ] ) && is_string( $posted[ $item_id ] ) ? wc_clean( $posted[ $item_id ] ) : $item->get_method_id();
+		}
+
+		return $method_ids;
 	}
 
 	/**

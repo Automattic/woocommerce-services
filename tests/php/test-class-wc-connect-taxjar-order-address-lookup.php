@@ -1114,6 +1114,273 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		$this->assertSame( array(), $this->tax_notes( $order ), 'a new order gets no tax note' );
 	}
 
+	// -------------------------------------------------------------------------
+	// Admin Recalculate taxes a local pickup order at the store, as WooCommerce does.
+	// -------------------------------------------------------------------------
+
+	/**
+	 * Press Recalculate on the order screen: post the customer's address, as core's script does.
+	 *
+	 * @param WC_Order $order Order.
+	 * @param array    $items Items form fields, as the order screen posts them.
+	 * @return WC_Order The order reloaded from the database.
+	 */
+	private function admin_recalculate( WC_Order $order, array $items = array() ) {
+		$address = self::address();
+		$post    = array(
+			'order_id' => $order->get_id(),
+			'country'  => $address['country'],
+			'state'    => $address['state'],
+			'postcode' => $address['postcode'],
+			'city'     => $address['city'],
+			'street'   => $address['address_1'],
+			'items'    => http_build_query( $items ),
+		);
+
+		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Test fixture; saved and restored.
+		$_POST      = wp_slash( $post );
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		try {
+			wc_get_container()->get( \Automattic\WooCommerce\Internal\Orders\TaxesController::class )->calc_line_taxes( $post );
+		} finally {
+			$_POST = $saved_post;
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+		}
+
+		return wc_get_order( $order->get_id() );
+	}
+
+	/**
+	 * Add a taxable -$10 fee to the order, saved, as a merchant adds a discount.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return int Fee item id.
+	 */
+	private function add_discount_fee( WC_Order $order ) {
+		$fee = new WC_Order_Item_Fee();
+		$fee->set_name( 'Discount' );
+		$fee->set_amount( '-10' );
+		$fee->set_total( '-10' );
+		$fee->set_tax_status( 'taxable' );
+		$fee->set_tax_class( '' );
+		$order->add_item( $fee );
+		$order->save();
+		$this->forget_created_in_request();
+
+		return $fee->get_id();
+	}
+
+	/**
+	 * @testdox Recalculate on a local pickup order asks TaxJar at the store, not at the customer's posted address.
+	 */
+	public function test_recalculate_local_pickup_order_asks_at_store() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order( array( 'shipping_method' => 'local_pickup' ) );
+
+		$order = $this->admin_recalculate( $fixture['order'] );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'], 'asked at the store' );
+		$this->assertSame( 'Boulder', $this->requests[0]['to_city'] );
+		// 8%: A 0.80, B 1.60, shipping 0.80; 30 + 10 + 2.40 + 0.80.
+		$this->assertEqualsWithDelta( 0.80, $this->item_tax( $order, $fixture['a'] ), 0.001 );
+		$this->assertEqualsWithDelta( 1.60, $this->item_tax( $order, $fixture['b'] ), 0.001 );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+	}
+
+	/**
+	 * @testdox Recalculate on a local pickup order taxes its products and a discount fee at the same store rate.
+	 */
+	public function test_recalculate_local_pickup_order_taxes_products_and_fee_at_store() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order( array( 'shipping_method' => 'local_pickup' ) );
+		$fee_id  = $this->add_discount_fee( $fixture['order'] );
+
+		$order = $this->admin_recalculate( wc_get_order( $fixture['order']->get_id() ) );
+
+		// WooCommerce taxes the fee at the store: -10 at 8%. The products are taxed there too.
+		$this->assertEqualsWithDelta( -0.80, $this->item_tax( $order, $fee_id ), 0.001, 'fee' );
+		$this->assertEqualsWithDelta( 0.80, $this->item_tax( $order, $fixture['a'] ), 0.001, 'A' );
+		$this->assertEqualsWithDelta( 1.60, $this->item_tax( $order, $fixture['b'] ), 0.001, 'B' );
+		// A 0.80 + B 1.60 - fee 0.80; shipping 0.80; 30 + 10 - 10 + 1.60 + 0.80.
+		$this->assert_order_tax( $order, 1.60, 0.80, 32.40 );
+	}
+
+	/**
+	 * @testdox Recalculate on a delivery order still asks TaxJar at the address the form posted.
+	 */
+	public function test_recalculate_delivery_order_asks_at_posted_address() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order();
+
+		$order = $this->admin_recalculate( $fixture['order'] );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80202', $this->requests[0]['to_zip'], 'asked at the customer' );
+		$this->assertSame( '1 Main St', $this->requests[0]['to_street'] );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+	}
+
+	/**
+	 * @testdox Recalculate after changing the shipping method to local pickup in the form asks at the store.
+	 */
+	public function test_recalculate_with_method_changed_to_local_pickup_in_form_asks_at_store() {
+		$this->move_store_to_boulder();
+		$fixture     = $this->create_placed_order();
+		$shipping_id = array_keys( $fixture['order']->get_shipping_methods() )[0];
+
+		$order = $this->admin_recalculate(
+			$fixture['order'],
+			array(
+				'shipping_method_id'    => array( $shipping_id ),
+				'shipping_method'       => array( $shipping_id => 'local_pickup' ),
+				'shipping_method_title' => array( $shipping_id => 'Pickup' ),
+				'shipping_cost'         => array( $shipping_id => '10' ),
+			)
+		);
+
+		$this->assertSame( 'local_pickup', current( $order->get_shipping_methods() )->get_method_id(), 'core saved the posted method' );
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'], 'asked at the store' );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+	}
+
+	/**
+	 * @testdox Recalculate after changing a local pickup line to delivery in the form asks at the posted address.
+	 */
+	public function test_recalculate_with_method_changed_to_delivery_in_form_asks_at_posted_address() {
+		$this->move_store_to_boulder();
+		$fixture     = $this->create_placed_order( array( 'shipping_method' => 'local_pickup' ) );
+		$shipping_id = array_keys( $fixture['order']->get_shipping_methods() )[0];
+
+		$order = $this->admin_recalculate(
+			$fixture['order'],
+			array(
+				'shipping_method_id'    => array( $shipping_id ),
+				'shipping_method'       => array( $shipping_id => 'flat_rate' ),
+				'shipping_method_title' => array( $shipping_id => 'Flat rate' ),
+				'shipping_cost'         => array( $shipping_id => '10' ),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80202', $this->requests[0]['to_zip'], 'asked at the customer' );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+	}
+
+	/**
+	 * @testdox With base tax for local pickup turned off, Recalculate on a local pickup order asks at the posted address.
+	 */
+	public function test_recalculate_local_pickup_without_base_tax_asks_at_posted_address() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order( array( 'shipping_method' => 'local_pickup' ) );
+		add_filter( 'woocommerce_apply_base_tax_for_local_pickup', '__return_false' );
+
+		try {
+			$order = $this->admin_recalculate( $fixture['order'] );
+		} finally {
+			remove_filter( 'woocommerce_apply_base_tax_for_local_pickup', '__return_false' );
+		}
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80202', $this->requests[0]['to_zip'], 'asked at the customer' );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+	}
+
+	/**
+	 * @testdox A method added to woocommerce_local_pickup_methods is taxed at the store on Recalculate.
+	 */
+	public function test_recalculate_filtered_local_pickup_method_asks_at_store() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order( array( 'shipping_method' => 'curbside_pickup' ) );
+		$methods = static function ( $methods ) {
+			$methods[] = 'curbside_pickup';
+			return $methods;
+		};
+		add_filter( 'woocommerce_local_pickup_methods', $methods );
+
+		try {
+			$order = $this->admin_recalculate( $fixture['order'] );
+		} finally {
+			remove_filter( 'woocommerce_local_pickup_methods', $methods );
+		}
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'], 'asked at the store' );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+	}
+
+	/**
+	 * @testdox With taxes based on the store address, Recalculate asks at the store, not at the posted billing address.
+	 */
+	public function test_recalculate_with_tax_based_on_store_asks_at_store() {
+		$this->move_store_to_boulder();
+		update_option( 'woocommerce_tax_based_on', 'base' );
+		$fixture = $this->create_placed_order();
+
+		$order = $this->admin_recalculate( $fixture['order'] );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'], 'asked at the store' );
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+	}
+
+	/**
+	 * @testdox Recalculate on a REST-created local pickup order gives the tax the REST API gave it.
+	 */
+	public function test_recalculate_local_pickup_order_matches_rest() {
+		$this->move_store_to_boulder();
+		$rest = $this->rest_create(
+			array(
+				'billing'        => self::address(),
+				'shipping'       => self::address(),
+				'shipping_lines' => array(
+					array(
+						'method_id'    => 'local_pickup',
+						'method_title' => 'Pickup',
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+		$this->forget_created_in_request();
+		$by_item = array();
+		foreach ( $rest->get_items( array( 'line_item', 'shipping' ) ) as $item_id => $item ) {
+			$by_item[ $item_id ] = (float) $item->get_total_tax();
+		}
+
+		$order = $this->admin_recalculate( $rest );
+
+		foreach ( $by_item as $item_id => $tax ) {
+			$this->assertEqualsWithDelta( $tax, (float) $order->get_item( $item_id )->get_total_tax(), 0.001, 'item ' . $item_id );
+		}
+		$this->assertEqualsWithDelta( (float) $rest->get_cart_tax(), (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( (float) $rest->get_shipping_tax(), (float) $order->get_shipping_tax(), 0.001, 'shipping tax' );
+		$this->assertEqualsWithDelta( (float) $rest->get_total(), (float) $order->get_total(), 0.001, 'order total' );
+		// The REST answer itself, so the comparison is not two wrong answers agreeing.
+		$this->assert_order_tax( $order, 2.40, 0.80, 43.20 );
+	}
+
+	/**
+	 * @testdox Recalculate on a paid local pickup order keeps the tax it was charged.
+	 */
+	public function test_recalculate_paid_local_pickup_order_keeps_charged_tax() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order(
+			array(
+				'shipping_method' => 'local_pickup',
+				'status'          => 'processing',
+			)
+		);
+		$fixture['order']->set_date_paid( time() );
+		$fixture['order']->save();
+
+		$order = $this->admin_recalculate( wc_get_order( $fixture['order']->get_id() ) );
+
+		$this->assertCount( 0, $this->requests );
+		$this->assert_order_tax( $order, 1.80, 0.60, 42.40 );
+	}
+
 	/**
 	 * @testdox A woocommerce_order_get_tax_location filter decides where the order is taxed, as in core.
 	 */
