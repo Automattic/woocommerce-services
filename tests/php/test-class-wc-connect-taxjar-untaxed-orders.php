@@ -160,6 +160,8 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 	public function tear_down() {
 		WC()->cart->empty_cart();
 		WC()->session->set( 'order_awaiting_payment', null );
+		WC()->session->set( 'chosen_shipping_methods', array() );
+		WC()->session->set( 'shipping_for_package_0', null );
 		$this->reset_rate_table();
 
 		global $wpdb;
@@ -735,6 +737,38 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
 		$this->assertSame( array(), $this->untaxed_notes( $order ) );
 		$this->assertSame( array(), $this->noticed_order_ids() );
+	}
+
+	/**
+	 * @testdox An order of Zero rate products with taxable shipping is noted when no saved rate applied to the shipping.
+	 */
+	public function test_checkout_of_zero_rate_products_with_shipping_is_told() {
+		// The integration keeps shipping in the Standard class (woocommerce_shipping_tax_class '').
+		$this->assertSame( '', get_option( 'woocommerce_shipping_tax_class' ), 'Shipping is in the Standard class.' );
+		WC_Helper_Shipping::create_simple_flat_rate( 10 );
+		WC()->session->set( 'chosen_shipping_methods', array( 'flat_rate' ) );
+		$this->taxjar = 503;
+
+		$order = $this->checkout_products( array( $this->create_zero_rate_product() ) );
+
+		$this->assertCount( 1, $order->get_items( 'shipping' ), 'The order has shipping.' );
+		$this->assert_untaxed_and_told( $order );
+	}
+
+	/**
+	 * @testdox An order of products in another tax class with no saved rates is noted: only the Zero rate class is skipped.
+	 */
+	public function test_checkout_of_products_in_a_class_with_no_saved_rates_is_told() {
+		if ( ! in_array( 'reduced-rate', WC_Tax::get_tax_class_slugs(), true ) ) {
+			WC_Tax::create_tax_class( 'Reduced rate' );
+		}
+		$product = $this->create_product();
+		$product->set_tax_class( 'reduced-rate' );
+		$product->save();
+		$this->save_colorado_rate();
+		$this->taxjar = 503;
+
+		$this->assert_untaxed_and_told( $this->checkout_products( array( $product ) ) );
 	}
 
 	/**
