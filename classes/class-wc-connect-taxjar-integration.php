@@ -5923,7 +5923,8 @@ class WC_Connect_TaxJar_Integration {
 
 			// A line that was $0 after its discounts was charged no tax at any rate, which
 			// says nothing about its rates. Given an amount, it is taxed as a new line is.
-			if ( $is_rated && $item instanceof \WC_Order_Item_Product && empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
+			// So is a fee that was $0.
+			if ( $is_rated && ! $is_shipping && empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
 				$is_rated = 0.0 !== (float) $this->get_order_item_saved_base( $item )['total'] || 0.0 === (float) $item->get_total();
 			}
 

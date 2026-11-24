@@ -3116,6 +3116,58 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A $0 fee set to $5 over REST is taxed at the rates of the order's lines in its tax class, as a new fee is.
+	 *
+	 * A $0 fee was charged no tax at any rate, so it has no rates of its own.
+	 */
+	public function test_fee_at_zero_set_to_an_amount_takes_its_class_rates() {
+		$order = $this->rest_create(
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $this->create_product( '100' )->get_id(),
+						'quantity'   => 1,
+					),
+				),
+				'fee_lines'  => array(
+					array(
+						'name'       => 'Handling',
+						'total'      => '0.00',
+						'tax_status' => 'taxable',
+					),
+				),
+			)
+		);
+
+		$fee_id = (int) current( array_keys( $order->get_fees() ) );
+		$this->assertSame( array(), $order->get_item( $fee_id )->get_taxes()['total'], 'The $0 fee has no tax' );
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'    => $fee_id,
+						'total' => '5.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assertEqualsWithDelta( 0.40, array_sum( array_map( 'floatval', $order->get_item( $fee_id )->get_taxes()['total'] ) ), 0.001, 'The fee, at 8%' );
+		// Boulder 8% on the $100 line and the $5 fee, rounded per rate (state 3.045,
+		// city 5.355); shipping 0.80.
+		$this->assert_order_tax( $order, 8.41, 0.80, 124.21 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Tax updated from', $notes[0] );
+		$this->assertStringNotContainsString( 'No tax was added', $notes[0] );
+	}
+
+	/**
 	 * @testdox Shipping added to an order TaxJar taxed none of asks TaxJar: its answer said nothing about shipping.
 	 */
 	public function test_shipping_added_to_an_order_taxjar_taxed_none_of_is_looked_up() {
