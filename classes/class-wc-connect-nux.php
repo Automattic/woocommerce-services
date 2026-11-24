@@ -338,7 +338,8 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 		 * accept it, and woocommerce_setup_jetpack_opted_in, which pre_wc_init() turns into
 		 * an accepted ToS on the next request by a user who can manage WooCommerce and may
 		 * accept the terms. A user who may not accept them may not change wc_connect_options
-		 * there at all; writing back the stored value is allowed. Without an owner (not
+		 * there at all, nor the legacy wc_connect_<key> options that WC_Connect_Options
+		 * migrates into it; writing back the stored value is allowed. Without an owner (not
 		 * connected, or a site-only connection) the opt-in stays writable, as WooCommerce
 		 * sets it in its tax task and when Jetpack registers the site, before the store has
 		 * an owner. The handler is matched rather than the route, so every way of reaching
@@ -373,7 +374,7 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 			foreach ( $params as $name => $value ) {
 				$normalized_name = self::normalize_option_name( $name );
 
-				// The database collation can fold a non-ASCII name onto either guarded name.
+				// The database collation can fold a non-ASCII name onto a guarded name.
 				if ( null === $normalized_name ) {
 					$changes_tos = true;
 					continue;
@@ -382,16 +383,21 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				switch ( $normalized_name ) {
 					case 'wc_connect_options':
 						// Any change counts: other keys, such as the one that arms the
-						// after-connection banner, lead to an accepted ToS too. The stored
-						// value goes through JSON like the request did, so objects in it
-						// (such as cached payment methods) compare as arrays.
-						$stored = json_decode( (string) wp_json_encode( get_option( 'wc_connect_options' ) ), true );
-						if ( self::sort_keys_recursively( $value ) !== self::sort_keys_recursively( $stored ) ) {
+						// after-connection banner, lead to an accepted ToS too.
+						if ( self::differs_from_stored_option( $normalized_name, $value ) ) {
 							$changes_tos = true;
 						}
 						break;
 					case 'woocommerce_setup_jetpack_opted_in':
 						if ( ! empty( $value ) && WC_Connect_Jetpack::is_connected() ) {
+							$changes_tos = true;
+						}
+						break;
+					default:
+						// WC_Connect_Options copies a legacy wc_connect_<key> option into
+						// wc_connect_options the next time that key is read, so writing one
+						// changes wc_connect_options too.
+						if ( self::is_legacy_grouped_option_name( $normalized_name ) && self::differs_from_stored_option( $normalized_name, $value ) ) {
 							$changes_tos = true;
 						}
 						break;
@@ -407,6 +413,36 @@ if ( ! class_exists( 'WC_Connect_Nux' ) ) {
 				__( 'Only the Jetpack connection owner can change the WooCommerce Tax settings or Terms of Service acceptance.', 'woocommerce-services' ),
 				array( 'status' => rest_authorization_required_code() )
 			);
+		}
+
+		/**
+		 * Whether a value written through the core options route differs from the stored option.
+		 *
+		 * The stored value goes through JSON like the request did, so objects in it (such as
+		 * cached payment methods) compare as arrays, and key order is ignored.
+		 *
+		 * @param string $option_name Option name.
+		 * @param mixed  $value       Value from the request.
+		 * @return bool
+		 */
+		private static function differs_from_stored_option( $option_name, $value ) {
+			$stored = json_decode( (string) wp_json_encode( get_option( $option_name ) ), true );
+
+			return self::sort_keys_recursively( $value ) !== self::sort_keys_recursively( $stored );
+		}
+
+		/**
+		 * Whether a normalized option name is the legacy standalone form of a key that now
+		 * lives in wc_connect_options, such as wc_connect_tos_accepted.
+		 *
+		 * @param string $option_name Normalized option name.
+		 * @return bool
+		 */
+		private static function is_legacy_grouped_option_name( $option_name ) {
+			$prefix = 'wc_connect_';
+
+			return 0 === strpos( $option_name, $prefix )
+				&& in_array( substr( $option_name, strlen( $prefix ) ), WC_Connect_Options::get_option_names(), true );
 		}
 
 		/**
