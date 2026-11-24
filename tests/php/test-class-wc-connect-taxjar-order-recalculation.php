@@ -116,6 +116,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		remove_all_filters( 'woocommerce_get_order_item_classname' );
 		delete_option( WC_Connect_TaxJar_Integration::OPTION_NAME );
 		delete_option( 'woocommerce_calc_taxes' );
+		delete_option( 'woocommerce_tax_round_at_subtotal' );
 		wc_get_container()->reset_replacement( Automattic\WooCommerce\Internal\Tax\TaxRateDataStore::class );
 
 		parent::tear_down();
@@ -3657,6 +3658,240 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$notes = $this->locked_order_notes( $order );
 		$this->assertCount( 1, $notes );
 		$this->assertStringContainsString( 'Tax charged: $2.50. The tax stays at $2.50.', $notes[0] );
+	}
+
+	/**
+	 * A paid Denver order taxed at the rates given, one line per price at quantity 1,
+	 * and shipping when $shipping is not null. Each tax is stored the way WooCommerce
+	 * stores it: rounded per line and rate, or with "round tax at subtotal" as it is.
+	 *
+	 * The first rate is the fixture's row; the others are added, all at 0% in the
+	 * table, so the rates can only come from the order.
+	 *
+	 * @param float[]     $percents          The rates, such as 1.1 and 2.9.
+	 * @param string[]    $prices            The line prices.
+	 * @param string|null $shipping          The shipping total, or null for none.
+	 * @param bool        $round_at_subtotal Whether the store rounds tax at subtotal.
+	 * @return array{order: WC_Order, items: int[]}
+	 */
+	private function create_paid_order_at_rates( array $percents, array $prices, $shipping, $round_at_subtotal ) {
+		update_option( 'woocommerce_tax_round_at_subtotal', $round_at_subtotal ? 'yes' : 'no' );
+
+		$rate_ids = array( $this->rate_id );
+		foreach ( array_keys( array_slice( $percents, 1 ) ) as $other ) {
+			$i          = $other + 1;
+			$rate_ids[] = WC_Tax::_insert_tax_rate(
+				array(
+					'tax_rate_country'  => 'US',
+					'tax_rate_state'    => 'CO',
+					'tax_rate'          => '0.0000',
+					'tax_rate_name'     => 'Other ' . $i,
+					'tax_rate_priority' => 1 + $i,
+					'tax_rate_compound' => 0,
+					'tax_rate_shipping' => 1,
+					'tax_rate_order'    => $i,
+					'tax_rate_class'    => '',
+				)
+			);
+		}
+
+		$tax_for = static function ( $amount ) use ( $percents, $rate_ids, $round_at_subtotal ) {
+			$taxes = array();
+			foreach ( $percents as $i => $percent ) {
+				$tax                      = (float) $amount * $percent / 100;
+				$taxes[ $rate_ids[ $i ] ] = wc_format_decimal( $round_at_subtotal ? $tax : round( $tax, 2 ) );
+			}
+			return $taxes;
+		};
+
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+		$order->set_shipping_country( 'US' );
+		$order->set_shipping_state( 'CO' );
+		$order->set_shipping_postcode( '80202' );
+		$order->set_shipping_city( 'Denver' );
+
+		$items      = array();
+		$cart_taxes = array_fill_keys( $rate_ids, 0.0 );
+		$ship_taxes = array_fill_keys( $rate_ids, 0.0 );
+		foreach ( $prices as $price ) {
+			$item_id = $order->add_product( $this->create_product( $price ), 1 );
+			$taxes   = $tax_for( $price );
+			$order->get_item( $item_id, false )->set_taxes(
+				array(
+					'total'    => $taxes,
+					'subtotal' => $taxes,
+				)
+			);
+			foreach ( $taxes as $rate_id => $tax ) {
+				$cart_taxes[ $rate_id ] += (float) $tax;
+			}
+			$items[] = $item_id;
+		}
+
+		if ( null !== $shipping ) {
+			$taxes = $tax_for( $shipping );
+			$line  = new WC_Order_Item_Shipping();
+			$line->set_method_title( 'Flat rate' );
+			$line->set_method_id( 'flat_rate' );
+			$line->set_total( $shipping );
+			$line->set_taxes( array( 'total' => $taxes ) );
+			$order->add_item( $line );
+			$order->set_shipping_total( $shipping );
+			foreach ( $taxes as $rate_id => $tax ) {
+				$ship_taxes[ $rate_id ] += (float) $tax;
+			}
+		}
+
+		foreach ( $percents as $i => $percent ) {
+			$tax_line = new WC_Order_Item_Tax();
+			$tax_line->set_rate_id( $rate_ids[ $i ] );
+			$tax_line->set_rate_code( 'US-CO-TAX-' . ( $i + 1 ) );
+			$tax_line->set_label( 'Tax ' . ( $i + 1 ) );
+			$tax_line->set_rate_percent( $percent );
+			$tax_line->set_compound( false );
+			$tax_line->set_tax_total( wc_format_decimal( $cart_taxes[ $rate_ids[ $i ] ] ) );
+			$tax_line->set_shipping_tax_total( wc_format_decimal( $ship_taxes[ $rate_ids[ $i ] ] ) );
+			$order->add_item( $tax_line );
+		}
+
+		$order->set_cart_tax( wc_format_decimal( array_sum( $cart_taxes ) ) );
+		$order->set_shipping_tax( wc_format_decimal( array_sum( $ship_taxes ) ) );
+		$order->set_total( round( array_sum( array_map( 'floatval', $prices ) ) + (float) $shipping + array_sum( $cart_taxes ) + array_sum( $ship_taxes ), 2 ) );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+		$this->assertNotNull( $order->get_date_paid(), 'the order is paid' );
+
+		return array(
+			'order' => $order,
+			'items' => $items,
+		);
+	}
+
+	/**
+	 * Change the quantity of one line through the REST API, at the same unit price.
+	 *
+	 * @param WC_Order $order    Order.
+	 * @param int      $item_id  Item id.
+	 * @param int      $quantity New quantity.
+	 * @param string   $total    The line's new total.
+	 * @return WC_Order
+	 */
+	private function set_line_quantity( WC_Order $order, $item_id, $quantity, $total ) {
+		return $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $item_id,
+						'quantity' => $quantity,
+						'subtotal' => $total,
+						'total'    => $total,
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * The two tax lines of a locked order's note: the tax charged, and the tax as it is now.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return string[]
+	 */
+	private function locked_order_tax_lines( WC_Order $order ) {
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+
+		return array_values( preg_grep( '/^Tax (charged|for the order as it is now): /', explode( "\n", $notes[0] ) ) );
+	}
+
+	/**
+	 * @testdox With tax rounded at subtotal, the note's tax as it is now adds the rates before rounding, as an unpaid order's edit would charge.
+	 */
+	public function test_paid_order_note_rounds_tax_once_at_subtotal() {
+		// Denver: 1.1% + 2.9%. Paid at $5.20: 0.0572 + 0.1508 = 0.208, so $0.21 in the $5.41 total.
+		$fixture = $this->create_paid_order_at_rates( array( 1.1, 2.9 ), array( '5.20' ), null, true );
+
+		$order = $this->set_line_quantity( $fixture['order'], $fixture['items'][0], 2, '10.40' );
+
+		// The tax charged stays.
+		$this->assertEqualsWithDelta( 0.208, (float) $order->get_cart_tax(), 0.000001 );
+		$this->assertEqualsWithDelta( 10.61, (float) $order->get_total(), 0.001 );
+		// $10.40: 0.1144 + 0.3016 = 0.416, which WooCommerce rounds once to $0.42 (total $10.82).
+		// Rounding each rate first gives 0.11 + 0.30 = $0.41.
+		$this->assertSame(
+			array(
+				'Tax charged: $0.21 (4% on $5.20). The tax stays at $0.21.',
+				'Tax for the order as it is now: $0.42 (4% on $10.40). Difference: $0.21.',
+			),
+			$this->locked_order_tax_lines( $order )
+		);
+	}
+
+	/**
+	 * @testdox Without rounding at subtotal, the note's tax as it is now still rounds each line and rate first.
+	 */
+	public function test_paid_order_note_rounds_each_line_without_round_at_subtotal() {
+		// Paid at $5.20: 0.0572 and 0.1508 round to 0.06 + 0.15 = $0.21.
+		$fixture = $this->create_paid_order_at_rates( array( 1.1, 2.9 ), array( '5.20' ), null, false );
+
+		$order = $this->set_line_quantity( $fixture['order'], $fixture['items'][0], 2, '10.40' );
+
+		// $10.40: 0.1144 and 0.3016 round to 0.11 + 0.30 = $0.41, as WooCommerce charges it.
+		$this->assertSame(
+			array(
+				'Tax charged: $0.21 (4% on $5.20). The tax stays at $0.21.',
+				'Tax for the order as it is now: $0.41 (4% on $10.40). Difference: $0.20.',
+			),
+			$this->locked_order_tax_lines( $order )
+		);
+	}
+
+	/**
+	 * @testdox With tax rounded at subtotal, the note's tax as it is now adds every line, the shipping and every rate before it rounds.
+	 */
+	public function test_paid_order_note_rounds_lines_rates_and_shipping_once_at_subtotal() {
+		// A $3.05, B $2.00, shipping $2.30, at 1.1% + 2.9%:
+		// 0.03355 + 0.08845 + 0.022 + 0.058 + 0.0253 + 0.0667 = 0.294, so $0.29 in the $7.64 total.
+		$fixture = $this->create_paid_order_at_rates( array( 1.1, 2.9 ), array( '3.05', '2.00' ), '2.30', true );
+
+		$order = $this->set_line_quantity( $fixture['order'], $fixture['items'][0], 2, '6.10' );
+
+		// A $6.10: 0.0671 + 0.1769; B 0.022 + 0.058; shipping 0.0253 + 0.0667.
+		// 1.1%: 0.1144, 2.9%: 0.3016, all together 0.416: $0.42.
+		// Rounding each rate: 0.11 + 0.30 = 0.41. Each line and rate: 0.07 + 0.18 + 0.02 + 0.06
+		// + 0.03 + 0.07 = 0.43. Items and shipping apart: 0.32 + 0.09 = 0.41.
+		$this->assertSame(
+			array(
+				'Tax charged: $0.29 (4% on $7.35). The tax stays at $0.29.',
+				'Tax for the order as it is now: $0.42 (4% on $10.40). Difference: $0.13.',
+			),
+			$this->locked_order_tax_lines( $order )
+		);
+	}
+
+	/**
+	 * @testdox With tax rounded at subtotal, the note's difference is the difference between the two amounts it prints.
+	 */
+	public function test_paid_order_note_difference_matches_printed_amounts_at_subtotal() {
+		// 2.5% on $5.00 is 0.125 exactly: $5.125, rounded half up, so $0.13 was charged.
+		$fixture = $this->create_paid_order_at_rates( array( 2.5 ), array( '5.00' ), null, true );
+
+		$order = $this->set_line_quantity( $fixture['order'], $fixture['items'][0], 2, '10.00' );
+
+		// Now 0.25. 0.25 - 0.13 = 0.12; 0.25 - 0.125 = 0.125 would round to $0.13.
+		$this->assertSame(
+			array(
+				'Tax charged: $0.13 (2.5% on $5.00). The tax stays at $0.13.',
+				'Tax for the order as it is now: $0.25 (2.5% on $10.00). Difference: $0.12.',
+			),
+			$this->locked_order_tax_lines( $order )
+		);
 	}
 
 	/**
