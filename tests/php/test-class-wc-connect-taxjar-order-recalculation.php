@@ -2783,7 +2783,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	 * product line is in.
 	 *
 	 * WooCommerce's own split of a negative fee, which this plugin then replaces, warns
-	 * there: it adds the shipping's cost to a class key it never set.
+	 * there: it adds the shipping's cost to a class key it never set. PHP 8 raises that
+	 * as a warning, PHP 7.4 as a notice.
 	 *
 	 * @param int   $order_id Order id.
 	 * @param array $body     Request body.
@@ -2792,7 +2793,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	private function rest_update_beside_core_fee_warning( $order_id, array $body ) {
 		$previous = set_error_handler( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Test only.
 			static function ( $errno, $errstr, $errfile, $errline ) use ( &$previous ) {
-				if ( E_WARNING === $errno && 'Undefined array key ""' === $errstr && 'class-wc-order-item-fee.php' === basename( $errfile ) ) {
+				$is_undefined_key = ( E_WARNING === $errno && 'Undefined array key ""' === $errstr ) || ( E_NOTICE === $errno && 'Undefined index: ' === $errstr );
+				if ( $is_undefined_key && 'class-wc-order-item-fee.php' === basename( $errfile ) ) {
 					return true;
 				}
 
