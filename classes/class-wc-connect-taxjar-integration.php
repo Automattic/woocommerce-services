@@ -1686,7 +1686,8 @@ class WC_Connect_TaxJar_Integration {
 	 * Recalculate posts the items form, and WooCommerce saves it before it taxes the
 	 * order, so a method changed in the form decides where WooCommerce taxes the order.
 	 * This runs before that save: a posted method is read from the form, and every
-	 * other line keeps its saved method.
+	 * other line keeps its saved method. A line being deleted is left out, as core
+	 * deletes it before it taxes the order.
 	 *
 	 * @param WC_Order $order The order.
 	 * @return string[]
@@ -1702,8 +1703,17 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
+		// WC_AJAX::remove_order_item() saves the posted form, deletes these lines, then taxes the order.
+		$deleted = array();
+		if ( doing_action( 'wp_ajax_woocommerce_remove_order_item' ) && isset( $_POST['order_item_ids'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			$deleted = array_map( 'absint', array_filter( (array) wp_unslash( $_POST['order_item_ids'] ), 'is_scalar' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each id is cast with absint().
+		}
+
 		$method_ids = array();
 		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
+			if ( in_array( (int) $item_id, $deleted, true ) ) {
+				continue;
+			}
 			$method_ids[] = isset( $posted[ $item_id ] ) && is_string( $posted[ $item_id ] ) ? wc_clean( $posted[ $item_id ] ) : $item->get_method_id();
 		}
 

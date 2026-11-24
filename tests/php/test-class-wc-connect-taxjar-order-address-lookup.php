@@ -1428,6 +1428,74 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox Deleting the local pickup line with unsaved form edits asks at the posted address, where core taxes the order after the delete.
+	 */
+	public function test_deleting_pickup_line_with_unsaved_edits_asks_at_posted_address() {
+		$this->move_store_to_boulder();
+		$fixture     = $this->create_placed_order( array( 'shipping_method' => 'local_pickup' ) );
+		$order_id    = $fixture['order']->get_id();
+		$shipping_id = array_keys( $fixture['order']->get_shipping_methods() )[0];
+		$address     = self::address();
+		$items       = array(
+			'shipping_method_id'    => array( $shipping_id ),
+			'shipping_method'       => array( $shipping_id => 'local_pickup' ),
+			'shipping_method_title' => array( $shipping_id => 'Pickup' ),
+			'shipping_cost'         => array( $shipping_id => '10' ),
+		);
+		$post        = array(
+			'action'         => 'woocommerce_remove_order_item',
+			'order_id'       => $order_id,
+			'order_item_ids' => (string) $shipping_id,
+			'country'        => $address['country'],
+			'state'          => $address['state'],
+			'postcode'       => $address['postcode'],
+			'city'           => $address['city'],
+			'street'         => $address['address_1'],
+			'items'          => http_build_query( $items ),
+		);
+
+		// WC_AJAX::remove_order_item(): save the posted items, delete the line, then tax at the posted address.
+		$remove = static function () use ( $order_id, $shipping_id, $items, $post ) {
+			wc_save_order_items( $order_id, $items );
+			wc_delete_order_item( $shipping_id );
+			$order = wc_get_order( $order_id );
+			$order->calculate_taxes(
+				array(
+					'country'  => $post['country'],
+					'state'    => $post['state'],
+					'postcode' => $post['postcode'],
+					'city'     => strtoupper( $post['city'] ),
+				)
+			);
+			$order->calculate_totals( false );
+		};
+		// Core's own handler checks a nonce and ends the request; it is stood in for by $remove.
+		$core_handler = array( 'WC_AJAX', 'remove_order_item' );
+		$core_removed = remove_action( 'wp_ajax_woocommerce_remove_order_item', $core_handler );
+		add_action( 'wp_ajax_woocommerce_remove_order_item', $remove, 1 );
+		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Test fixture; saved and restored.
+		$_POST      = wp_slash( $post );
+		add_filter( 'wp_doing_ajax', '__return_true' );
+		try {
+			do_action( 'wp_ajax_woocommerce_remove_order_item' ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- Core's AJAX action, fired as admin-ajax.php fires it.
+		} finally {
+			$_POST = $saved_post;
+			remove_filter( 'wp_doing_ajax', '__return_true' );
+			remove_action( 'wp_ajax_woocommerce_remove_order_item', $remove, 1 );
+			if ( $core_removed ) {
+				add_action( 'wp_ajax_woocommerce_remove_order_item', $core_handler );
+			}
+		}
+
+		$order = wc_get_order( $order_id );
+		$this->assertCount( 0, $order->get_shipping_methods(), 'core deleted the line' );
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80202', $this->requests[0]['to_zip'], 'asked at the customer' );
+		// 6%: A 0.60, B 1.20; no shipping left.
+		$this->assert_order_tax( $order, 1.80, 0.0, 31.80 );
+	}
+
+	/**
 	 * @testdox A woocommerce_order_get_tax_location filter decides where the order is taxed, as in core.
 	 */
 	public function test_order_tax_location_filter_is_honoured() {
