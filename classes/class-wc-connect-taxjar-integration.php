@@ -4460,9 +4460,11 @@ class WC_Connect_TaxJar_Integration {
 	 * current address using WC_Tax::find_rates(). TaxJar stores its rates scoped to
 	 * the checkout address, so when a REST API or programmatic update changes the
 	 * address the lookup returns nothing and update_taxes() wipes every tax line to
-	 * zero. So the rate table is never consulted here: snapshot the existing taxes
+	 * zero. So the rate table is not consulted here: snapshot the existing taxes
 	 * (before WC recalculates) and, once the totals have been recalculated, either
-	 * restore them or re-apply the order's own rates.
+	 * restore them or re-apply the order's own rates. The one exception is shipping's
+	 * share of a negative fee when the order has no rate for it (see
+	 * get_negative_fee_shipping_share_rates()).
 	 *
 	 * The rate is fixed when the order is placed; the amount follows the order. If no
 	 * item, fee or shipping amount changed, the recorded tax is restored exactly (so a
@@ -5454,19 +5456,22 @@ class WC_Connect_TaxJar_Integration {
 	 * cost, and the share is taxed at that class's rates, as WC_Order_Item_Fee::
 	 * calculate_taxes() does. Items that are not taxable take their share untaxed, and
 	 * items that take money off are left out. The rates are the ones the order charged
-	 * the class's items at, not the rate table's.
+	 * the class's items at, not the rate table's. Shipping's share is taxed as
+	 * get_negative_fee_shipping_share_rates() says.
 	 *
 	 * @param WC_Order          $order             The order.
 	 * @param WC_Order_Item_Fee $fee               The fee, below $0.
 	 * @param array             $rates             The order's recorded rates by rate id, as WC_Tax::calc_tax() takes them.
 	 * @param array             $rate_ids_by_class Rate ids the order charged its items at, per tax class.
-	 * @return array Tax by rate id. Empty when no class with a share has a recorded rate.
+	 * @param array             $shipping_rate_ids Rate ids the order charged its shipping at.
+	 * @return array Tax by rate id. Empty when no class with a share has a rate.
 	 */
-	private function split_negative_fee_taxes( $order, $fee, array $rates, array $rate_ids_by_class ) {
-		$classes       = $order->get_items_tax_classes();
-		$inherit_class = $classes ? (string) reset( $classes ) : '';
-		$costs         = array_fill_keys( $classes, 0.0 );
-		$untaxed_cost  = 0.0;
+	private function split_negative_fee_taxes( $order, $fee, array $rates, array $rate_ids_by_class, array $shipping_rate_ids ) {
+		$classes        = $order->get_items_tax_classes();
+		$inherit_class  = $classes ? (string) reset( $classes ) : '';
+		$costs          = array_fill_keys( $classes, 0.0 );
+		$shipping_costs = array();
+		$untaxed_cost   = 0.0;
 
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item ) {
 			$cost = (float) $item->get_total();
@@ -5479,26 +5484,86 @@ class WC_Connect_TaxJar_Integration {
 				continue;
 			}
 
-			$tax_class           = 'inherit' === $item->get_tax_class() ? $inherit_class : (string) $item->get_tax_class();
-			$costs[ $tax_class ] = ( $costs[ $tax_class ] ?? 0.0 ) + $cost;
+			$tax_class = 'inherit' === $item->get_tax_class() ? $inherit_class : (string) $item->get_tax_class();
+			if ( 'shipping' === $item->get_type() ) {
+				$shipping_costs[ $tax_class ] = ( $shipping_costs[ $tax_class ] ?? 0.0 ) + $cost;
+			} else {
+				$costs[ $tax_class ] = ( $costs[ $tax_class ] ?? 0.0 ) + $cost;
+			}
 		}
 
-		$total_cost = array_sum( $costs ) + $untaxed_cost;
+		$total_cost = array_sum( $costs ) + array_sum( $shipping_costs ) + $untaxed_cost;
 		$taxes      = array();
 		if ( $total_cost <= 0 ) {
 			return $taxes;
 		}
 
+		$shares = array();
 		foreach ( $costs as $tax_class => $cost ) {
-			$class_rates = array_intersect_key( $rates, array_flip( array_map( 'intval', $rate_ids_by_class[ $tax_class ] ?? array() ) ) );
-			if ( ! $cost || ! $class_rates ) {
+			$shares[] = array( $cost, array_intersect_key( $rates, array_flip( array_map( 'intval', $rate_ids_by_class[ $tax_class ] ?? array() ) ) ) );
+		}
+		foreach ( $shipping_costs as $tax_class => $cost ) {
+			$shares[] = array( $cost, $cost ? $this->get_negative_fee_shipping_share_rates( $order, $fee, (string) $tax_class, array_key_exists( $tax_class, $costs ), $rates, $rate_ids_by_class, $shipping_rate_ids ) : array() );
+		}
+
+		foreach ( $shares as list( $cost, $share_rates ) ) {
+			if ( ! $cost || ! $share_rates ) {
 				continue;
 			}
 
-			$taxes = wc_array_merge_recursive_numeric( $taxes, WC_Tax::calc_tax( (float) $fee->get_total() * $cost / $total_cost, $class_rates, false ) );
+			$taxes = wc_array_merge_recursive_numeric( $taxes, WC_Tax::calc_tax( (float) $fee->get_total() * $cost / $total_cost, $share_rates, false ) );
 		}
 
 		return $taxes;
+	}
+
+	/**
+	 * The rates shipping's share of a negative fee is taxed at.
+	 *
+	 * WooCommerce taxes that share at the rates of the shipping tax class. Here they are,
+	 * in order: the rates the order charged its shipping at; if none, the rates its items
+	 * in that class were charged at, even none (an exempt product: no tax comes off); if
+	 * the order has no item in that class, the rates WooCommerce finds for the class at
+	 * the order's tax location, as WC_Order_Item_Fee::calculate_taxes() does. A rate the
+	 * order records keeps its recorded percent. An order charged no tax at all takes none
+	 * off.
+	 *
+	 * @param WC_Order          $order             The order.
+	 * @param WC_Order_Item_Fee $fee               The fee, below $0.
+	 * @param string            $tax_class         The shipping tax class.
+	 * @param bool              $class_has_items   Whether the order has items in that class.
+	 * @param array             $rates             The order's recorded rates by rate id, as WC_Tax::calc_tax() takes them.
+	 * @param array             $rate_ids_by_class Rate ids the order charged its items at, per tax class.
+	 * @param array             $shipping_rate_ids Rate ids the order charged its shipping at.
+	 * @return array Rates by rate id, as WC_Tax::calc_tax() takes them.
+	 */
+	private function get_negative_fee_shipping_share_rates( $order, $fee, $tax_class, $class_has_items, array $rates, array $rate_ids_by_class, array $shipping_rate_ids ) {
+		if ( $shipping_rate_ids ) {
+			return array_intersect_key( $rates, array_flip( array_map( 'intval', $shipping_rate_ids ) ) );
+		}
+
+		if ( $class_has_items ) {
+			return array_intersect_key( $rates, array_flip( array_map( 'intval', $rate_ids_by_class[ $tax_class ] ?? array() ) ) );
+		}
+
+		if ( ! array_filter( $rate_ids_by_class ) ) {
+			return array();
+		}
+
+		// The location WooCommerce taxed the fee for in this recalculation.
+		$location = $this->order_item_tax_locations[ spl_object_id( $fee ) ] ?? ( is_callable( array( $order, 'get_taxable_location' ) ) ? $order->get_taxable_location() : null );
+		if ( ! is_array( $location ) || ! isset( $location['country'], $location['state'], $location['postcode'], $location['city'] ) ) {
+			return array();
+		}
+
+		$found = WC_Tax::find_rates( array_merge( $location, array( 'tax_class' => $tax_class ) ) );
+		foreach ( $found as $rate_id => $rate ) {
+			if ( isset( $rates[ (int) $rate_id ] ) ) {
+				$found[ $rate_id ] = $rates[ (int) $rate_id ];
+			}
+		}
+
+		return $found;
 	}
 
 	/**
@@ -5819,6 +5884,7 @@ class WC_Connect_TaxJar_Integration {
 		$rate_ids_by_class      = array();
 		$paid_rate_ids_by_class = array();
 		$shipping_rate_ids      = array();
+		$paid_shipping_rate_ids = array();
 		$untaxed_shipping       = $snapshot['base_changes']['removed_rate_ids']['untaxed_shipping'];
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
 			$key = 'shipping' === $item->get_type() ? 'shipping_' . $item_id : $item_id;
@@ -5834,7 +5900,8 @@ class WC_Connect_TaxJar_Integration {
 
 			$item_rate_ids = array_keys( $snapshot['item_taxes'][ $key ]['total'] );
 			if ( 'shipping' === $item->get_type() ) {
-				$shipping_rate_ids = array_unique( array_merge( $shipping_rate_ids, $item_rate_ids ) );
+				$shipping_rate_ids      = array_unique( array_merge( $shipping_rate_ids, $item_rate_ids ) );
+				$paid_shipping_rate_ids = array_unique( array_merge( $paid_shipping_rate_ids, $this->get_rate_ids_order_item_paid_under( $item, $snapshot['item_taxes'][ $key ] ) ) );
 			} elseif ( ! $this->is_negative_fee( $item ) && ! $this->fee_was_negative( $item ) ) {
 				// An item moved to another class was taxed in, and leaves its rates to, the old one.
 				$tax_class                            = $reclassed[ (int) $item_id ] ?? $item->get_tax_class();
@@ -5848,7 +5915,8 @@ class WC_Connect_TaxJar_Integration {
 		$rate_ids_by_class      += $snapshot['base_changes']['removed_rate_ids']['classes'];
 		$paid_rate_ids_by_class += $snapshot['base_changes']['removed_rate_ids']['classes'];
 		if ( empty( $shipping_rate_ids ) ) {
-			$shipping_rate_ids = $snapshot['base_changes']['removed_rate_ids']['shipping'];
+			$shipping_rate_ids      = $snapshot['base_changes']['removed_rate_ids']['shipping'];
+			$paid_shipping_rate_ids = $shipping_rate_ids;
 		}
 
 		$untaxed = array();
@@ -5883,7 +5951,7 @@ class WC_Connect_TaxJar_Integration {
 			// A negative fee is split across the order's tax classes, as WooCommerce splits
 			// it, whether it is new, changed, or moved to another class or made taxable.
 			if ( $this->is_negative_fee( $item ) && 'taxable' === $item->get_tax_status() ) {
-				$fee_taxes = $this->split_negative_fee_taxes( $order, $item, $rates, $paid_rate_ids_by_class );
+				$fee_taxes = $this->split_negative_fee_taxes( $order, $item, $rates, $paid_rate_ids_by_class, $paid_shipping_rate_ids );
 				$planned[] = array(
 					'item'     => $item,
 					'taxes'    => $fee_taxes ? array( 'total' => $fee_taxes ) : false,
