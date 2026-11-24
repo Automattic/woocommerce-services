@@ -1382,6 +1382,29 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox Recalculate on an order with a delivery line and a local pickup line asks at the store, as core taxes it there.
+	 */
+	public function test_recalculate_order_with_pickup_and_delivery_lines_asks_at_store() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order();
+		$pickup  = new WC_Order_Item_Shipping();
+		$pickup->set_method_title( 'Pickup' );
+		$pickup->set_method_id( 'local_pickup' );
+		$pickup->set_total( '10' );
+		$fixture['order']->add_item( $pickup );
+		$fixture['order']->set_shipping_total( '20' );
+		$fixture['order']->save();
+		$this->forget_created_in_request();
+
+		$order = $this->admin_recalculate( wc_get_order( $fixture['order']->get_id() ) );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'], 'asked at the store' );
+		// 8%: A 0.80, B 1.60.
+		$this->assertEqualsWithDelta( 2.40, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+	}
+
+	/**
 	 * @testdox A woocommerce_order_get_tax_location filter decides where the order is taxed, as in core.
 	 */
 	public function test_order_tax_location_filter_is_honoured() {
