@@ -1405,6 +1405,29 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox Saving the items of a local pickup order without Recalculate sends nothing to TaxJar, as nothing is taxed after it.
+	 */
+	public function test_saving_items_of_local_pickup_order_sends_no_request() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order( array( 'shipping_method' => 'local_pickup' ) );
+
+		// The order screen's Save button posts the items form and no address.
+		$post       = array(
+			'order_id' => $fixture['order']->get_id(),
+			'items'    => '',
+		);
+		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Test fixture; saved and restored.
+		$_POST      = wp_slash( $post );
+		try {
+			wc_save_order_items( $fixture['order']->get_id(), array() );
+		} finally {
+			$_POST = $saved_post;
+		}
+
+		$this->assertCount( 0, $this->requests );
+	}
+
+	/**
 	 * @testdox A woocommerce_order_get_tax_location filter decides where the order is taxed, as in core.
 	 */
 	public function test_order_tax_location_filter_is_honoured() {
