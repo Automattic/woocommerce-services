@@ -653,6 +653,91 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * A $100 product in WooCommerce's built-in Zero rate class.
+	 *
+	 * @return WC_Product
+	 */
+	private function create_zero_rate_product() {
+		if ( ! in_array( 'zero-rate', WC_Tax::get_tax_class_slugs(), true ) ) {
+			WC_Tax::create_tax_class( 'Zero rate' );
+		}
+		$product = $this->create_product();
+		$product->set_tax_class( 'zero-rate' );
+		$product->save();
+		$this->assertSame( 'zero-rate', $product->get_tax_class(), 'The product is in the Zero rate class.' );
+
+		return $product;
+	}
+
+	/**
+	 * Check out a cart of these products for a Denver customer.
+	 *
+	 * @param WC_Product[] $products Products, one of each.
+	 * @return WC_Order
+	 */
+	private function checkout_products( array $products ) {
+		WC()->cart->empty_cart();
+		foreach ( $products as $product ) {
+			WC()->cart->add_to_cart( $product->get_id(), 1 );
+		}
+		WC()->customer->set_shipping_location( 'US', 'CO', '80202', 'Denver' );
+		add_filter( 'woocommerce_is_checkout', '__return_true' );
+		WC()->cart->calculate_totals();
+
+		return $this->checkout_order();
+	}
+
+	/**
+	 * @testdox An order whose only taxable products are in the Zero rate class is not noted: the store charges them no tax anyway.
+	 */
+	public function test_checkout_of_zero_rate_products_adds_no_note() {
+		$this->taxjar = 503;
+
+		$order = $this->checkout_products( array( $this->create_zero_rate_product() ) );
+
+		$this->assertGreaterThan( 0, $this->lookups, 'The lookup ran.' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertSame( array(), $this->untaxed_notes( $order ) );
+		$this->assertSame( array(), $this->noticed_order_ids() );
+	}
+
+	/**
+	 * @testdox An order with a Zero rate product and a product no saved rate applies to is noted.
+	 */
+	public function test_checkout_of_zero_rate_and_standard_products_is_told() {
+		$this->taxjar = 503;
+
+		$this->assert_untaxed_and_told( $this->checkout_products( array( $this->create_zero_rate_product(), $this->create_product() ) ) );
+	}
+
+	/**
+	 * @testdox An order a saved 0% rate applied to is not noted: the store has a saved rate for the address.
+	 */
+	public function test_checkout_with_a_saved_zero_percent_rate_adds_no_note() {
+		WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '0.0000',
+				'tax_rate_name'     => 'CO Tax',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+		$this->taxjar = 503;
+
+		$order = $this->checkout_products( array( $this->create_product() ) );
+
+		$this->assertGreaterThan( 0, $this->lookups, 'The lookup ran.' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertSame( array(), $this->untaxed_notes( $order ) );
+		$this->assertSame( array(), $this->noticed_order_ids() );
+	}
+
+	/**
 	 * @testdox A later total in the same request that gets an answer clears the earlier failure.
 	 */
 	public function test_checkout_after_a_failure_then_an_answer_in_the_same_request_is_quiet() {
@@ -814,6 +899,53 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
 		$this->assertCount( 2, $this->untaxed_notes( $order ), 'Noted for each outage. Notes: ' . wp_json_encode( $this->notes( $order ) ) );
 		$this->assertSame( array( $order->get_id() ), $this->noticed_order_ids() );
+	}
+
+	/**
+	 * @testdox An order that gets tax later is taken off the notice; the other orders stay.
+	 */
+	public function test_order_taxed_later_is_taken_off_the_notice() {
+		$this->taxjar = 503;
+		$this->fill_cart_at_checkout();
+		$taxed_later = $this->checkout_order();
+		$still_zero  = $this->press_recalculate( $this->admin_order() );
+		$this->assertSame( array( $taxed_later->get_id(), $still_zero->get_id() ), $this->noticed_order_ids(), 'Both are listed.' );
+
+		$this->start_new_request();
+		$this->taxjar = 'answer';
+		$taxed_later  = $this->press_recalculate( $taxed_later );
+
+		$this->assertEqualsWithDelta( 6.0, (float) $taxed_later->get_total_tax(), 0.001, 'Taxed once the tax service answered.' );
+		$this->assertSame( array( $still_zero->get_id() ), $this->noticed_order_ids(), 'Only the order with no tax is listed.' );
+		$this->assertSame( 1, ( new UntaxedOrdersNotice() )->get_stored()['count'], 'The notice counts one order.' );
+	}
+
+	/**
+	 * @testdox An order that gets tax with only a copied mark leaves the order the mark was copied from on the notice.
+	 */
+	public function test_order_with_a_copied_mark_taxed_later_leaves_the_notice_alone() {
+		$this->taxjar = 503;
+		$this->fill_cart_at_checkout();
+		$noted = $this->checkout_order();
+		$copy  = $this->admin_order();
+		$copy->update_meta_data( '_wc_connect_untaxed_order_noted', (string) $noted->get_id() );
+		$copy->save();
+
+		$this->start_new_request();
+		$this->taxjar = 'answer';
+		$reads        = 0;
+		$count        = static function ( $pre ) use ( &$reads ) {
+			++$reads;
+			return $pre;
+		};
+		add_filter( 'pre_option_' . UntaxedOrdersNotice::OPTION_NAME, $count );
+		$copy = $this->press_recalculate( $copy );
+		remove_filter( 'pre_option_' . UntaxedOrdersNotice::OPTION_NAME, $count );
+
+		$this->assertEqualsWithDelta( 6.0, (float) $copy->get_total_tax(), 0.001 );
+		$this->assertSame( '', (string) $copy->get_meta( '_wc_connect_untaxed_order_noted' ), 'The copied mark is gone.' );
+		$this->assertSame( 0, $reads, 'The notice\'s list is not even read for a copied mark.' );
+		$this->assertSame( array( $noted->get_id() ), $this->noticed_order_ids(), 'The order it was copied from is still listed.' );
 	}
 
 	/**
@@ -1136,6 +1268,68 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 		$this->assertSame( 22, $stored['count'] );
 		$this->assertCount( 20, $stored['order_ids'] );
 		$this->assertNotContains( $first->get_id(), $stored['order_ids'] );
+	}
+
+	/**
+	 * @testdox Forgetting a listed order takes it off and lowers the count; the last one removes the option.
+	 */
+	public function test_notice_forget_takes_a_listed_order_off() {
+		$notice = new UntaxedOrdersNotice();
+		$orders = array( wc_create_order(), wc_create_order(), wc_create_order() );
+		foreach ( $orders as $order ) {
+			$notice->record( $order );
+		}
+
+		$notice->forget( $orders[1]->get_id() );
+
+		$this->assertSame(
+			array(
+				'count'     => 2,
+				'order_ids' => array( $orders[0]->get_id(), $orders[2]->get_id() ),
+			),
+			$notice->get_stored()
+		);
+
+		$notice->forget( $orders[0]->get_id() );
+		$notice->forget( $orders[2]->get_id() );
+
+		$this->assertFalse( get_option( UntaxedOrdersNotice::OPTION_NAME ), 'Nothing left to show.' );
+	}
+
+	/**
+	 * @testdox Forgetting an order that is not listed writes nothing; one past the kept list leaves the count.
+	 */
+	public function test_notice_forget_of_an_unlisted_order_writes_nothing() {
+		global $wpdb;
+
+		$notice = new UntaxedOrdersNotice();
+		$first  = wc_create_order();
+		$notice->record( $first );
+		for ( $i = 0; $i < 21; $i++ ) {
+			$notice->record( wc_create_order() );
+		}
+		$before = $notice->get_stored();
+		$this->assertNotContains( $first->get_id(), $before['order_ids'], 'The first order is past the kept list.' );
+
+		$writes = 0;
+		$count  = static function ( $query ) use ( &$writes, $wpdb ) {
+			if ( preg_match( '/^\s*(UPDATE|INSERT|DELETE)\b.*' . preg_quote( $wpdb->options, '/' ) . '/is', $query ) ) {
+				++$writes;
+			}
+			return $query;
+		};
+		add_filter( 'query', $count );
+		$notice->forget( $first->get_id() );
+		$notice->forget( 999999 );
+		remove_filter( 'query', $count );
+
+		$this->assertSame( 0, $writes, 'No option write.' );
+		$this->assertSame( $before, $notice->get_stored() );
+
+		$notice->forget( $before['order_ids'][0] );
+		$this->assertSame( 21, $notice->get_stored()['count'] );
+		$this->assertCount( 19, $notice->get_stored()['order_ids'] );
+		$this->assertSame( 'off', $wpdb->get_var( $wpdb->prepare( "SELECT autoload FROM {$wpdb->options} WHERE option_name = %s", UntaxedOrdersNotice::OPTION_NAME ) ), 'Still not autoloaded.' ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery
 	}
 
 	/**

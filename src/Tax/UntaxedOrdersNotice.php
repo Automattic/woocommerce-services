@@ -76,6 +76,34 @@ final class UntaxedOrdersNotice {
 	}
 
 	/**
+	 * Take an order off the notice, as it now has tax.
+	 *
+	 * The option is written only when the order is listed. An order past the kept list
+	 * cannot be told apart, so the count stays.
+	 *
+	 * @param int $order_id The order's id.
+	 */
+	public function forget( $order_id ) {
+		$stored = $this->get_stored();
+		$key    = array_search( (int) $order_id, $stored['order_ids'], true );
+
+		if ( false === $key ) {
+			return;
+		}
+
+		unset( $stored['order_ids'][ $key ] );
+		$stored['order_ids'] = array_values( $stored['order_ids'] );
+		$stored['count']     = max( $stored['count'] - 1, count( $stored['order_ids'] ) );
+
+		if ( 0 === $stored['count'] ) {
+			delete_option( self::OPTION_NAME );
+			return;
+		}
+
+		update_option( self::OPTION_NAME, $stored, false );
+	}
+
+	/**
 	 * The orders the notice is about, as stored.
 	 *
 	 * @return array{count: int, order_ids: int[]} Order ids oldest first, at most KEPT_ORDERS of them.

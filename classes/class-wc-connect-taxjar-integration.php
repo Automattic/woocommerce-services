@@ -6251,8 +6251,9 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * After a lookup that got no answer, WooCommerce taxes the order from the store's
 	 * saved rates. This is how it ended when none applied. An order with nothing taxable
-	 * on it, or with only free lines, is not one. Nor is a VAT exempt order: WooCommerce
-	 * takes its tax off whatever the rates are.
+	 * on it, or with only free lines, is not one, nor one whose only taxable lines are in
+	 * the Zero rate class or got a saved 0% rate (see item_got_no_saved_rate()). Nor is a
+	 * VAT exempt order: WooCommerce takes its tax off whatever the rates are.
 	 *
 	 * @param WC_Order $order The order.
 	 * @return bool
@@ -6276,12 +6277,32 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item ) {
-			if ( 'taxable' === $item->get_tax_status() && 0.0 < (float) $item->get_total() ) {
+			if ( $this->item_got_no_saved_rate( $item ) ) {
 				return true;
 			}
 		}
 
 		return false;
+	}
+
+	/**
+	 * Whether an order line could be taxed but no saved rate applied to it.
+	 *
+	 * Not a line in the built-in Zero rate class: the store charges it no tax whatever
+	 * the address. Nor a line a saved rate applied to, even at 0%: WooCommerce keeps
+	 * that rate on the line with no tax, and the store has a rate for the address.
+	 *
+	 * @param WC_Order_Item $item The order line.
+	 * @return bool
+	 */
+	private function item_got_no_saved_rate( WC_Order_Item $item ) {
+		if ( 'taxable' !== $item->get_tax_status() || 0.0 >= (float) $item->get_total() || 'zero-rate' === sanitize_title( (string) $item->get_tax_class() ) ) {
+			return false;
+		}
+
+		$taxes = is_callable( array( $item, 'get_taxes' ) ) ? $item->get_taxes() : array();
+
+		return empty( $taxes['total'] );
 	}
 
 	/**
@@ -6348,7 +6369,7 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Take the mark of record_untaxed_order() off an order that now has tax.
+	 * Take the mark of record_untaxed_order() off an order that now has tax, and the order off the admin notice.
 	 *
 	 * The note is then about the past, and a later outage that leaves the order with no
 	 * tax again notes it again.
@@ -6363,9 +6384,17 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
-		if ( '' !== (string) $order->get_meta( self::UNTAXED_ORDER_NOTED_META ) ) {
-			$order->delete_meta_data( self::UNTAXED_ORDER_NOTED_META );
-			unset( $this->untaxed_orders_noted[ (int) $order->get_id() ] );
+		$mark = (string) $order->get_meta( self::UNTAXED_ORDER_NOTED_META );
+		if ( '' === $mark ) {
+			return;
+		}
+
+		$order->delete_meta_data( self::UNTAXED_ORDER_NOTED_META );
+		unset( $this->untaxed_orders_noted[ (int) $order->get_id() ] );
+
+		// A mark copied from another order leaves that order on the notice.
+		if ( (int) $mark === (int) $order->get_id() && null !== $this->untaxed_orders_notice ) {
+			$this->untaxed_orders_notice->forget( (int) $order->get_id() );
 		}
 	}
 
