@@ -2,9 +2,9 @@
 Contributors: woocommerce, automattic, woothemes, allendav, kellychoffman, jkudish, jeffstieler, nabsul, robobot3000, danreylop, mikeyarce, shaunkuschel, orangesareorange, pauldechov, dappermountain, radogeorgiev, bor0, royho, cshultz88, bartoszbudzanowski, harriswong, ferdev, superdav42
 Tags: tax, vat, gst, woocommerce, payment
 Requires PHP: 7.4
-Requires at least: 7.0
+Requires at least: 7.1
 Requires Plugins: woocommerce
-Tested up to: 7.1
+Tested up to: 7.2
 WC requires at least: 11.1
 WC tested up to: 11.3
 Stable tag: 3.7.7
@@ -75,6 +75,7 @@ This plugin relies on the following external services:
 * Fix   - Keep the tax an order was charged when the order is edited after it got a payment date or a shipment marked fulfilled, through the REST API, the WooCommerce app or the order screen. A change to a quantity, price, line, fee, tax class or address no longer changes the tax in place, and the tax service is not asked again. Each such edit adds a private order note that says what changed, the tax charged, the tax the order would have now, and when to make a refund or a new order. An order moved back to on hold after payment stays this way, and a cancelled or failed order that was never paid now follows its edits like any unpaid order. Subscriptions still follow their edits, so renewals charge the new tax. A paid order that has no tax gets it when Recalculate is pressed, with a note.
 * Fix   - Stop the cart showing tax for an earlier address or shipping method when the checkout sends several changes at once.
 * Fix   - Security update.
+* Tweak - WordPress 7.2 Compatibility.
 
 = 3.7.7 - 2026-11-17 =
 * Add   - wc_services_cart_tax_lookup_timeout filter to change how long cart and checkout steps wait for a tax lookup.
