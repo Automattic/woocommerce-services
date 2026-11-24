@@ -4109,9 +4109,11 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	 */
 	public function provide_charged_tax_lines() {
 		return array(
-			'one cent on the items'    => array( '0.01', '0' ),
-			'half a cent on the items' => array( '0.005', '0' ),
-			'tax on shipping only'     => array( '0', '0.3' ),
+			'one cent on the items'                   => array( '0.01', '0' ),
+			'half a cent on the items'                => array( '0.005', '0' ),
+			'tax on shipping only'                    => array( '0', '0.3' ),
+			// Each rounds to $0.00 alone; together they are the cent in the order total.
+			'under half a cent on items and shipping' => array( '0.003', '0.003' ),
 		);
 	}
 
