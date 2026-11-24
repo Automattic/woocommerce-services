@@ -1000,6 +1000,31 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 		$this->assert_untaxed_and_told( $this->press_recalculate( $copy ) );
 	}
 
+	/**
+	 * @testdox A subscription that gets tax later loses its mark and is taken off the notice, as an order is.
+	 */
+	public function test_subscription_taxed_later_is_taken_off_the_notice() {
+		$this->taxjar = 503;
+		$noted        = $this->press_recalculate( $this->admin_order() );
+		$this->assertSame( array( $noted->get_id() ), $this->noticed_order_ids(), 'Listed.' );
+
+		// WooCommerce Subscriptions' WC_Subscription is a WC_Order whose object type is
+		// "subscription", so its saves fire woocommerce_before_subscription_object_save.
+		$subscription = new class( $noted->get_id() ) extends WC_Order {
+			/**
+			 * As WC_Subscription.
+			 *
+			 * @var string
+			 */
+			protected $object_type = 'subscription';
+		};
+		$subscription->set_cart_tax( 6 );
+		$subscription->save();
+
+		$this->assertSame( '', (string) wc_get_order( $noted->get_id() )->get_meta( '_wc_connect_untaxed_order_noted' ), 'The mark is gone.' );
+		$this->assertSame( array(), $this->noticed_order_ids(), 'Not listed any more.' );
+	}
+
 	// -------------------------------------------------------------------------
 	// Phone and manual order plugins (admin AJAX carts)
 	// -------------------------------------------------------------------------

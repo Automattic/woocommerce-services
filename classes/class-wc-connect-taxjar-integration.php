@@ -653,7 +653,10 @@ class WC_Connect_TaxJar_Integration {
 		add_action( 'woocommerce_store_api_checkout_order_processed', Closure::fromCallable( array( $this, 'note_untaxed_checkout_order' ) ), 10, 1 );
 		add_action( 'woocommerce_order_before_calculate_taxes', Closure::fromCallable( array( $this, 'start_unanswered_recalculation' ) ), 10, 2 );
 		add_action( 'woocommerce_order_after_calculate_totals', Closure::fromCallable( array( $this, 'note_unanswered_recalculation' ) ), 30, 2 );
-		add_action( 'woocommerce_before_order_object_save', Closure::fromCallable( array( $this, 'forget_untaxed_order_noted' ) ), 10, 1 );
+		$forget_untaxed_order_noted = Closure::fromCallable( array( $this, 'forget_untaxed_order_noted' ) );
+		add_action( 'woocommerce_before_order_object_save', $forget_untaxed_order_noted, 10, 1 );
+		// A WooCommerce Subscriptions subscription is an order that fires its own save hook.
+		add_action( 'woocommerce_before_subscription_object_save', $forget_untaxed_order_noted, 10, 1 );
 
 		// Calculate Taxes at Cart / Checkout
 		if ( class_exists( 'WC_Cart_Totals' ) ) { // Woo 3.2+
@@ -6374,7 +6377,8 @@ class WC_Connect_TaxJar_Integration {
 	 * The note is then about the past, and a later outage that leaves the order with no
 	 * tax again notes it again.
 	 *
-	 * Hooked to woocommerce_before_order_object_save by init(), so the save that gives the
+	 * Hooked to woocommerce_before_order_object_save and, for a subscription,
+	 * woocommerce_before_subscription_object_save by init(), so the save that gives the
 	 * order its tax also takes the mark off.
 	 *
 	 * @param WC_Order|mixed $order The order about to be saved.
