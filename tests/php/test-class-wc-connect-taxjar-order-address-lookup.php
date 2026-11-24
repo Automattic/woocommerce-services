@@ -3168,6 +3168,269 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Create over REST an order with a $100 line and the given shipping lines.
+	 *
+	 * @param array $shipping_lines Shipping lines, as REST takes them.
+	 * @return WC_Order
+	 */
+	private function rest_create_with_shipping( array $shipping_lines ) {
+		$order = $this->rest_create(
+			array(
+				'line_items'     => array(
+					array(
+						'product_id' => $this->create_product( '100' )->get_id(),
+						'quantity'   => 1,
+					),
+				),
+				'shipping_lines' => $shipping_lines,
+			)
+		);
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		return $order;
+	}
+
+	/**
+	 * Create over REST an order with a $100 line and $0 shipping.
+	 *
+	 * @return array{order: WC_Order, shipping: int}
+	 */
+	private function rest_create_with_zero_shipping() {
+		$order = $this->rest_create_with_shipping(
+			array(
+				array(
+					'method_id'    => 'flat_rate',
+					'method_title' => 'Flat rate',
+					'total'        => '0.00',
+				),
+			)
+		);
+
+		$shipping_id = (int) current( array_keys( $order->get_shipping_methods() ) );
+		$this->assertSame( array(), $order->get_item( $shipping_id )->get_taxes()['total'], 'The $0 shipping has no tax' );
+		// Boulder 8% on the $100 line.
+		$this->assert_order_tax( $order, 8.00, 0.00, 108.00 );
+
+		return array(
+			'order'    => $order,
+			'shipping' => $shipping_id,
+		);
+	}
+
+	/**
+	 * Set an order's shipping line to an amount over REST.
+	 *
+	 * @param WC_Order $order       Order.
+	 * @param int      $shipping_id The shipping line.
+	 * @param string   $total       The new amount.
+	 * @return WC_Order
+	 */
+	private function rest_set_shipping( WC_Order $order, $shipping_id, $total ) {
+		return $this->rest_update(
+			$order->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'id'    => $shipping_id,
+						'total' => $total,
+					),
+				),
+			)
+		);
+	}
+
+	/**
+	 * @testdox $0 shipping set to $10 on an unpaid order with no other shipping asks TaxJar, and the shipping is taxed.
+	 *
+	 * $0 shipping was charged no tax at any rate, so it has no rates of its own, and the
+	 * order has no other shipping to take them from.
+	 */
+	public function test_zero_shipping_set_to_an_amount_is_looked_up() {
+		$fixture = $this->rest_create_with_zero_shipping();
+
+		$order = $this->rest_set_shipping( $fixture['order'], $fixture['shipping'], '10.00' );
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		// Boulder 8% on the $100 line and on $10 shipping.
+		$this->assert_order_tax( $order, 8.00, 0.80, 118.80 );
+		$this->assertEqualsWithDelta( 0.80, $this->item_tax( $order, $fixture['shipping'] ), 0.001, 'The shipping' );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Tax recalculated from', $notes[0] );
+		$this->assertStringNotContainsString( 'No tax was added', $notes[0] );
+	}
+
+	/**
+	 * @testdox $0 shipping set to an amount beside taxed shipping takes that shipping's rates, without asking TaxJar.
+	 */
+	public function test_zero_shipping_set_to_an_amount_beside_taxed_shipping_takes_its_rates() {
+		$order = $this->rest_create_with_shipping(
+			array(
+				array(
+					'method_id'    => 'flat_rate',
+					'method_title' => 'Flat rate',
+					'total'        => '10.00',
+				),
+				array(
+					'method_id'    => 'flat_rate',
+					'method_title' => 'Second flat rate',
+					'total'        => '0.00',
+				),
+			)
+		);
+
+		$ids = array_keys( $order->get_shipping_methods() );
+		$this->assertSame( array(), $order->get_item( $ids[1] )->get_taxes()['total'], 'The $0 shipping has no tax' );
+		$this->assert_order_tax( $order, 8.00, 0.80, 118.80 );
+		$rate_ids = array_keys( $order->get_item( $ids[0] )->get_taxes()['total'] );
+
+		$order = $this->rest_set_shipping( $order, $ids[1], '10.00' );
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assertSame( $rate_ids, array_keys( $order->get_item( $ids[1] )->get_taxes()['total'] ), 'The other shipping\'s rates' );
+		// Boulder 8% on the $100 line and on each $10 shipping line.
+		$this->assert_order_tax( $order, 8.00, 1.60, 129.60 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Tax updated from', $notes[0] );
+		$this->assertStringNotContainsString( 'No tax was added', $notes[0] );
+	}
+
+	/**
+	 * @testdox $0 shipping set to an amount beside shipping the order did not tax stays untaxed, without asking TaxJar: the order's shipping is not taxed.
+	 *
+	 * As in a state that does not tax shipping.
+	 */
+	public function test_zero_shipping_set_to_an_amount_beside_untaxed_shipping_stays_untaxed() {
+		$order = $this->rest_create_with_shipping(
+			array(
+				array(
+					'method_id'    => 'flat_rate',
+					'method_title' => 'Flat rate',
+					'total'        => '10.00',
+				),
+				array(
+					'method_id'    => 'flat_rate',
+					'method_title' => 'Second flat rate',
+					'total'        => '0.00',
+				),
+			)
+		);
+
+		$ids = array_keys( $order->get_shipping_methods() );
+		// The address does not tax shipping.
+		$shipping = $order->get_item( $ids[0] );
+		$shipping->set_taxes( false );
+		$shipping->save();
+		$order = wc_get_order( $order->get_id() );
+		$order->update_taxes();
+		$order->set_total( '118.00' );
+		$order->save();
+		$this->assert_order_tax( $order, 8.00, 0.00, 118.00 );
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		$order = $this->rest_set_shipping( $order, $ids[1], '10.00' );
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assertSame( array(), $order->get_item( $ids[1] )->get_taxes()['total'], 'The shipping set to $10' );
+		$this->assert_order_tax( $order, 8.00, 0.00, 128.00 );
+		$this->assertSame( array(), $this->tax_notes( $order ) );
+	}
+
+	/**
+	 * @testdox When TaxJar does not answer for $0 shipping set to $10, the order keeps its tax, and the note says so.
+	 */
+	public function test_failed_lookup_for_zero_shipping_set_to_an_amount_keeps_the_tax() {
+		$fixture           = $this->rest_create_with_zero_shipping();
+		$this->taxjar_down = true;
+
+		$order = $this->rest_set_shipping( $fixture['order'], $fixture['shipping'], '10.00' );
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		$this->assertSame( array(), $order->get_item( $fixture['shipping'] )->get_taxes()['total'], 'The shipping' );
+		$this->assert_order_tax( $order, 8.00, 0.00, 118.00 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
+		$this->assertStringContainsString( 'No tax was added for Flat rate', $notes[0] );
+		$this->assertStringNotContainsString( 'new address', $notes[0] );
+	}
+
+	/**
+	 * @testdox $0 shipping set to $10 on a paid order does not ask TaxJar: the order keeps the tax it was charged.
+	 */
+	public function test_zero_shipping_set_to_an_amount_on_a_paid_order_is_not_looked_up() {
+		$fixture = $this->rest_create_with_zero_shipping();
+		$fixture['order']->set_status( 'processing' );
+		$fixture['order']->save();
+		$this->forget_created_in_request();
+
+		$order = $this->rest_set_shipping( $fixture['order'], $fixture['shipping'], '10.00' );
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assertSame( array(), $order->get_item( $fixture['shipping'] )->get_taxes()['total'], 'The shipping' );
+		$this->assert_order_tax( $order, 8.00, 0.00, 118.00 );
+		$this->assertCount( 1, $this->locked_order_notes( $order ), 'The locked order note' );
+	}
+
+	/**
+	 * @testdox Shipping added to an order with tax and no shipping does not ask TaxJar: it is left untaxed, with a note, as on trunk.
+	 *
+	 * Only shipping that was $0 on the order is asked about.
+	 */
+	public function test_shipping_added_to_a_taxed_order_without_shipping_is_not_looked_up() {
+		$order = $this->rest_create_with_shipping( array() );
+		$this->assert_order_tax( $order, 8.00, 0.00, 108.00 );
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'shipping_lines' => array(
+					array(
+						'method_id'    => 'flat_rate',
+						'method_title' => 'Flat rate',
+						'total'        => '10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assert_order_tax( $order, 8.00, 0.00, 118.00 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'No tax was added for Flat rate', $notes[0] );
+	}
+
+	/**
+	 * @testdox An edit of an order whose shipping is still $0 does not ask TaxJar.
+	 */
+	public function test_edit_of_an_order_with_zero_shipping_is_not_looked_up() {
+		$fixture = $this->rest_create_with_zero_shipping();
+		$line_id = (int) current( array_keys( $fixture['order']->get_items() ) );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $line_id,
+						'quantity' => 2,
+						'subtotal' => '200.00',
+						'total'    => '200.00',
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 0, $this->requests, 'TaxJar is not asked' );
+		$this->assertSame( array(), $order->get_item( $fixture['shipping'] )->get_taxes()['total'], 'The shipping' );
+		$this->assert_order_tax( $order, 16.00, 0.00, 216.00 );
+	}
+
+	/**
 	 * @testdox Shipping added to an order TaxJar taxed none of asks TaxJar: its answer said nothing about shipping.
 	 */
 	public function test_shipping_added_to_an_order_taxjar_taxed_none_of_is_looked_up() {
