@@ -148,15 +148,6 @@ class WC_Connect_TaxJar_Integration {
 	private $pre_save_tax_snapshots = array();
 
 	/**
-	 * Locked orders with no tax that the admin's Recalculate button is calculating tax for,
-	 * keyed by order id: true until WooCommerce calculates their taxes, then 'calculated'
-	 * until the note about it is written. See calculate_backend_totals().
-	 *
-	 * @var array<int, true|string>
-	 */
-	private $first_order_tax_calculations = array();
-
-	/**
 	 * Edits of locked orders saved by the order screen's Update button whose note waits
 	 * for the address to be saved too, keyed by order id: 'snapshot' and 'now', as
 	 * keep_charged_order_tax() has them. See note_order_screen_tax_edit().
@@ -1255,13 +1246,9 @@ class WC_Connect_TaxJar_Integration {
 	 * Runs before the admin saves an order's items, as Recalculate and Update do. For
 	 * an order whose tax is locked (see order_tax_is_locked()), TaxJar isn't asked: the
 	 * order's taxes are kept in $pre_save_tax_snapshots for
-	 * keep_charged_tax_after_saving_order_items(), and nothing else is done.
-	 *
-	 * Except when the Recalculate button is pressed for a locked order that has no tax at
-	 * all, as an order made in the admin and saved as Processing before anyone pressed it
-	 * has. Its tax was never calculated, and nothing else would let the merchant add it:
-	 * it gets the lookup an unlocked order gets, and a note (see
-	 * note_first_order_tax_calculation()). Every other edit of it keeps it at no tax.
+	 * keep_charged_tax_after_saving_order_items(), and nothing else is done. That includes
+	 * a locked order with no tax at all: tax is never added to it in place (see
+	 * keep_charged_order_tax()).
 	 *
 	 * Based on the TaxJar plugin.
 	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/96b5d57/includes/class-wc-taxjar-integration.php#L557
@@ -1276,14 +1263,8 @@ class WC_Connect_TaxJar_Integration {
 		// handler doesn't check whether the order can be edited. That order's tax is a
 		// record of what was charged.
 		if ( $this->order_tax_is_locked( $order ) ) {
-			if ( $order->get_taxes() || ! doing_action( 'wp_ajax_woocommerce_calc_line_taxes' ) ) {
-				$this->pre_save_tax_snapshots[ (int) $order_id ] = $this->snapshot_order_taxes( $order );
-				return;
-			}
-
-			$this->first_order_tax_calculations[ (int) $order_id ] = true;
-			remove_action( 'woocommerce_order_after_calculate_totals', array( $this, 'note_first_order_tax_calculation' ), 20 );
-			add_action( 'woocommerce_order_after_calculate_totals', array( $this, 'note_first_order_tax_calculation' ), 20, 2 );
+			$this->pre_save_tax_snapshots[ (int) $order_id ] = $this->snapshot_order_taxes( $order );
+			return;
 		}
 
 		$this->reset_rate_row_memory();
@@ -4339,9 +4320,8 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		// Admin order edits recalculate over AJAX and are handled by calculate_backend_totals().
-		// That skips an order whose tax is locked, so its tax is preserved here instead,
-		// unless the order has no tax yet and Recalculate is calculating its first.
-		if ( wp_doing_ajax() && ( ! $this->order_tax_is_locked( $order ) || isset( $this->first_order_tax_calculations[ (int) $order->get_id() ] ) ) ) {
+		// That skips an order whose tax is locked, so its tax is preserved here instead.
+		if ( wp_doing_ajax() && ! $this->order_tax_is_locked( $order ) ) {
 			return false;
 		}
 
@@ -4510,11 +4490,6 @@ class WC_Connect_TaxJar_Integration {
 		// snapshot is empty and the earlier one is the only record of what was charged.
 		if ( ! $this->should_preserve_order_taxes( $order ) ) {
 			unset( $this->pre_recalculation_tax_snapshots[ (int) $order->get_id() ], $this->pre_save_tax_snapshots[ (int) $order->get_id() ] );
-
-			// The totals that follow carry the tax note_first_order_tax_calculation() reports.
-			if ( isset( $this->first_order_tax_calculations[ (int) $order->get_id() ] ) ) {
-				$this->first_order_tax_calculations[ (int) $order->get_id() ] = 'calculated';
-			}
 			return;
 		}
 
@@ -6018,7 +5993,10 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * The items and the tax no longer match, so every edit that changes something gets
 	 * a note that says what changed, the tax that was charged, and what to do next. A
-	 * plain re-save writes no note.
+	 * plain re-save writes no note. Recalculate on an order that was charged no tax (see
+	 * snapshot_charged_no_tax()) gets a note even when nothing changed: the merchant
+	 * pressed it to get tax, and the note says how to charge it instead (see
+	 * get_untaxed_locked_order_recalculate_note()).
 	 *
 	 * @param WC_Order $order      The recalculated order.
 	 * @param array    $snapshot   Snapshot taken before the recalculation.
@@ -6048,7 +6026,43 @@ class WC_Connect_TaxJar_Integration {
 
 		if ( $this->locked_order_edit_needs_note( $snapshot ) ) {
 			$this->add_order_tax_note( $order, $this->get_locked_order_tax_note( $order, $snapshot, $now ) );
+		} elseif ( $this->snapshot_charged_no_tax( $snapshot ) && doing_action( 'wp_ajax_woocommerce_calc_line_taxes' ) ) {
+			$this->add_order_tax_note( $order, $this->get_untaxed_locked_order_recalculate_note( $order ) );
 		}
+	}
+
+	/**
+	 * Whether the order in a snapshot was charged no tax: its total tax, items and
+	 * shipping, rounds to $0.00. That is an order with no tax lines, and also one whose
+	 * tax lines are all $0.00, such as an exempt order with a 0% rate.
+	 *
+	 * @param array $snapshot Snapshot returned by snapshot_order_taxes().
+	 * @return bool
+	 */
+	private function snapshot_charged_no_tax( array $snapshot ) {
+		return 0.0 === (float) wc_round_tax_total( (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'] );
+	}
+
+	/**
+	 * The note for Recalculate on a locked order that was charged no tax (see
+	 * snapshot_charged_no_tax()), when the edit changed nothing else. The tax stays at
+	 * $0: tax is never added to a paid order in place. The note says how to charge it
+	 * with a new order.
+	 *
+	 * @param WC_Order $order The order.
+	 * @return string
+	 */
+	private function get_untaxed_locked_order_recalculate_note( $order ) {
+		$lines = array(
+			/* translators: %s: the order's tax, $0.00. */
+			sprintf( __( 'No tax was charged on this order. The tax stays at %s.', 'woocommerce-services' ), wc_price( 0, array( 'currency' => $order->get_currency() ) ) ),
+			$this->get_order_edit_author_line(),
+			__( 'The tax for the order as it is now was not calculated.', 'woocommerce-services' ),
+			__( 'No payment or refund was made for this change.', 'woocommerce-services' ),
+			__( 'Next step: if tax must be charged, refund this order and create a new order with the same items. The new order gets its own tax. If you sent the customer an invoice for this order, also issue a corrective document that refers to that invoice.', 'woocommerce-services' ),
+		);
+
+		return implode( "\n", $lines );
 	}
 
 	/**
@@ -6060,44 +6074,6 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private function locked_order_edit_needs_note( array $snapshot ) {
 		return ! empty( $snapshot['base_changes']['has_changes'] ) || ! empty( $snapshot['edit']['changes'] ) || null !== $snapshot['address_before'];
-	}
-
-	/**
-	 * Write a note once Recalculate has calculated tax for a locked order that had none.
-	 *
-	 * See calculate_backend_totals(). The tax was added after the order was charged, so
-	 * the note says how much, that no money moved, and what to do if the customer must
-	 * pay it. Nothing is written when the order still has no tax.
-	 *
-	 * @internal Hooked to woocommerce_order_after_calculate_totals while such a Recalculate runs.
-	 *
-	 * @since 3.7.8
-	 *
-	 * @param bool              $and_taxes Whether taxes were recalculated. Unused: Recalculate passes false.
-	 * @param WC_Abstract_Order $order     The order whose totals were recalculated.
-	 */
-	public function note_first_order_tax_calculation( $and_taxes, $order ) {
-		if ( ! $order instanceof WC_Order || 'calculated' !== ( $this->first_order_tax_calculations[ (int) $order->get_id() ] ?? null ) ) {
-			return;
-		}
-
-		unset( $this->first_order_tax_calculations[ (int) $order->get_id() ] );
-		$this->forget_items_added_after_tax_charged( $order );
-
-		$tax = (float) $order->get_cart_tax() + (float) $order->get_shipping_tax();
-		if ( $tax <= 0.0 ) {
-			return;
-		}
-
-		$lines = array(
-			/* translators: %s: tax added to the order. */
-			sprintf( __( 'This order had no tax, and tax was added after the order was charged: %s.', 'woocommerce-services' ), wc_price( $tax, array( 'currency' => $order->get_currency() ) ) ),
-			$this->get_order_edit_author_line(),
-			__( 'No payment or refund was made for this change.', 'woocommerce-services' ),
-			__( 'Next step: if the customer must pay this tax, create a new order for it. If you sent the customer an invoice for this order, also issue a corrective document that refers to that invoice.', 'woocommerce-services' ),
-		);
-
-		$this->add_order_tax_note( $order, implode( "\n", $lines ) );
 	}
 
 	/**
