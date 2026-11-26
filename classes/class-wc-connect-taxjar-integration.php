@@ -1653,20 +1653,31 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Read the TaxJar product tax code encoded in a tax class slug.
 	 *
-	 * Stores map a class to a TaxJar category by ending its name with the numeric
-	 * code, so "Digital Goods 31000" slugs to `digital-goods-31000`. The code is the
-	 * last segment, whatever the class name's word count. Both line item builders go
-	 * through here so checkout and an admin order recalculation price the same code.
+	 * Stores map a class to a TaxJar category by ending its name with the code, so
+	 * "Digital Goods 31000" slugs to `digital-goods-31000` and "SaaS 81162000A0000"
+	 * to `saas-81162000a0000`. The code is the last segment, whatever the class
+	 * name's word count. Both line item builders go through here so checkout and an
+	 * admin order recalculation price the same code.
+	 *
+	 * The segment counts as a code when it has the shape of one on TaxJar's list:
+	 * 5 digits (`31000`, and `99999` for exempt), 8 digits (`10105001`), or 7 or 8
+	 * digits, a letter and 4 digits (`81162000A0000`, `4914606A0001`). Any other
+	 * word or number, such as the `2` in "Rate 2", is not sent. TaxJar's codes are
+	 * case-sensitive and the slug is lower case, so the code is sent in upper case.
 	 *
 	 * @param string $tax_class Tax class slug ('' for Standard).
 	 *
-	 * @return string The code, or '' if the slug does not end in a number.
+	 * @return string The code, or '' if the slug does not end in one.
 	 */
 	private static function get_product_tax_code_from_tax_class( $tax_class ) {
 		$segments = explode( '-', (string) $tax_class );
-		$code     = end( $segments );
+		$code     = (string) end( $segments );
 
-		return is_numeric( $code ) ? $code : '';
+		if ( ! preg_match( '/^(?:[0-9]{5}|[0-9]{8}|[0-9]{7,8}[a-z][0-9]{4})$/i', $code ) ) {
+			return '';
+		}
+
+		return strtoupper( $code );
 	}
 
 	/**
