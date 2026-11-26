@@ -594,6 +594,8 @@ class WC_Connect_TaxJar_Integration {
 		add_filter( 'woocommerce_hidden_order_itemmeta', array( $this, 'hide_order_item_tax_meta' ) );
 		// After WooCommerce's order data box (priority 40) has saved the address.
 		add_action( 'woocommerce_process_shop_order_meta', array( $this, 'note_order_screen_tax_edit' ), 45, 1 );
+		// Next to the order screen's Recalculate button.
+		add_action( 'woocommerce_order_item_add_action_buttons', array( $this, 'show_locked_order_tax_hint' ), 10, 1 );
 
 		// Preserve recorded taxes when an existing order is recalculated outside the
 		// cart/checkout and admin flows (e.g. a REST API or programmatic order update),
@@ -4603,6 +4605,35 @@ class WC_Connect_TaxJar_Integration {
 
 		$this->keep_charged_order_tax( $order, $snapshot, doing_action( 'woocommerce_process_shop_order_meta' ) );
 		$this->forget_order_tax_edit( $order );
+	}
+
+	/**
+	 * Say next to the order screen's Recalculate button why it keeps the tax of a paid order.
+	 *
+	 * A locked order (see order_tax_is_locked()) keeps the tax it was charged when it is
+	 * edited or recalculated, and the only explanation is a private order note the
+	 * merchant may not see. WooCommerce shows Recalculate only while the order can be
+	 * edited, so the hint shows only then too: in practice, a paid order moved back to on
+	 * hold. It shows nothing for an order that isn't locked, such as a subscription.
+	 *
+	 * The order items box is printed on the order screen and again by the AJAX requests
+	 * that reload it, which both check the user can edit orders before printing it.
+	 *
+	 * @internal Hooked to woocommerce_order_item_add_action_buttons.
+	 *
+	 * @since 3.7.8
+	 *
+	 * @param mixed $order The order the box shows.
+	 */
+	public function show_locked_order_tax_hint( $order ) {
+		if ( ! $order instanceof WC_Order || ! $order->is_editable() || ! $this->is_enabled() || ! $this->order_tax_is_locked( $order ) ) {
+			return;
+		}
+
+		printf(
+			'<span class="description wc-connect-locked-order-tax-hint">%s</span>',
+			esc_html__( 'The tax on a paid order stays at the amount charged. If you change the order, the order notes say what changed and what to do next.', 'woocommerce-services' )
+		);
 	}
 
 	/**
