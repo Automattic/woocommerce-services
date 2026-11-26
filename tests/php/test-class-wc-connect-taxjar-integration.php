@@ -175,6 +175,65 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * init() no longer hooks the deprecated override_woocommerce_tax_rates() on
+	 * woocommerce_calc_tax, while it still registers the tax hooks next to it.
+	 */
+	public function test_init_does_not_hook_deprecated_calc_tax_override() {
+		update_option( WC_Connect_TaxJar_Integration::OPTION_NAME, 'yes' );
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+
+		$this->integration->init();
+
+		// init() got as far as the tax calculation hooks.
+		$this->assertSame( 10, has_filter( 'woocommerce_matched_rates', array( $this->integration, 'allow_street_address_for_matched_rates' ) ) );
+		$this->assertSame( 10, has_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this->integration, 'override_cart_item_tax_rates' ) ) );
+		$this->assertFalse( has_filter( 'woocommerce_calc_tax', array( $this->integration, 'override_woocommerce_tax_rates' ) ) );
+
+		remove_all_filters( 'woocommerce_matched_rates' );
+		remove_all_filters( 'woocommerce_cart_totals_get_item_tax_rates' );
+		remove_all_actions( 'woocommerce_order_before_calculate_taxes' );
+		delete_option( WC_Connect_TaxJar_Integration::OPTION_NAME );
+	}
+
+	/**
+	 * Calling the deprecated override_woocommerce_tax_rates() raises a deprecation notice
+	 * and returns the taxes it was given, even when the old per-line match would apply.
+	 */
+	public function test_deprecated_calc_tax_override_returns_its_input() {
+		$this->setExpectedDeprecated( 'WC_Connect_TaxJar_Integration::override_woocommerce_tax_rates' );
+
+		// The one-id-per-line shape the old body matched on, with a line answer that
+		// differs from the calculated tax, so any override would show.
+		$set = function ( $name, $value ) {
+			$property = new ReflectionProperty( 'WC_Connect_TaxJar_Integration', $name );
+			$property->setAccessible( true );
+			$property->setValue( $this->integration, $value );
+		};
+		$set( 'response_rate_ids', array( 'line-0' => 7 ) );
+		$set(
+			'response_line_items',
+			array(
+				'line-0' => (object) array(
+					'line_total'      => 10,
+					'tax_collectable' => 9.99,
+				),
+			)
+		);
+
+		$taxes = array( 7 => wc_add_number_precision( 0.825 ) );
+		$rates = array(
+			7 => array(
+				'rate'     => 8.25,
+				'label'    => 'Tax',
+				'shipping' => 'yes',
+				'compound' => 'no',
+			),
+		);
+
+		$this->assertSame( $taxes, $this->integration->override_woocommerce_tax_rates( $taxes, wc_add_number_precision( 10 ), $rates ) );
+	}
+
+	/**
 	 * Whether any callback registered on a hook is a method of an instance of the given class.
 	 *
 	 * @param string $hook_name  Hook to inspect.
@@ -7911,10 +7970,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * Tax classes whose slug carries a TaxJar product tax code, and the code each
 	 * builder must extract.
 	 *
-	 * The convention is "append the numeric code as the final segment of the class
+	 * The convention is "append TaxJar's code as the final segment of the class
 	 * name". Expected codes come from that convention, not from either builder. The
-	 * three multi-word rows are the ones the order path used to drop, including two
-	 * that extend WooCommerce's own built-in class names.
+	 * rows with more than one word before the code are the ones the order path used
+	 * to drop, including two that extend WooCommerce's own built-in class names.
 	 *
 	 * @return array[] Tax class name, expected slug, expected product_tax_code.
 	 */
@@ -7929,10 +7988,64 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			// The built-in Zero rate class is sent as exempt, whatever its tax status says.
 			'built-in Zero rate, no code'     => array( 'Zero rate', 'zero-rate', '99999' ),
 			'two-word custom class with code' => array( 'Digital Goods 31000', 'digital-goods-31000', '31000' ),
-			// Pinned, not endorsed: a trailing number in a plain class name is read as a
-			// code. Both paths already did this; changing it is a separate decision.
-			'class name ending in a number'   => array( 'Rate 2', 'rate-2', '2' ),
+			'eight-digit code'                => array( 'AIaaS 10105001', 'aiaas-10105001', '10105001' ),
+			// WordPress stores the slug in lower case; TaxJar only reads the code as listed.
+			'letter code'                     => array( 'SaaS 81162000A0000', 'saas-81162000a0000', '81162000A0000' ),
+			'letter code with a dash'         => array( 'Software - 43230000A1200', 'software-43230000a1200', '43230000A1200' ),
+			// The one code on TaxJar's list with 7 digits before the letter.
+			'seven-digit letter code'         => array( 'Swim Fins 4914606A0001', 'swim-fins-4914606a0001', '4914606A0001' ),
+			// A number that is not shaped like a TaxJar code is not sent.
+			'class name ending in a number'   => array( 'Rate 2', 'rate-2', '' ),
 		);
+	}
+
+	/**
+	 * Last slug segments that are, and are not, shaped like a TaxJar product tax code.
+	 *
+	 * Shapes come from TaxJar's category list: 5 digits, 8 digits, and 7 or 8
+	 * digits + a letter + 4 digits.
+	 *
+	 * @return array[] Tax class slug, expected product_tax_code.
+	 */
+	public function provide_tax_class_slug_shapes() {
+		return array(
+			'standard'                       => array( '', '' ),
+			'word'                           => array( 'reduced-rate', '' ),
+			'five digits'                    => array( 'digital-goods-31000', '31000' ),
+			'exempt'                         => array( 'exempt-99999', '99999' ),
+			'eight digits'                   => array( 'fitness-50021001', '50021001' ),
+			'slug is only the code'          => array( '81162000a0000', '81162000A0000' ),
+			'letter code'                    => array( 'saas-81162000a0000', '81162000A0000' ),
+			'letter code already upper case' => array( 'saas-81162000A0000', '81162000A0000' ),
+			'seven-digit letter code'        => array( 'swim-fins-4914606a0001', '4914606A0001' ),
+			'code not at the end'            => array( '31000-digital-goods', '' ),
+			'one digit'                      => array( 'rate-2', '' ),
+			'zero'                           => array( 'rate-0', '' ),
+			'four digits'                    => array( 'rate-2024', '' ),
+			'six digits'                     => array( 'rate-123456', '' ),
+			'seven digits'                   => array( 'rate-1234567', '' ),
+			'nine digits'                    => array( 'rate-123456789', '' ),
+			'word with digits'               => array( 'rate-2a', '' ),
+			'letter code, short suffix'      => array( 'saas-81162000a000', '' ),
+			'letter code, long suffix'       => array( 'saas-81162000a00000', '' ),
+			'letter code, six-digit prefix'  => array( 'saas-811620a0000', '' ),
+			'letter code, nine-digit prefix' => array( 'saas-811620000a0000', '' ),
+			'letter code, two letters'       => array( 'saas-81162000aa0000', '' ),
+			'exponent number'                => array( 'rate-1e5', '' ),
+			'trailing dash'                  => array( 'digital-goods-31000-', '' ),
+		);
+	}
+
+	/**
+	 * @testdox The product tax code is read from the end of the tax class slug only when it has the shape of a TaxJar code.
+	 *
+	 * @dataProvider provide_tax_class_slug_shapes
+	 *
+	 * @param string $slug          Tax class slug.
+	 * @param string $expected_code Code to send to TaxJar.
+	 */
+	public function test_product_tax_code_is_read_only_from_code_shaped_slug_endings( $slug, $expected_code ) {
+		$this->assertSame( $expected_code, $this->invoke_protected_method( 'get_product_tax_code_from_tax_class', array( $slug ) ) );
 	}
 
 	/**

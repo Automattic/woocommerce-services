@@ -619,7 +619,6 @@ class WC_Connect_TaxJar_Integration {
 		// Set customer taxable location for local pickup
 		add_filter( 'woocommerce_customer_taxable_address', array( $this, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
 
-		add_filter( 'woocommerce_calc_tax', array( $this, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_matched_rates', array( $this, 'allow_street_address_for_matched_rates' ), 10, 2 );
 		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this, 'override_cart_item_tax_rates' ), 10, 3 );
 		add_action( 'woocommerce_checkout_create_order_line_item', array( $this, 'remember_order_item_cart_item_key' ), 10, 2 );
@@ -1656,20 +1655,31 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * Read the TaxJar product tax code encoded in a tax class slug.
 	 *
-	 * Stores map a class to a TaxJar category by ending its name with the numeric
-	 * code, so "Digital Goods 31000" slugs to `digital-goods-31000`. The code is the
-	 * last segment, whatever the class name's word count. Both line item builders go
-	 * through here so checkout and an admin order recalculation price the same code.
+	 * Stores map a class to a TaxJar category by ending its name with the code, so
+	 * "Digital Goods 31000" slugs to `digital-goods-31000` and "SaaS 81162000A0000"
+	 * to `saas-81162000a0000`. The code is the last segment, whatever the class
+	 * name's word count. Both line item builders go through here so checkout and an
+	 * admin order recalculation price the same code.
+	 *
+	 * The segment counts as a code when it has the shape of one on TaxJar's list:
+	 * 5 digits (`31000`, and `99999` for exempt), 8 digits (`10105001`), or 7 or 8
+	 * digits, a letter and 4 digits (`81162000A0000`, `4914606A0001`). Any other
+	 * word or number, such as the `2` in "Rate 2", is not sent. TaxJar's codes are
+	 * case-sensitive and the slug is lower case, so the code is sent in upper case.
 	 *
 	 * @param string $tax_class Tax class slug ('' for Standard).
 	 *
-	 * @return string The code, or '' if the slug does not end in a number.
+	 * @return string The code, or '' if the slug does not end in one.
 	 */
 	private static function get_product_tax_code_from_tax_class( $tax_class ) {
 		$segments = explode( '-', (string) $tax_class );
-		$code     = end( $segments );
+		$code     = (string) end( $segments );
 
-		return is_numeric( $code ) ? $code : '';
+		if ( ! preg_match( '/^(?:[0-9]{5}|[0-9]{8}|[0-9]{7,8}[a-z][0-9]{4})$/i', $code ) ) {
+			return '';
+		}
+
+		return strtoupper( $code );
 	}
 
 	/**
@@ -2459,51 +2469,25 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Override Woo's native tax rates to handle multiple line items with the same tax rate
-	 * within the same tax class with different rates due to exemption thresholds
+	 * Formerly set a line's tax to TaxJar's per-line answer through `woocommerce_calc_tax`.
 	 *
-	 * Unchanged from the TaxJar plugin.
-	 * See: https://github.com/taxjar/taxjar-woocommerce-plugin/blob/4b481f5/includes/class-wc-taxjar-integration.php#L729
+	 * It matched a line by comparing one tax rate id per line with the rate WooCommerce
+	 * was using. Since 3.2.0 each line stores a list of rate ids, so it never matched and
+	 * returned `$taxes` unchanged. TaxJar's per-line answers are applied by
+	 * override_cart_item_tax_rates() and override_order_item_taxes() instead.
 	 *
-	 * @return array
+	 * The plugin no longer hooks it. It is kept so that code calling it directly does not
+	 * break, and will be removed in a later release.
+	 *
+	 * @deprecated 3.7.8 No longer hooked to `woocommerce_calc_tax`. Returns `$taxes` unchanged.
+	 *
+	 * @param array $taxes Taxes WooCommerce calculated, keyed by tax rate id.
+	 * @param float $price Price the taxes were calculated on.
+	 * @param array $rates Tax rates used.
+	 * @return array The `$taxes` passed in.
 	 */
-	public function override_woocommerce_tax_rates( $taxes, $price, $rates ) {
-		if (
-			! isset( $this->response_line_items )
-			|| empty( $rates )
-			|| ! is_array( $rates )
-			|| ! is_array( $taxes )
-		) {
-			return $taxes;
-		}
-
-		// Get tax rate ID for current item
-		$keys        = array_keys( $taxes );
-		$tax_rate_id = $keys[0];
-		$line_items  = array();
-
-		// Map line items using rate ID
-		foreach ( $this->response_rate_ids as $line_item_key => $rate_id ) {
-			if ( $rate_id == $tax_rate_id ) {
-				$line_items[] = $line_item_key;
-			}
-		}
-
-		// Remove number precision if Woo 3.2+
-		if ( function_exists( 'wc_remove_number_precision' ) ) {
-			$price = wc_remove_number_precision( $price );
-		}
-
-		foreach ( $this->response_line_items as $line_item_key => $line_item ) {
-			// If line item belongs to rate and matches the price, manually set the tax
-			if ( in_array( $line_item_key, $line_items ) && $price == $line_item->line_total ) {
-				if ( function_exists( 'wc_add_number_precision' ) ) {
-					$taxes[ $tax_rate_id ] = wc_add_number_precision( $line_item->tax_collectable );
-				} else {
-					$taxes[ $tax_rate_id ] = $line_item->tax_collectable;
-				}
-			}
-		}
+	public function override_woocommerce_tax_rates( $taxes, $price, $rates ) { // phpcs:ignore Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed -- Signature kept for callers.
+		wc_deprecated_function( __METHOD__, '3.7.8' );
 
 		return $taxes;
 	}
