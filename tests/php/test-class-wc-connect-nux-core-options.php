@@ -1068,4 +1068,93 @@ class WP_Test_WC_Connect_Nux_Core_Options extends WC_REST_Unit_Test_Case {
 
 		$this->assertNull( $result );
 	}
+
+	/**
+	 * Legacy standalone options that WC_Connect_Options migrates into wc_connect_options,
+	 * under their own and variant spellings.
+	 *
+	 * @return array
+	 */
+	public function provide_legacy_grouped_option_names() {
+		return array(
+			'terms acceptance'          => array( 'wc_connect_tos_accepted', true ),
+			'after-connection banner'   => array( 'wc_connect_should_display_nux_after_jp_cxn_banner', true ),
+			'store GUID'                => array( 'wc_connect_store_guid', 'attacker-guid' ),
+			'upper case'                => array( 'WC_CONNECT_TOS_ACCEPTED', true ),
+			'surrounded by white space' => array( ' wc_connect_tos_accepted ', true ),
+		);
+	}
+
+	/**
+	 * A non-owner cannot write a legacy wc_connect_<key> option, which the next read of that
+	 * key copies into wc_connect_options (WOOTAX-451).
+	 *
+	 * @dataProvider provide_legacy_grouped_option_names
+	 *
+	 * @param string $name  Option name as sent.
+	 * @param mixed  $value Value to write.
+	 */
+	public function test_non_owner_cannot_write_legacy_grouped_option( $name, $value ) {
+		wp_set_current_user( $this->other_admin );
+
+		$refused = $this->run_guard( array( $name => $value ) );
+
+		$this->assertWPError( $refused );
+		$this->assertSame( 'wc_connect_tos_owner_only', $refused->get_error_code() );
+	}
+
+	/**
+	 * The payload from WOOTAX-451, sent before the terms are accepted, leaves them unaccepted
+	 * after the next read migrates legacy options, whichever of WooCommerce or the guard
+	 * refuses it.
+	 */
+	public function test_legacy_tos_option_through_route_does_not_accept_tos() {
+		// WooCommerce reports a name it does not allow-list as a deprecated use of the route.
+		$this->setExpectedDeprecated( 'Automattic\WooCommerce\Admin\API\Options::update_options' );
+		delete_option( 'wc_connect_options' );
+		wp_set_current_user( $this->other_admin );
+
+		$response = $this->send( array( 'wc_connect_tos_accepted' => true ) );
+
+		$this->assertSame( 403, $response->get_status() );
+		$this->assertFalse( get_option( 'wc_connect_tos_accepted' ) );
+		$this->assertFalse( $this->tos_accepted() );
+	}
+
+	/**
+	 * The owner may write a legacy option, as may anyone in offline mode.
+	 */
+	public function test_owner_and_offline_mode_can_write_legacy_grouped_option() {
+		wp_set_current_user( $this->owner );
+		$this->assertNull( $this->run_guard( array( 'wc_connect_tos_accepted' => true ) ) );
+
+		WCS_Test_Jetpack_Connection::set_offline( true );
+		wp_set_current_user( $this->shop_manager );
+		$this->assertNull( $this->run_guard( array( 'wc_connect_tos_accepted' => true ) ) );
+	}
+
+	/**
+	 * Writing back a legacy option's stored value, or false for one that is not stored, is
+	 * allowed: a falsy legacy value is never migrated.
+	 */
+	public function test_non_owner_identical_legacy_write_allowed() {
+		update_option( 'wc_connect_store_guid', 'original-guid' );
+		wp_set_current_user( $this->other_admin );
+
+		$this->assertNull( $this->run_guard( array( 'wc_connect_store_guid' => 'original-guid' ) ) );
+		$this->assertNull( $this->run_guard( array( 'wc_connect_tos_accepted' => false ) ) );
+
+		delete_option( 'wc_connect_store_guid' );
+	}
+
+	/**
+	 * Names that are not a migrated legacy key are not refused: one that only starts with a
+	 * legacy name, and a standalone option WC_Connect_Options reads directly.
+	 */
+	public function test_non_migrated_wc_connect_option_names_not_refused() {
+		wp_set_current_user( $this->other_admin );
+
+		$this->assertNull( $this->run_guard( array( 'wc_connect_tos_accepted_backup' => true ) ) );
+		$this->assertNull( $this->run_guard( array( 'wc_connect_services' => array( 'a' => 1 ) ) ) );
+	}
 }
