@@ -7911,10 +7911,10 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * Tax classes whose slug carries a TaxJar product tax code, and the code each
 	 * builder must extract.
 	 *
-	 * The convention is "append the numeric code as the final segment of the class
+	 * The convention is "append TaxJar's code as the final segment of the class
 	 * name". Expected codes come from that convention, not from either builder. The
-	 * three multi-word rows are the ones the order path used to drop, including two
-	 * that extend WooCommerce's own built-in class names.
+	 * rows with more than one word before the code are the ones the order path used
+	 * to drop, including two that extend WooCommerce's own built-in class names.
 	 *
 	 * @return array[] Tax class name, expected slug, expected product_tax_code.
 	 */
@@ -7929,10 +7929,64 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 			// The built-in Zero rate class is sent as exempt, whatever its tax status says.
 			'built-in Zero rate, no code'     => array( 'Zero rate', 'zero-rate', '99999' ),
 			'two-word custom class with code' => array( 'Digital Goods 31000', 'digital-goods-31000', '31000' ),
-			// Pinned, not endorsed: a trailing number in a plain class name is read as a
-			// code. Both paths already did this; changing it is a separate decision.
-			'class name ending in a number'   => array( 'Rate 2', 'rate-2', '2' ),
+			'eight-digit code'                => array( 'AIaaS 10105001', 'aiaas-10105001', '10105001' ),
+			// WordPress stores the slug in lower case; TaxJar only reads the code as listed.
+			'letter code'                     => array( 'SaaS 81162000A0000', 'saas-81162000a0000', '81162000A0000' ),
+			'letter code with a dash'         => array( 'Software - 43230000A1200', 'software-43230000a1200', '43230000A1200' ),
+			// The one code on TaxJar's list with 7 digits before the letter.
+			'seven-digit letter code'         => array( 'Swim Fins 4914606A0001', 'swim-fins-4914606a0001', '4914606A0001' ),
+			// A number that is not shaped like a TaxJar code is not sent.
+			'class name ending in a number'   => array( 'Rate 2', 'rate-2', '' ),
 		);
+	}
+
+	/**
+	 * Last slug segments that are, and are not, shaped like a TaxJar product tax code.
+	 *
+	 * Shapes come from TaxJar's category list: 5 digits, 8 digits, and 7 or 8
+	 * digits + a letter + 4 digits.
+	 *
+	 * @return array[] Tax class slug, expected product_tax_code.
+	 */
+	public function provide_tax_class_slug_shapes() {
+		return array(
+			'standard'                       => array( '', '' ),
+			'word'                           => array( 'reduced-rate', '' ),
+			'five digits'                    => array( 'digital-goods-31000', '31000' ),
+			'exempt'                         => array( 'exempt-99999', '99999' ),
+			'eight digits'                   => array( 'fitness-50021001', '50021001' ),
+			'slug is only the code'          => array( '81162000a0000', '81162000A0000' ),
+			'letter code'                    => array( 'saas-81162000a0000', '81162000A0000' ),
+			'letter code already upper case' => array( 'saas-81162000A0000', '81162000A0000' ),
+			'seven-digit letter code'        => array( 'swim-fins-4914606a0001', '4914606A0001' ),
+			'code not at the end'            => array( '31000-digital-goods', '' ),
+			'one digit'                      => array( 'rate-2', '' ),
+			'zero'                           => array( 'rate-0', '' ),
+			'four digits'                    => array( 'rate-2024', '' ),
+			'six digits'                     => array( 'rate-123456', '' ),
+			'seven digits'                   => array( 'rate-1234567', '' ),
+			'nine digits'                    => array( 'rate-123456789', '' ),
+			'word with digits'               => array( 'rate-2a', '' ),
+			'letter code, short suffix'      => array( 'saas-81162000a000', '' ),
+			'letter code, long suffix'       => array( 'saas-81162000a00000', '' ),
+			'letter code, six-digit prefix'  => array( 'saas-811620a0000', '' ),
+			'letter code, nine-digit prefix' => array( 'saas-811620000a0000', '' ),
+			'letter code, two letters'       => array( 'saas-81162000aa0000', '' ),
+			'exponent number'                => array( 'rate-1e5', '' ),
+			'trailing dash'                  => array( 'digital-goods-31000-', '' ),
+		);
+	}
+
+	/**
+	 * @testdox The product tax code is read from the end of the tax class slug only when it has the shape of a TaxJar code.
+	 *
+	 * @dataProvider provide_tax_class_slug_shapes
+	 *
+	 * @param string $slug          Tax class slug.
+	 * @param string $expected_code Code to send to TaxJar.
+	 */
+	public function test_product_tax_code_is_read_only_from_code_shaped_slug_endings( $slug, $expected_code ) {
+		$this->assertSame( $expected_code, $this->invoke_protected_method( 'get_product_tax_code_from_tax_class', array( $slug ) ) );
 	}
 
 	/**
