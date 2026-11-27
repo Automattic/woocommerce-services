@@ -9,7 +9,6 @@ const os = require( 'os' );
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const MomentTimezoneDataPlugin = require( 'moment-timezone-data-webpack-plugin' );
 const CssMinimizerPlugin = require( 'css-minimizer-webpack-plugin' );
-const safePostCssParser = require('postcss-safe-parser');
 
 const isProd = 'production' === process.env.NODE_ENV;
 const isI18n = 'i18n' === process.env.NODE_ENV;
@@ -34,6 +33,18 @@ const cssLoaders = [
 				plugins: [
 					autoprefixer( { overrideBrowserslist: browsers } ),
 					customProperties( { preserve: false } ),
+					{
+						postcssPlugin: 'remove-resolved-root-properties',
+						// Run after var() resolution, retaining any ordinary root styles.
+						OnceExit( root ) {
+							root.walkRules( ':root', rule => {
+								rule.walkDecls( /^--/, declaration => declaration.remove() );
+								if ( ! rule.nodes.length ) {
+									rule.remove();
+								}
+							} );
+						},
+					},
 				],
 			},
 		},
@@ -152,7 +163,7 @@ module.exports = {
 			} ),
 			new CssMinimizerPlugin( {
 				minimizerOptions: {
-					parser: safePostCssParser,
+					processorOptions: { parser: 'postcss-safe-parser' },
 					preset: [ 'default', { minifyFontValues: { removeQuotes: false } } ],
 				},
 			} ),
@@ -163,7 +174,11 @@ module.exports = {
 		static: { directory: path.join( __dirname, 'dist' ) },
 		client: { overlay: { errors: true, warnings: false } },
 		allowedHosts: [ 'localhost', '127.0.0.1' ],
-		headers: { 'Access-Control-Allow-Origin': 'http://localhost' },
+		headers: ( request ) => {
+			const origin = request.headers.origin || '';
+			return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test( origin ) ?
+				{ 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : { Vary: 'Origin' };
+		},
 		hot: true,
 		liveReload: false,
 	},
@@ -216,10 +231,6 @@ module.exports = {
 						},
 					},
 				] ),
-			},
-			{
-				test: /\.html$/,
-				use: { loader: 'html-loader', options: { esModule: false } },
 			},
 			{
 				test: /\.jsx?$/,
@@ -277,7 +288,7 @@ module.exports = {
 	},
 	plugins: [
 		new webpack.ProvidePlugin( {
-			'fetch': [ 'whatwg-fetch', 'fetch' ],
+			'fetch': [ path.resolve( __dirname, 'client/lib/fetch.js' ), 'default' ],
 			'process': 'process/browser',
 		} ),
 		! isDev && new MiniCssExtractPlugin( {

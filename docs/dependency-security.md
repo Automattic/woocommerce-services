@@ -21,7 +21,8 @@ findings, not just distinct advisories. Build tools remain in `dependencies`, so
 
 - webpack 5, webpack-cli 7 and webpack-dev-server 6 replace the old webpack 4
   matching, watching and development-server stack. The server binds to loopback,
-  validates Host headers, and permits the local WordPress origin for CORS.
+  validates Host headers, and permits validated localhost/127.0.0.1 origins, including
+  their ports, for CORS.
 - PostCSS 8, Autoprefixer 10 and css-minimizer-webpack-plugin replace the old CSS
   pipeline and SVGO 1. Preserve CSS scoping, absolute CSS URLs, quoted font names,
   the ES5 output target, existing asset names and runtime plugin-relative URLs.
@@ -33,6 +34,10 @@ findings, not just distinct advisories. Build tools remain in `dependencies`, so
   The E2E scripts enable VM modules for Puppeteer's ESM dependencies.
 - ESLint 7 and @babel/eslint-parser keep the existing lint rules while supporting
   webpack 5 and correctly identifying used loop variables.
+
+Native fetch is preserved, with an XHR fallback only when it is unavailable.
+Resolved root custom properties are removed after PostCSS processing to prevent
+styles from leaking outside the plugin. The CSS minifier retains its safe parser.
 
 Node and React versions, public PHP APIs, hooks, script handles, shipping gates
 and persisted site state do not change. Multisite merchant flows were not tested.
@@ -52,22 +57,25 @@ and persisted site state do not change. Multisite merchant flows were not tested
 | globby 11 | i18n-calypso-cli's globby 9 brings vulnerable micromatch through fast-glob 2; retain CommonJS and async/sync glob APIs. |
 | Cheerio 1.0.0-rc.12 | Enzyme requires the old CommonJS/deep-import API. Also declare Cheerio directly for chai-enzyme's undeclared import. |
 | @cypress/request | Maintained request-compatible fork replaces the vulnerable, unmaintained request used by the E2E environment. |
-| moment-timezone 0.6 | i18n-calypso pins a vulnerable old timezone-data version; retain its public API and the build's 2000–2040 data window. |
+| i18n-calypso → moment-timezone 0.5.48+ | Patch its vulnerable pin within 0.5.x; leave @wordpress/date on its declared range and retain the build's 2000–2040 data window. |
 | glob 14 / minimatch 11 | Jest, coverage tools and the CTRF reporter constrain older vulnerable majors; preserve their sync/async matching APIs. |
 | uuid 11 | WordPress components uses only the supported named `v4()` API for notice IDs. |
+
+The build declares moment-timezone 0.5.x directly to satisfy the timezone-data
+plugin's peer dependency with legacy peer installation enabled.
 
 Remove an override when its consumer accepts a patched version itself. Overrides
 for removed webpack 4/Puppeteer 13 dependencies have been removed.
 
 ## Validation
 
-- Clean `npm ci`, production build, ESLint and 244 client tests.
-- Four Chromium tests: shipping XPath/cart update, field replacement, production
-  bundle startup with lazy JS/CSS at a relocated path, and the shipping-disabled
-  gate. These run in the JS CI job against local HTML fixtures, without WordPress
+- Clean `npm ci`, production build, ESLint and 246 client tests.
+- Chromium tests cover shipping XPath/cart updates, field replacement, popup
+  listener cleanup on success/failure, production bundle startup with relocated
+  lazy assets, CSS isolation, and the shipping-disabled gate. These run in the JS CI job against local HTML fixtures, without WordPress
   or carrier calls. Run `npm run dist`, `npx puppeteer browsers install chrome`,
-  then `npm run test:e2e-tooling` locally. A fifth test checks that the legacy
-  suite configures its WordPress URL and credentials before importing test utilities.
+  then `npm run test:e2e-tooling` locally. Configuration tests check the safe CSS
+  parser, allowed/rejected CORS origins, and that the legacy suite configures its WordPress URL and credentials before importing test utilities.
   The fixture tests also pass with an unreachable WordPress URL.
 - The legacy suite explicitly loads the Babel runtime required by its precompiled
   environment. CI installs Chrome system dependencies with root privileges while

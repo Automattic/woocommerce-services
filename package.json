@@ -78,6 +78,7 @@
 		"lint-staged": "^10.5.4",
 		"mkdirp": "^0.5.5",
 		"moment": "^2.29.1",
+		"moment-timezone": "^0.5.48",
 		"moment-timezone-data-webpack-plugin": "^1.5.1",
 		"nock": "^13.5.6",
 		"po2json": "^0.4.5",
@@ -118,11 +119,13 @@
 			"cheerio": "$cheerio"
 		},
 		"request": "npm:@cypress/request@^4.0.1",
-		"moment-timezone": "^0.6.1",
 		"glob@>=9.0.0 <=14.0.1": "^14.0.6",
 		"minimatch@>=7.0.0 <11.0.1": "^11.0.1",
 		"@wordpress/components": {
 			"uuid": "^11.1.1"
+		},
+		"i18n-calypso": {
+			"moment-timezone": "^0.5.48"
 		}
 	},
 	"dependencies": {
@@ -172,7 +175,6 @@
 		"get-document": "1.0.0",
 		"gridicons": "^2.1.2",
 		"he": "1.2.0",
-		"html-loader": "^5.1.0",
 		"i18n-calypso": "^1.8.4",
 		"is-my-json-valid": "^2.20.5",
 		"json-stable-stringify": "1.0.1",

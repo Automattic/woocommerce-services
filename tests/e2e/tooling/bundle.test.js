@@ -21,6 +21,7 @@ beforeAll( async () => {
 			} );
 			response.setHeader( 'Content-Type', 'text/html' );
 			response.end( `<!doctype html><body class="wp-core-ui wp-admin">
+				<div id="outside-plugin" style="color:var(--color-primary, rgb(1, 2, 3))">Outside</div>
 				<div class="wcc-root wc-connect-admin-test-print" data-args='${ args }'></div>
 				<script>window.wcsPluginData = { assetPath: '/plugin/dist/' };</script>
 				<script src="/jquery.js"></script>
@@ -56,6 +57,8 @@ it( 'boots the production bundle and lazy shipping assets from a relocated path'
 		await page.goto( origin );
 		expect( errors ).toEqual( [] );
 		await page.waitForSelector( '.print-test-label__paper-size', { timeout: 5000 } );
+		expect( await page.$eval( '#outside-plugin', element => getComputedStyle( element ).color ) ).toBe( 'rgb(1, 2, 3)' );
+		expect( await page.evaluate( () => getComputedStyle( document.documentElement ).getPropertyValue( '--color-primary' ) ) ).toBe( '' );
 		const options = await page.$$eval( '.print-test-label__paper-size option', nodes => nodes.map( node => node.value ) );
 		await page.select( '.print-test-label__paper-size', options[ 1 ] );
 		expect( await page.evaluate( async () => ( await window.wcsGetAppStoreAsync( 'wc-connect-admin-test-print' ) ).getState().paperSize ) ).toBe( options[ 1 ] );
@@ -67,8 +70,20 @@ it( 'boots the production bundle and lazy shipping assets from a relocated path'
 } );
 
 it( 'keeps the test-label UI hidden when shipping is disabled', async () => {
+	// Prove that this route renders before checking its disabled state.
+	await page.goto( origin );
+	await page.waitForSelector( '.print-test-label__paper-size', { timeout: 5000 } );
 	await page.goto( origin + '/?shipping=0' );
 	await page.waitForFunction( () => typeof window.wcsGetAppStoreAsync === 'function', { timeout: 5000 } );
-	await page.evaluate( () => window.wcsGetAppStoreAsync( 'wc-connect-admin-test-print' ) );
+	const state = await page.evaluate( async () => ( await window.wcsGetAppStoreAsync( 'wc-connect-admin-test-print' ) ).getState() );
+	expect( state ).toMatchObject( { paperSize: 'letter', isShippingLoaded: false } );
 	expect( await page.$( '.print-test-label__paper-size' ) ).toBeNull();
+} );
+
+it( 'does not emit global root variables in any CSS asset', () => {
+	const cssFiles = fs.readdirSync( dist, { recursive: true } ).filter( name => name.endsWith( '.css' ) );
+	expect( cssFiles.length ).toBeGreaterThan( 0 );
+	for ( const name of cssFiles ) {
+		expect( fs.readFileSync( path.join( dist, name ), 'utf8' ) ).not.toMatch( /:root\s*\{/ );
+	}
 } );
