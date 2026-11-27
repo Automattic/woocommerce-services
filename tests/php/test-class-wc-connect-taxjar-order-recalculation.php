@@ -40,6 +40,13 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	private $rate_id;
 
 	/**
+	 * How many requests the tax service got in this test.
+	 *
+	 * @var int
+	 */
+	private $tax_service_requests = 0;
+
+	/**
 	 * Products created for the fixture, deleted on tear down.
 	 *
 	 * @var WC_Product[]
@@ -70,7 +77,13 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		$api_client = $this->getMockBuilder( 'WC_Connect_API_Client' )->disableOriginalConstructor()->getMock();
 		// Nothing here is about TaxJar's answer: a lookup that does run finds it unreachable.
-		$api_client->method( 'proxy_request' )->willReturn( new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' ) );
+		$this->tax_service_requests = 0;
+		$api_client->method( 'proxy_request' )->willReturnCallback(
+			function () {
+				++$this->tax_service_requests;
+				return new WP_Error( 'http_request_failed', 'cURL error 28: Operation timed out' );
+			}
+		);
 		$logger = $this->getMockBuilder( 'WC_Connect_Logger' )->disableOriginalConstructor()->getMock();
 		$tracks = $this->getMockBuilder( 'WC_Connect_Tracks' )->disableOriginalConstructor()->getMock();
 
@@ -4610,10 +4623,14 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 			}
 		);
 		add_filter( 'wp_doing_ajax', '__return_true' );
+		// The button posts the address too, which a tax lookup reads from $_POST.
+		$saved_post = $_POST; // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Saved to restore after the simulated request.
+		$_POST      = $post;
 
 		try {
 			do_action( 'wp_ajax_woocommerce_calc_line_taxes' );
 		} finally {
+			$_POST = $saved_post;
 			remove_filter( 'wp_doing_ajax', '__return_true' );
 			remove_all_actions( 'wp_ajax_woocommerce_calc_line_taxes' );
 			if ( null !== $saved_hook ) {
@@ -4622,6 +4639,160 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		}
 
 		return wc_get_order( $order->get_id() );
+	}
+
+	/**
+	 * Assert the order kept the tax on the items it was charged, no shipping tax, and its
+	 * one tax line, as create_paid_order_with_tax_line() made them.
+	 *
+	 * @param WC_Order $order        Order.
+	 * @param float    $cart_tax     Tax on the items.
+	 * @param float    $rate_percent Rate the tax line records.
+	 * @param float    $total        Expected order total.
+	 */
+	private function assert_tax_line_kept( WC_Order $order, $cart_tax, $rate_percent, $total ) {
+		$this->assertEqualsWithDelta( $cart_tax, (float) $order->get_cart_tax(), 0.00001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.00001, 'shipping tax' );
+		$this->assertEqualsWithDelta( $total, (float) $order->get_total(), 0.001, 'order total' );
+
+		$taxes = $order->get_taxes();
+		$this->assertCount( 1, $taxes, 'the tax line is kept' );
+		$line = reset( $taxes );
+		$this->assertEqualsWithDelta( $rate_percent, (float) $line->get_rate_percent(), 0.0001, 'at the rate it was sold at' );
+		$this->assertEqualsWithDelta( $cart_tax, (float) $line->get_tax_total(), 0.00001, 'tax line cart tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) $line->get_shipping_tax_total(), 0.00001, 'tax line shipping tax' );
+	}
+
+	/**
+	 * A paid order with one $10 line, $5 shipping and one tax line with the given tax, as
+	 * an exempt order with a $0.00 line at 0% has. The rate table gives 6% now, so a
+	 * recalculation that does not keep the tax adds it.
+	 *
+	 * @param string $cart_tax     Tax on the line.
+	 * @param string $shipping_tax Tax on shipping.
+	 * @param float  $rate_percent Rate the tax line records.
+	 * @return WC_Order
+	 */
+	private function create_paid_order_with_tax_line( $cart_tax, $shipping_tax, $rate_percent = 6.0 ) {
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+		$item_id = $order->add_product( $this->create_product( '10' ), 1 );
+		$order->get_item( $item_id, false )->set_taxes(
+			array(
+				'total'    => array( $this->rate_id => $cart_tax ),
+				'subtotal' => array( $this->rate_id => $cart_tax ),
+			)
+		);
+
+		$shipping = new WC_Order_Item_Shipping();
+		$shipping->set_method_title( 'Flat rate' );
+		$shipping->set_method_id( 'flat_rate' );
+		$shipping->set_total( '5' );
+		$shipping->set_taxes( array( 'total' => array( $this->rate_id => $shipping_tax ) ) );
+		$order->add_item( $shipping );
+
+		$tax_line = new WC_Order_Item_Tax();
+		$tax_line->set_rate_id( $this->rate_id );
+		$tax_line->set_rate_code( 'US-CO-CO TAX-1' );
+		$tax_line->set_label( 'CO Tax' );
+		$tax_line->set_rate_percent( $rate_percent );
+		$tax_line->set_compound( false );
+		$tax_line->set_tax_total( $cart_tax );
+		$tax_line->set_shipping_tax_total( $shipping_tax );
+		$order->add_item( $tax_line );
+
+		$order->set_shipping_total( '5' );
+		$order->set_cart_tax( $cart_tax );
+		$order->set_shipping_tax( $shipping_tax );
+		$order->set_total( 15 + (float) $cart_tax + (float) $shipping_tax );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+		$this->assertNotNull( $order->get_date_paid(), 'the order has a payment date' );
+
+		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+		update_option( 'woocommerce_store_postcode', '80202' );
+
+		return wc_get_order( $order->get_id() );
+	}
+
+	/**
+	 * A paid order with one $10 line, $5 shipping and two tax lines, one for each of two
+	 * rates, as a state and a county rate give. Each rate puts the given tax on the line
+	 * and none on shipping.
+	 *
+	 * @param string $tax_per_line Tax on the line under each rate.
+	 * @return array{order: WC_Order, rate_ids: int[]}
+	 */
+	private function create_paid_order_with_two_tax_lines( $tax_per_line ) {
+		$county   = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '0.0000',
+				'tax_rate_name'     => 'County',
+				'tax_rate_priority' => 2,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 1,
+				'tax_rate_class'    => '',
+			)
+		);
+		$rate_ids = array( $this->rate_id, $county );
+		$by_rate  = array_fill_keys( $rate_ids, $tax_per_line );
+
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+		$item_id = $order->add_product( $this->create_product( '10' ), 1 );
+		$order->get_item( $item_id, false )->set_taxes(
+			array(
+				'total'    => $by_rate,
+				'subtotal' => $by_rate,
+			)
+		);
+
+		$shipping = new WC_Order_Item_Shipping();
+		$shipping->set_method_title( 'Flat rate' );
+		$shipping->set_method_id( 'flat_rate' );
+		$shipping->set_total( '5' );
+		$shipping->set_taxes( array( 'total' => array_fill_keys( $rate_ids, '0' ) ) );
+		$order->add_item( $shipping );
+
+		foreach ( $rate_ids as $i => $rate_id ) {
+			$tax_line = new WC_Order_Item_Tax();
+			$tax_line->set_rate_id( $rate_id );
+			$tax_line->set_rate_code( 'US-CO-CO TAX-' . ( $i + 1 ) );
+			$tax_line->set_label( 0 === $i ? 'CO Tax' : 'County Tax' );
+			$tax_line->set_rate_percent( 0.03 );
+			$tax_line->set_compound( false );
+			$tax_line->set_tax_total( $tax_per_line );
+			$tax_line->set_shipping_tax_total( '0' );
+			$order->add_item( $tax_line );
+		}
+
+		$cart_tax = 2 * (float) $tax_per_line;
+		$order->set_shipping_total( '5' );
+		$order->set_cart_tax( $cart_tax );
+		$order->set_shipping_tax( '0' );
+		$order->set_total( 15 + $cart_tax );
+		$order->set_status( 'processing' );
+		$order->save();
+		$this->forget_created_in_request();
+		$this->assertNotNull( $order->get_date_paid(), 'the order has a payment date' );
+
+		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+		update_option( 'woocommerce_store_postcode', '80202' );
+
+		return array(
+			'order'    => wc_get_order( $order->get_id() ),
+			'rate_ids' => $rate_ids,
+		);
 	}
 
 	/**
@@ -4646,6 +4817,9 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 
 		// WooCommerce's rate table gives Denver 6%, as a lookup would have left it.
 		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+
+		// A store ZIP code, without which a lookup stops before it asks the tax service.
+		update_option( 'woocommerce_store_postcode', '80202' );
 
 		return wc_get_order( $order->get_id() );
 	}
@@ -4763,35 +4937,182 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox A paid order with no tax gets its tax when Recalculate is pressed, with a note.
+	 * @testdox A paid order with no tax stays at no tax when Recalculate is pressed, with a note on how to charge it.
 	 */
-	public function test_recalculate_adds_tax_to_paid_order_without_tax() {
+	public function test_recalculate_keeps_paid_order_without_tax_at_no_tax() {
 		$order = $this->press_recalculate( $this->create_paid_untaxed_order() );
 
-		// The lookup finds TaxJar unreachable, so WooCommerce's 6% row applies, as on an unpaid order.
-		$this->assertEqualsWithDelta( 0.60, (float) $order->get_cart_tax(), 0.001 );
-		$this->assertEqualsWithDelta( 10.60, (float) $order->get_total(), 0.001 );
-		$notes = preg_grep( '/^This order had no tax, and tax was added after the order was charged: \$0\.60\./', array_map( array( self::class, 'note_text' ), $this->tax_notes( $order ) ) );
-		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'Next step: if the customer must pay this tax, create a new order for it.', reset( $notes ) );
+		// WooCommerce's 6% row would give $0.60: the tax stays at none.
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 10.0, (float) $order->get_total(), 0.001 );
+		$this->assertSame( array(), $order->get_taxes(), 'no tax lines' );
+		$this->assertSame( 0, $this->tax_service_requests, 'the tax service is not asked' );
 
-		// It has tax now, so it is locked as any paid order.
-		$this->start_new_request();
-		$order = $this->rest_update(
-			$order->get_id(),
-			array(
-				'line_items' => array(
-					array(
-						'id'       => current( $order->get_items() )->get_id(),
-						'quantity' => 2,
-						'subtotal' => '20.00',
-						'total'    => '20.00',
+		$notes = array_map( array( self::class, 'note_text' ), $this->tax_notes( $order ) );
+		$this->assertCount( 1, $notes );
+		$this->assertStringStartsWith( "No tax was charged on this order. The tax stays at $0.00.\nChanged: ", $notes[0] );
+		$this->assertStringContainsString( "\nThe tax for the order as it is now was not calculated.\nNo payment or refund was made for this change.\n", $notes[0] );
+		$this->assertStringEndsWith( 'Next step: if tax must be charged, refund this order and create a new order with the same items. The new order gets its own tax. If you sent the customer an invoice for this order, also issue a corrective document that refers to that invoice.', $notes[0] );
+	}
+
+	/**
+	 * @testdox Recalculate after a quantity change on a paid order with no tax keeps no tax and writes the edited-order note.
+	 */
+	public function test_recalculate_with_a_change_keeps_paid_order_without_tax_at_no_tax() {
+		$order   = $this->create_paid_untaxed_order();
+		$item_id = current( $order->get_items() )->get_id();
+
+		$order = $this->press_recalculate(
+			$order,
+			$this->order_screen_form(
+				$order,
+				array(
+					$item_id => array(
+						'qty'   => 2,
+						'total' => '20',
 					),
-				),
+				)
 			)
 		);
-		$this->assertEqualsWithDelta( 0.60, (float) $order->get_cart_tax(), 0.001 );
-		$this->assertTrue( $this->has_kept_tax_note( $order ) );
+
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
+		$this->assertEqualsWithDelta( 20.0, (float) $order->get_total(), 0.001 );
+		$this->assertSame( array(), $order->get_taxes(), 'no tax lines' );
+		$this->assertSame( 0, $this->tax_service_requests, 'the tax service is not asked' );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'quantity changed from 1 to 2.', $notes[0] );
+		$this->assertStringContainsString( 'The tax stays at $0.00.', $notes[0] );
+		$this->assertCount( 1, $this->tax_notes( $order ), 'only that note' );
+	}
+
+	/**
+	 * @testdox Recalculate with no change on a paid order with tax keeps its tax and writes no note.
+	 */
+	public function test_recalculate_without_change_keeps_paid_order_tax_without_note() {
+		$fixture = $this->create_paid_order();
+		$this->start_new_request();
+		$order = wc_get_order( $fixture['order']->get_id() );
+		$notes = $this->tax_notes( $order );
+
+		$order = $this->press_recalculate( $order, $this->order_screen_form( $order ) );
+
+		// 30 + 5 + the $2.10 charged.
+		$this->assert_order_tax( $order, 1.80, 0.30, 37.10 );
+		$this->assertSame( $notes, $this->tax_notes( $order ), 'no new note' );
+	}
+
+	/**
+	 * Tax lines whose tax is $0.00 as the order shows it, so the order was charged no tax.
+	 *
+	 * @return array<string, array{0: string, 1: float}> Tax on the items and the rate the tax line records.
+	 */
+	public function provide_zero_tax_lines() {
+		return array(
+			'all $0.00 at 0%'                        => array( '0', 0.0 ),
+			// Tax rounded at subtotal keeps the unrounded sum on the order: $0.07 at 6%.
+			'under half a cent, rounded at subtotal' => array( '0.0042', 6.0 ),
+		);
+	}
+
+	/**
+	 * @testdox A paid order whose tax lines come to $0.00 stays at no tax when Recalculate is pressed, with the note on how to charge it.
+	 * @dataProvider provide_zero_tax_lines
+	 *
+	 * @param string $cart_tax     Tax on the items.
+	 * @param float  $rate_percent Rate the tax line records.
+	 */
+	public function test_recalculate_keeps_paid_order_with_zero_tax_lines_at_no_tax( $cart_tax, $rate_percent ) {
+		$order = $this->press_recalculate( $this->create_paid_order_with_tax_line( $cart_tax, '0', $rate_percent ) );
+
+		// WooCommerce's 6% row would give $0.60 on the line and $0.30 on shipping.
+		$this->assert_tax_line_kept( $order, (float) $cart_tax, $rate_percent, 15.0 );
+		$this->assertSame( 0, $this->tax_service_requests, 'the tax service is not asked' );
+
+		$notes = array_map( array( self::class, 'note_text' ), $this->tax_notes( $order ) );
+		$this->assertCount( 1, $notes );
+		$this->assertStringStartsWith( "No tax was charged on this order. The tax stays at $0.00.\nChanged: ", $notes[0] );
+	}
+
+	/**
+	 * Tax lines whose tax is not $0.00, so the order was charged tax.
+	 *
+	 * @return array<string, array{0: string, 1: string}> Cart tax and shipping tax of the order.
+	 */
+	public function provide_charged_tax_lines() {
+		return array(
+			'one cent on the items'                   => array( '0.01', '0' ),
+			'half a cent on the items'                => array( '0.005', '0' ),
+			'tax on shipping only'                    => array( '0', '0.3' ),
+			// Each rounds to $0.00 alone; together they are the cent in the order total.
+			'under half a cent on items and shipping' => array( '0.003', '0.003' ),
+		);
+	}
+
+	/**
+	 * @testdox Recalculate with no change on a paid order charged a little tax keeps it and writes no note.
+	 * @dataProvider provide_charged_tax_lines
+	 *
+	 * @param string $cart_tax     Tax on the items.
+	 * @param string $shipping_tax Tax on shipping.
+	 */
+	public function test_recalculate_without_change_keeps_small_charged_tax_without_note( $cart_tax, $shipping_tax ) {
+		$order = $this->press_recalculate( $this->create_paid_order_with_tax_line( $cart_tax, $shipping_tax ) );
+
+		// The order total is in whole cents.
+		$this->assert_order_tax( $order, (float) $cart_tax, (float) $shipping_tax, round( 15.0 + (float) $cart_tax + (float) $shipping_tax, 2 ) );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'no note' );
+	}
+
+	/**
+	 * @testdox Recalculate with no change on a paid order with two tax lines under half a cent each keeps the cent they add up to and writes no note.
+	 */
+	public function test_recalculate_without_change_keeps_tax_lines_under_half_a_cent_each_without_note() {
+		$fixture = $this->create_paid_order_with_two_tax_lines( '0.003' );
+
+		$order = $this->press_recalculate( $fixture['order'] );
+
+		// Each line is $0.003, which rounds to $0.00 alone; together they are $0.006, the
+		// cent in the $15.01 total. WooCommerce's 6% row would give $0.60 on the line.
+		$this->assertEqualsWithDelta( 0.006, (float) $order->get_cart_tax(), 0.00001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.00001, 'shipping tax' );
+		$this->assertEqualsWithDelta( 15.01, (float) $order->get_total(), 0.001, 'order total' );
+		$by_rate = array();
+		foreach ( $order->get_taxes() as $line ) {
+			$by_rate[ (int) $line->get_rate_id() ] = (float) $line->get_tax_total();
+		}
+		$this->assertEqualsWithDelta( array_fill_keys( $fixture['rate_ids'], 0.003 ), $by_rate, 0.00001, 'both tax lines are kept' );
+		$this->assertSame( 0, $this->tax_service_requests, 'the tax service is not asked' );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'no note' );
+	}
+
+	/**
+	 * @testdox Recalculate after a quantity change on a paid order whose tax lines are all $0.00 keeps no tax and writes only the edited-order note.
+	 */
+	public function test_recalculate_with_a_change_keeps_paid_order_with_zero_tax_lines_at_no_tax() {
+		$order   = $this->create_paid_order_with_tax_line( '0', '0', 0.0 );
+		$item_id = current( $order->get_items() )->get_id();
+
+		$order = $this->press_recalculate(
+			$order,
+			$this->order_screen_form(
+				$order,
+				array(
+					$item_id => array(
+						'qty'   => 2,
+						'total' => '20',
+					),
+				)
+			)
+		);
+
+		$this->assert_tax_line_kept( $order, 0.0, 0.0, 25.0 );
+		$this->assertSame( 0, $this->tax_service_requests, 'the tax service is not asked' );
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'quantity changed from 1 to 2.', $notes[0] );
+		$this->assertStringContainsString( 'The tax stays at $0.00.', $notes[0] );
+		$this->assertCount( 1, $this->tax_notes( $order ), 'only that note' );
 	}
 
 	/**
@@ -4812,6 +5133,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 		$order = wc_get_order( $order->get_id() );
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
 		$this->assertEqualsWithDelta( 10.0, (float) $order->get_total(), 0.001 );
+		$this->assertSame( array(), $this->tax_notes( $order ), 'only Recalculate writes the note' );
 	}
 
 	// -------------------------------------------------------------------------
