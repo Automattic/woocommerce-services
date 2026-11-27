@@ -7,6 +7,5 @@ module.exports = {
 		headless: true,
 		devtools: false,
 		slowMo: 0,
-		args: [ ...config.launch.args, ...( process.env.CI ? [ '--no-sandbox' ] : [] ) ],
 	},
 };

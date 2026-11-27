@@ -133,27 +133,25 @@ export function getAccountCredentials( accountName ) {
  * @return {Puppeteer.Page} New instance of the opened page.
  */
 export async function clickAndWaitForNewPage( page, selector, timeout = 25000 ) {
-    // Create a promise that rejects in <ms> milliseconds
-    const timeoutPromise = new Promise( ( resolve, reject ) => {
-        const id = setTimeout( () => {
-            clearTimeout( id );
-            reject( 'Timed out in ' + timeout + 'ms.' );
-        }, timeout );
-    } );
-    const newTabTarget = new Promise( resolve => {
-        const listener = async target => {
+    let timeoutId;
+    let listener;
+    const newTabTarget = new Promise( ( resolve, reject ) => {
+        listener = target => {
             if ( target.type() === 'page' ) {
-                browser.off( 'targetcreated', listener );
                 resolve( target );
             }
         };
-        browser.addListener( 'targetcreated', listener );
+        browser.on( 'targetcreated', listener );
+        timeoutId = setTimeout( () => reject( 'Timed out in ' + timeout + 'ms.' ), timeout );
     } );
 
-    await waitAndClick( page, selector );
-
-    const target = await Promise.race( [ newTabTarget, timeoutPromise ] );
-    return await target.page();
+    try {
+        const [ target ] = await Promise.all( [ newTabTarget, waitAndClick( page, selector ) ] );
+        return await target.page();
+    } finally {
+        clearTimeout( timeoutId );
+        browser.off( 'targetcreated', listener );
+    }
 }
 
 /**
