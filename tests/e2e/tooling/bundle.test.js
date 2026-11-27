@@ -80,10 +80,13 @@ it( 'keeps the test-label UI hidden when shipping is disabled', async () => {
 	expect( await page.$( '.print-test-label__paper-size' ) ).toBeNull();
 } );
 
-it( 'does not emit global root variables in any CSS asset', () => {
+it( 'does not emit custom property declarations in any CSS asset', () => {
 	const cssFiles = fs.readdirSync( dist, { recursive: true } ).filter( name => name.endsWith( '.css' ) );
 	expect( cssFiles.length ).toBeGreaterThan( 0 );
 	for ( const name of cssFiles ) {
-		expect( fs.readFileSync( path.join( dist, name ), 'utf8' ) ).not.toMatch( /:root\s*\{/ );
+		const css = fs.readFileSync( path.join( dist, name ), 'utf8' );
+		expect( css ).not.toMatch( /:root\s*\{/ );
+		// Includes the Calypso `.color-scheme.is-*` blocks, which sit outside `.wcc-root`.
+		expect( css ).not.toMatch( /[{;]\s*--[\w-]+\s*:/ );
 	}
 } );

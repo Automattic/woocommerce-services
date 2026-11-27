@@ -34,12 +34,15 @@ const cssLoaders = [
 					autoprefixer( { overrideBrowserslist: browsers } ),
 					customProperties( { preserve: false } ),
 					{
-						postcssPlugin: 'remove-resolved-root-properties',
-						// Run after var() resolution, retaining any ordinary root styles.
+						postcssPlugin: 'remove-resolved-custom-properties',
+						// postcss-custom-properties 8 dropped every declaration with `preserve: false`;
+						// 15 keeps them. Every var() is resolved by now, so they only leak global names
+						// (`:root`, `.color-scheme.is-*`) onto admin pages. Ordinary styles are kept.
 						OnceExit( root ) {
-							root.walkRules( ':root', rule => {
-								rule.walkDecls( /^--/, declaration => declaration.remove() );
-								if ( ! rule.nodes.length ) {
+							root.walkDecls( /^--/, declaration => {
+								const rule = declaration.parent;
+								declaration.remove();
+								if ( rule.type === 'rule' && ! rule.nodes.length ) {
 									rule.remove();
 								}
 							} );
