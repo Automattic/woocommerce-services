@@ -3916,6 +3916,26 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox With tax rounded at subtotal, the note's tax as it is now rounds a sum with float noise as WooCommerce rounds the order tax.
+	 */
+	public function test_paid_order_note_rounds_float_noise_like_woocommerce_at_subtotal() {
+		// 6.25% + 2% on $9.00: 0.5625 + 0.18 = 0.7425, so $0.74 was charged.
+		$fixture = $this->create_paid_order_at_rates( array( 6.25, 2 ), array( '9.00' ), null, true );
+
+		$order = $this->set_line_quantity( $fixture['order'], $fixture['items'][0], 2, '18.00' );
+
+		// $18.00: 1.125 + 0.36 = 1.485, stored as 1.48499..., which WooCommerce's
+		// NumberUtil::round() gives as $1.49. On PHP 8.4 and later, round() gives $1.48.
+		$this->assertSame(
+			array(
+				'Tax charged: $0.74 (8.25% on $9.00). The tax stays at $0.74.',
+				'Tax for the order as it is now: $1.49 (8.25% on $18.00). Difference: $0.75.',
+			),
+			$this->locked_order_tax_lines( $order )
+		);
+	}
+
+	/**
 	 * @testdox On a paid order, saving again with nothing changed writes no note.
 	 */
 	public function test_paid_order_resave_writes_no_note() {

@@ -4,6 +4,7 @@ use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
 use Automattic\WCServices\Tax\Address;
 use Automattic\WCServices\Tax\StoreAddressNotice;
 use Automattic\WCServices\Tax\StoreAddressVerifier;
+use Automattic\WooCommerce\Utilities\NumberUtil;
 
 class WC_Connect_TaxJar_Integration {
 
@@ -6422,8 +6423,10 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return array(
-			// Rounded half up, as calculate_totals() rounds the order total.
-			'tax'     => round( $tax, wc_get_price_decimals() ),
+			// Rounded as WC_Abstract_Order::set_total_tax() rounds it. NumberUtil::round() first
+			// evens out float noise: 1.125 + 0.36 is 1.48499..., which round() gives as 1.48 on
+			// PHP 8.4 and later.
+			'tax'     => NumberUtil::round( $tax, wc_get_price_decimals() ),
 			'rate'    => $this->summarize_order_tax_rate( $entries, $snapshot['tax_lines'] ),
 			'untaxed' => $plan['untaxed'],
 		);
