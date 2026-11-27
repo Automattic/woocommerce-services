@@ -36,8 +36,9 @@ does not copy `tests/`).
 ## Local compatibility changes
 
 `src/page-utils.js` and `src/jest-puppeteer.config.js` retain the upstream source
-with two Puppeteer 25 changes: replace removed `page.waitFor(milliseconds)` with
-a timer, and rename `ignoreHTTPSErrors` to `acceptInsecureCerts`. Rebuild these
+with Puppeteer 25 changes: replace removed `page.waitFor(milliseconds)` with
+a timer, select field contents through Puppeteer keyboard events (avoiding the
+WordPress utility barrel's eager REST requests), and rename `ignoreHTTPSErrors` to `acceptInsecureCerts`. Rebuild these
 files from the repository root with:
 
     node tests/e2e/vendor/puppeteer-utils/build.js

@@ -14,16 +14,11 @@ exports.waitAndClick = waitAndClick;
 exports.waitAndType = waitAndType;
 exports.waitForSelector = waitForSelector;
 var _config = _interopRequireDefault(require("config"));
-var _e2eTestUtils = require("@wordpress/e2e-test-utils");
 var _fs = require("fs");
 var _slack = require("./reporters/slack");
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
 /**
  * External dependencies
- */
-
-/**
- * WordPress dependencies
  */
 
 /**
@@ -92,7 +87,9 @@ async function waitAndType(page, selector, value, options = {
 }) {
   const el = await waitForSelector(page, selector, options);
   await page.focus(selector);
-  await (0, _e2eTestUtils.pressKeyWithModifier)('primary', 'a');
+  await page.keyboard.press('a', {
+    commands: ['selectAll']
+  });
   // await el.click( { clickCount: 3 } );
   await new Promise(resolve => setTimeout(resolve, 300));
   await el.type(value, options);

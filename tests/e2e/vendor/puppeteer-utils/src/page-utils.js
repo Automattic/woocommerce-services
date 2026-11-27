@@ -2,10 +2,6 @@
  * External dependencies
  */
 import config from 'config';
-/**
- * WordPress dependencies
- */
-import { pressKeyWithModifier } from '@wordpress/e2e-test-utils';
 import { readFileSync } from 'fs';
 /**
  * Internal dependencies
@@ -68,7 +64,7 @@ export async function waitAndClick( page, selector, options = { visible: true } 
 export async function waitAndType( page, selector, value, options = { visible: true } ) {
     const el = await waitForSelector( page, selector, options );
     await page.focus( selector );
-    await pressKeyWithModifier( 'primary', 'a' );
+    await page.keyboard.press( 'a', { commands: [ 'selectAll' ] } );
     // await el.click( { clickCount: 3 } );
     await new Promise( resolve => setTimeout( resolve, 300 ) );
     await el.type( value, options );

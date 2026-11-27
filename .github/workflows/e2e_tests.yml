@@ -44,6 +44,8 @@ jobs:
             composer install
             npm ci
             npm run dist
+      - name: Install browser and system dependencies
+        run: sudo env "PATH=$PATH" "PUPPETEER_CACHE_DIR=$HOME/.cache/puppeteer" ./node_modules/.bin/puppeteer browsers install chrome --install-deps
       - name: Install docker-compose
         run: |
           sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
