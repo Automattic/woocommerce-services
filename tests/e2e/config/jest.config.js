@@ -24,6 +24,9 @@ module.exports = useE2EJestConfig( {
 
 	preset: 'jest-puppeteer',
 
+	// The legacy environment's precompiled setup uses the global runtime.
+	setupFiles: [ '@babel/runtime/regenerator', '<rootDir>/config/env.setup.js' ],
+
 	// Where to look for test files
 	roots: [ path.resolve( __dirname, '../specs' ) ],
 
