@@ -100,7 +100,6 @@ class WP_Test_WC_Connect_TaxJar_Same_Request_Totals extends WC_Unit_Test_Case {
 		add_action( 'woocommerce_before_calculate_totals', $this->forget_answers_before_main_cart_total, PHP_INT_MIN );
 		add_action( 'woocommerce_after_calculate_totals', array( $this->integration, 'maybe_calculate_totals' ), 20 );
 		add_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this->integration, 'override_cart_item_tax_rates' ), 10, 3 );
-		add_filter( 'woocommerce_calc_tax', array( $this->integration, 'override_woocommerce_tax_rates' ), 10, 3 );
 		add_filter( 'woocommerce_customer_taxable_address', array( $this->integration, 'append_base_address_to_customer_taxable_address' ), 10, 1 );
 		add_filter( 'woocommerce_matched_rates', array( $this->integration, 'allow_street_address_for_matched_rates' ), 10, 2 );
 		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this->integration, 'override_order_item_taxes' ), 10, 2 );
@@ -113,7 +112,6 @@ class WP_Test_WC_Connect_TaxJar_Same_Request_Totals extends WC_Unit_Test_Case {
 		remove_action( 'woocommerce_before_calculate_totals', $this->forget_answers_before_main_cart_total, PHP_INT_MIN );
 		remove_action( 'woocommerce_after_calculate_totals', array( $this->integration, 'maybe_calculate_totals' ), 20 );
 		remove_filter( 'woocommerce_cart_totals_get_item_tax_rates', array( $this->integration, 'override_cart_item_tax_rates' ), 10 );
-		remove_filter( 'woocommerce_calc_tax', array( $this->integration, 'override_woocommerce_tax_rates' ), 10 );
 		remove_filter( 'woocommerce_customer_taxable_address', array( $this->integration, 'append_base_address_to_customer_taxable_address' ), 10 );
 		remove_filter( 'woocommerce_matched_rates', array( $this->integration, 'allow_street_address_for_matched_rates' ), 10 );
 		remove_action( 'woocommerce_order_item_after_calculate_taxes', array( $this->integration, 'override_order_item_taxes' ), 10 );

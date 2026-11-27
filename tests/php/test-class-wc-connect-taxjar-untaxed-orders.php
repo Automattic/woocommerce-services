@@ -1197,6 +1197,20 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 		$order->save();
 		$this->taxjar = 503;
 
+		// The order was paid in an earlier request. One created in this request, as an
+		// import that creates an order already paid, is not locked yet.
+		foreach ( array( 'orders_created_in_request', 'order_items_created_in_request' ) as $name ) {
+			$property = new ReflectionProperty( $this->integration, $name );
+			$property->setAccessible( true );
+			$property->setValue(
+				$this->integration,
+				array(
+					'objects' => array(),
+					'ids'     => array(),
+				)
+			);
+		}
+
 		$order = $this->press_recalculate( $order );
 
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_total_tax(), 0.001 );
