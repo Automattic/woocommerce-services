@@ -56,7 +56,7 @@ const withMockedShippingLabel = async( shippingLabel, callback ) => {
 
 	await callback();
 
-	page.removeListener( 'request', getShippingLabelRequestListener );
+	page.off( 'request', getShippingLabelRequestListener );
 	await page.setRequestInterception(false);
 };
 

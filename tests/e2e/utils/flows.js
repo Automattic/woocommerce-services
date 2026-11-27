@@ -22,10 +22,10 @@ const CustomerFlow = {
 		const addToCartXPath = `//li[contains(@class, "type-product") and a/h2[contains(text(), "${ productTitle }")]]` +
 			'//a[contains(@class, "add_to_cart_button") and contains(@class, "ajax_add_to_cart")';
 
-		const [ addToCartButton ] = await page.$x( addToCartXPath + ']' );
+		const addToCartButton = await page.waitForSelector( 'xpath/' + addToCartXPath + ']' );
 		await addToCartButton.click();
 
-		await page.waitFor( addToCartXPath + ' and contains(@class, "added")]' );
+		await page.waitForSelector( 'xpath/' + addToCartXPath + ' and contains(@class, "added")]' );
 	},
 
 	goToCheckout: async () => {

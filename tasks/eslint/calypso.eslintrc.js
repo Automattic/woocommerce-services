@@ -3,9 +3,10 @@
 /**
  * Vendored from wp-calypso/.eslintrc.js at commit 79b83cb (2019-04-17).
  *
- * One line differs from upstream: `reactVersion` is read from this repository's
+ * `reactVersion` is read from this repository's
  * package.json rather than Calypso's, so eslint-plugin-react checks our React
- * (^16.14.0) instead of the submodule's (16.8.6).
+ * (^16.14.0) instead of the submodule's (16.8.6). The parser is
+ * @babel/eslint-parser for compatibility with ESLint 7.
  */
 
 const reactVersion = require( '../../package.json' ).dependencies.react;
@@ -44,7 +45,7 @@ module.exports = {
 			},
 		},
 	],
-	parser: 'babel-eslint',
+	parser: '@babel/eslint-parser',
 	env: {
 		browser: true,
 		'jest/globals': true,

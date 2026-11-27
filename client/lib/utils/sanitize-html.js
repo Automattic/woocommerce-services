@@ -1,11 +1,11 @@
 /**
  * External dependencies
  */
-import { sanitize } from 'dompurify';
+import DOMPurify from 'dompurify';
 
 export default ( html ) => {
 	return {
-		__html: sanitize( html,
+		__html: DOMPurify.sanitize( html,
 			{
 				ALLOWED_TAGS: [
 					'a',

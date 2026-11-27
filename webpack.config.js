@@ -8,8 +8,7 @@ const TerserPlugin = require( 'terser-webpack-plugin' );
 const os = require( 'os' );
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const MomentTimezoneDataPlugin = require( 'moment-timezone-data-webpack-plugin' );
-const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
-const safePostCssParser = require('postcss-safe-parser');
+const CssMinimizerPlugin = require( 'css-minimizer-webpack-plugin' );
 
 const isProd = 'production' === process.env.NODE_ENV;
 const isI18n = 'i18n' === process.env.NODE_ENV;
@@ -19,14 +18,38 @@ const browsers = 'last 2 versions, not ie_mob 10, not ie 10';
 
 const cssLoaders = [
 	isDev ? 'style-loader' : MiniCssExtractPlugin.loader,
-	'css-loader',
+	{
+		loader: 'css-loader',
+		options: {
+			esModule: false,
+			// Preserve the absolute URLs that css-loader 3 left for the browser.
+			url: { filter: ( url ) => ! url.startsWith( '/' ) },
+		},
+	},
 	{
 		loader: 'postcss-loader',
 		options: {
-			plugins: () => [
-				autoprefixer( { browsers } ),
-				customProperties( { preserve: false } ),
-			],
+			postcssOptions: {
+				plugins: [
+					autoprefixer( { overrideBrowserslist: browsers } ),
+					customProperties( { preserve: false } ),
+					{
+						postcssPlugin: 'remove-resolved-custom-properties',
+						// postcss-custom-properties 8 dropped every declaration with `preserve: false`;
+						// 15 keeps them. Every var() is resolved by now, so they only leak global names
+						// (`:root`, `.color-scheme.is-*`) onto admin pages. Ordinary styles are kept.
+						OnceExit( root ) {
+							root.walkDecls( /^--/, declaration => {
+								const rule = declaration.parent;
+								declaration.remove();
+								if ( rule.type === 'rule' && ! rule.nodes.length ) {
+									rule.remove();
+								}
+							} );
+						},
+					},
+				],
+			},
 		},
 	},
 	{
@@ -63,6 +86,8 @@ const cssLoaders = [
 module.exports = {
 	bail: ! isDev,
 	context: __dirname,
+	target: [ 'web', 'es5' ],
+	experiments: { css: false },
 	mode: isDev ? 'development' : 'production',
 	devtool: isDev ? 'inline-source-map' : false,
 	cache: true,
@@ -84,7 +109,6 @@ module.exports = {
 			{},
 			{
 			path: path.join( __dirname, 'dist' ),
-			// webpack 4 defaults to md4, which OpenSSL 3 no longer provides
 			hashFunction: 'sha256',
 			filename: '[name]-' + process.env.npm_package_version + '.js',
 			chunkFilename: 'chunks/[chunkhash].min.js',
@@ -98,9 +122,8 @@ module.exports = {
 		minimize: ! isDev,
 		minimizer: [
 			new TerserPlugin( {
-				cache: true,
 				parallel: true,
-				// terser-webpack-plugin 4 extracts /*! */ comments into .LICENSE.txt sidecars by
+				// Terser extracts /*! */ comments into .LICENSE.txt sidecars by
 				// default; the previous config stripped comments outright, so keep dist/ as it was.
 				extractComments: false,
 				terserOptions: {
@@ -141,27 +164,23 @@ module.exports = {
 					}
 				},
 			} ),
-			new OptimizeCSSAssetsPlugin({
-	          cssProcessorOptions: {
-	            parser: safePostCssParser,
-	            map: false,
-	          },
-	          cssProcessorPluginOptions: {
-	            preset: ['default', { minifyFontValues: { removeQuotes: false } }],
-	          },
-	        }),
+			new CssMinimizerPlugin( {
+				minimizerOptions: {
+					processorOptions: { parser: 'postcss-safe-parser' },
+					preset: [ 'default', { minifyFontValues: { removeQuotes: false } } ],
+				},
+			} ),
 		],
 	},
 	performance: { hints: false },
 	devServer: {
-		contentBase: false,
-		overlay: {
-			errors: true,
-			warnings: false,
-		},
-		disableHostCheck: true,
-		headers: {
-			'Access-Control-Allow-Origin': '*'
+		static: { directory: path.join( __dirname, 'dist' ) },
+		client: { overlay: { errors: true, warnings: false } },
+		allowedHosts: [ 'localhost', '127.0.0.1' ],
+		headers: ( request ) => {
+			const origin = request.headers.origin || '';
+			return /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test( origin ) ?
+				{ 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : { Vary: 'Origin' };
 		},
 		hot: true,
 		liveReload: false,
@@ -176,6 +195,7 @@ module.exports = {
 	module: {
 		rules: [
 			{
+				test: /\.jsx?$/,
 				parser: { amd: false },
 			},
 			{
@@ -216,10 +236,6 @@ module.exports = {
 				] ),
 			},
 			{
-				test: /\.html$/,
-				use: 'html-loader',
-			},
-			{
 				test: /\.jsx?$/,
 				enforce: 'post',
 				use: [
@@ -257,6 +273,7 @@ module.exports = {
 		],
 	},
 	resolve: {
+		fallback: { fs: false, util: require.resolve( 'util/' ), url: require.resolve( 'url/' ) },
 		extensions: [ '.json', '.js', '.jsx' ],
 		modules: [
 			path.resolve( __dirname, 'client' ),
@@ -272,12 +289,10 @@ module.exports = {
 			'wcs-client': path.resolve( __dirname, 'client' ),
 		},
 	},
-	node: {
-		fs: 'empty',
-	},
 	plugins: [
 		new webpack.ProvidePlugin( {
-			'fetch': 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
+			'fetch': [ path.resolve( __dirname, 'client/lib/fetch.js' ), 'default' ],
+			'process': 'process/browser',
 		} ),
 		! isDev && new MiniCssExtractPlugin( {
 			filename: '[name]-' + process.env.npm_package_version + '.css',
@@ -290,8 +305,8 @@ module.exports = {
 		} ),
 		new webpack.LoaderOptionsPlugin( { minimize: ! isDev } ),
 		new webpack.NormalModuleReplacementPlugin( /^path$/, 'path-browserify' ),
-		new webpack.IgnorePlugin( /^props$/ ),
-		new webpack.IgnorePlugin( /^\.\/locale$/, /moment$/ ),
+		new webpack.IgnorePlugin( { resourceRegExp: /^props$/ } ),
+		new webpack.IgnorePlugin( { resourceRegExp: /^\.\/locale$/, contextRegExp: /moment$/ } ),
 		new MomentTimezoneDataPlugin( {
 			// Without an endYear the plugin bundles every future transition moment-timezone
 			// ships, so a data refresh silently grows the bundle - going from 0.5.33 to

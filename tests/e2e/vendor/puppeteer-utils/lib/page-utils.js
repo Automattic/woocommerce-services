@@ -14,16 +14,11 @@ exports.waitAndClick = waitAndClick;
 exports.waitAndType = waitAndType;
 exports.waitForSelector = waitForSelector;
 var _config = _interopRequireDefault(require("config"));
-var _e2eTestUtils = require("@wordpress/e2e-test-utils");
 var _fs = require("fs");
 var _slack = require("./reporters/slack");
 function _interopRequireDefault(e) { return e && e.__esModule ? e : { default: e }; }
 /**
  * External dependencies
- */
-
-/**
- * WordPress dependencies
  */
 
 /**
@@ -92,9 +87,11 @@ async function waitAndType(page, selector, value, options = {
 }) {
   const el = await waitForSelector(page, selector, options);
   await page.focus(selector);
-  await (0, _e2eTestUtils.pressKeyWithModifier)('primary', 'a');
+  await page.keyboard.press('a', {
+    commands: ['selectAll']
+  });
   // await el.click( { clickCount: 3 } );
-  await page.waitFor(300);
+  await new Promise(resolve => setTimeout(resolve, 300));
   await el.type(value, options);
 }
 
@@ -166,25 +163,24 @@ function getAccountCredentials(accountName) {
  * @return {Puppeteer.Page} New instance of the opened page.
  */
 async function clickAndWaitForNewPage(page, selector, timeout = 25000) {
-  // Create a promise that rejects in <ms> milliseconds
-  const timeoutPromise = new Promise((resolve, reject) => {
-    const id = setTimeout(() => {
-      clearTimeout(id);
-      reject('Timed out in ' + timeout + 'ms.');
-    }, timeout);
-  });
-  const newTabTarget = new Promise(resolve => {
-    const listener = async target => {
+  let timeoutId;
+  let listener;
+  const newTabTarget = new Promise((resolve, reject) => {
+    listener = target => {
       if (target.type() === 'page') {
-        browser.removeListener('targetcreated', listener);
         resolve(target);
       }
     };
-    browser.addListener('targetcreated', listener);
+    browser.on('targetcreated', listener);
+    timeoutId = setTimeout(() => reject('Timed out in ' + timeout + 'ms.'), timeout);
   });
-  await waitAndClick(page, selector);
-  const target = await Promise.race([newTabTarget, timeoutPromise]);
-  return await target.page();
+  try {
+    const [target] = await Promise.all([newTabTarget, waitAndClick(page, selector)]);
+    return await target.page();
+  } finally {
+    clearTimeout(timeoutId);
+    browser.off('targetcreated', listener);
+  }
 }
 
 /**
