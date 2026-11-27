@@ -265,7 +265,6 @@ class WP_Test_WC_Connect_TaxJar_Shipping_Tax_Lines extends WC_Unit_Test_Case {
 			array( 'woocommerce_before_save_order_items', 'calculate_backend_totals', 20, 1 ),
 			array( 'woocommerce_order_before_calculate_taxes', 'preserve_order_taxes_on_recalculation', 10, 2 ),
 			array( 'woocommerce_customer_taxable_address', 'append_base_address_to_customer_taxable_address', 10, 1 ),
-			array( 'woocommerce_calc_tax', 'override_woocommerce_tax_rates', 10, 3 ),
 			array( 'woocommerce_matched_rates', 'allow_street_address_for_matched_rates', 10, 2 ),
 			array( 'woocommerce_cart_totals_get_item_tax_rates', 'override_cart_item_tax_rates', 10, 3 ),
 			array( 'woocommerce_order_item_after_calculate_taxes', 'override_order_item_taxes', 10, 2 ),
