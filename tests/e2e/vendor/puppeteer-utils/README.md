@@ -33,9 +33,23 @@ and run this exact commit as a git dependency of `@woocommerce/e2e-environment`.
 only by the end-to-end tests and is not part of the released plugin (`tasks/release.js`
 does not copy `tests/`).
 
-## Rebuilding
+## Local compatibility changes
+
+`src/page-utils.js` and `src/jest-puppeteer.config.js` retain the upstream source
+with two Puppeteer 25 changes: replace removed `page.waitFor(milliseconds)` with
+a timer, and rename `ignoreHTTPSErrors` to `acceptInsecureCerts`. Rebuild these
+files from the repository root with:
+
+    node tests/e2e/vendor/puppeteer-utils/build.js
+
+The browser-context setting is supplied at the top level by the project config,
+as required by jest-puppeteer 11. `npm run test:e2e-tooling` verifies the typing
+helper and the shipping flow's XPath selectors against a local HTML fixture.
+
+## Rebuilding the upstream baseline
 
     curl -sSL https://codeload.github.com/Automattic/puppeteer-utils/tar.gz/0f3ec50fc22d7bd2a4bd69fc172e8a66d958ef2d | tar xz
     npx babel --no-babelrc --presets=@babel/preset-env puppeteer-utils-*/src -d tests/e2e/vendor/puppeteer-utils/lib
 
-Do not edit `lib/` by hand.
+After rebuilding the upstream baseline, run the local build command above to
+restore the compatibility changes. Do not edit `lib/` by hand.

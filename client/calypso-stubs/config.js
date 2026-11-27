@@ -1,5 +1,4 @@
 /* Required by some wp-calypso components. */
-/*global process */
 
 const data = {
 	env: ( process && process.env.NODE_ENV ) || 'development',

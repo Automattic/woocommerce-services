@@ -18,3 +18,8 @@ jobs:
       - run: npm ci
       - run: npm run eslint
       - run: npm run test
+      - name: Build and smoke-test production bundles
+        run: |
+          npm run dist
+          npx puppeteer browsers install chrome --install-deps
+          npm run test:e2e-tooling

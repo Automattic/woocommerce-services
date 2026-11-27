@@ -24,7 +24,7 @@ module.exports = {
 		'node_modules[\\/\\\\](?!flag-icon-css|redux-form|simple-html-tokenizer|draft-js)',
 	],
 	testMatch: [ '<rootDir>/client/**/test/*.js?(x)', '!**/.eslintrc.*' ],
-	testURL: 'https://example.com',
+	testEnvironmentOptions: { url: 'https://example.com' },
 	setupFiles: [
 		'regenerator-runtime/runtime', // some NPM-published packages depend on the global
 		'whatwg-fetch', // webpack supplies `fetch` via ProvidePlugin; jsdom does not

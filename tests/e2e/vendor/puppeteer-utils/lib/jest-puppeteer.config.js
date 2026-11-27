@@ -27,7 +27,7 @@ module.exports = {
     slowMo: parseInt(PUPPETEER_SLOWMO, 10) || 0,
     executablePath,
     dumpio,
-    ignoreHTTPSErrors: true,
+    acceptInsecureCerts: true,
     args: ['--window-size=1920,1080', '--user-agent=puppeteer-debug'],
     // Required for the logged out and logged in tests so they don't share app state/token.
     browserContext: 'incognito'

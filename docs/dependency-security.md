@@ -6,61 +6,71 @@ Tracked in [WOOTAX-462](https://linear.app/a8c/issue/WOOTAX-462), under
 CI uses `npm ci` and the root `npm-shrinkwrap.json`. The separate Playwright
 package uses `tests/e2e-playwright/package-lock.json`.
 
-| Scope | Before high / critical | After high / critical |
+| Scope | Before | After |
 | --- | --- | --- |
-| Root, all dependencies | 50 / 7 | 21 / 0 |
-| Root, `--omit=dev` | 37 / 2 | 15 / 0 |
-| Playwright package | 0 / 0 | 0 / 0 |
+| Root, all dependencies | 8 low, 90 moderate, 50 high, 7 critical | 0 |
+| Root, `--omit=dev` | 8 low, 21 moderate, 37 high, 2 critical | 0 |
+| Playwright package | 4 moderate | 0 |
 
-Counts are vulnerable packages, including inherited findings, not distinct
-advisories or confirmed exploitable application paths. Several build tools are
-listed under `dependencies`, so `--omit=dev` is not a shipped-code inventory.
-Moderate and low findings remain outside this remediation's scope.
+The first revision reduced the root count to 117 (6 low, 90 moderate, 21 high).
+This revision removes the remaining findings. Counts include inherited package
+findings, not just distinct advisories. Build tools remain in `dependencies`, so
+`--omit=dev` is not a shipped-code inventory. No findings are suppressed.
 
-## Why the overrides exist
+## Build and test migrations
 
-Legacy consumers pin vulnerable versions. Keep these overrides until those
-consumers accept patched versions themselves; do not remove them solely because
-the direct dependency has no advisory.
+- webpack 5, webpack-cli 7 and webpack-dev-server 6 replace the old webpack 4
+  matching, watching and development-server stack. The server binds to loopback,
+  validates Host headers, and permits the local WordPress origin for CORS.
+- PostCSS 8, Autoprefixer 10 and css-minimizer-webpack-plugin replace the old CSS
+  pipeline and SVGO 1. Preserve CSS scoping, absolute CSS URLs, quoted font names,
+  the ES5 output target, existing asset names and runtime plugin-relative URLs.
+- Explicit `util`, `url`, `path` and `process` browser support preserves the
+  webpack 4 polyfills used by existing client code. DOMPurify uses its default
+  ESM export. Unused D3 dependencies are removed.
+- Jest 30 and Puppeteer 25 remove the old matching stack and ZIP extractor.
+  Update removed Jest mock APIs, asset transforms and Puppeteer XPath/wait APIs.
+  The E2E scripts enable VM modules for Puppeteer's ESM dependencies.
+- ESLint 7 and @babel/eslint-parser keep the existing lint rules while supporting
+  webpack 5 and correctly identifying used loop variables.
 
-| Override | Consumer and compatibility check |
+Node and React versions, public PHP APIs, hooks, script handles, shipping gates
+and persisted site state do not change. Multisite merchant flows were not tested.
+
+## Why the overrides remain
+
+| Override | Legacy consumer / reason |
 | --- | --- |
-| form-data 2.5.6 | request pins 2.3.x; retain the 2.x multipart API |
-| underscore 1.13.8 | nomnom, used by po2json; translation parsing smoke check |
-| path-to-regexp 1.9 | page pins 1.2.x; retain the 1.x route API |
-| debug 2.6.9 | i18n-calypso pins 2.2.0; patch within the same major |
-| node-fetch 2.7 | isomorphic-fetch and WordPress test utilities; CommonJS fetch and response smoke check |
-| node-forge 1.4.4 | selfsigned; certificate generation smoke check |
-| flatted 3.4.4 | flat-cache; save and reload circular data |
-| tar 7.5.24 | cacache dependency; archive creation/extraction roundtrip |
-| serialize-javascript 7.1.4 | webpack's and the direct Terser plugin's worker serialization; production build and function serialization check |
-| axios 0.34 | Slack and legacy WooCommerce API clients; mocked Slack HTTP request |
-| tar-fs 2.1.4 | Puppeteer pins 2.1.1; patch within the same major |
-| ws 8.21 | Puppeteer pins 8.5; update within the same major |
-| tmp 0.2.6 | external-editor; temporary file creation and cleanup check |
+| local puppeteer-utils | Keep the prebuilt package; patched sources and build script reproduce Puppeteer compatibility changes. |
+| react-addons-create-fragment | Existing compatibility pin for old React consumers. |
+| underscore 1.13.8 | nomnom pins vulnerable 1.6.x. |
+| path-to-regexp 1.9 | page pins 1.2.x; retain its 1.x route API. |
+| node-fetch 2.7 | isomorphic-fetch pins 1.x; retain CommonJS fetch and response APIs. |
+| debug 2.6.9 | i18n-calypso pins 2.2.0. |
+| axios 0.34 | Slack and the legacy WooCommerce API client pin older 0.x versions. |
+| modern Jest / WordPress test utilities | WooCommerce's legacy E2E environment must use the same Jest and Puppeteer stack as the project. |
+| globby 11 | i18n-calypso-cli's globby 9 brings vulnerable micromatch through fast-glob 2; retain CommonJS and async/sync glob APIs. |
+| Cheerio 1.0.0-rc.12 | Enzyme requires the old CommonJS/deep-import API. Also declare Cheerio directly for chai-enzyme's undeclared import. |
+| @cypress/request | Maintained request-compatible fork replaces the vulnerable, unmaintained request used by the E2E environment. |
+| moment-timezone 0.6 | i18n-calypso pins a vulnerable old timezone-data version; retain its public API and the build's 2000–2040 data window. |
+| glob 14 / minimatch 11 | Jest, coverage tools and the CTRF reporter constrain older vulnerable majors; preserve their sync/async matching APIs. |
+| uuid 11 | WordPress components uses only the supported named `v4()` API for notice IDs. |
 
-The existing Node 24 runtime supports the updated transitive packages. These
-changes preserve the current webpack, Jest, Puppeteer and React majors. The
-production build, client suite and ESLint validate their existing consumers.
-This does not replace manual merchant-flow or legacy browser-suite testing.
+Remove an override when its consumer accepts a patched version itself. Overrides
+for removed webpack 4/Puppeteer 13 dependencies have been removed.
 
-## Remaining high findings
+## Validation
 
-These are unresolved, not dismissed or suppressed. All 21 package findings are
-listed below. Clearing them requires a coordinated migration or a maintained
-replacement, rather than forcing incompatible transitive APIs.
+- Clean `npm ci`, production build, ESLint and 244 client tests.
+- Four Chromium tests: shipping XPath/cart update, field replacement, production
+  bundle startup with lazy JS/CSS at a relocated path, and the shipping-disabled
+  gate. These run in the JS CI job against local HTML fixtures, without WordPress
+  or carrier calls. Run `npm run dist`, `npx puppeteer browsers install chrome`,
+  then `npm run test:e2e-tooling` locally.
+- Development server returns the bundle for a local request and HTTP 403 for an
+  unrecognized Host header.
+- Playwright package typecheck and audit. The fast-uri update overlaps Dependabot
+  PR #3070; the webpack-dev-server migration supersedes PR #2981's proposed bump.
 
-| Packages | Dependency path / reason remaining |
-| --- | --- |
-| autoprefixer, browserslist, postcss | webpack CSS pipeline uses old PostCSS and Autoprefixer APIs. Migrate loaders, plugins and configuration together to patched PostCSS 8 and Autoprefixer 10. Old PostCSS majors have no patch for all current advisories. |
-| postcss-svgo, svgo, css-select, nth-check | optimize-css-assets-webpack-plugin → cssnano → postcss-svgo uses SVGO 1. A patched SVGO major changes its plugin API and must be migrated with the CSS optimizer. |
-| braces, micromatch, chokidar, watchpack, watchpack-chokidar2, webpack | webpack 4's matching and watching stack pins old APIs. Migrate webpack/watchpack rather than globally replacing braces or micromatch across consumers. |
-| webpack-dev-server, webpack-dev-middleware, http-proxy-middleware, ip | Development server 3 and its middleware stack need a coordinated major upgrade with webpack configuration and the start script. `ip` has no patched version for its advisory; remove it through a maintained server stack. |
-| html-loader, html-minifier | html-loader 0.5 uses unmaintained html-minifier. Upgrade the loader and verify module exports/minification; html-minifier has no patched release. |
-| puppeteer, extract-zip | Puppeteer 13's browser installer uses extract-zip, which has no patched release in the audit. Migrate browser downloading via a maintained Puppeteer version and verify the grandfathered shipping-label suite with its new browser. |
-
-The remaining paths are build, development-server or test-browser tooling, not
-imports in the merchant-facing JavaScript. They still matter for developer and CI
-security. An existing Dependabot PR also proposes upgrading webpack-dev-server;
-coordinate that migration rather than treating this partial remediation as its
-replacement.
+These automated checks do not represent a complete merchant checkout or label
+purchase test. Manual WordPress verification remains outstanding.

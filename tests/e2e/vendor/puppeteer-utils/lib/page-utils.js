@@ -94,7 +94,7 @@ async function waitAndType(page, selector, value, options = {
   await page.focus(selector);
   await (0, _e2eTestUtils.pressKeyWithModifier)('primary', 'a');
   // await el.click( { clickCount: 3 } );
-  await page.waitFor(300);
+  await new Promise(resolve => setTimeout(resolve, 300));
   await el.type(value, options);
 }
 
