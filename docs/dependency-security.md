@@ -66,7 +66,12 @@ for removed webpack 4/Puppeteer 13 dependencies have been removed.
   bundle startup with lazy JS/CSS at a relocated path, and the shipping-disabled
   gate. These run in the JS CI job against local HTML fixtures, without WordPress
   or carrier calls. Run `npm run dist`, `npx puppeteer browsers install chrome`,
-  then `npm run test:e2e-tooling` locally.
+  then `npm run test:e2e-tooling` locally. A fifth test checks that the legacy
+  suite configures its WordPress URL and credentials before importing test utilities.
+  The fixture tests also pass with an unreachable WordPress URL.
+- The legacy suite explicitly loads the Babel runtime required by its precompiled
+  environment. CI installs Chrome system dependencies with root privileges while
+  retaining the runner user's browser cache.
 - Development server returns the bundle for a local request and HTTP 403 for an
   unrecognized Host header.
 - Playwright package typecheck and audit. The fast-uri update overlaps Dependabot

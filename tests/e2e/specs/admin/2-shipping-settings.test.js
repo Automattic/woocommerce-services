@@ -72,7 +72,7 @@ describe( 'Shipping label payment method', () => {
 
     afterEach(() => {
         response = '';
-        page.removeListener('request', accountSettingsRequestListener);
+        page.off('request', accountSettingsRequestListener);
     });
 
     /**
