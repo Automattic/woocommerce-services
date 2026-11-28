@@ -162,7 +162,7 @@ final class UntaxedOrdersNotice {
 		$dismiss_url = wp_nonce_url( add_query_arg( 'action', self::DISMISS_ACTION, admin_url( 'admin-post.php' ) ), self::DISMISS_ACTION );
 		?>
 		<div class="notice notice-warning wc-connect-untaxed-orders-notice" style="position: relative; padding-right: 48px;">
-			<a href="<?php echo esc_url( $dismiss_url ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'woocommerce-services' ); ?>"></a>
+			<a href="<?php echo esc_url( $dismiss_url ); ?>" style="text-decoration: none;" class="notice-dismiss" title="<?php esc_attr_e( 'Dismiss this notice', 'woocommerce-services' ); ?>"><span class="screen-reader-text"><?php esc_html_e( 'Dismiss this notice.', 'woocommerce-services' ); ?></span></a>
 			<p><?php echo $message; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- Escaped above. ?></p>
 			<?php if ( $links ) : ?>
 				<p>

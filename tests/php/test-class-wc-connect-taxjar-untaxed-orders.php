@@ -1334,6 +1334,7 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 
 		$this->assertStringContainsString( '7 orders got no sales tax, because the sales tax service did not answer and the store has no saved tax rates for their addresses. Each order has a note about it. Check whether tax is due on them.', $html );
 		$this->assertStringContainsString( 'notice-dismiss', $html );
+		$this->assertStringContainsString( '<span class="screen-reader-text">Dismiss this notice.</span></a>', $html, 'The dismiss link has a name for screen readers.' );
 		$this->assertStringContainsString( '#' . $orders[6]->get_order_number(), $html, 'Newest is linked.' );
 		$this->assertStringNotContainsString( '#' . $orders[1]->get_order_number() . '<', $html, 'Only the 5 latest are linked.' );
 		$this->assertNotSame( '', $this->render_notice( 'dashboard' ) );
