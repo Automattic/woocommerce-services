@@ -5486,8 +5486,10 @@ class WC_Connect_TaxJar_Integration {
 	 * (none at all: an exempt product and untaxed shipping take no tax off); if it has
 	 * none, the rates WooCommerce finds for the class at the order's tax location, as
 	 * WC_Order_Item_Fee::calculate_taxes() does, plus the rates the shipping was charged
-	 * at, each rate once. A rate the order records keeps its recorded percent. An order
-	 * charged no tax at all takes none off.
+	 * at whose row is in that class, each rate once. A rate the shipping was charged at in
+	 * another class, or whose row is gone, is left out: WooCommerce does not find it for
+	 * the class. A rate the order records keeps its recorded percent. An order charged no
+	 * tax at all takes none off.
 	 *
 	 * @param WC_Order          $order             The order.
 	 * @param WC_Order_Item_Fee $fee               The fee, below $0.
@@ -5509,6 +5511,18 @@ class WC_Connect_TaxJar_Integration {
 		if ( ! $shipping_rates && ! array_filter( $rate_ids_by_class ) ) {
 			return array();
 		}
+
+		// Only the shipping's rates whose row is in this class. A row that is gone has no
+		// class to go by, and WooCommerce cannot find it either.
+		$shipping_rates = array_filter(
+			$shipping_rates,
+			static function ( $rate_id ) use ( $tax_class ) {
+				$row = WC_Tax::_get_tax_rate( $rate_id );
+
+				return is_array( $row ) && (string) $row['tax_rate_class'] === $tax_class;
+			},
+			ARRAY_FILTER_USE_KEY
+		);
 
 		// The location WooCommerce taxed the fee for in this recalculation.
 		$location = $this->order_item_tax_locations[ spl_object_id( $fee ) ] ?? ( is_callable( array( $order, 'get_taxable_location' ) ) ? $order->get_taxable_location() : null );
