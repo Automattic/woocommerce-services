@@ -5479,13 +5479,15 @@ class WC_Connect_TaxJar_Integration {
 	/**
 	 * The rates shipping's share of a negative fee is taxed at.
 	 *
-	 * WooCommerce taxes that share at the rates of the shipping tax class. Here they are,
-	 * in order: the rates the order charged its shipping at; if none, the rates its items
-	 * in that class were charged at, even none (an exempt product: no tax comes off); if
-	 * the order has no item in that class, the rates WooCommerce finds for the class at
-	 * the order's tax location, as WC_Order_Item_Fee::calculate_taxes() does. A rate the
-	 * order records keeps its recorded percent. An order charged no tax at all takes none
-	 * off.
+	 * WooCommerce puts the shipping in its tax class with that class's items and taxes the
+	 * share at the class's rates, also the ones the shipping was not charged at (a row
+	 * with Shipping unticked). Here they are: if the order has items in that class, the
+	 * rates those items were charged at plus the rates the order charged its shipping at
+	 * (none at all: an exempt product and untaxed shipping take no tax off); if it has
+	 * none, the rates the shipping was charged at; if those are none too, the rates
+	 * WooCommerce finds for the class at the order's tax location, as
+	 * WC_Order_Item_Fee::calculate_taxes() does. A rate the order records keeps its
+	 * recorded percent. An order charged no tax at all takes none off.
 	 *
 	 * @param WC_Order          $order             The order.
 	 * @param WC_Order_Item_Fee $fee               The fee, below $0.
@@ -5497,12 +5499,14 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array Rates by rate id, as WC_Tax::calc_tax() takes them.
 	 */
 	private function get_negative_fee_shipping_share_rates( $order, $fee, $tax_class, $class_has_items, array $rates, array $rate_ids_by_class, array $shipping_rate_ids ) {
-		if ( $shipping_rate_ids ) {
-			return array_intersect_key( $rates, array_flip( array_map( 'intval', $shipping_rate_ids ) ) );
+		if ( $class_has_items ) {
+			$rate_ids = array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), $shipping_rate_ids );
+
+			return array_intersect_key( $rates, array_flip( array_map( 'intval', $rate_ids ) ) );
 		}
 
-		if ( $class_has_items ) {
-			return array_intersect_key( $rates, array_flip( array_map( 'intval', $rate_ids_by_class[ $tax_class ] ?? array() ) ) );
+		if ( $shipping_rate_ids ) {
+			return array_intersect_key( $rates, array_flip( array_map( 'intval', $shipping_rate_ids ) ) );
 		}
 
 		if ( ! array_filter( $rate_ids_by_class ) ) {
