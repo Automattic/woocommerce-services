@@ -1080,6 +1080,35 @@ class WP_Test_WC_Connect_TaxJar_Untaxed_Orders extends WC_Unit_Test_Case {
 		$this->assertCount( 1, $this->failed_carts, 'No answer.' );
 	}
 
+	/**
+	 * @testdox The lookup-failed action fires for each way the tax service fails to answer.
+	 *
+	 * @dataProvider provide_no_answer
+	 *
+	 * @param string|int $outage How the tax service fails.
+	 */
+	public function test_lookup_failed_action_fires_for_each_outage( $outage ) {
+		$this->taxjar = $outage;
+		$this->fill_cart_at_checkout();
+
+		$this->assertCount( 1, $this->failed_carts );
+		$this->assertSame( WC()->cart, $this->failed_carts[0] );
+	}
+
+	/**
+	 * @testdox The lookup-failed action does not fire for an address the tax service refused with a 400 or a 404.
+	 *
+	 * @dataProvider provide_refused_address
+	 *
+	 * @param string $refusal How the tax service refuses the address.
+	 */
+	public function test_lookup_failed_action_does_not_fire_for_a_refused_address( $refusal ) {
+		$this->taxjar = $refusal;
+		$this->fill_cart_at_checkout();
+
+		$this->assertSame( array(), $this->failed_carts );
+	}
+
 	// -------------------------------------------------------------------------
 	// Recalculate on the order screen
 	// -------------------------------------------------------------------------

@@ -1148,8 +1148,9 @@ class WC_Connect_TaxJar_Integration {
 				/**
 				 * Fires when a cart's tax lookup got no answer from the tax service.
 				 *
-				 * The tax service failed, timed out, or failed moments ago and was not asked
-				 * again. The cart has been totalled with the store's saved tax rates for the
+				 * The tax service failed, timed out, answered with an error other than 400 or
+				 * 404, sent a 200 that could not be read, or failed moments ago and was not
+				 * asked again. The cart has been totalled with the store's saved tax rates for the
 				 * address, if it has any, so check $cart->get_total_tax(): with none it has
 				 * no tax. A phone or manual order plugin can use this to tell the shop
 				 * manager in its own screen. An address the tax service refused does not
