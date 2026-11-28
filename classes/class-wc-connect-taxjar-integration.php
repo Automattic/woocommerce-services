@@ -5482,14 +5482,13 @@ class WC_Connect_TaxJar_Integration {
 	 * WooCommerce puts the shipping in its tax class with that class's items and taxes the
 	 * share at the class's rates, also the ones the shipping was not charged at (a row
 	 * with Shipping unticked). Here they are: if the order has items in that class, the
-	 * rates those items were charged at plus the rates the order charged its shipping at
-	 * (none at all: an exempt product and untaxed shipping take no tax off); if it has
-	 * none, the rates WooCommerce finds for the class at the order's tax location, as
-	 * WC_Order_Item_Fee::calculate_taxes() does, plus the rates the shipping was charged
-	 * at whose row is in that class, each rate once. A rate the shipping was charged at in
-	 * another class, or whose row is gone, is left out: WooCommerce does not find it for
-	 * the class. A rate the order records keeps its recorded percent. An order charged no
-	 * tax at all takes none off.
+	 * rates those items were charged at (none at all: an exempt product and untaxed
+	 * shipping take no tax off); if it has none, the rates WooCommerce finds for the class
+	 * at the order's tax location, as WC_Order_Item_Fee::calculate_taxes() does. Either
+	 * way, plus the rates the shipping was charged at whose row is in that class, each
+	 * rate once. A rate the shipping was charged at in another class, or whose row is
+	 * gone, is left out: WooCommerce does not find it for the class. A rate the order
+	 * records keeps its recorded percent. An order charged no tax at all takes none off.
 	 *
 	 * @param WC_Order          $order             The order.
 	 * @param WC_Order_Item_Fee $fee               The fee, below $0.
@@ -5501,21 +5500,12 @@ class WC_Connect_TaxJar_Integration {
 	 * @return array Rates by rate id, as WC_Tax::calc_tax() takes them.
 	 */
 	private function get_negative_fee_shipping_share_rates( $order, $fee, $tax_class, $class_has_items, array $rates, array $rate_ids_by_class, array $shipping_rate_ids ) {
-		if ( $class_has_items ) {
-			$rate_ids = array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), $shipping_rate_ids );
-
-			return array_intersect_key( $rates, array_flip( array_map( 'intval', $rate_ids ) ) );
-		}
-
-		$shipping_rates = array_intersect_key( $rates, array_flip( array_map( 'intval', $shipping_rate_ids ) ) );
-		if ( ! $shipping_rates && ! array_filter( $rate_ids_by_class ) ) {
-			return array();
-		}
+		$paid_shipping_rates = array_intersect_key( $rates, array_flip( array_map( 'intval', $shipping_rate_ids ) ) );
 
 		// Only the shipping's rates whose row is in this class. A row that is gone has no
 		// class to go by, and WooCommerce cannot find it either.
 		$shipping_rates = array_filter(
-			$shipping_rates,
+			$paid_shipping_rates,
 			static function ( $rate_id ) use ( $tax_class ) {
 				$row = WC_Tax::_get_tax_rate( $rate_id );
 
@@ -5523,6 +5513,17 @@ class WC_Connect_TaxJar_Integration {
 			},
 			ARRAY_FILTER_USE_KEY
 		);
+
+		if ( $class_has_items ) {
+			$item_rates = array_intersect_key( $rates, array_flip( array_map( 'intval', $rate_ids_by_class[ $tax_class ] ?? array() ) ) );
+
+			// A rate both lists hold is taken off once, in the order's order.
+			return array_intersect_key( $rates, $item_rates + $shipping_rates );
+		}
+
+		if ( ! $paid_shipping_rates && ! array_filter( $rate_ids_by_class ) ) {
+			return array();
+		}
 
 		// The location WooCommerce taxed the fee for in this recalculation.
 		$location = $this->order_item_tax_locations[ spl_object_id( $fee ) ] ?? ( is_callable( array( $order, 'get_taxable_location' ) ) ? $order->get_taxable_location() : null );

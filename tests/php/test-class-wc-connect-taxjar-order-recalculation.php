@@ -3115,6 +3115,51 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * @testdox A new negative fee on an unpaid order with a Standard line taxes the shipping's share at the Standard line's rate, not at the shipping's rate in another class.
+	 */
+	public function test_shipping_share_of_negative_fee_with_line_in_class_leaves_out_shipping_rate_of_other_class() {
+		// A $100 Standard product at 4%, and $10 shipping charged 5% under its own row, in
+		// the Zero rate class.
+		$std      = $this->rate_id;
+		$shipping = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '0.0000',
+				'tax_rate_name'     => 'Shipping',
+				'tax_rate_priority' => 2,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => 'zero-rate',
+			)
+		);
+		$fixture  = $this->create_placed_order_with_shipping(
+			array( array( '100', '', array( $std => '4' ) ) ),
+			array( $shipping => '0.5' ),
+			array( array( $std, 4.0 ), array( $shipping, 5.0 ) )
+		);
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-22.00' );
+		$order = $added['order'];
+
+		// WooCommerce puts the shipping's $10 in the Standard class with the product, so the
+		// whole -$22 is taxed at the Standard rate only: -0.88 at 4%. The 5% the shipping was
+		// charged is in the Zero rate class, so it is left out. Taking the shipping's -$2
+		// share off at it as well gives -0.10 more.
+		$this->assertEqualsWithDelta(
+			array( $std => -0.88 ),
+			$this->item_taxes_by_rate( $order, $added['fee'] ),
+			0.000001,
+			'the shipping\'s share is taxed at the Standard rate only'
+		);
+		// Cart tax: 4.00 - 0.88.
+		$this->assertEqualsWithDelta( 3.12, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.50, (float) $order->get_shipping_tax(), 0.001, 'the shipping keeps its tax' );
+		$this->assertEqualsWithDelta( 91.62, (float) $order->get_total(), 0.001, 'order total: 100 + 10 - 22 + 3.12 + 0.50' );
+	}
+
+	/**
 	 * @testdox A new negative fee on an unpaid order with no Standard line taxes the shipping's share at every Standard rate, also one with Shipping unticked.
 	 */
 	public function test_shipping_share_of_negative_fee_uses_class_rates_without_line_in_class() {
