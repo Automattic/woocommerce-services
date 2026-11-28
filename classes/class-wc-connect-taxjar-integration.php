@@ -4427,8 +4427,8 @@ class WC_Connect_TaxJar_Integration {
 	 * zero. So the rate table is not consulted here: snapshot the existing taxes
 	 * (before WC recalculates) and, once the totals have been recalculated, either
 	 * restore them or re-apply the order's own rates. The one exception is shipping's
-	 * share of a negative fee when the order has no rate for it (see
-	 * get_negative_fee_shipping_share_rates()).
+	 * share of a negative fee when the order has no item in the shipping's tax class
+	 * (see get_negative_fee_shipping_share_rates()).
 	 *
 	 * The rate is fixed when the order is placed; the amount follows the order. If no
 	 * item, fee or shipping amount changed, the recorded tax is restored exactly (so a
@@ -5484,10 +5484,10 @@ class WC_Connect_TaxJar_Integration {
 	 * with Shipping unticked). Here they are: if the order has items in that class, the
 	 * rates those items were charged at plus the rates the order charged its shipping at
 	 * (none at all: an exempt product and untaxed shipping take no tax off); if it has
-	 * none, the rates the shipping was charged at; if those are none too, the rates
-	 * WooCommerce finds for the class at the order's tax location, as
-	 * WC_Order_Item_Fee::calculate_taxes() does. A rate the order records keeps its
-	 * recorded percent. An order charged no tax at all takes none off.
+	 * none, the rates WooCommerce finds for the class at the order's tax location, as
+	 * WC_Order_Item_Fee::calculate_taxes() does, plus the rates the shipping was charged
+	 * at, each rate once. A rate the order records keeps its recorded percent. An order
+	 * charged no tax at all takes none off.
 	 *
 	 * @param WC_Order          $order             The order.
 	 * @param WC_Order_Item_Fee $fee               The fee, below $0.
@@ -5505,28 +5505,24 @@ class WC_Connect_TaxJar_Integration {
 			return array_intersect_key( $rates, array_flip( array_map( 'intval', $rate_ids ) ) );
 		}
 
-		if ( $shipping_rate_ids ) {
-			return array_intersect_key( $rates, array_flip( array_map( 'intval', $shipping_rate_ids ) ) );
-		}
-
-		if ( ! array_filter( $rate_ids_by_class ) ) {
+		$shipping_rates = array_intersect_key( $rates, array_flip( array_map( 'intval', $shipping_rate_ids ) ) );
+		if ( ! $shipping_rates && ! array_filter( $rate_ids_by_class ) ) {
 			return array();
 		}
 
 		// The location WooCommerce taxed the fee for in this recalculation.
 		$location = $this->order_item_tax_locations[ spl_object_id( $fee ) ] ?? ( is_callable( array( $order, 'get_taxable_location' ) ) ? $order->get_taxable_location() : null );
 		if ( ! is_array( $location ) || ! isset( $location['country'], $location['state'], $location['postcode'], $location['city'] ) ) {
-			return array();
+			return $shipping_rates;
 		}
 
-		$found = WC_Tax::find_rates( array_merge( $location, array( 'tax_class' => $tax_class ) ) );
-		foreach ( $found as $rate_id => $rate ) {
-			if ( isset( $rates[ (int) $rate_id ] ) ) {
-				$found[ $rate_id ] = $rates[ (int) $rate_id ];
-			}
+		$found = array();
+		foreach ( WC_Tax::find_rates( array_merge( $location, array( 'tax_class' => $tax_class ) ) ) as $rate_id => $rate ) {
+			$found[ (int) $rate_id ] = $rates[ (int) $rate_id ] ?? $rate;
 		}
 
-		return $found;
+		// A rate both lists hold is taken off once.
+		return $found + $shipping_rates;
 	}
 
 	/**
