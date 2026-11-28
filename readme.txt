@@ -6,7 +6,7 @@ Requires at least: 7.1
 Requires Plugins: woocommerce
 Tested up to: 7.2
 WC requires at least: 11.1
-WC tested up to: 11.3
+WC tested up to: 11.4
 Stable tag: 3.7.7
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -77,6 +77,7 @@ This plugin relies on the following external services:
 * Fix   - Send TaxJar product tax codes that contain a letter, such as 81162000A0000 for software as a service (SaaS), when a tax class name ends with one. They were not sent, so these products were taxed at the general rate. The code is sent in upper case, as TaxJar lists it. Codes of 5 or 8 digits, such as 31000, work as before. Any other number at the end of a tax class name, such as the 2 in "Rate 2", is no longer sent to TaxJar, which did not use it.
 * Fix   - Security update.
 * Tweak - WordPress 7.2 Compatibility.
+* Tweak - WooCommerce 11.4 Compatibility.
 
 = 3.7.7 - 2026-11-17 =
 * Add   - wc_services_cart_tax_lookup_timeout filter to change how long cart and checkout steps wait for a tax lookup.
