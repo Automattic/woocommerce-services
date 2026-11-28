@@ -266,6 +266,46 @@ class WC_Connect_TaxJar_Integration {
 	private $shipping_rates_stored = array();
 
 	/**
+	 * Ids of the rate rows TaxJar's answers were stored under in this request, as keys.
+	 * See drop_untaxed_shipping_taxes().
+	 *
+	 * @var array<int, true>
+	 */
+	private $rate_ids_written_in_request = array();
+
+	/**
+	 * Orders a TaxJar answer was applied to in this request, by order id. See
+	 * record_no_tax_charged().
+	 *
+	 * @var array<int, true>
+	 */
+	private $orders_answered_in_request = array();
+
+	/**
+	 * Orders TaxJar is to be asked about in this request, by order id, also when it is
+	 * not asked because the order has nothing to send. See override_order_item_taxes().
+	 *
+	 * @var array<int, true>
+	 */
+	private $orders_looked_up_in_request = array();
+
+	/**
+	 * Order items a cart's TaxJar answer was applied to in this request, by
+	 * spl_object_id(). Checkout taxes a new order's items before the order is saved,
+	 * so they have no order id yet. See order_was_answered().
+	 *
+	 * @var array<int, true>
+	 */
+	private $order_items_answered_in_request = array();
+
+	/**
+	 * Order meta set when TaxJar answered for an order and taxed none of it. Such an order
+	 * has no tax lines, and its next edit keeps it at no tax instead of asking TaxJar
+	 * again as for a new order. See record_no_tax_charged().
+	 */
+	private const NO_TAX_CHARGED_META_KEY = '_wc_connect_taxjar_no_tax_charged';
+
+	/**
 	 * The tax class each order line item was sent to TaxJar in.
 	 *
 	 * Recorded while the TaxJar request for an order is built and read back when the
@@ -623,6 +663,17 @@ class WC_Connect_TaxJar_Integration {
 		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this, 'override_order_item_taxes' ), 10, 2 );
 		add_filter( 'woocommerce_calc_shipping_tax', array( $this, 'override_cart_shipping_taxes' ), 10, 2 );
 		add_action( 'woocommerce_order_item_shipping_after_calculate_taxes', array( $this, 'override_order_shipping_taxes' ), 10, 2 );
+
+		// Rates TaxJar did not tax anything under get no tax line (see get_looked_up_rates()).
+		add_filter( 'woocommerce_calc_shipping_tax', array( $this, 'drop_untaxed_shipping_taxes' ), 10, 1 );
+		add_action( 'woocommerce_order_item_shipping_after_calculate_taxes', array( $this, 'drop_untaxed_order_shipping_taxes' ), 10, 1 );
+		add_filter( 'woocommerce_cart_totals_get_fees_from_cart_taxes', array( $this, 'drop_untaxed_fee_taxes' ), 10, 1 );
+		// A fee that adds to the order fires the hook every item fires; one that takes off, its own.
+		add_action( 'woocommerce_order_item_after_calculate_taxes', array( $this, 'drop_untaxed_order_fee_taxes' ), 10, 1 );
+		add_action( 'woocommerce_order_item_fee_after_calculate_taxes', array( $this, 'drop_untaxed_order_fee_taxes' ), 10, 1 );
+		add_action( 'woocommerce_order_after_calculate_totals', array( $this, 'record_no_tax_charged' ), 20, 2 );
+		add_action( 'woocommerce_checkout_create_order', array( $this, 'record_no_tax_charged_at_checkout' ), 10, 1 );
+		add_action( 'woocommerce_checkout_create_subscription', array( $this, 'record_no_tax_charged_at_checkout' ), 10, 1 );
 
 		add_filter( 'woocommerce_rate_label', array( $this, 'cleanup_tax_label' ) );
 		add_filter( 'woocommerce_cart_tax_totals', array( $this, 'aggregate_tax_totals' ), 10, 2 );
@@ -1265,6 +1316,7 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		$this->reset_rate_row_memory();
+		$this->orders_looked_up_in_request[ (int) $order_id ] = true;
 
 		$address    = $this->fill_missing_backend_street( $this->get_backend_address(), $order );
 		$line_items = $this->get_backend_line_items( $order );
@@ -1294,6 +1346,9 @@ class WC_Connect_TaxJar_Integration {
 		 * result stands, as before.
 		 */
 		$this->admin_recalculation_rate_ids[ (int) $order_id ] = array();
+		if ( is_array( $taxes ) ) {
+			$this->orders_answered_in_request[ (int) $order_id ] = true;
+		}
 		if ( is_array( $taxes ) && ! empty( $taxes['rate_ids'] ) ) {
 			foreach ( $line_items as $item_key => $line_item ) {
 				$rate_ids = $taxes['rate_ids'][ $line_item['id'] ?? '' ] ?? null;
@@ -2145,7 +2200,13 @@ class WC_Connect_TaxJar_Integration {
 		// The line's own percentages, as the order uses: rows are shared by every product
 		// in a tax class and hold the highest rate a line answered, or shipping's own
 		// (see get_rate_to_store()).
-		$tax_rates = $this->get_looked_up_rates( $matching_rate_ids, $this->response_line_items[ $line_item_key ] ?? null );
+		$response_line = $this->response_line_items[ $line_item_key ] ?? null;
+		$tax_rates     = $this->get_looked_up_rates( $matching_rate_ids, $response_line );
+
+		// TaxJar taxed none of the line: no rates, or WooCommerce's would tax it from the rows.
+		if ( is_object( $response_line ) && ! self::answer_taxes_line( $response_line ) ) {
+			return array();
+		}
 
 		// Return our rates if we found any, otherwise fall back to WooCommerce's.
 		return ! empty( $tax_rates ) ? $tax_rates : $item_tax_rates;
@@ -2170,6 +2231,16 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		// A line with no price is not sent to TaxJar (see get_backend_line_items()), so the
+		// order's lookup has no answer for it. Its tax is $0 at any rate: it gets none,
+		// instead of a $0 tax under each rate row WooCommerce found. Also when no line has
+		// a price and the order has no shipping, so TaxJar has nothing to be asked about.
+		$order_id = (int) $item->get_order_id();
+		if ( $item instanceof \WC_Order_Item_Product && ( isset( $this->orders_answered_in_request[ $order_id ] ) || isset( $this->orders_looked_up_in_request[ $order_id ] ) ) && 0.0 === (float) $item->get_subtotal() && 0.0 === (float) $item->get_total() ) {
+			$item->set_taxes( false );
+			return;
+		}
+
 		// Only act on TaxJar's answers from this request. A cart whose every line was answered
 		// as exempt has answers but no rate ids, and must not be taxed from the rows below.
 		if ( ! is_array( $this->response_rate_ids ) || ( empty( $this->response_rate_ids ) && empty( $this->response_line_items ) ) ) {
@@ -2188,6 +2259,8 @@ class WC_Connect_TaxJar_Integration {
 			return;
 		}
 
+		$this->order_items_answered_in_request[ spl_object_id( $item ) ] = true;
+
 		$matching_rate_ids = $this->response_rate_ids[ $line_item_key ] ?? null;
 		$matching_line     = $this->response_line_items[ $line_item_key ] ?? null;
 
@@ -2195,8 +2268,9 @@ class WC_Connect_TaxJar_Integration {
 			// A line sent as exempt writes no rows, so WooCommerce taxed it from rows another
 			// line wrote. That includes a line checkout sends as exempt on its second pass,
 			// because TaxJar answered 0% for it on the first.
+			// The item gets no tax and no tax line, also when no line on the order was taxed.
 			if ( is_object( $matching_line ) && isset( $matching_line->combined_tax_rate ) && 0.0 === (float) $matching_line->combined_tax_rate ) {
-				$this->clear_exempt_order_item_taxes( $item );
+				$item->set_taxes( false );
 			}
 			return;
 		}
@@ -2287,30 +2361,6 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private function is_shipping_answer_for_address( array $answer, Address $address ) {
 		return Address::from_taxable_tuple( $answer['address'] )->jurisdiction_key() === $address->jurisdiction_key();
-	}
-
-	/**
-	 * Take the tax off an order item TaxJar answered as exempt.
-	 *
-	 * When another line on the order was taxed, the order has the rates and the item needs
-	 * none. When none was, the item keeps its rates at $0: the order's tax lines come from
-	 * them, and an order with none would be looked up again as new on its next edit.
-	 *
-	 * @param WC_Order_Item_Product $item The order item.
-	 */
-	private function clear_exempt_order_item_taxes( $item ) {
-		if ( ! empty( $this->response_rate_ids ) ) {
-			$item->set_taxes( false );
-			return;
-		}
-
-		$taxes = $item->get_taxes();
-		$item->set_taxes(
-			array(
-				'total'    => array_fill_keys( array_keys( $taxes['total'] ?? array() ), 0 ),
-				'subtotal' => array_fill_keys( array_keys( $taxes['subtotal'] ?? array() ), 0 ),
-			)
-		);
 	}
 
 	/**
@@ -2444,6 +2494,13 @@ class WC_Connect_TaxJar_Integration {
 	 */
 	private function set_order_item_taxes_from_rate_ids( $item, array $rate_ids, $response_line = null ) {
 		if ( 'taxable' !== $item->get_tax_status() ) {
+			return;
+		}
+
+		// TaxJar taxed none of the item. WooCommerce taxed it from the rows, which hold the
+		// highest rate a line answered.
+		if ( is_object( $response_line ) && ! self::answer_taxes_line( $response_line ) ) {
+			$item->set_taxes( false );
 			return;
 		}
 
@@ -3009,7 +3066,7 @@ class WC_Connect_TaxJar_Integration {
 					}
 					$rate_name = self::generate_itemized_tax_rate_name( $tax_rate_name, $to_country, $jurisdictions );
 
-					$taxes['rate_ids'][ $line_item_key ][] = $this->create_or_update_tax_rate(
+					$rate_id = $this->create_or_update_tax_rate(
 						$location,
 						$this->get_rate_to_store( $location, $tax_class, $priority, round( $tax_rate * 100, 4 ) ),
 						$tax_class,
@@ -3017,6 +3074,9 @@ class WC_Connect_TaxJar_Integration {
 						$priority,
 						$rate_name
 					);
+
+					$taxes['rate_ids'][ $line_item_key ][]                   = $rate_id;
+					$this->rate_ids_written_in_request[ absint( $rate_id ) ] = true;
 
 					$this->record_written_priority( $written, $tax_class, $priority, $rate_name );
 					++$priority;
@@ -3036,7 +3096,7 @@ class WC_Connect_TaxJar_Integration {
 				$shipping_rate = round( $tax_rate * 100, 4 );
 				$this->shipping_rates_stored[ self::get_rate_row_key( $location, '', $priority ) ] = $shipping_rate;
 
-				$taxes['rate_ids']['shipping'][] = $this->create_or_update_tax_rate(
+				$rate_id = $this->create_or_update_tax_rate(
 					$location,
 					$shipping_rate,
 					'',
@@ -3044,6 +3104,9 @@ class WC_Connect_TaxJar_Integration {
 					$priority,
 					$rate_name
 				);
+
+				$taxes['rate_ids']['shipping'][]                         = $rate_id;
+				$this->rate_ids_written_in_request[ absint( $rate_id ) ] = true;
 
 				$this->record_written_priority( $written, '', $priority, $rate_name );
 				++$priority;
@@ -4519,6 +4582,10 @@ class WC_Connect_TaxJar_Integration {
 		// recalculates, which clears the pending changes this relies on.
 		$snapshot['base_changes']   = $this->find_order_tax_base_changes( $order );
 		$snapshot['address_before'] = $this->find_order_tax_address_change( $order );
+		$snapshot['no_tax_charged'] = empty( $snapshot['tax_lines'] ) && $this->order_records_no_tax_charged( $order );
+		$snapshot                   = $this->find_what_no_tax_record_does_not_cover( $order, $snapshot );
+		$snapshot['unrated_lines']  = $this->find_unrated_lines( $order, $snapshot );
+
 		// A locked order is not looked up again: its tax stays at what was charged.
 		$snapshot['lookup'] = ! $snapshot['locked'] && $this->order_needs_tax_lookup( $snapshot );
 
@@ -4530,10 +4597,14 @@ class WC_Connect_TaxJar_Integration {
 		if ( $snapshot['kept_for_refunds'] ) {
 			$snapshot['lookup'] = false;
 		}
+		if ( $snapshot['lookup'] ) {
+			$this->orders_looked_up_in_request[ (int) $order->get_id() ] = true;
+		}
 
-		// A locked order that was charged no tax stays at no tax: WC's rate table would
-		// otherwise add tax it never charged.
-		$snapshot['keeps_no_tax'] = empty( $snapshot['tax_lines'] ) && $snapshot['locked'];
+		// An order charged no tax stays at no tax, unless a lookup gives it some: WC's rate
+		// table would otherwise add tax it never charged. That is a locked order, and an
+		// order TaxJar answered for and taxed none of.
+		$snapshot['keeps_no_tax'] = empty( $snapshot['tax_lines'] ) && ( $snapshot['no_tax_charged'] || $snapshot['locked'] );
 
 		// Without tax lines there is nothing to preserve; never turn a first-time tax
 		// calculation into a zeroed one. Leave it to WC unless TaxJar is to be asked, or
@@ -4715,16 +4786,17 @@ class WC_Connect_TaxJar_Integration {
 		$notes = array();
 
 		if ( is_array( $lookup ) ) {
+			$this->orders_answered_in_request[ $order_id ] = true;
+
 			$notes = $this->apply_looked_up_order_taxes( $order, $lookup, $snapshot );
 		} elseif ( empty( $snapshot['tax_lines'] ) ) {
-			// No tax lines to keep: what WC calculated stands, as before the lookup existed.
-			if ( self::ORDER_TAX_LOOKUP_BAD_ADDRESS === $lookup ) {
-				$notes[] = __( 'Tax could not be calculated for this order, because its address is incomplete or has a state or ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' );
-			} elseif ( self::ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS === $lookup ) {
-				$notes[] = __( 'Tax could not be calculated for this order, because the store address has no country or has a ZIP code that is not valid. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' );
-			} elseif ( false === $lookup ) {
-				$notes[] = __( 'Tax could not be calculated for this order, because the tax service did not answer or did not accept the order\'s address. Check the order\'s address and its tax.', 'woocommerce-services' );
+			// No tax lines to keep. An order TaxJar answered for and taxed none of stays at
+			// no tax; otherwise what WC calculated stands, as before the lookup existed.
+			if ( ! empty( $snapshot['keeps_no_tax'] ) ) {
+				$this->restore_order_taxes( $order, $snapshot );
 			}
+
+			$notes[] = $this->get_failed_order_tax_lookup_note( $lookup );
 		} elseif ( empty( $snapshot['base_changes']['has_changes'] ) ) {
 			$this->restore_order_taxes( $order, $snapshot );
 		} elseif ( ! $this->snapshot_records_tax_rates( $snapshot ) ) {
@@ -4734,8 +4806,14 @@ class WC_Connect_TaxJar_Integration {
 			$reapplied = $this->reapply_order_tax_rates( $order, $snapshot );
 		}
 
+		// TaxJar was asked only about a line with no rates of its own (see
+		// find_unrated_lines()). The edit is applied as it is without a lookup.
+		if ( ! is_array( $lookup ) && null !== $lookup && ! empty( $snapshot['tax_lines'] ) && null === $snapshot['address_before'] ) {
+			$notes[] = $this->get_failed_order_tax_lookup_note( $lookup );
+		}
+
 		// A note about the new address says what was done instead, with the tax change.
-		if ( ! is_array( $lookup ) && null !== $lookup && ! empty( $snapshot['tax_lines'] ) ) {
+		if ( ! is_array( $lookup ) && null !== $lookup && ! empty( $snapshot['tax_lines'] ) && null !== $snapshot['address_before'] ) {
 			$notes[] = $this->get_failed_order_tax_update_note( $order, $lookup, $reapplied );
 		} elseif ( ! empty( $snapshot['kept_for_refunds'] ) ) {
 			$notes[] = $this->get_kept_order_tax_note(
@@ -4761,11 +4839,35 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 
+		$notes = array_filter( $notes );
 		if ( $notes ) {
 			$this->add_order_tax_note( $order, implode( ' ', $notes ) );
 		}
 
 		$this->forget_order_tax_edit( $order );
+	}
+
+	/**
+	 * A note for a lookup of an order's tax that failed, when the order's address did
+	 * not change.
+	 *
+	 * @param mixed $lookup What lookup_order_taxes() returned.
+	 * @return string The note, or '' when the lookup did not fail.
+	 */
+	private function get_failed_order_tax_lookup_note( $lookup ) {
+		if ( self::ORDER_TAX_LOOKUP_BAD_ADDRESS === $lookup ) {
+			return __( 'Tax could not be calculated for this order, because its address is incomplete or has a state or ZIP code that is not valid. Check the order\'s address and its tax.', 'woocommerce-services' );
+		}
+
+		if ( self::ORDER_TAX_LOOKUP_BAD_STORE_ADDRESS === $lookup ) {
+			return __( 'Tax could not be calculated for this order, because the store address has no country or has a ZIP code that is not valid. Check the store address in WooCommerce > Settings > General, then the tax on this order.', 'woocommerce-services' );
+		}
+
+		if ( false === $lookup ) {
+			return __( 'Tax could not be calculated for this order, because the tax service did not answer or did not accept the order\'s address. Check the order\'s address and its tax.', 'woocommerce-services' );
+		}
+
+		return '';
 	}
 
 	/**
@@ -5197,18 +5299,18 @@ class WC_Connect_TaxJar_Integration {
 	 * @param array    $snapshot Snapshot returned by snapshot_order_taxes().
 	 */
 	private function restore_order_taxes( $order, $snapshot ) {
-		// Nothing was recorded, so there is nothing to put back. A locked order that was
-		// charged no tax goes on: it stays at no tax.
+		// Nothing was recorded, so there is nothing to put back. An order that keeps no tax
+		// (see complete_order_tax_snapshot()) goes on: it stays at no tax.
 		if ( empty( $snapshot['tax_lines'] ) && empty( $snapshot['keeps_no_tax'] ) ) {
 			return;
 		}
 
 		// Restore the per-item tax arrays on line items and fees. An item added to a
-		// locked order gets no tax: the order keeps the tax it was charged.
+		// locked order, or to one that keeps no tax, gets no tax.
 		foreach ( $order->get_items( array( 'line_item', 'fee' ) ) as $item_id => $item ) {
 			if ( isset( $snapshot['item_taxes'][ $item_id ] ) ) {
 				$item->set_taxes( $snapshot['item_taxes'][ $item_id ] );
-			} elseif ( ! empty( $snapshot['locked'] ) ) {
+			} elseif ( ! empty( $snapshot['locked'] ) || ! empty( $snapshot['keeps_no_tax'] ) ) {
 				$item->set_taxes( false );
 			}
 		}
@@ -5217,7 +5319,7 @@ class WC_Connect_TaxJar_Integration {
 		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
 			if ( isset( $snapshot['item_taxes'][ 'shipping_' . $item_id ] ) ) {
 				$item->set_taxes( $snapshot['item_taxes'][ 'shipping_' . $item_id ] );
-			} elseif ( ! empty( $snapshot['locked'] ) ) {
+			} elseif ( ! empty( $snapshot['locked'] ) || ! empty( $snapshot['keeps_no_tax'] ) ) {
 				$item->set_taxes( false );
 			}
 		}
@@ -5643,6 +5745,136 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
+	 * The rate ids each tax class has on an order, for a line that has none of its own.
+	 *
+	 * They are the rates the order's saved lines and fees were taxed at, by the class
+	 * they were taxed in, and those of items the edit removed when it removed the last
+	 * one of a class. A negative fee is left out: it carries the rates of every class on
+	 * the order.
+	 *
+	 * @param WC_Order $order    The order.
+	 * @param array    $snapshot Snapshot with item_taxes and base_changes.
+	 * @return array Rate ids, keyed by tax class.
+	 */
+	private function get_order_rate_ids_by_class( $order, array $snapshot ) {
+		$rate_ids_by_class = array();
+		foreach ( $order->get_items( array( 'line_item', 'fee' ) ) as $item_id => $item ) {
+			if ( ! in_array( (int) $item_id, $snapshot['base_changes']['known_ids'], true ) || empty( $snapshot['item_taxes'][ $item_id ]['total'] ) || $this->is_negative_fee( $item ) ) {
+				continue;
+			}
+
+			// An item moved to another class was taxed in, and leaves its rates to, the old one.
+			$tax_class                       = $snapshot['base_changes']['reclassed'][ (int) $item_id ] ?? $item->get_tax_class();
+			$rate_ids_by_class[ $tax_class ] = array_unique( array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), array_keys( $snapshot['item_taxes'][ $item_id ]['total'] ) ) );
+		}
+
+		return $rate_ids_by_class + $snapshot['base_changes']['removed_rate_ids']['classes'];
+	}
+
+	/**
+	 * The rate ids shipping is taxed at on an order, for shipping that has none of its own.
+	 *
+	 * They are the rates the order's saved shipping was taxed at. When the edit removed all
+	 * the shipping, they are the rates the removed shipping was taxed at.
+	 *
+	 * @param WC_Order $order    The order.
+	 * @param array    $snapshot Snapshot with item_taxes and base_changes.
+	 * @return array {
+	 *   @type array $rate_ids Rate ids.
+	 *   @type bool  $untaxed  Whether saved or removed shipping with an amount carried no tax,
+	 *                         which shows the order's shipping is not taxed.
+	 * }
+	 */
+	private function get_order_shipping_rate_ids( $order, array $snapshot ) {
+		$rate_ids = array();
+		$untaxed  = $snapshot['base_changes']['removed_rate_ids']['untaxed_shipping'];
+		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
+			if ( ! in_array( (int) $item_id, $snapshot['base_changes']['known_ids'], true ) ) {
+				continue;
+			}
+
+			if ( empty( $snapshot['item_taxes'][ 'shipping_' . $item_id ]['total'] ) ) {
+				// Shipping the order did not tax: a new shipping line at no tax is expected.
+				// Not when it was $0: free shipping carries no tax on any order.
+				$untaxed = $untaxed || ( $this->shipping_line_could_carry_tax( $item ) && 0.0 !== (float) $this->get_order_item_saved_base( $item )['total'] );
+				continue;
+			}
+
+			$rate_ids = array_unique( array_merge( $rate_ids, array_keys( $snapshot['item_taxes'][ 'shipping_' . $item_id ]['total'] ) ) );
+		}
+
+		return array(
+			'rate_ids' => $rate_ids ? $rate_ids : $snapshot['base_changes']['removed_rate_ids']['shipping'],
+			'untaxed'  => $untaxed,
+		);
+	}
+
+	/**
+	 * Find the lines that get an amount again and have no rates of their own, which
+	 * TaxJar is asked about.
+	 *
+	 * A line that was $0 after its discounts was charged no tax at any rate, so it has no
+	 * rates of its own. Given an amount, TaxJar is asked about the order, as for an order
+	 * with no tax yet. The rates of the other lines in its tax class are not its rates:
+	 * TaxJar can tax two lines of one class differently, by their amounts (New York taxes
+	 * clothing under $110 at the local rates only). If TaxJar does not answer, the line
+	 * takes those rates (see plan_reapplied_order_taxes()). A line that is still $0 is
+	 * not asked about.
+	 *
+	 * Shipping that was $0 takes the rates of the order's other shipping, and TaxJar is
+	 * asked when there are none and no other shipping shows that the order's shipping is
+	 * not taxed.
+	 *
+	 * Not on a locked order: it keeps the tax it was charged. Not on an order with
+	 * refunded tax either: its refunds are recorded against the rates it has.
+	 *
+	 * @param WC_Order $order    The order about to be recalculated.
+	 * @param array    $snapshot Snapshot with tax_lines, item_taxes, locked and base_changes.
+	 * @return string[] The lines' and shipping's names, keyed by item id.
+	 */
+	private function find_unrated_lines( $order, array $snapshot ) {
+		if ( empty( $snapshot['tax_lines'] ) || ! empty( $snapshot['locked'] ) || 0.0 !== (float) $order->get_total_tax_refunded() ) {
+			return array();
+		}
+
+		$order_rate_ids = array_map( 'intval', wp_list_pluck( $snapshot['tax_lines'], 'rate_id' ) );
+		$names          = array();
+		foreach ( $order->get_items() as $item_id => $item ) {
+			if ( 'taxable' !== $item->get_tax_status() || 0 >= (float) $item->get_total() || ! empty( $snapshot['item_taxes'][ $item_id ]['total'] ) ) {
+				continue;
+			}
+
+			// A saved line, in the class it was taxed in, that was $0.
+			if ( ! in_array( (int) $item_id, $snapshot['base_changes']['known_ids'], true ) || isset( $snapshot['base_changes']['reclassed'][ (int) $item_id ] ) || 0.0 !== (float) $this->get_order_item_saved_base( $item )['total'] ) {
+				continue;
+			}
+
+			$names[ (int) $item_id ] = $item->get_name();
+		}
+
+		// The same for shipping, when the order has no shipping rates to take.
+		$shipping = null;
+		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
+			if ( 'taxable' !== $item->get_tax_status() || 0 >= (float) $item->get_total() || ! empty( $snapshot['item_taxes'][ 'shipping_' . $item_id ]['total'] ) ) {
+				continue;
+			}
+
+			if ( ! in_array( (int) $item_id, $snapshot['base_changes']['known_ids'], true ) || 0.0 !== (float) $this->get_order_item_saved_base( $item )['total'] ) {
+				continue;
+			}
+
+			$shipping = $shipping ?? $this->get_order_shipping_rate_ids( $order, $snapshot );
+			if ( $shipping['untaxed'] || array_intersect( array_map( 'intval', $shipping['rate_ids'] ), $order_rate_ids ) ) {
+				continue;
+			}
+
+			$names[ (int) $item_id ] = $item->get_name();
+		}
+
+		return $names;
+	}
+
+	/**
 	 * Work out the tax each item gets when an order's recorded rates are re-applied.
 	 *
 	 * See reapply_order_tax_rates() for the rules. Changes nothing: the order and its
@@ -5672,39 +5904,11 @@ class WC_Connect_TaxJar_Integration {
 		$changed_ids = $snapshot['base_changes']['changed_ids'];
 		$reclassed   = $snapshot['base_changes']['reclassed'];
 
-		// Rates already on the order, per tax class and for shipping, for new items. A
-		// negative fee is left out: it carries the rates of every class on the order.
-		$rate_ids_by_class = array();
-		$shipping_rate_ids = array();
-		$untaxed_shipping  = $snapshot['base_changes']['removed_rate_ids']['untaxed_shipping'];
-		foreach ( $order->get_items( array( 'line_item', 'fee', 'shipping' ) ) as $item_id => $item ) {
-			$key = 'shipping' === $item->get_type() ? 'shipping_' . $item_id : $item_id;
-			if ( ! in_array( (int) $item_id, $known_ids, true ) ) {
-				continue;
-			}
-
-			if ( empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
-				// Shipping the order did not tax: a new shipping line at no tax is expected.
-				$untaxed_shipping = $untaxed_shipping || ( 'shipping' === $item->get_type() && $this->shipping_line_could_carry_tax( $item ) );
-				continue;
-			}
-
-			$item_rate_ids = array_keys( $snapshot['item_taxes'][ $key ]['total'] );
-			if ( 'shipping' === $item->get_type() ) {
-				$shipping_rate_ids = array_unique( array_merge( $shipping_rate_ids, $item_rate_ids ) );
-			} elseif ( ! $this->is_negative_fee( $item ) ) {
-				// An item moved to another class was taxed in, and leaves its rates to, the old one.
-				$tax_class                       = $reclassed[ (int) $item_id ] ?? $item->get_tax_class();
-				$rate_ids_by_class[ $tax_class ] = array_unique( array_merge( $rate_ids_by_class[ $tax_class ] ?? array(), $item_rate_ids ) );
-			}
-		}
-
-		// When the edit removed the last item of a class (or all the shipping), a new one
-		// takes the rates the removed ones were taxed at.
-		$rate_ids_by_class += $snapshot['base_changes']['removed_rate_ids']['classes'];
-		if ( empty( $shipping_rate_ids ) ) {
-			$shipping_rate_ids = $snapshot['base_changes']['removed_rate_ids']['shipping'];
-		}
+		// Rates already on the order, per tax class and for shipping, for new items.
+		$rate_ids_by_class = $this->get_order_rate_ids_by_class( $order, $snapshot );
+		$shipping          = $this->get_order_shipping_rate_ids( $order, $snapshot );
+		$shipping_rate_ids = $shipping['rate_ids'];
+		$untaxed_shipping  = $shipping['untaxed'];
 
 		$untaxed = array();
 		$planned = array();
@@ -5714,6 +5918,13 @@ class WC_Connect_TaxJar_Integration {
 			$is_known    = in_array( (int) $item_id, $known_ids, true );
 			// Whether the rates it was charged at still apply: not after its class or status changed.
 			$is_rated = $is_known && ! isset( $reclassed[ (int) $item_id ] );
+
+			// A line that was $0 after its discounts was charged no tax at any rate, which
+			// says nothing about its rates. Given an amount, it is taxed as a new line is.
+			// So are a fee and shipping that were $0.
+			if ( $is_rated && empty( $snapshot['item_taxes'][ $key ]['total'] ) ) {
+				$is_rated = 0.0 !== (float) $this->get_order_item_saved_base( $item )['total'] || 0.0 === (float) $item->get_total();
+			}
 
 			if ( $is_known && ! in_array( (int) $item_id, $changed_ids, true ) ) {
 				if ( isset( $snapshot['item_taxes'][ $key ] ) ) {
@@ -6684,8 +6895,9 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * Asked when the address the order is taxed on changed, or when the order has no
 	 * tax yet and its items changed. A new order counts: its items are first saved in
-	 * the same request. Everything else re-uses the rates recorded on the order, with
-	 * no request.
+	 * the same request. Also when a line gets an amount again with no rates of its own,
+	 * or shipping does and the order has no shipping rates (see find_unrated_lines()).
+	 * Everything else re-uses the rates recorded on the order, with no request.
 	 *
 	 * @param array $snapshot Snapshot with base_changes and address_before.
 	 * @return bool
@@ -6700,11 +6912,72 @@ class WC_Connect_TaxJar_Integration {
 			return true;
 		}
 
+		// A line that gets an amount again, with no rates of its own. See
+		// find_unrated_lines().
+		if ( ! empty( $snapshot['unrated_lines'] ) ) {
+			return true;
+		}
+
 		if ( ! empty( $snapshot['tax_lines'] ) ) {
 			return false;
 		}
 
+		// TaxJar already answered for an order with no tax lines, and taxed none of it.
+		// Something taxable it did not answer for is asked about, as on an order with no
+		// tax yet. See find_what_no_tax_record_does_not_cover().
+		if ( ! empty( $snapshot['no_tax_charged'] ) && empty( $snapshot['not_covered_by_record'] ) ) {
+			return false;
+		}
+
 		return ! empty( $snapshot['base_changes']['has_changes'] );
+	}
+
+	/**
+	 * Find the taxable items an order's "no tax charged" record says nothing about.
+	 *
+	 * The record holds TaxJar's answer for the items the order had then. It does not
+	 * cover a line or shipping added since, a line whose tax class or tax status
+	 * changed, or one that was $0 then: TaxJar answers a $0 line as taxing nothing,
+	 * whatever its rate. A line whose amount changed otherwise stays covered. Fees are
+	 * left out: a fee is taxed as the order's products are, which TaxJar answered for.
+	 *
+	 * The order is looked up again for such an item. A locked order is not: it keeps
+	 * the no tax it was charged.
+	 *
+	 * @param WC_Order $order    The order about to be recalculated.
+	 * @param array    $snapshot Snapshot with locked, no_tax_charged and base_changes.
+	 * @return array The snapshot with not_covered_by_record: the items' names, keyed by
+	 *               spl_object_id().
+	 */
+	private function find_what_no_tax_record_does_not_cover( $order, array $snapshot ) {
+		$snapshot['not_covered_by_record'] = array();
+
+		if ( empty( $snapshot['no_tax_charged'] ) || ! empty( $snapshot['locked'] ) ) {
+			return $snapshot;
+		}
+
+		$names = array();
+		foreach ( $order->get_items( array( 'line_item', 'shipping' ) ) as $item ) {
+			if ( 'taxable' !== $item->get_tax_status() || 0 >= (float) $item->get_total() ) {
+				continue;
+			}
+
+			$item_id = (int) $item->get_id();
+			$is_new  = ! $item_id || isset( $this->order_items_created_in_request['ids'][ $item_id ] );
+
+			if ( ! $is_new && ! isset( $snapshot['base_changes']['reclassed'][ $item_id ] ) ) {
+				$moved = in_array( $item_id, $snapshot['base_changes']['changed_ids'] ?? array(), true ) ? $this->order_item_tax_base_moved( $item ) : array();
+				if ( ! array_key_exists( 'total', $moved ) || 0.0 !== (float) $moved['total'] ) {
+					continue;
+				}
+			}
+
+			$names[ spl_object_id( $item ) ] = $item->get_name();
+		}
+
+		$snapshot['not_covered_by_record'] = $names;
+
+		return $snapshot;
 	}
 
 	/**
@@ -7010,10 +7283,20 @@ class WC_Connect_TaxJar_Integration {
 				continue;
 			}
 
-			$line_rates[ $item_key ] = $this->get_looked_up_rates( $lookup['rate_ids'][ $line_id ], $lookup['response_lines'][ $line_id ] ?? null );
+			$response_line           = $lookup['response_lines'][ $line_id ] ?? null;
+			$line_rates[ $item_key ] = $this->get_looked_up_rates( $lookup['rate_ids'][ $line_id ], $response_line );
 
-			if ( ! isset( $rates_by_class[ $item->get_tax_class() ] ) ) {
-				$rates_by_class[ $item->get_tax_class() ] = $line_rates[ $item_key ];
+			// A fee takes the first product's rates, at the percentages TaxJar answered for
+			// it, also when TaxJar taxed none of the product's amount, as for a line
+			// discounted to $0. A product TaxJar answered at 0% gives the fee no tax, as
+			// it got 0% before.
+			$fee_line = is_object( $response_line ) ? clone $response_line : null;
+			if ( $fee_line ) {
+				unset( $fee_line->taxable_amount );
+			}
+			$fee_rates = $this->get_looked_up_rates( $lookup['rate_ids'][ $line_id ], $fee_line );
+			if ( ! array_key_exists( $item->get_tax_class(), $rates_by_class ) && ( $fee_rates || ( $fee_line && ! self::answer_taxes_line( $fee_line ) ) ) ) {
+				$rates_by_class[ $item->get_tax_class() ] = $fee_rates;
 			}
 		}
 		$shipping_rates = empty( $lookup['rate_ids']['shipping'] ) ? array() : $this->get_looked_up_rates( $lookup['rate_ids']['shipping'] );
@@ -7035,7 +7318,7 @@ class WC_Connect_TaxJar_Integration {
 				// No product in the fee's tax class has rates from the lookup (there is
 				// none, or none of them is taxable): keep the tax WC gave it from the rate
 				// table, as checkout and the admin Recalculate do for fees.
-				if ( ! $rates ) {
+				if ( ! array_key_exists( $item->get_tax_class(), $rates_by_class ) ) {
 					$fee_taxes = $item->get_taxes();
 					if ( empty( $fee_taxes['total'] ) || ! array_filter( $fee_taxes['total'] ) ) {
 						$untaxed[] = $item->get_name();
@@ -7109,6 +7392,12 @@ class WC_Connect_TaxJar_Integration {
 	 * The percentage comes from the answer when it is given: it is what TaxJar charged
 	 * this line, while the shared row may since hold another line's rate.
 	 *
+	 * A rate the answer did not tax the line under is left out, so the line gets no tax
+	 * under it and no tax line says it applied. That is a rate TaxJar answered at 0% for
+	 * the line, or every rate when TaxJar taxed none of the line's amount. TaxJar answers
+	 * an item that is not taxed and an item at a 0% rate in the same way, so neither gets
+	 * a tax line. See answer_taxes_line().
+	 *
 	 * @param array       $rate_ids      Rate ids, in the order the answer's rates were stored.
 	 * @param object|null $response_line The answer's breakdown line for this item.
 	 * @return array
@@ -7116,6 +7405,10 @@ class WC_Connect_TaxJar_Integration {
 	private function get_looked_up_rates( array $rate_ids, $response_line = null ) {
 		$percents = array();
 		if ( is_object( $response_line ) ) {
+			if ( ! self::answer_taxes_line( $response_line ) ) {
+				return array();
+			}
+
 			// Same filter get_itemized_tax_rates() applies when it stores them.
 			foreach ( (array) $response_line as $name => $value ) {
 				if ( 'combined_tax_rate' === $name || false === strpos( $name, '_tax_rate' ) ) {
@@ -7127,6 +7420,10 @@ class WC_Connect_TaxJar_Integration {
 
 		$rates = array();
 		foreach ( array_values( $rate_ids ) as $index => $rate_id ) {
+			if ( isset( $percents[ $index ] ) && 0.0 === $percents[ $index ] ) {
+				continue;
+			}
+
 			$row = WC_Tax::_get_tax_rate( absint( $rate_id ) );
 			if ( ! $row ) {
 				continue;
@@ -7140,5 +7437,233 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $rates;
+	}
+
+	/**
+	 * Whether TaxJar's answer taxes any of a line.
+	 *
+	 * Not when every rate is 0% (an item that is not taxed), and not when TaxJar taxed
+	 * none of the line's amount: a $0 line, such as the sign-up of a free trial, comes
+	 * back at the full rate with nothing taxable.
+	 *
+	 * @param object $response_line The answer's breakdown line for an item.
+	 * @return bool
+	 */
+	private static function answer_taxes_line( $response_line ) {
+		if ( isset( $response_line->taxable_amount ) && 0.0 === (float) $response_line->taxable_amount ) {
+			return false;
+		}
+
+		$has_rates = false;
+		foreach ( (array) $response_line as $name => $value ) {
+			if ( 'combined_tax_rate' === $name || false === strpos( $name, '_tax_rate' ) ) {
+				continue;
+			}
+			if ( 0.0 !== round( (float) $value * 100, 4 ) ) {
+				return true;
+			}
+			$has_rates = true;
+		}
+
+		// An answer that names no rate says nothing about them: the rows' rates apply.
+		return ! $has_rates;
+	}
+
+	/**
+	 * Leave out the $0 shipping taxes under rates TaxJar answered in this request.
+	 *
+	 * WooCommerce taxes shipping from the rate rows, and TaxJar's answer writes a row for
+	 * every rate it names, at 0% too. A $0 entry becomes a tax line saying the rate
+	 * applied. A rate a merchant entered keeps its entry.
+	 *
+	 * @internal Hooked to woocommerce_calc_shipping_tax.
+	 *
+	 * @param array $taxes Shipping taxes by rate id.
+	 * @return array
+	 *
+	 * @since 3.7.8
+	 */
+	public function drop_untaxed_shipping_taxes( $taxes ) {
+		if ( ! is_array( $taxes ) || ! $this->rate_ids_written_in_request ) {
+			return $taxes;
+		}
+
+		foreach ( $taxes as $rate_id => $tax ) {
+			if ( is_numeric( $tax ) && 0.0 === (float) $tax && isset( $this->rate_ids_written_in_request[ absint( $rate_id ) ] ) ) {
+				unset( $taxes[ $rate_id ] );
+			}
+		}
+
+		return $taxes;
+	}
+
+	/**
+	 * Leave out the $0 taxes of an order's shipping line under rates TaxJar answered for
+	 * the order in this request. See drop_untaxed_shipping_taxes().
+	 *
+	 * @internal Hooked to woocommerce_order_item_shipping_after_calculate_taxes.
+	 *
+	 * @param WC_Order_Item_Shipping $item The shipping line.
+	 *
+	 * @since 3.7.8
+	 */
+	public function drop_untaxed_order_shipping_taxes( $item ) {
+		if ( ! $item instanceof WC_Order_Item_Shipping ) {
+			return;
+		}
+
+		$this->drop_untaxed_order_item_taxes( $item );
+	}
+
+	/**
+	 * Leave out the $0 fee taxes under rates TaxJar answered in this request.
+	 *
+	 * WooCommerce taxes a fee from the rate rows, as it does shipping. See
+	 * drop_untaxed_shipping_taxes().
+	 *
+	 * @internal Hooked to woocommerce_cart_totals_get_fees_from_cart_taxes.
+	 *
+	 * @param array $taxes Fee taxes by rate id.
+	 * @return array
+	 *
+	 * @since 3.7.8
+	 */
+	public function drop_untaxed_fee_taxes( $taxes ) {
+		return $this->drop_untaxed_shipping_taxes( $taxes );
+	}
+
+	/**
+	 * Leave out the $0 taxes of an order's fee under rates TaxJar answered for the order
+	 * in this request. See drop_untaxed_shipping_taxes().
+	 *
+	 * @internal Hooked to woocommerce_order_item_after_calculate_taxes and
+	 *           woocommerce_order_item_fee_after_calculate_taxes.
+	 *
+	 * @param WC_Order_Item $item The item; only a fee is changed.
+	 *
+	 * @since 3.7.8
+	 */
+	public function drop_untaxed_order_fee_taxes( $item ) {
+		if ( ! $item instanceof WC_Order_Item_Fee ) {
+			return;
+		}
+
+		$this->drop_untaxed_order_item_taxes( $item );
+	}
+
+	/**
+	 * Leave out the $0 taxes of an order's shipping line or fee under rates TaxJar
+	 * answered for the order in this request.
+	 *
+	 * @param WC_Order_Item_Shipping|WC_Order_Item_Fee $item The shipping line or fee.
+	 */
+	private function drop_untaxed_order_item_taxes( $item ) {
+		// A checkout order is taxed by the cart's answer, and may not have an id yet.
+		if ( ! isset( $this->orders_answered_in_request[ (int) $item->get_order_id() ] ) && empty( $this->response_line_items ) ) {
+			return;
+		}
+
+		$taxes = $item->get_taxes();
+		$total = is_array( $taxes['total'] ?? null ) ? $taxes['total'] : array();
+		$kept  = $this->drop_untaxed_shipping_taxes( $total );
+
+		if ( count( $kept ) !== count( $total ) ) {
+			$item->set_taxes( array( 'total' => $kept ) );
+		}
+	}
+
+	/**
+	 * Record on an order that TaxJar answered for it and taxed none of it.
+	 *
+	 * Such an order has no tax lines, so its next edit would ask TaxJar again as for a
+	 * new order. With this record the edit keeps it at no tax, as its 0% tax lines did
+	 * before items that are not taxed stopped getting them. The record goes once the
+	 * order has tax.
+	 *
+	 * @internal Hooked to woocommerce_order_after_calculate_totals, after
+	 *           restore_order_taxes_after_recalculation().
+	 *
+	 * @param bool              $and_taxes Whether taxes were recalculated. Unused.
+	 * @param WC_Abstract_Order $order     The order whose totals were recalculated. A refund comes here too.
+	 *
+	 * @since 3.7.8
+	 */
+	public function record_no_tax_charged( $and_taxes, $order ) {
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+
+		// Kept for the request: the admin Recalculate totals the order once while saving its
+		// items and again after taxing them.
+		$this->update_no_tax_charged( $order, $this->order_was_answered( $order ) );
+	}
+
+	/**
+	 * Whether a TaxJar answer was applied to an order, or to one of its items, in this
+	 * request.
+	 *
+	 * @param WC_Order $order The order.
+	 * @return bool
+	 */
+	private function order_was_answered( WC_Order $order ) {
+		if ( isset( $this->orders_answered_in_request[ (int) $order->get_id() ] ) ) {
+			return true;
+		}
+
+		foreach ( $order->get_items() as $item ) {
+			if ( isset( $this->order_items_answered_in_request[ spl_object_id( $item ) ] ) ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Record on an order or subscription created at checkout whether TaxJar taxed none of
+	 * it. See record_no_tax_charged().
+	 *
+	 * @internal Hooked to woocommerce_checkout_create_order and
+	 *           woocommerce_checkout_create_subscription, before the save.
+	 *
+	 * @param WC_Order $order The order or subscription being created.
+	 *
+	 * @since 3.7.8
+	 */
+	public function record_no_tax_charged_at_checkout( $order ) {
+		if ( ! $order instanceof WC_Order ) {
+			return;
+		}
+
+		$this->update_no_tax_charged( $order, ! empty( $this->response_line_items ) );
+	}
+
+	/**
+	 * Set or remove the "no tax charged" record on an order. Saved with the order.
+	 *
+	 * @param WC_Order $order    The order.
+	 * @param bool     $answered Whether a TaxJar answer was applied to it.
+	 */
+	private function update_no_tax_charged( WC_Order $order, $answered ) {
+		if ( $order->get_taxes() ) {
+			if ( $order->meta_exists( self::NO_TAX_CHARGED_META_KEY ) ) {
+				$order->delete_meta_data( self::NO_TAX_CHARGED_META_KEY );
+			}
+			return;
+		}
+
+		if ( $answered ) {
+			$order->update_meta_data( self::NO_TAX_CHARGED_META_KEY, 'yes' );
+		}
+	}
+
+	/**
+	 * Whether TaxJar answered for an order and taxed none of it. See record_no_tax_charged().
+	 *
+	 * @param WC_Order $order The order.
+	 * @return bool
+	 */
+	private function order_records_no_tax_charged( WC_Order $order ) {
+		return 'yes' === $order->get_meta( self::NO_TAX_CHARGED_META_KEY );
 	}
 }

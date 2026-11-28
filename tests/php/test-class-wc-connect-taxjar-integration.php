@@ -4748,9 +4748,11 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * @param WC_Connect_TaxJar_Integration $integration  Integration under test.
 	 * @param bool                          $reload_items Total the order as loaded from the database, as a
 	 *                                                    draft order whose items an earlier request created.
+	 * @param bool                          $new_order    Build a new order that has no id until it is totalled,
+	 *                                                    as the Store API's first checkout request does.
 	 * @return WC_Order
 	 */
-	private function store_api_checkout( $integration, $reload_items = false ) {
+	private function store_api_checkout( $integration, $reload_items = false, $new_order = false ) {
 		$saved_route = $GLOBALS['wp']->query_vars['rest_route'] ?? null;
 
 		$GLOBALS['wp']->query_vars['rest_route'] = '/wc/store/v1/checkout';
@@ -4776,7 +4778,7 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 				'address_1' => '1 Test St',
 			);
 
-			$order = wc_create_order();
+			$order = $new_order ? new WC_Order() : wc_create_order();
 			$order->set_billing_address( $address );
 			$order->set_shipping_address( $address );
 			WC()->checkout->create_order_line_items( $order, WC()->cart );
@@ -5317,17 +5319,32 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertEqualsWithDelta( 0.0, (float) WC()->cart->get_cart_contents_tax(), 0.001, 'Cart tax' );
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
 
-		// It keeps the rate at $0, so its next edit isn't looked up again as a new order.
-		$lines = self::tax_lines_by_priority( $order );
-		$this->assertEqualsWithDelta( 6.0, $lines[4][0], 0.001, 'State tax line percent' );
-		$this->assertEqualsWithDelta( 0.0, $lines[4][1], 0.001, 'State tax line amount' );
+		// Nothing was taxed, so no tax line says a rate applied.
+		$this->assertSame( array(), self::tax_lines_by_priority( $order ), 'Tax lines' );
 	}
 
 	/**
-	 * A cart whose only line TaxJar answered as exempt keeps its tax lines at 0%, so an edit
-	 * of the order leaves it untaxed instead of looking it up again as new.
+	 * Whether the Store API's order already has an id when it is taxed.
+	 *
+	 * @return array
 	 */
-	public function test_order_with_only_an_exempt_line_keeps_its_tax_lines() {
+	public function provide_checkout_order_ids() {
+		return array(
+			'draft order with an id' => array( false ),
+			'new order, no id yet'   => array( true ),
+		);
+	}
+
+	/**
+	 * A cart whose only line TaxJar answered as exempt makes an order with no tax lines.
+	 * The order records that TaxJar charged it no tax, also when checkout taxes it
+	 * before it has an id.
+	 *
+	 * @dataProvider provide_checkout_order_ids
+	 *
+	 * @param bool $new_order Whether the order has no id until it is totalled.
+	 */
+	public function test_order_with_only_an_exempt_line_has_no_tax_lines( $new_order ) {
 		update_option( 'woocommerce_calc_taxes', 'yes' );
 		$this->require_taxes_controller();
 		$this->reset_tax_rate_tables();
@@ -5335,12 +5352,17 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->product = $this->priced_product( 50 );
 		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
 
-		$order = $this->store_api_checkout( $this->michigan_integration( true, false, 60 ) );
+		$integration = $this->michigan_integration( true, false, 60 );
+		add_action( 'woocommerce_order_after_calculate_totals', array( $integration, 'record_no_tax_charged' ), 20, 2 );
+		try {
+			$order = $this->store_api_checkout( $integration, false, $new_order );
+		} finally {
+			remove_action( 'woocommerce_order_after_calculate_totals', array( $integration, 'record_no_tax_charged' ), 20 );
+		}
 
 		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'TaxJar answered the $50 line as exempt' );
-		$lines = self::tax_lines_by_priority( $order );
-		$this->assertEqualsWithDelta( 0.0, $lines[4][0], 0.001, 'State tax line percent' );
-		$this->assertEqualsWithDelta( 0.0, $lines[4][1], 0.001, 'State tax line amount' );
+		$this->assertSame( array(), self::tax_lines_by_priority( $order ), 'Tax lines' );
+		$this->assertSame( 'yes', wc_get_order( $order->get_id() )->get_meta( '_wc_connect_taxjar_no_tax_charged' ), 'No tax charged' );
 	}
 
 	/**
@@ -5369,6 +5391,151 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		$this->assertSame( array(), $shirt_item->get_taxes()['total'] );
 
 		$shirt->delete( true );
+	}
+
+	/**
+	 * The priorities of the rates an order item is taxed under.
+	 *
+	 * @param WC_Order_Item $item Order item.
+	 * @return int[]
+	 */
+	private static function item_tax_priorities( $item ) {
+		$priorities = array();
+		foreach ( array_keys( $item->get_taxes()['total'] ) as $rate_id ) {
+			$priorities[] = (int) WC_Tax::_get_tax_rate( $rate_id )['tax_rate_priority'];
+		}
+		sort( $priorities );
+
+		return $priorities;
+	}
+
+	/**
+	 * Albany, NY: a $150 and a $50 clothing line. The $50 line has county tax and no
+	 * state tax, and the order has a state tax line for the $150 line only. Nothing is
+	 * taxed under City or Special, so the order has no line for them.
+	 */
+	public function test_partly_exempt_line_gets_no_tax_under_the_rate_it_is_not_taxed_at() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$coat          = $this->priced_product( 150 );
+		$this->product = $this->priced_product( 50 );
+		WC()->cart->add_to_cart( $coat->get_id(), 1 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		try {
+			$order = $this->store_api_checkout( $this->michigan_integration( true, false, null, null, self::partly_exempt_under_110() ) );
+		} finally {
+			$coat->delete( true );
+		}
+
+		// County (priority 2) 4% of both lines; state (priority 4) 4% of $150 only.
+		$this->assertSame(
+			array(
+				2 => array( 4.0, 8.0 ),
+				4 => array( 4.0, 6.0 ),
+			),
+			self::tax_lines_by_priority( $order )
+		);
+
+		foreach ( $order->get_items() as $item ) {
+			if ( $item->get_product_id() === $this->product->get_id() ) {
+				$this->assertSame( array( 2 ), self::item_tax_priorities( $item ), 'The $50 line: county only' );
+				$this->assertEqualsWithDelta( 2.0, self::item_tax( $item ), 0.001, '$50 line tax' );
+			} else {
+				$this->assertSame( array( 2, 4 ), self::item_tax_priorities( $item ), 'The $150 line: county and state' );
+				$this->assertEqualsWithDelta( 12.0, self::item_tax( $item ), 0.001, '$150 line tax' );
+			}
+		}
+		$this->assertEqualsWithDelta( (float) WC()->cart->get_cart_contents_tax(), (float) $order->get_cart_tax(), 0.001, 'The order charges what the cart showed' );
+	}
+
+	/**
+	 * A renewal TaxJar answers as exempt gives the subscription no tax lines, while the
+	 * sign-up order keeps its state tax line.
+	 */
+	public function test_exempt_renewal_gives_the_subscription_no_tax_lines() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 100 );
+		$box_key       = WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$integration    = $this->michigan_integration( true, false, 60 );
+		$recurring_cart = null;
+		$recurring      = self::total_a_recurring_cart( $integration, $box_key, 50, $recurring_cart );
+		try {
+			$order = $this->store_api_checkout( $integration );
+		} finally {
+			remove_filter( 'woocommerce_calculated_total', $recurring, 10 );
+		}
+
+		$this->assertSame( array( 4 => array( 6.0, 6.0 ) ), self::tax_lines_by_priority( $order ), 'Sign-up order' );
+
+		$this->assertSame( array(), $recurring_cart->get_cart_contents_taxes(), 'Renewal cart taxes' );
+		$subscription = new WC_Order();
+		WC()->checkout->create_order_tax_lines( $subscription, $recurring_cart );
+		$this->assertSame( array(), $subscription->get_taxes(), 'Subscription tax lines' );
+	}
+
+	/**
+	 * The $0 sign-up order of a free trial has no tax lines. TaxJar answers a $0 line
+	 * at the full rate, with nothing taxable.
+	 */
+	public function test_zero_priced_line_gets_no_tax_lines() {
+		update_option( 'woocommerce_calc_taxes', 'yes' );
+		$this->require_taxes_controller();
+		$this->reset_tax_rate_tables();
+
+		$this->product = $this->priced_product( 0 );
+		WC()->cart->add_to_cart( $this->product->get_id(), 1 );
+
+		$answer = static function ( $line_item ) {
+			return array(
+				'combined_tax_rate'    => 0.06,
+				'city_tax_rate'        => 0.0,
+				'county_tax_rate'      => 0.0,
+				'special_tax_rate'     => 0.0,
+				'state_sales_tax_rate' => 0.06,
+				'taxable_amount'       => (float) $line_item['unit_price'] * (float) $line_item['quantity'],
+			);
+		};
+
+		$order = $this->store_api_checkout( $this->michigan_integration( true, false, null, null, $answer ) );
+
+		$this->assertSame( array(), WC()->cart->get_cart_contents_taxes(), 'Cart taxes' );
+		$this->assertSame( array(), self::tax_lines_by_priority( $order ), 'Order tax lines' );
+	}
+
+	/**
+	 * Classic checkout and Subscriptions create the order from the cart without
+	 * totalling it. An order or subscription TaxJar answered for with no tax lines
+	 * records that no tax was charged; one with tax lines does not, and loses a record
+	 * copied from another order.
+	 */
+	public function test_checkout_records_no_tax_charged_only_without_tax_lines() {
+		$integration = $this->getMockBuilder( 'WC_Connect_TaxJar_Integration' )->disableOriginalConstructor()->onlyMethods( array( '_log' ) )->getMock();
+		$answers     = new ReflectionProperty( WC_Connect_TaxJar_Integration::class, 'response_line_items' );
+		$answers->setAccessible( true );
+
+		$untaxed = new WC_Order();
+		$integration->record_no_tax_charged_at_checkout( $untaxed );
+		$this->assertFalse( $untaxed->meta_exists( '_wc_connect_taxjar_no_tax_charged' ), 'No answer, no record' );
+
+		$answers->setValue( $integration, array( '1-a-1' => (object) array( 'combined_tax_rate' => 0 ) ) );
+		$integration->record_no_tax_charged_at_checkout( $untaxed );
+		$this->assertSame( 'yes', $untaxed->get_meta( '_wc_connect_taxjar_no_tax_charged' ), 'Answered, no tax lines' );
+
+		$taxed = new WC_Order();
+		$taxed->update_meta_data( '_wc_connect_taxjar_no_tax_charged', 'yes' );
+		$line = new WC_Order_Item_Tax();
+		$line->set_rate_id( 1 );
+		$line->set_tax_total( 1 );
+		$taxed->add_item( $line );
+		$integration->record_no_tax_charged_at_checkout( $taxed );
+		$this->assertFalse( $taxed->meta_exists( '_wc_connect_taxjar_no_tax_charged' ), 'Tax lines' );
 	}
 
 	/**
@@ -5832,8 +5999,8 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 	 * Recalculate saves only the tax items WooCommerce builds from the looked-up rates.
 	 *
 	 * Each saved tax item names a rate row and carries its label, and no notice is
-	 * raised along the way. The order's tax lines are the four rows the lookup wrote,
-	 * under their own names.
+	 * raised along the way. The lookup writes four rows; the order's one tax line is
+	 * the state's, under its own name, as TaxJar answered the other three at 0%.
 	 */
 	public function test_admin_recalculate_saves_no_tax_item_without_a_rate() {
 		$this->require_taxes_controller();
@@ -5855,19 +6022,21 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		}
 		$this->assertSame( 4, $this->count_tax_rate_rows() );
 
-		// One tax item per component, each under its own row's name. A tax item saved
-		// without a rate gets id 1 and the fallback label "Tax", so a name check is
-		// what tells it apart when the first component happens to be row 1.
-		$expected = array();
-		foreach ( $component_ids as $rate_id ) {
-			$expected[] = array(
-				'rate_id' => $rate_id,
-				'label'   => $this->tax_rate_snapshot( $rate_id )['name'],
-			);
-		}
-		$this->assertEqualsCanonicalizing( $expected, $saved->getArrayCopy() );
+		// One tax item for the state (priority 4), under its own row's name. A tax item
+		// saved without a rate gets id 1 and the fallback label "Tax", so a name check is
+		// what tells it apart when the component happens to be row 1.
+		$state_id = $component_ids[3];
+		$this->assertEqualsCanonicalizing(
+			array(
+				array(
+					'rate_id' => $state_id,
+					'label'   => $this->tax_rate_snapshot( $state_id )['name'],
+				),
+			),
+			$saved->getArrayCopy()
+		);
 
-		$this->assertEqualsCanonicalizing( $component_ids, $this->order_tax_rate_ids( $order ) );
+		$this->assertEqualsCanonicalizing( array( $state_id ), $this->order_tax_rate_ids( $order ) );
 		foreach ( $order->get_taxes() as $tax ) {
 			$this->assertSame( $this->tax_rate_snapshot( $tax->get_rate_id() )['name'], $tax->get_label() );
 		}
