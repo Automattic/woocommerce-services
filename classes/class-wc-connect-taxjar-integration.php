@@ -4,6 +4,7 @@ use Automattic\WCServices\StoreNotices\StoreNoticesNotifier;
 use Automattic\WCServices\Tax\Address;
 use Automattic\WCServices\Tax\StoreAddressNotice;
 use Automattic\WCServices\Tax\StoreAddressVerifier;
+use Automattic\WooCommerce\Utilities\NumberUtil;
 
 class WC_Connect_TaxJar_Integration {
 
@@ -6258,8 +6259,12 @@ class WC_Connect_TaxJar_Integration {
 			: sprintf( __( 'Order total: %s (no change).', 'woocommerce-services' ), wc_price( $total_after, $currency ) );
 		$lines[] = implode( ' ', $amounts );
 
-		$charged = (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'];
-		$lines[] = null !== $edit['charged_rate']
+		// Rounded once, as WC_Abstract_Order::set_total_tax() rounds it, and used for both the
+		// line and the difference. With tax rounded at subtotal the stored taxes are not in
+		// cents, and 1.125 + 0.36 is 1.48499..., which wc_price() prints as 1.48 on PHP 8.4.
+		$decimals = wc_get_price_decimals();
+		$charged  = NumberUtil::round( (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'], $decimals );
+		$lines[]  = null !== $edit['charged_rate']
 			/* translators: 1: tax charged, 2: tax rate such as 6%, 3: amount the tax was charged on. */
 			? sprintf( __( 'Tax charged: %1$s (%2$s on %3$s). The tax stays at %1$s.', 'woocommerce-services' ), wc_price( $charged, $currency ), $this->format_tax_percent( $edit['charged_rate']['percent'] ), wc_price( $edit['charged_rate']['base'], $currency ) )
 			/* translators: %s: tax charged. */
@@ -6268,8 +6273,9 @@ class WC_Connect_TaxJar_Integration {
 		if ( $address ) {
 			$lines[] = __( 'The tax for the new address was not calculated. It can be different, even in the same state.', 'woocommerce-services' );
 		} elseif ( is_array( $now ) && empty( $now['untaxed'] ) ) {
-			// Rounded first: float sums can leave -0.0000000000000004, which prints as -$0.00.
-			$difference = wc_price( round( $now['tax'] - $charged, wc_get_price_decimals() ), $currency );
+			// The two amounts the note prints, so the difference adds up with them. Rounded
+			// again: float sums can leave -0.0000000000000004, which prints as -$0.00.
+			$difference = wc_price( round( $now['tax'] - $charged, $decimals ), $currency );
 			$lines[]    = null !== $now['rate']
 				/* translators: 1: tax for the order as it is now, 2: tax rate such as 6%, 3: amount it is on, 4: difference from the tax charged. */
 				? sprintf( __( 'Tax for the order as it is now: %1$s (%2$s on %3$s). Difference: %4$s.', 'woocommerce-services' ), wc_price( $now['tax'], $currency ), $this->format_tax_percent( $now['rate']['percent'] ), wc_price( $now['rate']['base'], $currency ), $difference )
@@ -6348,12 +6354,16 @@ class WC_Connect_TaxJar_Integration {
 	 * The tax an order would have now at the rates already on it, without changing it.
 	 *
 	 * Uses the same rules as an edit of an order that is not locked (see
-	 * reapply_order_tax_rates()), and WooCommerce's rounding.
+	 * reapply_order_tax_rates()), and WooCommerce's rounding, so it is what that edit
+	 * would charge. Without "round tax at subtotal", each line's tax is rounded per rate
+	 * before the taxes are added, as WC_Abstract_Order::update_taxes() does. With it,
+	 * the taxes are added unrounded and the order total rounds the sum once, so the
+	 * rates are not rounded one by one here either.
 	 *
 	 * @param WC_Order $order    The recalculated order.
 	 * @param array    $snapshot Snapshot taken before the recalculation.
 	 * @return array {
-	 *   @type float      $tax     The tax.
+	 *   @type float      $tax     The tax, rounded to the store's decimals.
 	 *   @type array|null $rate    What summarize_order_tax_rate() gives for it.
 	 *   @type string[]   $untaxed Names of items the order has no rate for. The tax leaves them out.
 	 * }
@@ -6361,14 +6371,13 @@ class WC_Connect_TaxJar_Integration {
 	private function estimate_order_tax_with_recorded_rates( $order, array $snapshot ) {
 		$plan              = $this->plan_reapplied_order_taxes( $order, $snapshot );
 		$round_at_subtotal = 'yes' === get_option( 'woocommerce_tax_round_at_subtotal' );
-		$by_rate           = array();
+		$tax               = 0.0;
 		$entries           = array();
 
 		foreach ( $plan['items'] as $planned ) {
 			$taxes = is_array( $planned['taxes'] ) ? (array) ( $planned['taxes']['total'] ?? array() ) : array();
-			foreach ( $taxes as $rate_id => $tax ) {
-				$tax                       = $round_at_subtotal ? (float) $tax : (float) wc_round_tax_total( (float) $tax );
-				$by_rate[ (int) $rate_id ] = ( $by_rate[ (int) $rate_id ] ?? 0.0 ) + $tax;
+			foreach ( $taxes as $line_tax ) {
+				$tax += $round_at_subtotal ? (float) $line_tax : (float) wc_round_tax_total( (float) $line_tax );
 			}
 			$entries[] = array(
 				'total' => (float) $planned['item']->get_total(),
@@ -6376,13 +6385,11 @@ class WC_Connect_TaxJar_Integration {
 			);
 		}
 
-		$tax = 0.0;
-		foreach ( $by_rate as $rate_tax ) {
-			$tax += $round_at_subtotal ? (float) wc_round_tax_total( $rate_tax ) : $rate_tax;
-		}
-
 		return array(
-			'tax'     => $tax,
+			// Rounded as WC_Abstract_Order::set_total_tax() rounds it. NumberUtil::round() first
+			// evens out float noise: 1.125 + 0.36 is 1.48499..., which round() gives as 1.48 on
+			// PHP 8.4 and later.
+			'tax'     => NumberUtil::round( $tax, wc_get_price_decimals() ),
 			'rate'    => $this->summarize_order_tax_rate( $entries, $snapshot['tax_lines'] ),
 			'untaxed' => $plan['untaxed'],
 		);
