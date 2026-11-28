@@ -6299,8 +6299,12 @@ class WC_Connect_TaxJar_Integration {
 			: sprintf( __( 'Order total: %s (no change).', 'woocommerce-services' ), wc_price( $total_after, $currency ) );
 		$lines[] = implode( ' ', $amounts );
 
-		$charged = (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'];
-		$lines[] = null !== $edit['charged_rate']
+		// Rounded once, as WC_Abstract_Order::set_total_tax() rounds it, and used for both the
+		// line and the difference. With tax rounded at subtotal the stored taxes are not in
+		// cents, and 1.125 + 0.36 is 1.48499..., which wc_price() prints as 1.48 on PHP 8.4.
+		$decimals = wc_get_price_decimals();
+		$charged  = NumberUtil::round( (float) $snapshot['cart_tax'] + (float) $snapshot['shipping_tax'], $decimals );
+		$lines[]  = null !== $edit['charged_rate']
 			/* translators: 1: tax charged, 2: tax rate such as 6%, 3: amount the tax was charged on. */
 			? sprintf( __( 'Tax charged: %1$s (%2$s on %3$s). The tax stays at %1$s.', 'woocommerce-services' ), wc_price( $charged, $currency ), $this->format_tax_percent( $edit['charged_rate']['percent'] ), wc_price( $edit['charged_rate']['base'], $currency ) )
 			/* translators: %s: tax charged. */
@@ -6311,8 +6315,7 @@ class WC_Connect_TaxJar_Integration {
 		} elseif ( is_array( $now ) && empty( $now['untaxed'] ) ) {
 			// The two amounts the note prints, so the difference adds up with them. Rounded
 			// again: float sums can leave -0.0000000000000004, which prints as -$0.00.
-			$decimals   = wc_get_price_decimals();
-			$difference = wc_price( round( $now['tax'] - round( $charged, $decimals ), $decimals ), $currency );
+			$difference = wc_price( round( $now['tax'] - $charged, $decimals ), $currency );
 			$lines[]    = null !== $now['rate']
 				/* translators: 1: tax for the order as it is now, 2: tax rate such as 6%, 3: amount it is on, 4: difference from the tax charged. */
 				? sprintf( __( 'Tax for the order as it is now: %1$s (%2$s on %3$s). Difference: %4$s.', 'woocommerce-services' ), wc_price( $now['tax'], $currency ), $this->format_tax_percent( $now['rate']['percent'] ), wc_price( $now['rate']['base'], $currency ), $difference )
