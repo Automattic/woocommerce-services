@@ -1273,7 +1273,7 @@ class WC_Connect_TaxJar_Integration {
 		// after this hook. Save posts none: nothing is asked then.
 		$address = $this->get_backend_address();
 		if ( isset( $_POST['country'] ) && 'base' === $this->get_order_tax_location_type( $order, $this->get_backend_shipping_method_ids( $order ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Core verified the nonce and capability before woocommerce_before_save_order_items.
-			$address = Address::from_store_settings( $this->get_store_settings() )->to_legacy_options();
+			$address = $this->get_backend_store_tax_address( $order );
 		} else {
 			$address = $this->fill_missing_backend_street( $address, $order );
 		}
@@ -1683,11 +1683,7 @@ class WC_Connect_TaxJar_Integration {
 			}
 		}
 
-		// WC_AJAX::remove_order_item() saves the posted form, deletes these lines, then taxes the order.
-		$deleted = array();
-		if ( doing_action( 'wp_ajax_woocommerce_remove_order_item' ) && isset( $_POST['order_item_ids'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
-			$deleted = array_map( 'absint', array_filter( (array) wp_unslash( $_POST['order_item_ids'] ), 'is_scalar' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each id is cast with absint().
-		}
+		$deleted = $this->get_backend_deleted_item_ids();
 
 		$method_ids = array();
 		foreach ( $order->get_shipping_methods() as $item_id => $item ) {
@@ -1698,6 +1694,47 @@ class WC_Connect_TaxJar_Integration {
 		}
 
 		return $method_ids;
+	}
+
+	/**
+	 * Ids of the order lines being deleted from the order screen in this request.
+	 *
+	 * WC_AJAX::remove_order_item() saves the posted form, deletes these lines, then
+	 * taxes the order.
+	 *
+	 * @return int[]
+	 */
+	private function get_backend_deleted_item_ids() {
+		// Core verified the nonce and capability before woocommerce_before_save_order_items.
+		if ( ! doing_action( 'wp_ajax_woocommerce_remove_order_item' ) || ! isset( $_POST['order_item_ids'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing
+			return array();
+		}
+
+		return array_map( 'absint', array_filter( (array) wp_unslash( $_POST['order_item_ids'] ), 'is_scalar' ) ); // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- Each id is cast with absint().
+	}
+
+	/**
+	 * The address WooCommerce taxes an order at on the order screen when it is taxed at the store.
+	 *
+	 * WC_Abstract_Order::get_tax_location() takes the store address, then applies
+	 * woocommerce_order_get_tax_location. A Block checkout pickup order is moved there
+	 * to its pickup location (the _pickup_location_address on its shipping line). The
+	 * filter sees the order without the lines being deleted, as core taxes it after the
+	 * delete; this runs before it, so they are left out of a copy of the order.
+	 *
+	 * @param WC_Order $order The order.
+	 * @return array Address in the `to_*` shape of get_backend_address().
+	 */
+	private function get_backend_store_tax_address( $order ) {
+		$deleted = $this->get_backend_deleted_item_ids();
+		if ( $deleted ) {
+			$order = clone $order;
+			foreach ( $deleted as $item_id ) {
+				$order->remove_item( $item_id );
+			}
+		}
+
+		return $this->filter_order_tax_address( Address::from_store_settings( $this->get_store_settings() ), $order )->to_legacy_options();
 	}
 
 	/**

@@ -1428,24 +1428,22 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox Deleting the local pickup line with unsaved form edits asks at the posted address, where core taxes the order after the delete.
+	 * Delete an order line on the order screen with unsaved form edits, as WC_AJAX::remove_order_item() does.
+	 *
+	 * Posts the customer's address, as core's script does, saves the posted items,
+	 * deletes the line, then taxes the order at the posted address.
+	 *
+	 * @param int   $order_id Order id.
+	 * @param int   $item_id  Id of the line to delete.
+	 * @param array $items    Items form fields, as the order screen posts them.
+	 * @return WC_Order The order reloaded from the database.
 	 */
-	public function test_deleting_pickup_line_with_unsaved_edits_asks_at_posted_address() {
-		$this->move_store_to_boulder();
-		$fixture     = $this->create_placed_order( array( 'shipping_method' => 'local_pickup' ) );
-		$order_id    = $fixture['order']->get_id();
-		$shipping_id = array_keys( $fixture['order']->get_shipping_methods() )[0];
-		$address     = self::address();
-		$items       = array(
-			'shipping_method_id'    => array( $shipping_id ),
-			'shipping_method'       => array( $shipping_id => 'local_pickup' ),
-			'shipping_method_title' => array( $shipping_id => 'Pickup' ),
-			'shipping_cost'         => array( $shipping_id => '10' ),
-		);
-		$post        = array(
+	private function admin_delete_item( $order_id, $item_id, array $items ) {
+		$address = self::address();
+		$post    = array(
 			'action'         => 'woocommerce_remove_order_item',
 			'order_id'       => $order_id,
-			'order_item_ids' => (string) $shipping_id,
+			'order_item_ids' => (string) $item_id,
 			'country'        => $address['country'],
 			'state'          => $address['state'],
 			'postcode'       => $address['postcode'],
@@ -1455,9 +1453,9 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		);
 
 		// WC_AJAX::remove_order_item(): save the posted items, delete the line, then tax at the posted address.
-		$remove = static function () use ( $order_id, $shipping_id, $items, $post ) {
+		$remove = static function () use ( $order_id, $item_id, $items, $post ) {
 			wc_save_order_items( $order_id, $items );
-			wc_delete_order_item( $shipping_id );
+			wc_delete_order_item( $item_id );
 			$order = wc_get_order( $order_id );
 			$order->calculate_taxes(
 				array(
@@ -1487,12 +1485,159 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 			}
 		}
 
-		$order = wc_get_order( $order_id );
+		return wc_get_order( $order_id );
+	}
+
+	/**
+	 * Items form fields for the order's one shipping line, unchanged, as the order screen posts them.
+	 *
+	 * @param WC_Order $order Order.
+	 * @return array
+	 */
+	private static function shipping_form_fields( WC_Order $order ) {
+		$shipping = current( $order->get_shipping_methods() );
+
+		return array(
+			'shipping_method_id'    => array( $shipping->get_id() ),
+			'shipping_method'       => array( $shipping->get_id() => $shipping->get_method_id() ),
+			'shipping_method_title' => array( $shipping->get_id() => $shipping->get_method_title() ),
+			'shipping_cost'         => array( $shipping->get_id() => $shipping->get_total() ),
+		);
+	}
+
+	/**
+	 * @testdox Deleting the local pickup line with unsaved form edits asks at the posted address, where core taxes the order after the delete.
+	 */
+	public function test_deleting_pickup_line_with_unsaved_edits_asks_at_posted_address() {
+		$this->move_store_to_boulder();
+		$fixture     = $this->create_placed_order( array( 'shipping_method' => 'local_pickup' ) );
+		$order_id    = $fixture['order']->get_id();
+		$shipping_id = array_keys( $fixture['order']->get_shipping_methods() )[0];
+		$items       = array(
+			'shipping_method_id'    => array( $shipping_id ),
+			'shipping_method'       => array( $shipping_id => 'local_pickup' ),
+			'shipping_method_title' => array( $shipping_id => 'Pickup' ),
+			'shipping_cost'         => array( $shipping_id => '10' ),
+		);
+
+		$order = $this->admin_delete_item( $order_id, $shipping_id, $items );
+
 		$this->assertCount( 0, $order->get_shipping_methods(), 'core deleted the line' );
 		$this->assertCount( 1, $this->requests );
 		$this->assertSame( '80202', $this->requests[0]['to_zip'], 'asked at the customer' );
 		// 6%: A 0.60, B 1.20; no shipping left.
 		$this->assert_order_tax( $order, 1.80, 0.0, 31.80 );
+	}
+
+	/**
+	 * Make the fixture's shipping line a Block checkout pickup at a location in Littleton, CO 80120.
+	 *
+	 * WooCommerce saves the chosen location's address on the line, and taxes the order there.
+	 *
+	 * @param WC_Order $order Fixture order.
+	 */
+	private function pick_up_in_littleton( WC_Order $order ) {
+		$shipping = current( $order->get_shipping_methods() );
+		$shipping->set_method_id( 'pickup_location' );
+		$shipping->set_method_title( 'Pickup' );
+		$shipping->update_meta_data(
+			'_pickup_location_address',
+			array(
+				'address_1' => '5 Pickup Rd',
+				'city'      => 'Littleton',
+				'state'     => 'CO',
+				'postcode'  => '80120',
+				'country'   => 'US',
+			)
+		);
+		$shipping->save();
+	}
+
+	/**
+	 * @testdox Recalculate on a Block checkout pickup order asks at the pickup location, where WooCommerce taxes its fee.
+	 */
+	public function test_recalculate_block_pickup_order_asks_at_pickup_location() {
+		$this->move_store_to_boulder();
+		$fixture = $this->create_placed_order();
+		$this->pick_up_in_littleton( $fixture['order'] );
+		$fee_id = $this->add_discount_fee( wc_get_order( $fixture['order']->get_id() ) );
+
+		$order = $this->admin_recalculate( wc_get_order( $fixture['order']->get_id() ) );
+
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80120', $this->requests[0]['to_zip'], 'asked at the pickup location' );
+		$this->assertSame( 'Littleton', $this->requests[0]['to_city'] );
+		// 2.9%: A 0.29, B 0.58, fee -0.29, shipping 0.29; 30 + 10 - 10 + 0.58 + 0.29.
+		$this->assertEqualsWithDelta( -0.29, $this->item_tax( $order, $fee_id ), 0.001, 'fee' );
+		$this->assertEqualsWithDelta( 0.29, $this->item_tax( $order, $fixture['a'] ), 0.001, 'A' );
+		$this->assertEqualsWithDelta( 0.58, $this->item_tax( $order, $fixture['b'] ), 0.001, 'B' );
+		$this->assert_order_tax( $order, 0.58, 0.29, 30.87 );
+	}
+
+	/**
+	 * @testdox Recalculate on a Block checkout pickup order gives the tax the REST API gives the same order.
+	 */
+	public function test_recalculate_block_pickup_order_matches_rest() {
+		$this->move_store_to_boulder();
+		$rest = $this->rest_create(
+			array(
+				'billing'        => self::address(),
+				'shipping'       => self::address(),
+				'shipping_lines' => array(
+					array(
+						'method_id'    => 'pickup_location',
+						'method_title' => 'Pickup',
+						'total'        => '10.00',
+						'meta_data'    => array(
+							array(
+								'key'   => '_pickup_location_address',
+								'value' => array(
+									'address_1' => '5 Pickup Rd',
+									'city'      => 'Littleton',
+									'state'     => 'CO',
+									'postcode'  => '80120',
+									'country'   => 'US',
+								),
+							),
+						),
+					),
+				),
+			)
+		);
+		$this->forget_created_in_request();
+		$by_item = array();
+		foreach ( $rest->get_items( array( 'line_item', 'shipping' ) ) as $item_id => $item ) {
+			$by_item[ $item_id ] = (float) $item->get_total_tax();
+		}
+
+		$order = $this->admin_recalculate( $rest );
+
+		foreach ( $by_item as $item_id => $tax ) {
+			$this->assertEqualsWithDelta( $tax, (float) $order->get_item( $item_id )->get_total_tax(), 0.001, 'item ' . $item_id );
+		}
+		$this->assertEqualsWithDelta( (float) $rest->get_total(), (float) $order->get_total(), 0.001, 'order total' );
+		// The REST answer itself: 2.9% at the pickup location.
+		$this->assert_order_tax( $order, 0.87, 0.29, 41.16 );
+	}
+
+	/**
+	 * @testdox With taxes based on the store, deleting a Block checkout pickup line asks at the store, where core taxes the order after the delete.
+	 */
+	public function test_deleting_block_pickup_line_with_tax_based_on_store_asks_at_store() {
+		$this->move_store_to_boulder();
+		update_option( 'woocommerce_tax_based_on', 'base' );
+		$fixture = $this->create_placed_order();
+		$this->pick_up_in_littleton( $fixture['order'] );
+		$order       = wc_get_order( $fixture['order']->get_id() );
+		$shipping_id = array_keys( $order->get_shipping_methods() )[0];
+
+		$order = $this->admin_delete_item( $order->get_id(), $shipping_id, self::shipping_form_fields( $order ) );
+
+		$this->assertCount( 0, $order->get_shipping_methods(), 'core deleted the line' );
+		$this->assertCount( 1, $this->requests );
+		$this->assertSame( '80301', $this->requests[0]['to_zip'], 'asked at the store' );
+		// 8%: A 0.80, B 1.60; no shipping left.
+		$this->assert_order_tax( $order, 2.40, 0.0, 32.40 );
 	}
 
 	/**
