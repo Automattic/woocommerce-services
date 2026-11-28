@@ -2225,6 +2225,1100 @@ class WP_Test_WC_Connect_TaxJar_Order_Recalculation extends WC_Unit_Test_Case {
 	}
 
 	/**
+	 * Fee lines and, when asked, every product line sent again with its product id, as
+	 * the WooCommerce apps send each edit.
+	 *
+	 * @param WC_Order $order       Order.
+	 * @param array    $fee_lines   Fee lines to send.
+	 * @param bool     $resend_all  Whether to send every product line again too.
+	 * @return array REST request body.
+	 */
+	private function fee_edit_body( WC_Order $order, array $fee_lines, $resend_all ) {
+		$body = array( 'fee_lines' => $fee_lines );
+
+		if ( $resend_all ) {
+			$body['line_items'] = array();
+			foreach ( $order->get_items() as $item_id => $item ) {
+				$body['line_items'][] = array(
+					'id'         => $item_id,
+					'product_id' => $item->get_product_id(),
+					'quantity'   => $item->get_quantity(),
+				);
+			}
+		}
+
+		return $body;
+	}
+
+	/**
+	 * How an edit reaches the order: the fee alone, or with every line sent again.
+	 *
+	 * @return array
+	 */
+	public function provide_fee_edit_senders() {
+		return array(
+			'REST update of the fee'             => array( false ),
+			'app edit that sends every line too' => array( true ),
+		);
+	}
+
+	/**
+	 * @testdox A negative fee changed on an unpaid order is split across the order's tax classes again.
+	 *
+	 * @dataProvider provide_fee_edit_senders
+	 *
+	 * @param bool $resend_all Whether every product line is sent again.
+	 */
+	public function test_changed_negative_fee_is_split_across_classes( $resend_all ) {
+		$fixture = $this->create_placed_order_with_negative_fee();
+		$std     = $this->rate_id;
+		$reduced = $fixture['reduced_rate_id'];
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			$this->fee_edit_body(
+				$fixture['order'],
+				array(
+					array(
+						'id'    => $fixture['fee'],
+						'total' => '-10.00',
+					),
+				),
+				$resend_all
+			)
+		);
+
+		// A is $10 of the $30 the order's products cost, R $20. So -$3.333333 of the fee
+		// at Standard's 6% and -$6.666667 at Reduced rate's 2%, not rounded per share.
+		$this->assertEqualsWithDelta(
+			array(
+				$std     => -0.20,
+				$reduced => -0.133333,
+			),
+			$this->item_taxes_by_rate( $order, $fixture['fee'] ),
+			0.000001,
+			'the fee is split as WooCommerce splits it'
+		);
+		$this->assertEqualsWithDelta( array( $std => 0.60 ), $this->item_taxes_by_rate( $order, $fixture['a'] ), 0.001, 'A keeps its tax' );
+		$this->assertEqualsWithDelta( array( $reduced => 0.40 ), $this->item_taxes_by_rate( $order, $fixture['r'] ), 0.001, 'R keeps its tax' );
+		$this->assertEqualsWithDelta( 0.67, (float) $order->get_cart_tax(), 0.001, 'cart tax: 0.40 Standard + 0.27 Reduced rate' );
+		$this->assertEqualsWithDelta( 20.67, (float) $order->get_total(), 0.001, 'order total: 10 + 20 - 10 + 0.67' );
+
+		$percents = array();
+		foreach ( $order->get_taxes() as $tax_line ) {
+			$percents[ (int) $tax_line->get_rate_id() ] = (float) $tax_line->get_rate_percent();
+		}
+		$this->assertEqualsWithDelta(
+			array(
+				$std     => 6.0,
+				$reduced => 2.0,
+			),
+			$percents,
+			0.0001,
+			'the tax lines keep the rates the order was sold at'
+		);
+	}
+
+	/**
+	 * @testdox A negative fee moved to another tax class on an unpaid order keeps its split tax.
+	 */
+	public function test_negative_fee_moved_to_other_class_keeps_its_split_tax() {
+		$fixture = $this->create_placed_order_with_negative_fee();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'        => $fixture['fee'],
+						'tax_class' => 'reduced-rate',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 'reduced-rate', $order->get_item( $fixture['fee'] )->get_tax_class() );
+		// WooCommerce splits a negative fee by the order's classes, not by its own.
+		$this->assertEqualsWithDelta(
+			array(
+				$this->rate_id              => -0.12,
+				$fixture['reduced_rate_id'] => -0.08,
+			),
+			$this->item_taxes_by_rate( $order, $fixture['fee'] ),
+			0.001
+		);
+		$this->assertEqualsWithDelta( 0.80, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( 24.80, (float) $order->get_total(), 0.001, 'order total' );
+	}
+
+	/**
+	 * @testdox A negative fee moved to another tax class and changed on an unpaid order is split again.
+	 */
+	public function test_negative_fee_moved_and_changed_is_split_again() {
+		$fixture = $this->create_placed_order_with_negative_fee();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'        => $fixture['fee'],
+						'tax_class' => 'reduced-rate',
+						'total'     => '-9.00',
+					),
+				),
+			)
+		);
+
+		// A is $10 of $30, R $20: -$3 of the fee at Standard's 6%, -$6 at Reduced rate's 2%.
+		$this->assertEqualsWithDelta(
+			array(
+				$this->rate_id              => -0.18,
+				$fixture['reduced_rate_id'] => -0.12,
+			),
+			$this->item_taxes_by_rate( $order, $fixture['fee'] ),
+			0.000001,
+			'the fee is split by the order\'s classes, not taxed in its new one'
+		);
+		$this->assertEqualsWithDelta( 0.70, (float) $order->get_cart_tax(), 0.001, 'cart tax: 0.60 + 0.40 - 0.18 - 0.12' );
+		$this->assertEqualsWithDelta( 21.70, (float) $order->get_total(), 0.001, 'order total: 10 + 20 - 9 + 0.70' );
+	}
+
+	/**
+	 * @testdox A negative fee changed to add to an unpaid order is taxed at its own class's rate only.
+	 */
+	public function test_negative_fee_made_positive_takes_only_its_class_rate() {
+		$fixture = $this->create_placed_order_with_negative_fee();
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'    => $fixture['fee'],
+						'total' => '6.00',
+					),
+				),
+			)
+		);
+
+		// The fee is Standard: $6 at 6% = 0.36. It no longer takes a share of R's class.
+		$this->assertEqualsWithDelta( array( $this->rate_id => 0.36 ), $this->item_taxes_by_rate( $order, $fixture['fee'] ), 0.001 );
+		$this->assertEqualsWithDelta( 1.36, (float) $order->get_cart_tax(), 0.001, 'cart tax: 0.60 + 0.40 + 0.36' );
+		$this->assertEqualsWithDelta( 37.36, (float) $order->get_total(), 0.001, 'order total: 10 + 20 + 6 + 1.36' );
+	}
+
+	/**
+	 * @testdox A negative fee changed on a paid order keeps the tax it was charged.
+	 */
+	public function test_changed_negative_fee_keeps_charged_tax_on_paid_order() {
+		$fixture = $this->create_placed_order_with_negative_fee();
+		$this->pay_order( $fixture['order'] );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'    => $fixture['fee'],
+						'total' => '-10.00',
+					),
+				),
+			)
+		);
+
+		$this->assertEqualsWithDelta(
+			array(
+				$this->rate_id              => -0.12,
+				$fixture['reduced_rate_id'] => -0.08,
+			),
+			$this->item_taxes_by_rate( $order, $fixture['fee'] ),
+			0.001,
+			'the fee keeps the tax it was charged'
+		);
+		$this->assertEqualsWithDelta( 0.80, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertTrue( $this->has_kept_tax_note( $order ) );
+
+		// The note's estimate splits the fee too: 0.60 + 0.40 - 0.20 - 0.13.
+		$notes = $this->locked_order_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'Tax for the order as it is now: $0.67. Difference: -$0.13.', $notes[0] );
+	}
+
+	/**
+	 * Build a placed order with a taxed line and a line that pays no tax:
+	 *
+	 *   Product A (Standard)   $10.00  tax 0.60 (6%)
+	 *   Product Z              $20.00  no tax: in the Zero rate class, or not taxable
+	 *   Discount fee           -$10.00 not taxable, no tax (only when $untaxed_fee is true)
+	 *   ---------------------------------------------------
+	 *   cart tax 0.60, no shipping
+	 *
+	 * @param string $z_kind      'zero-rate' for a Zero rate product, 'none' for a product that is not taxable.
+	 * @param bool   $untaxed_fee Whether the order has the fee.
+	 * @return array{order: WC_Order, a: int, z: int, fee: int|null}
+	 */
+	private function create_placed_order_with_untaxed_line( $z_kind, $untaxed_fee = false ) {
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+
+		$z = $this->create_product( '20', 'zero-rate' === $z_kind ? 'zero-rate' : '' );
+		if ( 'none' === $z_kind ) {
+			$z->set_tax_status( 'none' );
+			$z->save();
+		}
+
+		$a_id = $order->add_product( $this->create_product( '10' ), 1 );
+		$z_id = $order->add_product( $z, 1 );
+
+		$order->get_item( $a_id, false )->set_taxes(
+			array(
+				'total'    => array( $this->rate_id => '0.6' ),
+				'subtotal' => array( $this->rate_id => '0.6' ),
+			)
+		);
+
+		$fee = null;
+		if ( $untaxed_fee ) {
+			$fee = new WC_Order_Item_Fee();
+			$fee->set_name( 'Discount' );
+			$fee->set_tax_class( '' );
+			$fee->set_tax_status( 'none' );
+			$fee->set_total( '-10' );
+			$order->add_item( $fee );
+		}
+
+		$tax_line = new WC_Order_Item_Tax();
+		$tax_line->set_rate_id( $this->rate_id );
+		$tax_line->set_rate_code( 'US-CO-CO TAX-1' );
+		$tax_line->set_label( 'CO Tax' );
+		$tax_line->set_rate_percent( 6.0 );
+		$tax_line->set_compound( false );
+		$tax_line->set_tax_total( 0.6 );
+		$tax_line->set_shipping_tax_total( 0 );
+		$order->add_item( $tax_line );
+
+		$order->set_cart_tax( 0.6 );
+		$order->set_total( ( $untaxed_fee ? 20 : 30 ) + 0.6 );
+		$order->set_status( 'on-hold' );
+		$order->save();
+		$this->forget_created_in_request();
+
+		return array(
+			'order' => $order,
+			'a'     => $a_id,
+			'z'     => $z_id,
+			'fee'   => $fee ? $fee->get_id() : null,
+		);
+	}
+
+	/**
+	 * A line that pays no tax: in the Zero rate class, or not taxable.
+	 *
+	 * @return array
+	 */
+	public function provide_untaxed_line_kinds() {
+		return array(
+			'Zero rate product'   => array( 'zero-rate' ),
+			'product not taxable' => array( 'none' ),
+		);
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order is split across the order's lines, and an untaxed line takes its share untaxed.
+	 *
+	 * @dataProvider provide_untaxed_line_kinds
+	 *
+	 * @param string $z_kind See create_placed_order_with_untaxed_line().
+	 */
+	public function test_new_negative_fee_is_split_across_lines( $z_kind ) {
+		$fixture = $this->create_placed_order_with_untaxed_line( $z_kind );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'name'       => 'Discount',
+						'total'      => '-10.00',
+						'tax_status' => 'taxable',
+						'tax_class'  => '',
+					),
+				),
+			)
+		);
+
+		$fees   = $order->get_fees();
+		$fee_id = reset( $fees )->get_id();
+
+		// A is $10 of $30: -$3.33 of the fee at 6%. Z's -$6.67 share pays no tax.
+		$this->assertEqualsWithDelta( array( $this->rate_id => -0.20 ), $this->item_taxes_by_rate( $order, $fee_id ), 0.001 );
+		$this->assertEqualsWithDelta( 0.40, (float) $order->get_cart_tax(), 0.001, 'cart tax: 0.60 - 0.20' );
+		$this->assertEqualsWithDelta( 20.40, (float) $order->get_total(), 0.001, 'order total: 10 + 20 - 10 + 0.40' );
+		$this->assertFalse( $this->has_untaxed_note( $order ), 'the fee is taxed, so no note says it was not' );
+	}
+
+	/**
+	 * @testdox A negative fee made taxable on an unpaid order is split across the order's lines.
+	 */
+	public function test_negative_fee_made_taxable_is_split_across_lines() {
+		$fixture = $this->create_placed_order_with_untaxed_line( 'zero-rate', true );
+
+		$order = $this->rest_update(
+			$fixture['order']->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'         => $fixture['fee'],
+						'tax_status' => 'taxable',
+					),
+				),
+			)
+		);
+
+		$this->assertSame( 'taxable', $order->get_item( $fixture['fee'] )->get_tax_status() );
+		$this->assertEqualsWithDelta( array( $this->rate_id => -0.20 ), $this->item_taxes_by_rate( $order, $fixture['fee'] ), 0.001 );
+		$this->assertEqualsWithDelta( 0.40, (float) $order->get_cart_tax(), 0.001, 'cart tax: 0.60 - 0.20' );
+		$this->assertEqualsWithDelta( 20.40, (float) $order->get_total(), 0.001, 'order total: 10 + 20 - 10 + 0.40' );
+	}
+
+	/**
+	 * Build a placed order on which nothing was taxed, as TaxJar leaves an order of only
+	 * exempt products: each line keeps the rate id at $0, and the tax line still shows
+	 * the rate's 6%.
+	 *
+	 *   Product A (Standard)   $10.00  tax 0 (exempt)
+	 *   Product B (Standard)   $20.00  tax 0 (exempt)
+	 *   Discount fee           -$6.00  tax 0
+	 *   ---------------------------------------------------
+	 *   cart tax 0, no shipping
+	 *
+	 * @return array{order: WC_Order, fee: int}
+	 */
+	private function create_placed_exempt_order_with_negative_fee() {
+		$order = wc_create_order();
+		$order->set_billing_country( 'US' );
+		$order->set_billing_state( 'CO' );
+		$order->set_billing_postcode( '80202' );
+		$order->set_billing_city( 'Denver' );
+
+		foreach ( array( '10', '20' ) as $price ) {
+			$item_id = $order->add_product( $this->create_product( $price ), 1 );
+			$order->get_item( $item_id, false )->set_taxes(
+				array(
+					'total'    => array( $this->rate_id => '0' ),
+					'subtotal' => array( $this->rate_id => '0' ),
+				)
+			);
+		}
+
+		$fee = new WC_Order_Item_Fee();
+		$fee->set_name( 'Discount' );
+		$fee->set_tax_class( '' );
+		$fee->set_tax_status( 'taxable' );
+		$fee->set_total( '-6' );
+		$fee->set_taxes( array( 'total' => array( $this->rate_id => '0' ) ) );
+		$order->add_item( $fee );
+
+		$tax_line = new WC_Order_Item_Tax();
+		$tax_line->set_rate_id( $this->rate_id );
+		$tax_line->set_rate_code( 'US-CO-CO TAX-1' );
+		$tax_line->set_label( 'CO Tax' );
+		$tax_line->set_rate_percent( 6.0 );
+		$tax_line->set_compound( false );
+		$tax_line->set_tax_total( 0 );
+		$tax_line->set_shipping_tax_total( 0 );
+		$order->add_item( $tax_line );
+
+		$order->set_cart_tax( 0 );
+		$order->set_total( 24 );
+		$order->set_status( 'on-hold' );
+		$order->save();
+		$this->forget_created_in_request();
+
+		return array(
+			'order' => $order,
+			'fee'   => $fee->get_id(),
+		);
+	}
+
+	/**
+	 * A negative fee changed to -$10, or a new -$10 fee.
+	 *
+	 * @return array
+	 */
+	public function provide_negative_fee_edits() {
+		return array(
+			'fee changed' => array( 'changed' ),
+			'fee added'   => array( 'added' ),
+		);
+	}
+
+	/**
+	 * @testdox A negative fee on an unpaid order takes no tax off at a rate the order's items paid nothing under.
+	 *
+	 * @dataProvider provide_negative_fee_edits
+	 *
+	 * @param string $edit 'changed' or 'added'.
+	 */
+	public function test_negative_fee_takes_no_tax_off_where_items_paid_none( $edit ) {
+		$fixture = $this->create_placed_exempt_order_with_negative_fee();
+
+		$fee_line = 'changed' === $edit
+			? array(
+				'id'    => $fixture['fee'],
+				'total' => '-10.00',
+			)
+			: array(
+				'name'       => 'New discount',
+				'total'      => '-10.00',
+				'tax_status' => 'taxable',
+				'tax_class'  => '',
+			);
+
+		$order = $this->rest_update( $fixture['order']->get_id(), array( 'fee_lines' => array( $fee_line ) ) );
+
+		// Neither product paid tax at the 6% rate, so no share of the fee takes tax off.
+		foreach ( $order->get_fees() as $fee ) {
+			$this->assertSame( array(), $this->item_taxes_by_rate( $order, $fee->get_id() ), $fee->get_name() . ' takes no tax off' );
+		}
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'the order\'s tax stays at $0, not below' );
+		$this->assertEqualsWithDelta( 'changed' === $edit ? 20.0 : 14.0, (float) $order->get_total(), 0.001, 'order total: 10 + 20 - the fees' );
+	}
+
+	/**
+	 * Build a placed order with $10 of shipping, for the shipping share of a negative fee.
+	 *
+	 * Each line is array( price, tax class, taxes by rate id ). The shipping is taxed at
+	 * $shipping_taxes (none: untaxed, as Colorado leaves shipping). Each tax line is
+	 * array( rate id, percent ); its totals come from the lines and the shipping. Rows the
+	 * order was taxed at may since have changed in the table: the test sets the table.
+	 *
+	 * @param array $lines          Product lines.
+	 * @param array $shipping_taxes Shipping tax by rate id.
+	 * @param array $tax_lines      The order's tax lines.
+	 * @param array $address        Country, state, postcode and city. Default Denver, CO.
+	 * @return array{order: WC_Order, lines: int[], shipping: int}
+	 */
+	private function create_placed_order_with_shipping( array $lines, array $shipping_taxes, array $tax_lines, array $address = array( 'US', 'CO', '80202', 'Denver' ) ) {
+		// Shipping in the Standard class, as the plugin sets it.
+		update_option( 'woocommerce_shipping_tax_class', '' );
+
+		$order = wc_create_order();
+		foreach ( array( 'billing', 'shipping' ) as $type ) {
+			$order->{"set_{$type}_country"}( $address[0] );
+			$order->{"set_{$type}_state"}( $address[1] );
+			$order->{"set_{$type}_postcode"}( $address[2] );
+			$order->{"set_{$type}_city"}( $address[3] );
+		}
+
+		$cart_by_rate = array();
+		$line_ids     = array();
+		$net          = 10.0;
+		foreach ( $lines as $line ) {
+			$item_id = $order->add_product( $this->create_product( $line[0], $line[1] ), 1 );
+			$order->get_item( $item_id, false )->set_taxes(
+				array(
+					'total'    => $line[2],
+					'subtotal' => $line[2],
+				)
+			);
+			foreach ( $line[2] as $rate_id => $tax ) {
+				$cart_by_rate[ $rate_id ] = ( $cart_by_rate[ $rate_id ] ?? 0.0 ) + (float) $tax;
+			}
+			$line_ids[] = $item_id;
+			$net       += (float) $line[0];
+		}
+
+		$shipping = new WC_Order_Item_Shipping();
+		$shipping->set_method_title( 'Flat rate' );
+		$shipping->set_method_id( 'flat_rate' );
+		$shipping->set_total( '10' );
+		$shipping->set_taxes( array( 'total' => $shipping_taxes ) );
+		$order->add_item( $shipping );
+
+		foreach ( $tax_lines as $line ) {
+			$tax_line = new WC_Order_Item_Tax();
+			$tax_line->set_rate_id( $line[0] );
+			$tax_line->set_rate_code( 'US-RATE-' . $line[0] );
+			$tax_line->set_label( 'Tax ' . $line[1] . '%' );
+			$tax_line->set_rate_percent( $line[1] );
+			$tax_line->set_compound( false );
+			$tax_line->set_tax_total( $cart_by_rate[ $line[0] ] ?? 0 );
+			$tax_line->set_shipping_tax_total( $shipping_taxes[ $line[0] ] ?? 0 );
+			$order->add_item( $tax_line );
+		}
+
+		$order->set_shipping_total( '10' );
+		$order->set_cart_tax( array_sum( $cart_by_rate ) );
+		$order->set_shipping_tax( array_sum( array_map( 'floatval', $shipping_taxes ) ) );
+		$order->set_total( $net + array_sum( $cart_by_rate ) + array_sum( array_map( 'floatval', $shipping_taxes ) ) );
+		$order->set_status( 'on-hold' );
+		$order->save();
+		$this->forget_created_in_request();
+
+		$shipping_ids = array_keys( $order->get_shipping_methods() );
+
+		return array(
+			'order'    => $order,
+			'lines'    => $line_ids,
+			'shipping' => (int) reset( $shipping_ids ),
+		);
+	}
+
+	/**
+	 * A tax rate row for the Reduced rate class in Colorado.
+	 *
+	 * @param string $percent The row's rate in the table.
+	 * @return int Rate id.
+	 */
+	private function insert_reduced_rate_row( $percent = '0.0000' ) {
+		return WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => $percent,
+				'tax_rate_name'     => 'Reduced',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => 'reduced-rate',
+			)
+		);
+	}
+
+	/**
+	 * Update an order through the REST API, on an order whose shipping is in a class no
+	 * product line is in.
+	 *
+	 * WooCommerce's own split of a negative fee, which this plugin then replaces, warns
+	 * there: it adds the shipping's cost to a class key it never set. PHP 8 raises that
+	 * as a warning, PHP 7.4 as a notice.
+	 *
+	 * @param int   $order_id Order id.
+	 * @param array $body     Request body.
+	 * @return WC_Order The order reloaded from the database.
+	 */
+	private function rest_update_beside_core_fee_warning( $order_id, array $body ) {
+		$previous = set_error_handler( // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_set_error_handler -- Test only.
+			static function ( $errno, $errstr, $errfile, $errline ) use ( &$previous ) {
+				$is_undefined_key = ( E_WARNING === $errno && 'Undefined array key ""' === $errstr ) || ( E_NOTICE === $errno && 'Undefined index: ' === $errstr );
+				if ( $is_undefined_key && 'class-wc-order-item-fee.php' === basename( $errfile ) ) {
+					return true;
+				}
+
+				return $previous ? $previous( $errno, $errstr, $errfile, $errline ) : false;
+			}
+		);
+		try {
+			return $this->rest_update( $order_id, $body );
+		} finally {
+			restore_error_handler();
+		}
+	}
+
+	/**
+	 * Add a new discount fee to an order over REST.
+	 *
+	 * @param int    $order_id Order id.
+	 * @param string $total    Fee total, below $0.
+	 * @return array{order: WC_Order, fee: int}
+	 */
+	private function add_negative_fee( $order_id, $total ) {
+		$order = $this->rest_update_beside_core_fee_warning(
+			$order_id,
+			array(
+				'fee_lines' => array(
+					array(
+						'name'       => 'Discount',
+						'total'      => $total,
+						'tax_status' => 'taxable',
+						'tax_class'  => '',
+					),
+				),
+			)
+		);
+
+		$fees = $order->get_fees();
+
+		return array(
+			'order' => $order,
+			'fee'   => reset( $fees )->get_id(),
+		);
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order takes a share of the shipping too, taxed at the shipping's rate.
+	 */
+	public function test_new_negative_fee_takes_a_share_of_the_shipping() {
+		// Albany, NY: a $100 gadget at 8%, $50 jeans at 4% (clothing, in Reduced rate here)
+		// and $10 shipping at 8%.
+		$std     = $this->rate_id;
+		$reduced = $this->insert_reduced_rate_row();
+		$fixture = $this->create_placed_order_with_shipping(
+			array(
+				array( '100', '', array( $std => '8' ) ),
+				array( '50', 'reduced-rate', array( $reduced => '2' ) ),
+			),
+			array( $std => '0.8' ),
+			array( array( $std, 8.0 ), array( $reduced, 4.0 ) ),
+			array( 'US', 'NY', '12207', 'Albany' )
+		);
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-30.00' );
+		$order = $added['order'];
+
+		// The order costs $160: the gadget's class takes 100/160 of the fee, the jeans'
+		// 50/160 and the shipping 10/160, at the Standard rate as WooCommerce taxes it.
+		// Standard: -(18.75 + 1.875) x 8% = -1.65. Reduced rate: -9.375 x 4% = -0.375.
+		$this->assertEqualsWithDelta(
+			array(
+				$std     => -1.65,
+				$reduced => -0.375,
+			),
+			$this->item_taxes_by_rate( $order, $added['fee'] ),
+			0.000001,
+			'the shipping takes its share of the fee'
+		);
+		// Cart tax: 8.00 + 2.00 - 1.65 - 0.38 (the fee's tax rounded per line).
+		$this->assertEqualsWithDelta( 7.97, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.80, (float) $order->get_shipping_tax(), 0.001, 'the shipping keeps its tax' );
+		$this->assertEqualsWithDelta( 138.77, (float) $order->get_total(), 0.001, 'order total: 100 + 50 + 10 - 30 + 7.97 + 0.80' );
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order taxes the shipping's share at every rate its class's lines paid, when the shipping paid only some of them.
+	 */
+	public function test_shipping_share_of_negative_fee_uses_class_rates_when_shipping_paid_fewer() {
+		// A $100 Standard product at 4% and 3%, and $10 shipping at the 4% only: the 3% row
+		// has Shipping unticked.
+		$std     = $this->rate_id;
+		$second  = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '3.0000',
+				'tax_rate_name'     => 'Not on shipping',
+				'tax_rate_priority' => 2,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 0,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+		$fixture = $this->create_placed_order_with_shipping(
+			array(
+				array(
+					'100',
+					'',
+					array(
+						$std    => '4',
+						$second => '3',
+					),
+				),
+			),
+			array( $std => '0.4' ),
+			array( array( $std, 4.0 ), array( $second, 3.0 ) )
+		);
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-22.00' );
+		$order = $added['order'];
+
+		// WooCommerce puts the shipping's $10 in the Standard class with the product, so
+		// the whole -$22 is taxed at both Standard rates: -0.88 at 4% and -0.66 at 3%.
+		// Taxing the shipping's -$2 share at the 4% only gives -0.60 at 3%.
+		$this->assertEqualsWithDelta(
+			array(
+				$std    => -0.88,
+				$second => -0.66,
+			),
+			$this->item_taxes_by_rate( $order, $added['fee'] ),
+			0.000001,
+			'the shipping\'s share is taxed at every Standard rate'
+		);
+		// Cart tax: 7.00 - 0.88 - 0.66.
+		$this->assertEqualsWithDelta( 5.46, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.40, (float) $order->get_shipping_tax(), 0.001, 'the shipping keeps its tax' );
+		$this->assertEqualsWithDelta( 93.86, (float) $order->get_total(), 0.001, 'order total: 100 + 10 - 22 + 5.46 + 0.40' );
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order taxes the shipping's share at the shipping's rate when the Standard lines paid none.
+	 */
+	public function test_shipping_share_of_negative_fee_uses_shipping_rate_where_standard_lines_paid_none() {
+		$reduced = $this->insert_reduced_rate_row();
+		// An exempt Standard product (its rate id at $0), a taxed Reduced rate one, and
+		// shipping charged at the Standard 6%.
+		$fixture = $this->create_placed_order_with_shipping(
+			array(
+				array( '10', '', array( $this->rate_id => '0' ) ),
+				array( '20', 'reduced-rate', array( $reduced => '0.4' ) ),
+			),
+			array( $this->rate_id => '0.6' ),
+			array( array( $this->rate_id, 6.0 ), array( $reduced, 2.0 ) )
+		);
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-10.00' );
+		$order = $added['order'];
+
+		// The order costs $40. The Reduced rate line's -$5 share at 2%, the shipping's
+		// -$2.50 at the 6% it paid. The exempt line's -$2.50 takes no tax off.
+		$this->assertEqualsWithDelta(
+			array(
+				$reduced       => -0.10,
+				$this->rate_id => -0.15,
+			),
+			$this->item_taxes_by_rate( $order, $added['fee'] ),
+			0.000001
+		);
+		$this->assertEqualsWithDelta( 0.15, (float) $order->get_cart_tax(), 0.001, 'cart tax: 0.40 - 0.10 - 0.15' );
+		$this->assertEqualsWithDelta( 0.60, (float) $order->get_shipping_tax(), 0.001, 'the shipping keeps its tax' );
+		$this->assertEqualsWithDelta( 30.75, (float) $order->get_total(), 0.001, 'order total: 10 + 20 + 10 - 10 + 0.15 + 0.60' );
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order taxes the shipping's share at the rate table's Standard rate when no line is Standard.
+	 */
+	public function test_shipping_share_of_negative_fee_uses_rate_table_without_standard_line() {
+		// The Standard row is 6% in the table now. The order has no Standard line and its
+		// shipping was not taxed, as Colorado leaves it.
+		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+		$reduced = $this->insert_reduced_rate_row();
+		$fixture = $this->create_placed_order_with_shipping(
+			array( array( '20', 'reduced-rate', array( $reduced => '0.4' ) ) ),
+			array(),
+			array( array( $reduced, 2.0 ) )
+		);
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-10.00' );
+		$order = $added['order'];
+
+		// The order costs $30. The Reduced rate line takes -$6.666667 of the fee at the 2%
+		// it was charged; the shipping -$3.333333 at the Standard rate WooCommerce finds
+		// for the order's address, 6%.
+		$this->assertEqualsWithDelta(
+			array(
+				$reduced       => -0.133333,
+				$this->rate_id => -0.20,
+			),
+			$this->item_taxes_by_rate( $order, $added['fee'] ),
+			0.000001,
+			'the shipping\'s share is taxed at the Standard rate'
+		);
+		// Cart tax: Reduced 0.40 - 0.13, Standard -0.20.
+		$this->assertEqualsWithDelta( 0.07, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_shipping_tax(), 0.001, 'the shipping stays untaxed' );
+		$this->assertEqualsWithDelta( 20.07, (float) $order->get_total(), 0.001, 'order total: 20 + 10 - 10 + 0.07' );
+		$this->assertFalse( $this->has_untaxed_note( $order ) );
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order with no Standard line taxes the shipping's share at the rate table's Standard rate, not at the shipping's rate in another class.
+	 */
+	public function test_shipping_share_of_negative_fee_leaves_out_shipping_rate_of_other_class() {
+		// The shipping was charged 5% under its own row, in another class. The Standard
+		// row is 6% in the table, which the order's shipping was not charged at.
+		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+		$reduced  = $this->insert_reduced_rate_row();
+		$shipping = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '0.0000',
+				'tax_rate_name'     => 'Shipping',
+				'tax_rate_priority' => 2,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => 'zero-rate',
+			)
+		);
+		$fixture  = $this->create_placed_order_with_shipping(
+			array( array( '20', 'reduced-rate', array( $reduced => '0.4' ) ) ),
+			array( $shipping => '0.5' ),
+			array( array( $reduced, 2.0 ), array( $shipping, 5.0 ) )
+		);
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-10.00' );
+		$order = $added['order'];
+
+		// The order costs $30. The Reduced rate line's -$6.666667 share at 2%. The shipping's
+		// -$3.333333 share at the Standard rate WooCommerce finds for the order's address,
+		// 6%, as WooCommerce takes it off. The 5% the shipping was charged is in the Zero
+		// rate class, so it is left out.
+		$this->assertEqualsWithDelta(
+			array(
+				$reduced       => -0.133333,
+				$this->rate_id => -0.20,
+			),
+			$this->item_taxes_by_rate( $order, $added['fee'] ),
+			0.000001,
+			'the shipping\'s share is taxed at the Standard rate only'
+		);
+		// Cart tax: Reduced 0.40 - 0.13, Standard -0.20.
+		$this->assertEqualsWithDelta( 0.07, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.50, (float) $order->get_shipping_tax(), 0.001, 'the shipping keeps its tax' );
+		$this->assertEqualsWithDelta( 20.57, (float) $order->get_total(), 0.001, 'order total: 20 + 10 - 10 + 0.07 + 0.50' );
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order with no Standard line leaves out the shipping's Standard rate once its row is gone, and takes the share off at the row that replaced it.
+	 */
+	public function test_shipping_share_of_negative_fee_leaves_out_shipping_rate_whose_row_is_gone() {
+		// $10 shipping charged at a Standard 6% row. The table was rewritten since: that row
+		// is gone, and a new Standard row holds the 6% for the address. No line is Standard.
+		$reduced = $this->insert_reduced_rate_row();
+		$old     = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '6.0000',
+				'tax_rate_name'     => 'Old',
+				'tax_rate_priority' => 1,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+		$fixture = $this->create_placed_order_with_shipping(
+			array( array( '20', 'reduced-rate', array( $reduced => '0.4' ) ) ),
+			array( $old => '0.6' ),
+			array( array( $reduced, 2.0 ), array( $old, 6.0 ) )
+		);
+		WC_Tax::_delete_tax_rate( $old );
+		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-10.00' );
+		$order = $added['order'];
+
+		// The order costs $30. The Reduced rate line's -$6.666667 share at 2%. The shipping's
+		// -$3.333333 share at the 6% of the Standard row WooCommerce finds now, once. The
+		// gone row is not taken off a second time.
+		$this->assertEqualsWithDelta(
+			array(
+				$reduced       => -0.133333,
+				$this->rate_id => -0.20,
+			),
+			$this->item_taxes_by_rate( $order, $added['fee'] ),
+			0.000001,
+			'the shipping\'s share is taxed at the Standard rate once'
+		);
+		// Cart tax: Reduced 0.40 - 0.13, Standard -0.20.
+		$this->assertEqualsWithDelta( 0.07, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.60, (float) $order->get_shipping_tax(), 0.001, 'the shipping keeps its tax' );
+		$this->assertEqualsWithDelta( 20.67, (float) $order->get_total(), 0.001, 'order total: 20 + 10 - 10 + 0.07 + 0.60' );
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order with a Standard line taxes the shipping's share at the Standard line's rate, not at the shipping's rate in another class.
+	 */
+	public function test_shipping_share_of_negative_fee_with_line_in_class_leaves_out_shipping_rate_of_other_class() {
+		// A $100 Standard product at 4%, and $10 shipping charged 5% under its own row, in
+		// the Zero rate class.
+		$std      = $this->rate_id;
+		$shipping = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '0.0000',
+				'tax_rate_name'     => 'Shipping',
+				'tax_rate_priority' => 2,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 1,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => 'zero-rate',
+			)
+		);
+		$fixture  = $this->create_placed_order_with_shipping(
+			array( array( '100', '', array( $std => '4' ) ) ),
+			array( $shipping => '0.5' ),
+			array( array( $std, 4.0 ), array( $shipping, 5.0 ) )
+		);
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-22.00' );
+		$order = $added['order'];
+
+		// WooCommerce puts the shipping's $10 in the Standard class with the product, so the
+		// whole -$22 is taxed at the Standard rate only: -0.88 at 4%. The 5% the shipping was
+		// charged is in the Zero rate class, so it is left out. Taking the shipping's -$2
+		// share off at it as well gives -0.10 more.
+		$this->assertEqualsWithDelta(
+			array( $std => -0.88 ),
+			$this->item_taxes_by_rate( $order, $added['fee'] ),
+			0.000001,
+			'the shipping\'s share is taxed at the Standard rate only'
+		);
+		// Cart tax: 4.00 - 0.88.
+		$this->assertEqualsWithDelta( 3.12, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.50, (float) $order->get_shipping_tax(), 0.001, 'the shipping keeps its tax' );
+		$this->assertEqualsWithDelta( 91.62, (float) $order->get_total(), 0.001, 'order total: 100 + 10 - 22 + 3.12 + 0.50' );
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order with no Standard line taxes the shipping's share at every Standard rate, also one with Shipping unticked.
+	 */
+	public function test_shipping_share_of_negative_fee_uses_class_rates_without_line_in_class() {
+		// A $20 Reduced rate product at 2%, and $10 shipping at the Standard 4% only: the
+		// Standard 3% row has Shipping unticked. The order records the 4% row, which is 0%
+		// in the table now. No line is Standard.
+		$reduced = $this->insert_reduced_rate_row();
+		$second  = WC_Tax::_insert_tax_rate(
+			array(
+				'tax_rate_country'  => 'US',
+				'tax_rate_state'    => 'CO',
+				'tax_rate'          => '3.0000',
+				'tax_rate_name'     => 'Not on shipping',
+				'tax_rate_priority' => 2,
+				'tax_rate_compound' => 0,
+				'tax_rate_shipping' => 0,
+				'tax_rate_order'    => 0,
+				'tax_rate_class'    => '',
+			)
+		);
+		$fixture = $this->create_placed_order_with_shipping(
+			array( array( '20', 'reduced-rate', array( $reduced => '0.4' ) ) ),
+			array( $this->rate_id => '0.4' ),
+			array( array( $reduced, 2.0 ), array( $this->rate_id, 4.0 ) )
+		);
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-10.00' );
+		$order = $added['order'];
+
+		// The order costs $30. The Reduced rate line's -$6.666667 share at 2%. WooCommerce
+		// taxes the shipping's -$3.333333 share at both Standard rows it finds for the
+		// address: the 4% the order recorded (taken off once, though the shipping was also
+		// charged at it) and the 3% the shipping was not charged at.
+		$this->assertEqualsWithDelta(
+			array(
+				$reduced       => -0.133333,
+				$this->rate_id => -0.133333,
+				$second        => -0.10,
+			),
+			$this->item_taxes_by_rate( $order, $added['fee'] ),
+			0.000001,
+			'the shipping\'s share is taxed at every Standard rate'
+		);
+		// Cart tax: Reduced 0.40 - 0.13, Standard 4% -0.13, Standard 3% -0.10.
+		$this->assertEqualsWithDelta( 0.04, (float) $order->get_cart_tax(), 0.001, 'cart tax' );
+		$this->assertEqualsWithDelta( 0.40, (float) $order->get_shipping_tax(), 0.001, 'the shipping keeps its tax' );
+		$this->assertEqualsWithDelta( 20.44, (float) $order->get_total(), 0.001, 'order total: 20 + 10 - 10 + 0.04 + 0.40' );
+	}
+
+	/**
+	 * @testdox A negative fee changed on an unpaid order with no Standard line taxes the shipping's share at the Standard rate the order recorded.
+	 */
+	public function test_shipping_share_of_changed_negative_fee_keeps_recorded_standard_rate() {
+		// At checkout WooCommerce split the -$6 fee: the Reduced rate line's -$4 at 2%, the
+		// shipping's -$2 at the Standard 6%. The Standard row has since been overwritten to
+		// 0% in the table; the order still records 6%.
+		$reduced = $this->insert_reduced_rate_row();
+		$fixture = $this->create_placed_order_with_shipping(
+			array( array( '20', 'reduced-rate', array( $reduced => '0.4' ) ) ),
+			array(),
+			array( array( $reduced, 2.0 ), array( $this->rate_id, 6.0 ) )
+		);
+		$order   = $fixture['order'];
+		$fee     = new WC_Order_Item_Fee();
+		$fee->set_name( 'Discount' );
+		$fee->set_tax_class( '' );
+		$fee->set_tax_status( 'taxable' );
+		$fee->set_total( '-6' );
+		$fee->set_taxes(
+			array(
+				'total' => array(
+					$reduced       => '-0.08',
+					$this->rate_id => '-0.12',
+				),
+			)
+		);
+		$order->add_item( $fee );
+		foreach ( $order->get_taxes() as $tax_line ) {
+			$tax_line->set_tax_total( $reduced === (int) $tax_line->get_rate_id() ? 0.32 : -0.12 );
+		}
+		$order->set_cart_tax( 0.20 );
+		$order->set_total( 24.20 );
+		$order->save();
+		$this->forget_created_in_request();
+
+		$order = $this->rest_update_beside_core_fee_warning(
+			$order->get_id(),
+			array(
+				'fee_lines' => array(
+					array(
+						'id'    => $fee->get_id(),
+						'total' => '-10.00',
+					),
+				),
+			)
+		);
+
+		// -$6.666667 at 2%, the shipping's -$3.333333 at the 6% the order recorded.
+		$this->assertEqualsWithDelta(
+			array(
+				$reduced       => -0.133333,
+				$this->rate_id => -0.20,
+			),
+			$this->item_taxes_by_rate( $order, $fee->get_id() ),
+			0.000001,
+			'the shipping\'s share is taxed at the rate the order recorded, not the table\'s'
+		);
+		$this->assertEqualsWithDelta( 0.07, (float) $order->get_cart_tax(), 0.001, 'cart tax: Reduced 0.40 - 0.13, Standard -0.20' );
+		$this->assertEqualsWithDelta( 20.07, (float) $order->get_total(), 0.001, 'order total: 20 + 10 - 10 + 0.07' );
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order takes no tax off for the shipping's share when nothing on the order was taxed.
+	 */
+	public function test_shipping_share_of_negative_fee_takes_no_tax_off_untaxed_order() {
+		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+		$reduced = $this->insert_reduced_rate_row( '2.0000' );
+		// An exempt product: TaxJar keeps the rate id at $0.
+		$fixture = $this->create_placed_order_with_shipping(
+			array( array( '20', 'reduced-rate', array( $reduced => '0' ) ) ),
+			array(),
+			array( array( $reduced, 2.0 ) )
+		);
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-10.00' );
+		$order = $added['order'];
+
+		$this->assertSame( array(), $this->item_taxes_by_rate( $order, $added['fee'] ), 'the fee takes no tax off' );
+		$this->assertEqualsWithDelta( 0.0, (float) $order->get_cart_tax(), 0.001, 'the order\'s tax stays at $0, not below' );
+		$this->assertEqualsWithDelta( 20.0, (float) $order->get_total(), 0.001, 'order total: 20 + 10 - 10' );
+	}
+
+	/**
+	 * @testdox A new negative fee on an unpaid order takes no tax off for the shipping's share when the Standard lines paid none.
+	 */
+	public function test_shipping_share_of_negative_fee_takes_no_tax_off_where_standard_lines_paid_none() {
+		WC_Tax::_update_tax_rate( $this->rate_id, array( 'tax_rate' => '6.0000' ) );
+		$reduced = $this->insert_reduced_rate_row();
+		// An exempt Standard product (its rate id at $0) and a taxed Reduced rate one.
+		$fixture = $this->create_placed_order_with_shipping(
+			array(
+				array( '10', '', array( $this->rate_id => '0' ) ),
+				array( '20', 'reduced-rate', array( $reduced => '0.4' ) ),
+			),
+			array(),
+			array( array( $this->rate_id, 6.0 ), array( $reduced, 2.0 ) )
+		);
+
+		$added = $this->add_negative_fee( $fixture['order']->get_id(), '-10.00' );
+		$order = $added['order'];
+
+		// The order costs $40. Only the Reduced rate line's -$5 share takes tax off: 2%.
+		// The Standard line and the shipping, in the Standard class, paid nothing at 6%.
+		$this->assertEqualsWithDelta( array( $reduced => -0.10 ), $this->item_taxes_by_rate( $order, $added['fee'] ), 0.000001 );
+		$this->assertEqualsWithDelta( 0.30, (float) $order->get_cart_tax(), 0.001, 'cart tax: 0.40 - 0.10' );
+		$this->assertEqualsWithDelta( 30.30, (float) $order->get_total(), 0.001, 'order total: 10 + 20 + 10 - 10 + 0.30' );
+	}
+
+	/**
 	 * @testdox A saved item that cannot be loaded does not break the edit.
 	 */
 	public function test_unloadable_saved_item_is_skipped() {
