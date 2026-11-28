@@ -1269,8 +1269,8 @@ class WC_Connect_TaxJar_Integration {
 		// WooCommerce taxes an order at the store address when it uses local pickup or
 		// taxes are based on the store, whatever address the form posted, and taxes its
 		// fees there. Its products are asked about there too, as the REST path does.
-		// Only Recalculate and a deletion post an address, even an empty one, and only they
-		// tax the order after this hook. Save and Add item post none: nothing is asked then.
+		// Recalculate and a deletion post an address, even an empty one, and tax the order
+		// after this hook. Save posts none: nothing is asked then.
 		$address = $this->get_backend_address();
 		if ( isset( $_POST['country'] ) && 'base' === $this->get_order_tax_location_type( $order, $this->get_backend_shipping_method_ids( $order ) ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Missing -- Core verified the nonce and capability before woocommerce_before_save_order_items.
 			$address = Address::from_store_settings( $this->get_store_settings() )->to_legacy_options();
