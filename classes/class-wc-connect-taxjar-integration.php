@@ -1564,7 +1564,21 @@ class WC_Connect_TaxJar_Integration {
 			$address = Address::from_customer_shipping( WC()->customer );
 		}
 
-		return apply_filters( 'woocommerce_customer_taxable_address', $address->to_taxable_tuple() );
+		// Core only fires this filter with a customer object, and callbacks may require it
+		// (WooCommerce 11.4 registers one with two required parameters). With no customer
+		// (admin, REST, cron) only the base address gets here: pass an empty guest customer.
+		$customer = null === WC()->customer ? new WC_Customer() : WC()->customer;
+
+		/**
+		 * Filters the taxable address for a customer. WooCommerce core filter, fired here with
+		 * the same arguments as WC_Customer::get_taxable_address(), plus the street at index 4.
+		 *
+		 * @param array       $taxable_address Country, state, postcode, city and street.
+		 * @param WC_Customer $customer        The customer whose address is used.
+		 *
+		 * @since 3.0.0
+		 */
+		return apply_filters( 'woocommerce_customer_taxable_address', $address->to_taxable_tuple(), $customer ); // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WooCommerce core filter.
 	}
 
 	/**

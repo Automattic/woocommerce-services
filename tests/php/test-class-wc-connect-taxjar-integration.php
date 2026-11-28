@@ -892,6 +892,91 @@ class WP_Test_WC_Connect_TaxJar_Integration extends WC_Unit_Test_Case {
 		WC()->customer = $original_customer;
 	}
 
+	/**
+	 * Fire get_taxable_address() with a callback on `woocommerce_customer_taxable_address`
+	 * that requires two arguments, as WooCommerce 11.4's BaseLocationTaxEstimate does.
+	 *
+	 * @param string $location_type Location type passed to get_taxable_address().
+	 * @return array{address: array, calls: array<int, array{0: mixed, 1: mixed}>}
+	 */
+	private function get_taxable_address_with_two_argument_callback( $location_type ) {
+		$calls    = array();
+		$callback = static function ( $taxable_address, $customer ) use ( &$calls ) {
+			$calls[] = array( $taxable_address, $customer );
+			return $taxable_address;
+		};
+		add_filter( 'woocommerce_customer_taxable_address', $callback, 10, 2 );
+
+		try {
+			$address = $this->invoke_protected_method( 'get_taxable_address', array( $location_type ) );
+		} finally {
+			remove_filter( 'woocommerce_customer_taxable_address', $callback, 10 );
+		}
+
+		return array(
+			'address' => $address,
+			'calls'   => $calls,
+		);
+	}
+
+	/**
+	 * Location types get_taxable_address() resolves from the customer or the store.
+	 *
+	 * @return array<string, array{0: string}>
+	 */
+	public function provider_taxable_address_location_types() {
+		return array(
+			'shipping' => array( 'shipping' ),
+			'billing'  => array( 'billing' ),
+			'base'     => array( 'base' ),
+		);
+	}
+
+	/**
+	 * @testdox Should pass the customer as the 2nd argument of woocommerce_customer_taxable_address, as WooCommerce core does.
+	 *
+	 * WooCommerce 11.4 adds a callback that requires two arguments. Applying the filter
+	 * with one argument threw an ArgumentCountError on the cart and the shortcode checkout.
+	 *
+	 * @dataProvider provider_taxable_address_location_types
+	 *
+	 * @param string $location_type Location type passed to get_taxable_address().
+	 */
+	public function test_get_taxable_address_passes_customer_to_filter( $location_type ) {
+		WC()->customer->set_shipping_country( 'US' );
+		WC()->customer->set_shipping_state( 'NY' );
+		WC()->customer->set_shipping_postcode( '10001' );
+
+		$result = $this->get_taxable_address_with_two_argument_callback( $location_type );
+
+		$this->assertCount( 1, $result['calls'], 'The filter should run once.' );
+		$this->assertSame( WC()->customer, $result['calls'][0][1], 'The 2nd argument should be WC()->customer.' );
+		$this->assertSame( $result['calls'][0][0], $result['address'], 'The filtered tuple should be returned.' );
+	}
+
+	/**
+	 * @testdox Should pass a WC_Customer, not null, to woocommerce_customer_taxable_address for the base address when WC()->customer is null.
+	 *
+	 * Core only fires the filter from WC_Customer::get_taxable_address(), so callbacks may
+	 * rely on a customer object. A request with no customer (admin, REST, cron) gets an
+	 * empty guest customer.
+	 */
+	public function test_get_taxable_address_base_passes_guest_customer_to_filter_when_customer_is_null() {
+		$original_customer = WC()->customer;
+		WC()->customer     = null;
+
+		try {
+			$result = $this->get_taxable_address_with_two_argument_callback( 'base' );
+		} finally {
+			WC()->customer = $original_customer;
+		}
+
+		$this->assertCount( 1, $result['calls'], 'The filter should still run for the base address.' );
+		$this->assertInstanceOf( WC_Customer::class, $result['calls'][0][1] );
+		$this->assertSame( 0, $result['calls'][0][1]->get_id(), 'The stand-in customer should be a guest.' );
+		$this->assertSame( WC()->countries->get_base_country(), $result['address'][0] );
+	}
+
 	// -------------------------------------------------------------------------
 	// aggregate_tax_totals() tests
 	// -------------------------------------------------------------------------

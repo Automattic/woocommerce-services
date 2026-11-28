@@ -6,6 +6,7 @@
 * Fix   - Stop the cart showing tax for an earlier address or shipping method when the checkout sends several changes at once.
 * Fix   - Send TaxJar product tax codes that contain a letter, such as 81162000A0000 for software as a service (SaaS), when a tax class name ends with one. They were not sent, so these products were taxed at the general rate. The code is sent in upper case, as TaxJar lists it. Codes of 5 or 8 digits, such as 31000, work as before. Any other number at the end of a tax class name, such as the 2 in "Rate 2", is no longer sent to TaxJar, which did not use it.
 * Fix   - Security update.
+* Fix   - Stop a fatal error on the cart and checkout pages with WooCommerce 11.4.
 * Tweak - WordPress 7.2 Compatibility.
 
 = 3.7.7 - 2026-11-17 =
