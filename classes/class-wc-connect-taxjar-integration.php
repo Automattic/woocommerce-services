@@ -4584,7 +4584,7 @@ class WC_Connect_TaxJar_Integration {
 		$snapshot['address_before'] = $this->find_order_tax_address_change( $order );
 		$snapshot['no_tax_charged'] = empty( $snapshot['tax_lines'] ) && $this->order_records_no_tax_charged( $order );
 		$snapshot                   = $this->find_what_no_tax_record_does_not_cover( $order, $snapshot );
-		$snapshot['unrated_lines']  = $this->find_lines_without_class_rates( $order, $snapshot );
+		$snapshot['unrated_lines']  = $this->find_unrated_lines( $order, $snapshot );
 
 		// A locked order is not looked up again: its tax stays at what was charged.
 		$snapshot['lookup'] = ! $snapshot['locked'] && $this->order_needs_tax_lookup( $snapshot );
@@ -4806,8 +4806,8 @@ class WC_Connect_TaxJar_Integration {
 			$reapplied = $this->reapply_order_tax_rates( $order, $snapshot );
 		}
 
-		// TaxJar was asked only about a line with no rates in its tax class (see
-		// find_lines_without_class_rates()). The edit is applied as it is without a lookup.
+		// TaxJar was asked only about a line with no rates of its own (see
+		// find_unrated_lines()). The edit is applied as it is without a lookup.
 		if ( ! is_array( $lookup ) && null !== $lookup && ! empty( $snapshot['tax_lines'] ) && null === $snapshot['address_before'] ) {
 			$notes[] = $this->get_failed_order_tax_lookup_note( $lookup );
 		}
@@ -5810,16 +5810,20 @@ class WC_Connect_TaxJar_Integration {
 	}
 
 	/**
-	 * Find the lines that get an amount again and have no rates in their tax class on
-	 * the order.
+	 * Find the lines that get an amount again and have no rates of their own, which
+	 * TaxJar is asked about.
 	 *
 	 * A line that was $0 after its discounts was charged no tax at any rate, so it has no
-	 * rates of its own. Given an amount, it takes the rates of the other lines in its tax
-	 * class (see plan_reapplied_order_taxes()). When it is the only line in its class,
-	 * there are none, and TaxJar is asked about the order, as for an order with no tax
-	 * yet. A line that is still $0 is not. Shipping that was $0 is treated the same way:
-	 * it takes the rates of the order's other shipping, and TaxJar is asked when there
-	 * are none and no other shipping shows that the order's shipping is not taxed.
+	 * rates of its own. Given an amount, TaxJar is asked about the order, as for an order
+	 * with no tax yet. The rates of the other lines in its tax class are not its rates:
+	 * TaxJar can tax two lines of one class differently, by their amounts (New York taxes
+	 * clothing under $110 at the local rates only). If TaxJar does not answer, the line
+	 * takes those rates (see plan_reapplied_order_taxes()). A line that is still $0 is
+	 * not asked about.
+	 *
+	 * Shipping that was $0 takes the rates of the order's other shipping, and TaxJar is
+	 * asked when there are none and no other shipping shows that the order's shipping is
+	 * not taxed.
 	 *
 	 * Not on a locked order: it keeps the tax it was charged. Not on an order with
 	 * refunded tax either: its refunds are recorded against the rates it has.
@@ -5828,14 +5832,13 @@ class WC_Connect_TaxJar_Integration {
 	 * @param array    $snapshot Snapshot with tax_lines, item_taxes, locked and base_changes.
 	 * @return string[] The lines' and shipping's names, keyed by item id.
 	 */
-	private function find_lines_without_class_rates( $order, array $snapshot ) {
+	private function find_unrated_lines( $order, array $snapshot ) {
 		if ( empty( $snapshot['tax_lines'] ) || ! empty( $snapshot['locked'] ) || 0.0 !== (float) $order->get_total_tax_refunded() ) {
 			return array();
 		}
 
-		$order_rate_ids    = array_map( 'intval', wp_list_pluck( $snapshot['tax_lines'], 'rate_id' ) );
-		$rate_ids_by_class = null;
-		$names             = array();
+		$order_rate_ids = array_map( 'intval', wp_list_pluck( $snapshot['tax_lines'], 'rate_id' ) );
+		$names          = array();
 		foreach ( $order->get_items() as $item_id => $item ) {
 			if ( 'taxable' !== $item->get_tax_status() || 0 >= (float) $item->get_total() || ! empty( $snapshot['item_taxes'][ $item_id ]['total'] ) ) {
 				continue;
@@ -5843,11 +5846,6 @@ class WC_Connect_TaxJar_Integration {
 
 			// A saved line, in the class it was taxed in, that was $0.
 			if ( ! in_array( (int) $item_id, $snapshot['base_changes']['known_ids'], true ) || isset( $snapshot['base_changes']['reclassed'][ (int) $item_id ] ) || 0.0 !== (float) $this->get_order_item_saved_base( $item )['total'] ) {
-				continue;
-			}
-
-			$rate_ids_by_class = $rate_ids_by_class ?? $this->get_order_rate_ids_by_class( $order, $snapshot );
-			if ( array_intersect( array_map( 'intval', $rate_ids_by_class[ $item->get_tax_class() ] ?? array() ), $order_rate_ids ) ) {
 				continue;
 			}
 
@@ -6897,10 +6895,9 @@ class WC_Connect_TaxJar_Integration {
 	 *
 	 * Asked when the address the order is taxed on changed, or when the order has no
 	 * tax yet and its items changed. A new order counts: its items are first saved in
-	 * the same request. Also when a line gets an amount again and its tax class has no
-	 * rates on the order, or shipping does and the order has no shipping rates (see
-	 * find_lines_without_class_rates()). Everything else re-uses
-	 * the rates recorded on the order, with no request.
+	 * the same request. Also when a line gets an amount again with no rates of its own,
+	 * or shipping does and the order has no shipping rates (see find_unrated_lines()).
+	 * Everything else re-uses the rates recorded on the order, with no request.
 	 *
 	 * @param array $snapshot Snapshot with base_changes and address_before.
 	 * @return bool
@@ -6915,8 +6912,8 @@ class WC_Connect_TaxJar_Integration {
 			return true;
 		}
 
-		// A line that gets an amount again, with no rates in its tax class on the order.
-		// See find_lines_without_class_rates().
+		// A line that gets an amount again, with no rates of its own. See
+		// find_unrated_lines().
 		if ( ! empty( $snapshot['unrated_lines'] ) ) {
 			return true;
 		}

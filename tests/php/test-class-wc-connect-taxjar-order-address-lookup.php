@@ -2734,9 +2734,9 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	}
 
 	/**
-	 * @testdox A line TaxJar answered at $0 beside a taxed line, set back to $100, is taxed at the rates of the taxed line, with a note.
+	 * @testdox When TaxJar does not answer for a line answered at $0 beside a taxed line and set back to $100, the line is taxed at the rates of the taxed line, and the note says so.
 	 */
-	public function test_line_answered_at_zero_beside_a_taxed_line_and_set_back_takes_its_class_rates() {
+	public function test_failed_lookup_for_a_line_beside_a_taxed_line_and_set_back_takes_its_class_rates() {
 		$order = $this->rest_create(
 			array(
 				'line_items' => array(
@@ -2760,7 +2760,8 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 		// Boulder 8%: $100 8.00, $10 shipping 0.80.
 		$this->assert_order_tax( $order, 8.00, 0.80, 118.80 );
 		$this->forget_created_in_request();
-		$this->requests = array();
+		$this->requests    = array();
+		$this->taxjar_down = true;
 
 		$order = $this->rest_update(
 			$order->get_id(),
@@ -2775,17 +2776,86 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 			)
 		);
 
-		$this->assertCount( 0, $this->requests, 'The rates already on the order are used' );
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
 		// 8% of each $100 line, and of $10 shipping.
 		$this->assert_order_tax( $order, 16.00, 0.80, 226.80 );
 		$this->assertEqualsWithDelta( 8.00, $this->item_tax( $order, $ids[1] ), 0.001, 'The line set back' );
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
+		$this->assertStringContainsString( 'the tax service did not answer', $notes[0] );
 		$this->assertStringContainsString( 'Tax updated from', $notes[0] );
+		$this->assertStringNotContainsString( 'No tax was added', $notes[0] );
 	}
 
 	/**
-	 * @testdox A line created at $0 over REST beside a taxed line ($shape), priced at $100 later, is taxed at the rates of the taxed line, with a note.
+	 * @testdox A line discounted to $0 beside a line of $other in its tax class, set back to $amount, asks TaxJar: the other line's rates are not its rates.
+	 *
+	 * TaxJar exempts lines of $20 or more from the state rate here, as New York exempts
+	 * clothing under $110 from its state rate. Each line's rates depend on its own
+	 * amount, so the other line's rates say nothing about the line set back.
+	 *
+	 * @testWith ["100", "10", 5.10, 0.80, 2]
+	 *           ["10", "100", 0.80, 5.10, 1]
+	 *
+	 * @param string $other      Price of the other line.
+	 * @param string $amount     Amount the $0 line is set back to.
+	 * @param float  $other_tax  Tax on the other line: 8% under $20, the 5.1% city rate from $20.
+	 * @param float  $line_tax   Tax on the line set back, by the same rule.
+	 * @param int    $line_rates Number of rates the line set back is taxed at.
+	 */
+	public function test_line_discounted_to_zero_beside_a_line_with_other_rates_and_set_back_is_looked_up( $other, $amount, $other_tax, $line_tax, $line_rates ) {
+		$this->state_threshold = true;
+
+		$order = $this->rest_create(
+			array(
+				'line_items' => array(
+					array(
+						'product_id' => $this->create_product( $other )->get_id(),
+						'quantity'   => 1,
+					),
+					// As at a checkout with a 100% coupon on this line: TaxJar answers it at $0.
+					array(
+						'product_id' => $this->create_product( $amount )->get_id(),
+						'quantity'   => 1,
+						'subtotal'   => $amount,
+						'total'      => '0.00',
+					),
+				),
+			)
+		);
+
+		$ids = array_keys( $order->get_items() );
+		$this->assertSame( array(), $order->get_item( $ids[1] )->get_taxes()['total'], 'The $0 line has no tax' );
+		$this->assertEqualsWithDelta( $other_tax, $this->item_tax( $order, $ids[0] ), 0.001, 'The other line' );
+		$this->forget_created_in_request();
+		$this->requests = array();
+
+		$order = $this->rest_update(
+			$order->get_id(),
+			array(
+				'line_items' => array(
+					array(
+						'id'       => $ids[1],
+						'subtotal' => $amount,
+						'total'    => $amount,
+					),
+				),
+			)
+		);
+
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		$this->assertEqualsWithDelta( $line_tax, $this->item_tax( $order, $ids[1] ), 0.001, 'The line set back' );
+		$this->assertCount( $line_rates, array_filter( $order->get_item( $ids[1] )->get_taxes()['total'] ), 'The rates of the line set back' );
+		$this->assertEqualsWithDelta( $other_tax, $this->item_tax( $order, $ids[0] ), 0.001, 'The other line' );
+		// Boulder: the two lines as above, and $10 shipping at 8%.
+		$this->assert_order_tax( $order, 5.90, 0.80, 126.70 );
+		$notes = $this->tax_notes( $order );
+		$this->assertCount( 1, $notes );
+		$this->assertStringNotContainsString( 'No tax was added', $notes[0] );
+	}
+
+	/**
+	 * @testdox A line created at $0 over REST beside a taxed line ($shape), priced at $100 later, asks TaxJar and is taxed at its answer, with a note.
 	 *
 	 * A line with no price is not sent to TaxJar, so it has no rates of its own.
 	 *
@@ -2794,7 +2864,7 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 	 *
 	 * @param string $shape How the line is $0.
 	 */
-	public function test_line_created_at_zero_beside_a_taxed_line_and_priced_later_takes_its_class_rates( $shape ) {
+	public function test_line_created_at_zero_beside_a_taxed_line_and_priced_later_is_looked_up( $shape ) {
 		$zero_line = 'a free product' === $shape
 			? array(
 				'product_id' => $this->create_product( '0' )->get_id(),
@@ -2839,13 +2909,13 @@ class WP_Test_WC_Connect_TaxJar_Order_Address_Lookup extends WC_Unit_Test_Case {
 			)
 		);
 
-		$this->assertCount( 0, $this->requests, 'The rates already on the order are used' );
-		// 8% of each $100 line, and of $10 shipping.
+		$this->assertCount( 1, $this->requests, 'TaxJar is asked' );
+		// Boulder 8% on each $100 line, and on $10 shipping.
 		$this->assert_order_tax( $order, 16.00, 0.80, 226.80 );
 		$this->assertEqualsWithDelta( 8.00, $this->item_tax( $order, $ids[1] ), 0.001, 'The line priced later' );
 		$notes = $this->tax_notes( $order );
 		$this->assertCount( 1, $notes );
-		$this->assertStringContainsString( 'Tax updated from', $notes[0] );
+		$this->assertStringContainsString( 'Tax recalculated from', $notes[0] );
 	}
 
 	/**
